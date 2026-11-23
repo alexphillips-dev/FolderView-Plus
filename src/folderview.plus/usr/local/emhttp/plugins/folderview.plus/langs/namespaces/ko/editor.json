@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "2850d5716c03e8e9e35ffa6f0c26991950c3cd293f74e310b8e8a5e206d1e6c5"
     },
     "editor.settings.information-about": "$1에 대한 정보",
     "editor.actions.add-custom": "사용자 정의 동작 추가",

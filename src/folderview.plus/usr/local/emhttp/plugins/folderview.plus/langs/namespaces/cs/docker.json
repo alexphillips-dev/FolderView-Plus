@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dae3e1d41b751e683b0428752bd8e669a1a2bba3fee61c002cb7f1cc2637fe93"
     },
     "docker.folder.move-reload": "Konfigurace složky se změnila. Před opětovným přesunem složky aktualizujte.",
     "docker.actions.label": "Akce FolderView",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "57d9262d2bc09e90bcd786d9be22186420dd208789275ca2a1594dac8c9d7a52"
     },
     "editor.settings.information-about": "Información sobre $1",
     "editor.actions.add-custom": "Agregar una acción personalizada",

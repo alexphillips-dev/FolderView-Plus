@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "e0e117a37358c68bb9914a4ac4cdce965e3a60eb4b2d660c00c7bd45b1056d13"
     },
     "common.labels.optional": "任意",
     "common.badges.recommended": "推奨",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 の自動起動シーケンスが 2000 エントリの起動制限を超えています。",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "FolderView3 自動開始シーケンス名が無効です。",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 フォルダーのブール設定が無効です。",
+    "common.server.runtime-action-preview-stale": "フォルダーの状態が変更されました。 アクションを適用する前に、アクションを再度プレビューします。",
     "common.download.sent": "エクスポートファイルをブラウザーに送信しました",
     "common.download.check": "ダウンロードフォルダーを確認してください。",
     "common.download.help": "ファイルが見つかりませんか？ ヘルプを表示",

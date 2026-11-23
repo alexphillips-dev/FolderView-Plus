@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "3e8024377a3d6d655140254c5299454a5896dd8ace6adce53fbe93c2168fe798"
     },
     "dashboard.folder.toggle-members": "Toggle folder members",
     "dashboard.widget.docker": "Docker",

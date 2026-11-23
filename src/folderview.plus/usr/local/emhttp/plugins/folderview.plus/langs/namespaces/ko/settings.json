@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "7418a1a14b0487145d50bcabd543938861c0fc4f83198ca01c5101293ec5ff2d"
     },
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "크기가 호스트 컨트롤을 따름",
     "settings.theme.controls-default": "플러그인 기본값",
     "settings.theme.managed-layer": "활성 관리형 테마",
-    "settings.theme.host-status": "호스트 테마: $1. 설치된 호스트 테마는 Unraid에서 관리됩니다."
+    "settings.theme.host-status": "호스트 테마: $1. 설치된 호스트 테마는 Unraid에서 관리됩니다.",
+    "settings.operations.runtime-unconfirmed": "현재 실행 상태를 확인할 수 없습니다.",
+    "settings.operations.confirm-action": "폴더 작업을 적용하시겠습니까?",
+    "settings.operations.confirm-details": "\"$2\"에 대한 $1 적격: $3 건너뛰기: $4",
+    "settings.operations.no-eligible-detail": "이 작업에 적합한 항목을 찾을 수 없습니다.",
+    "settings.operations.item-already-running": "항목이 이미 시작되었습니다.",
+    "settings.operations.item-already-stopped": "항목이 이미 중지되었습니다.",
+    "settings.operations.item-already-paused": "항목이 이미 일시중지되었습니다.",
+    "settings.operations.item-pause-requires-running": "항목은 일시중지되기 전에 시작되어야 합니다.",
+    "settings.operations.item-stopped": "항목이 중지되었습니다.",
+    "settings.operations.item-action-unsupported": "이 항목에는 작업이 지원되지 않습니다.",
+    "settings.operations.item-unavailable": "현재 실행 목록에 항목이 없습니다."
 }

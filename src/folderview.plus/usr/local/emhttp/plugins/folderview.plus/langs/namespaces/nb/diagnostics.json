@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "481b26f739df676237384b110bd038eb212f61a1d7ab8fedbd7d345b257a5e44"
     },
     "diagnostics.cards.theme-integration": "Palettkilde: $1. Årsak til gjenoppretting: $2. Innebygd størrelse: $3.",
     "diagnostics.title": "Diagnostikk",

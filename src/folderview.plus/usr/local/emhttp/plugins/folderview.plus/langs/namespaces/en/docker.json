@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "25aba717a61c959a9a1205b99fa41fbaad08760f15a80a65a0c4e2765c358b48"
     },
     "docker.folder.move-reload": "Folder configuration changed. Refresh before moving the folder again.",
     "docker.actions.label": "FolderView actions",

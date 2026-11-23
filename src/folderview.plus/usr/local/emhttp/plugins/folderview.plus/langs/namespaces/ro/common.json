@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "0213807629853cfecf9750c4d45a05a907fd1cf5cf664973d3514bdfa1ab70e4"
     },
     "common.labels.optional": "Opțional",
     "common.badges.recommended": "Recomandat",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Secvența de pornire automată FolderView3 depășește limita de pornire de 2000 de intrări.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nume nevalid al secvenței de pornire automată FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Setarea booleană a folderului FolderView3 este nevalidă.",
+    "common.server.runtime-action-preview-stale": "Starea folderului s-a schimbat. Previzualizează acțiunea din nou înainte de a o aplica.",
     "common.download.sent": "Exportul a fost trimis către browser",
     "common.download.check": "Verificați dosarul Descărcări.",
     "common.download.help": "Fișierul lipsește? Obțineți ajutor",

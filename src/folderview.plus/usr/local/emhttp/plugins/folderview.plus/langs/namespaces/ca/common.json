@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "6c52e81e026b4d8432273b017f02289bebe12058d5053eb9bee94fe139064c84"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomanat",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "La seqüència d'inici automàtic de FolderView3 supera el límit d'inici de 2000 entrades.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nom de la seqüència d'inici automàtic de FolderView3 no vàlid.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "La configuració booleana de la carpeta FolderView3 no és vàlida.",
+    "common.server.runtime-action-preview-stale": "L'estat de la carpeta ha canviat. Previsualitza de nou l'acció abans d'aplicar-la.",
     "common.download.sent": "L’exportació s’ha enviat al navegador",
     "common.download.check": "Comproveu la carpeta de baixades.",
     "common.download.help": "No trobeu el fitxer? Obteniu ajuda",

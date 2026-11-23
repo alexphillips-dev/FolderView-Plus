@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "e58bbd4d1e79b7e11d6c78533ce3f5ba847a09c7113c8f9ea357fe58756aa0eb"
     },
     "import.subtitle": "Choose how to handle existing folders. Nothing changes until you select Apply import.",
     "import.behavior.question": "How should existing folders be handled?",

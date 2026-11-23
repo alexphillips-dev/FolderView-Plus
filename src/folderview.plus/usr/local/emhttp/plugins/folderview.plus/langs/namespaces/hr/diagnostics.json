@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "29459d3ecbe0029607aa0d23ea453a1ecd25cc59b5e6a809676dbb9d20593b66"
     },
     "diagnostics.cards.theme-integration": "Izvor palete: $1. Razlog oporavka: $2. Izvorna veličina: $3.",
     "diagnostics.title": "Dijagnostika",

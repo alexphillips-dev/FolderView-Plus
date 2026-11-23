@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "wizard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "1c90fa70eac39d3fe17481151a04be6c92ff0d19bedb57736152a7e6a5bd57d9"
     },
     "wizard.title": "Assistent de configuració",
     "wizard.welcome.kicker": "Assistent de configuració de FolderView Plus",

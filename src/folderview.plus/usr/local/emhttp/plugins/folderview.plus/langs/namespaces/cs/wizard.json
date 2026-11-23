@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "wizard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "008ab2a28274e803a04a2a5abee144519313159fc0fdc5bdf0b03ac74fc4a905"
     },
     "wizard.title": "Průvodce nastavením",
     "wizard.welcome.kicker": "FolderView Plus Asistent nastavení",

@@ -1867,7 +1867,7 @@
         return false;
     }
 
-    function executeFolderRuntimeAction(string $type, string $action, array $items): array {
+    function executeFolderRuntimeAction(string $type, string $action, array $items, string $folderId): array {
         $type = ensureType($type);
         $normalizedAction = strtolower(trim($action));
         if (!in_array($normalizedAction, ['start', 'stop', 'pause', 'resume'], true)) {
@@ -1891,6 +1891,16 @@
         }
 
         $info = readInfo($type);
+        $config = readRuntimeSnapshotConfig($type);
+        $membership = fvplusBuildMembershipSnapshot($type, $config['folders'], $config['prefs']['autoRules'] ?? [], $info);
+        $current = [];
+        foreach ($membership['byFolder'][$folderId]['liveMembers'] ?? [] as $name) {
+            $state = $type === 'docker' ? diagnosticsStateKindForDockerItem($info[$name]) : diagnosticsStateKindForVmItem($info[$name]);
+            if (runtimeActionAllowed($type, $normalizedAction, $state)) $current[] = $name;
+        }
+        if (count($names) !== count($current) || array_diff($names, $current)) {
+            throw new FVPlusConfigConflictException('Folder state changed. Preview the action again before applying it.');
+        }
         $results = [];
         $errors = [];
         $skipped = [];

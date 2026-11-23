@@ -31,6 +31,22 @@ test('Dashboard retains the Docker brand and Danish status messages are localize
     assert.equal(readNamespace('da', 'legacy-surface')['legacy.surface.3a580cdc4b8de001'], 'Mappens tilstand er ændret.');
 });
 
+test('bulk runtime dialogs localize the server conflict and preserve all four confirmation values', async () => {
+    const key = 'common.server.runtime-action-preview-stale';
+    const en = readNamespace('en', 'common');
+    const da = readNamespace('da', 'common');
+    const settings = readNamespace('da', 'settings');
+    const runtime = createRuntime({ '/en.json': en, '/da.json': da, '/settings.json': settings });
+    await runtime.api.configure({ requestedLocale: 'da', resolvedLocale: 'da', assets: [
+        { locale: 'en', namespace: 'common', url: '/en.json' },
+        { locale: 'da', namespace: 'common', url: '/da.json' },
+        { locale: 'da', namespace: 'settings', url: '/settings.json' }
+    ] });
+    assert.match(runtime.api.serverMessage({ error: en[key], errorKey: key }), /Mappens tilstand er ændret/);
+    const detail = runtime.api.t('settings.operations.confirm-details', '', 'Stop', 'Synthetic folder', 17, 23);
+    for (const token of ['Stop', 'Synthetic folder', '17', '23']) assert.ok(detail.includes(token));
+});
+
 test('FolderView3 keeps the optional native autostart warning distinct in localized confirmations', async () => {
     for (const locale of ['en', 'ar', 'tr', 'zh-Hant']) {
         const catalog = readNamespace(locale, 'import');

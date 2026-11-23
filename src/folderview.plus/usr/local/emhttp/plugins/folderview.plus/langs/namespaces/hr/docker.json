@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "db8e65849153278fe2a14864d25374ad439d93913762f2ac51f3efa82a192f10"
     },
     "docker.folder.move-reload": "Konfiguracija mape promijenjena. Osvježite prije ponovnog premještanja mape.",
     "docker.actions.label": "FolderView radnje",

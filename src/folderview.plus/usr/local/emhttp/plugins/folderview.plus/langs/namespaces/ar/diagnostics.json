@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "5b925b19af8412888ef92309e76f137ef813e5646135aa0b5b1165c8c1609fb1"
     },
     "diagnostics.cards.theme-integration": "مصدر اللوحة: $1. سبب الاسترداد: $2. الحجم الأصلي: $3.",
     "diagnostics.title": "التشخيص",

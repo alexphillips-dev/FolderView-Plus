@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "922609933a0de2b4307780094210d77cbd69808e61796d037e0320d99251a16b"
     },
     "common.labels.optional": "Opzionale",
     "common.badges.recommended": "Consigliato",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "La sequenza di avvio automatico di FolderView3 supera il limite di avvio di 2000 voci.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nome della sequenza di avvio automatico FolderView3 non valido.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "L'impostazione booleana della cartella FolderView3 non è valida.",
+    "common.server.runtime-action-preview-stale": "Lo stato della cartella è cambiato. Visualizza nuovamente l'anteprima dell'azione prima di applicarla.",
     "common.download.sent": "Esportazione inviata al browser",
     "common.download.check": "Controlla la cartella Download.",
     "common.download.help": "File non trovato? Ricevi assistenza",

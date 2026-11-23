@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ed4e1094a9eeaaa73d157784d0eece56c933b3d68673b105e26f522e6d22748b"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Последовательность автозапуска FolderView3 превышает предел запуска в 2000 записей.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Недопустимое имя последовательности автозапуска FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Логическое значение папки FolderView3 недействительно.",
+    "common.server.runtime-action-preview-stale": "Состояние папки изменилось. Прежде чем применять его, просмотрите действие еще раз.",
     "common.download.sent": "Файл экспорта передан браузеру",
     "common.download.check": "Проверьте папку «Загрузки».",
     "common.download.help": "Файл не найден? Получить помощь",

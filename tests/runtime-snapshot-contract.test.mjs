@@ -52,6 +52,50 @@ test('Docker full and projected state snapshots agree with the actual backend ac
     }
 });
 
+test('bulk runtime dispatch rejects stale membership and stale eligibility before invoking any command', () => {
+    const lib = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+    const implementation = lib.slice(lib.indexOf('    function normalizeRuntimeItemNames('), lib.indexOf('    function getTemplatePath('));
+    const summary = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics-summary.php');
+    const states = summary.slice(summary.indexOf('function diagnosticsStateKindForDockerItem('), summary.indexOf('    function diagnosticsBuildStateSnapshot('));
+    const php = `
+        class FVPlusConfigConflictException extends RuntimeException {}
+        function ensureType($type) { return $type; }
+        function readInfo($type) { return $GLOBALS['inventory']; }
+        function readRuntimeSnapshotConfig($type) { return ['folders' => ['media' => []], 'prefs' => []]; }
+        function fvplusBuildMembershipSnapshot($type, $folders, $rules, $info) {
+            return ['byFolder' => ['media' => ['liveMembers' => $GLOBALS['members']]]];
+        }
+        ${states}
+        function fvplusRunRuntimeItemAction($type, $action, $name) {
+            $GLOBALS['calls'][] = [$type, $action, $name];
+            return ['ok' => true, 'exitCode' => 0, 'output' => []];
+        }
+        ${implementation}
+        $results = [];
+        foreach (['docker', 'vm'] as $type) foreach (['valid','removed','new-member','already-stopped','missing-folder'] as $scenario) {
+            $GLOBALS['calls'] = [];
+            $GLOBALS['members'] = $scenario === 'removed' ? ['other'] : ($scenario === 'new-member' ? ['original','other'] : ['original']);
+            $running = $scenario !== 'already-stopped';
+            $GLOBALS['inventory'] = $type === 'docker' ? [
+                'original' => ['info' => ['State' => ['Running' => $running, 'Paused' => false]]],
+                'other' => ['info' => ['State' => ['Running' => true, 'Paused' => true]]]
+            ] : ['original' => ['state' => $running ? 'running' : 'shutoff'], 'other' => ['state' => 'running']];
+            try {
+                $result = executeFolderRuntimeAction($type, 'stop', ['original'], $scenario === 'missing-folder' ? 'absent' : 'media');
+                $results[] = [$type, $scenario, $result['succeeded'], $GLOBALS['calls']];
+            } catch (FVPlusConfigConflictException $error) {
+                $results[] = [$type, $scenario, 'stale', $GLOBALS['calls']];
+            }
+        }
+        echo json_encode($results);
+    `;
+    const results = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
+    for (const [type, scenario, status, calls] of results) {
+        assert.equal(status, scenario === 'valid' ? 1 : 'stale', `${type}/${scenario}`);
+        assert.deepEqual(calls, scenario === 'valid' ? [[type, 'stop', 'original']] : []);
+    }
+});
+
 const loadClientApi = () => {
     const context = {
         window: {

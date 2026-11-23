@@ -43,7 +43,7 @@
     },
     "bulk_folder_action.php": {
       "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 33554432,
-      "requiredParameters": ["type"], "responseType": "json", "auditCategory": "runtime.bulk-action"
+      "requiredParameters": ["type", "folderId"], "responseType": "json", "auditCategory": "runtime.bulk-action"
     },
     "cpu.php": {
       "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,

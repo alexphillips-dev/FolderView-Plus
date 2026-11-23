@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "6c16d54eeac852d9efb055eae56e0efd00e3657ca01f57ec9bdbfd314e2468f1"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 자동 시작 시퀀스가 2000개 항목 시작 제한을 초과합니다.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "FolderView3 자동 시작 시퀀스 이름이 잘못되었습니다.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 폴더 부울 설정이 잘못되었습니다.",
+    "common.server.runtime-action-preview-stale": "폴더 상태가 변경되었습니다. 작업을 적용하기 전에 다시 미리 봅니다.",
     "common.download.sent": "내보낸 파일을 브라우저로 전송했습니다",
     "common.download.check": "다운로드 폴더를 확인하세요.",
     "common.download.help": "파일이 없나요? 도움말 보기",

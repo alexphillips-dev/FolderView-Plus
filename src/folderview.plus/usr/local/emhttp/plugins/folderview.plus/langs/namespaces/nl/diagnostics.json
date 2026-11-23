@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "3eabf6170a0a6508f3603b62f2ffa7e62de22dd26f54a792117f3df7f7900f9d"
     },
     "diagnostics.cards.theme-integration": "Paletbron: $1. Herstelreden: $2. Oorspronkelijke grootte: $3.",
     "diagnostics.title": "Diagnostiek",

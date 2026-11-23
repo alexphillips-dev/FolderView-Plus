@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "21fca9f4fe9f47c6c160d53f3c19623fa2951620554573a6d7707ed1ab69b7b6"
     },
     "dashboard.folder.toggle-members": "Växla mappmedlemmar",
     "dashboard.widget.docker": "Hamnarbetare",

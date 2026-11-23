@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "0aa18e69ae375b9bb475a787344f643b599bc9b6fda4182114164bedd43203a8"
     },
     "editor.settings.information-about": "Information om $1",
     "editor.actions.add-custom": "Lägg till en anpassad åtgärd",

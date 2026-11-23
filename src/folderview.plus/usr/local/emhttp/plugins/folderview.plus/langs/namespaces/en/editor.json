@@ -4,7 +4,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "b2cb5007b755260ecf3fd09121187c66ff3451038a10244cdf6b689b95f671e7"
     },
     "editor.actions.add-custom": "Add a custom action",
     "editor.actions.standard": "Standard",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "e7e5ab24b9afecba40c2f727da4d466f5bb5374655141c136d16b6c4c0d9d268"
     },
     "docker.folder.move-reload": "Mainīta mapes konfigurācija. Atsvaidziniet pirms mapes atkārtotas pārvietošanas.",
     "docker.actions.label": "FolderView darbības",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "1cfc06e4430553055ae6f3acc7d7d4bb90aaccf24e15ab33793e2856ebe59735"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Following host controls",
     "settings.theme.controls-default": "Plugin defaults",
     "settings.theme.managed-layer": "Active managed theme",
-    "settings.theme.host-status": "Host theme: $1. Installed host themes are managed in Unraid."
+    "settings.theme.host-status": "Host theme: $1. Installed host themes are managed in Unraid.",
+    "settings.operations.runtime-unconfirmed": "Current runtime status could not be confirmed.",
+    "settings.operations.confirm-action": "Apply folder action?",
+    "settings.operations.confirm-details": "$1 on \"$2\" Eligible: $3 Skipped: $4",
+    "settings.operations.no-eligible-detail": "No eligible items were found for this action.",
+    "settings.operations.item-already-running": "Item already started.",
+    "settings.operations.item-already-stopped": "Item already stopped.",
+    "settings.operations.item-already-paused": "Item already paused.",
+    "settings.operations.item-pause-requires-running": "Item must be started before pause.",
+    "settings.operations.item-stopped": "Item is stopped.",
+    "settings.operations.item-action-unsupported": "Action is not supported for this item.",
+    "settings.operations.item-unavailable": "Item is missing from the runtime inventory."
 }

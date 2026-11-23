@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "54f5a18e1806fde1edda7a7c222bd994c6961cb78fe82543dd3c04859a31206d"
     },
     "docker.folder.move-reload": "ফোল্ডার কনফিগারেশন পরিবর্তন করা হয়েছে. ফোল্ডারটি আবার সরানোর আগে রিফ্রেশ করুন।",
     "docker.actions.label": "ফোল্ডারভিউ অ্যাকশন",

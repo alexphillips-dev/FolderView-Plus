@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "faa7704200a6b4952c72dbe737cd2db5033a79f525c09ed83899ee3ec61c4128"
     },
     "docker.folder.move-reload": "Configurația folderului a fost schimbată. Actualizați înainte de a muta folderul din nou.",
     "docker.actions.label": "Acțiuni FolderView",

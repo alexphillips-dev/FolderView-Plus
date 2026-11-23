@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "8979b8f19b0a8e8d90a3423b3a9d0dfbf2b107308adb6b88e7ff2276d7105d3e"
     },
     "docker.folder.move-reload": "تم تغيير تكوين المجلد. قم بالتحديث قبل نقل المجلد مرة أخرى.",
     "docker.actions.label": "إجراءات عرض المجلد",

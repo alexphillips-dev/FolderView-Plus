@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "3e5ae51230e8d1bd28710e07aa9aaf4cf2c3c36ea3d81d0b8f7d24b07702ae9f"
     },
     "dashboard.folder.toggle-members": "Přepnout členy složky",
     "dashboard.widget.docker": "Docker",

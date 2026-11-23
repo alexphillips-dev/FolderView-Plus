@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ee4743aa75b1d0b59ea2d33f0927649836dd67f7f808fc5a4cfb2c5785144744"
     },
     "settings.rules.save-changes": "Salva modifiche",
     "settings.rules.regex-placeholder": "Modello regex (ad esempio ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Le dimensioni seguono i controlli dell’host",
     "settings.theme.controls-default": "Impostazioni predefinite del plugin",
     "settings.theme.managed-layer": "Tema gestito attivo",
-    "settings.theme.host-status": "Tema host: $1. I temi host installati sono gestiti in Unraid."
+    "settings.theme.host-status": "Tema host: $1. I temi host installati sono gestiti in Unraid.",
+    "settings.operations.runtime-unconfirmed": "Non è stato possibile confermare lo stato di esecuzione attuale.",
+    "settings.operations.confirm-action": "Applicare l'azione sulla cartella?",
+    "settings.operations.confirm-details": "$1 su \"$2\" Idoneo: $3 Saltato: $4",
+    "settings.operations.no-eligible-detail": "Non è stato trovato alcun articolo idoneo per questa azione.",
+    "settings.operations.item-already-running": "Articolo già avviato.",
+    "settings.operations.item-already-stopped": "Articolo già interrotto.",
+    "settings.operations.item-already-paused": "Elemento già in pausa.",
+    "settings.operations.item-pause-requires-running": "L'elemento deve essere avviato prima della pausa.",
+    "settings.operations.item-stopped": "L'articolo è stato interrotto.",
+    "settings.operations.item-action-unsupported": "L'azione non è supportata per questo elemento.",
+    "settings.operations.item-unavailable": "L’elemento non è presente nell’inventario di esecuzione."
 }

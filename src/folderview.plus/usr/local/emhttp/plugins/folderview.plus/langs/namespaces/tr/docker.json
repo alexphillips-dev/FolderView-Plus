@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "6184b0e7ce63d93c9a295288a19b70901ddd52eedaf18dd9e658b1cb74b410ed"
     },
     "docker.folder.move-reload": "Klasör yapılandırması değiştirildi. Klasörü tekrar taşımadan önce yenileyin.",
     "docker.actions.label": "Klasör Görünümü eylemleri",

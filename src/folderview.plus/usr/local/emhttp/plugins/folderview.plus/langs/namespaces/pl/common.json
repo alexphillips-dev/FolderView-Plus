@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "b9235e89ded284c5d992f64a08ca526c77d4f7e05d2d67bd1e7d9f5eb1c6a0a7"
     },
     "common.labels.optional": "Opcjonalne",
     "common.badges.recommended": "Zalecane",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Sekwencja autostartu FolderView3 przekracza limit uruchamiania wynoszący 2000 wpisów.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nieprawidłowa nazwa sekwencji autostartu FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Ustawienie logiczne folderu FolderView3 jest nieprawidłowe.",
+    "common.server.runtime-action-preview-stale": "Stan folderu zmieniony. Przed zastosowaniem ponownie obejrzyj akcję.",
     "common.download.sent": "Eksport został wysłany do przeglądarki",
     "common.download.check": "Sprawdź folder Pobrane.",
     "common.download.help": "Brakuje pliku? Uzyskaj pomoc",

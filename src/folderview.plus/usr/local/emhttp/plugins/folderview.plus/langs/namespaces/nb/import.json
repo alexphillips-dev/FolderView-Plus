@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "556b644d23abda4e8734d387aa78c063f6786b3927bea0d6a7498e8fa8de1255"
     },
     "import.subtitle": "Velg hvordan eksisterende mapper skal håndteres. Ingenting endres før du velger Bruk import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",

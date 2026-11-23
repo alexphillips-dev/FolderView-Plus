@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "64dcba39bbd923f6f07fb34ebeb1e21e8bf58c91f3749f606777bf6827534aac"
     },
     "diagnostics.cards.theme-integration": "パレットのソース: $1。回復理由: $2。ネイティブ サイズ: $3。",
     "diagnostics.title": "診断",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d42f244fb976d0e647077025c2bf72bfc3668c60e2ad6ce18dc35340902507f7"
     },
     "settings.rules.save-changes": "Salvar alterações",
     "settings.rules.regex-placeholder": "Padrão Regex (por exemplo, ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "O tamanho segue os controles do host",
     "settings.theme.controls-default": "Padrões do plug-in",
     "settings.theme.managed-layer": "Tema gerenciado ativo",
-    "settings.theme.host-status": "Tema hospedeiro: $1. Os temas de host instalados são gerenciados no Unraid."
+    "settings.theme.host-status": "Tema hospedeiro: $1. Os temas de host instalados são gerenciados no Unraid.",
+    "settings.operations.runtime-unconfirmed": "Não foi possível confirmar o estado de execução atual.",
+    "settings.operations.confirm-action": "Aplicar ação de pasta?",
+    "settings.operations.confirm-details": "$1 em \"$2\" Elegível: $3 Ignorado: $4",
+    "settings.operations.no-eligible-detail": "Nenhum item elegível foi encontrado para esta ação.",
+    "settings.operations.item-already-running": "Item já iniciado.",
+    "settings.operations.item-already-stopped": "Item já parado.",
+    "settings.operations.item-already-paused": "Item já pausado.",
+    "settings.operations.item-pause-requires-running": "O item deve ser iniciado antes da pausa.",
+    "settings.operations.item-stopped": "O item está parado.",
+    "settings.operations.item-action-unsupported": "A ação não é suportada para este item.",
+    "settings.operations.item-unavailable": "O item não está no inventário de execução atual."
 }

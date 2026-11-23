@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "b66f13da797ba4c0f9d2642b310c8a2414a40ad3b63dbe85dabf5a93ebc40731"
     },
     "dashboard.folder.toggle-members": "Перемикати учасників папки",
     "dashboard.widget.docker": "Докер",

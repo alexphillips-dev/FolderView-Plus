@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "6d709e65f7180d9dbabeb9cb1339072405434ed33c3f5db94a32bbe38e39e00a"
     },
     "editor.settings.information-about": "$1 に関する情報",
     "editor.actions.add-custom": "カスタムアクションを追加",

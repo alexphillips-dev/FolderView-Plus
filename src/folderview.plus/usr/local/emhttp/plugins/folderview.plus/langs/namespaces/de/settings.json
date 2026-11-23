@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "1630b0296f6e4851164a42123aca08a48fb895137442f376381018d1e669b024"
     },
     "settings.rules.save-changes": "Änderungen speichern",
     "settings.rules.regex-placeholder": "Regex-Muster (z. B. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Größe folgt den Bedienelementen des Hosts",
     "settings.theme.controls-default": "Plugin-Standardeinstellungen",
     "settings.theme.managed-layer": "Aktives verwaltetes Design",
-    "settings.theme.host-status": "Host-Design: $1. Installierte Host-Designs werden in Unraid verwaltet."
+    "settings.theme.host-status": "Host-Design: $1. Installierte Host-Designs werden in Unraid verwaltet.",
+    "settings.operations.runtime-unconfirmed": "Der aktuelle Laufzeitstatus konnte nicht bestätigt werden.",
+    "settings.operations.confirm-action": "Ordneraktion anwenden?",
+    "settings.operations.confirm-details": "$1 auf „$2“ Berechtigt: $3 Übersprungen: $4",
+    "settings.operations.no-eligible-detail": "Für diese Aktion wurden keine geeigneten Artikel gefunden.",
+    "settings.operations.item-already-running": "Artikel wurde bereits gestartet.",
+    "settings.operations.item-already-stopped": "Artikel wurde bereits gestoppt.",
+    "settings.operations.item-already-paused": "Artikel bereits pausiert.",
+    "settings.operations.item-pause-requires-running": "Das Element muss vor der Pause gestartet werden.",
+    "settings.operations.item-stopped": "Artikel ist gestoppt.",
+    "settings.operations.item-action-unsupported": "Die Aktion wird für dieses Element nicht unterstützt.",
+    "settings.operations.item-unavailable": "Das Element fehlt in der aktuellen Laufzeitliste."
 }

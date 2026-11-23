@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "a3fea5a9ae9b57de4ce3137dd91ca1c166f5a6130fac0a441e59d68b36063714"
     },
     "diagnostics.cards.theme-integration": "Fonte da paleta: $1. Motivo da recuperação: $2. Dimensionamento nativo: $3.",
     "diagnostics.title": "Diagnósticos",

@@ -1557,7 +1557,6 @@
       }
     ]
   },
-
   {
     "phrase": "$1/$2 active",
     "locations": [
@@ -1874,15 +1873,6 @@
     ]
   },
   {
-    "phrase": "Action is not supported for this item.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Action is not supported for this item.'"
-      }
-    ]
-  },
-  {
     "phrase": "activity feed",
     "locations": [
       {
@@ -2121,15 +2111,6 @@
       {
         "file": "scripts/folderviewplus.theme-workspace.js",
         "anchor": "'Appearance profile deleted.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Applied $1 to $2 item(s). $3 succeeded, $4 failed.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.settings-workspaces.js",
-        "anchor": "succeeded,"
       }
     ]
   },
@@ -3024,8 +3005,8 @@
     "phrase": "Completed with warnings",
     "locations": [
       {
-        "file": "scripts/folderviewplus.settings-workspaces.js",
-        "anchor": "'Completed with warnings'"
+        "file": "scripts/folderviewplus.runtime-actions.js",
+        "anchor": "\"Completed with warnings\""
       }
     ]
   },
@@ -6509,51 +6490,6 @@
       {
         "file": "scripts/folderviewplus.settings-sections.js",
         "anchor": "'issue report'"
-      }
-    ]
-  },
-  {
-    "phrase": "Item already paused.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Item already paused.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Item already started.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Item already started.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Item already stopped.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Item already stopped.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Item is stopped.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Item is stopped.'"
-      }
-    ]
-  },
-  {
-    "phrase": "Item must be started before pause.",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.utils-rules.js",
-        "anchor": "'Item must be started before pause.'"
       }
     ]
   },

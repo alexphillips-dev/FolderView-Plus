@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "f48887ae31b3df21d3b7b107c5562ee867dbad8c1adce241863cc76496d3f685"
     },
     "editor.settings.information-about": "Інформація про $1",
     "editor.actions.add-custom": "Додати користувацьку дію",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "0f9e96b5ec72b76031722e2d9ae2ddcee1a6a0c79150b579d9c3b3ad8983a290"
     },
     "docker.folder.move-reload": "Mappekonfiguration ændret. Opdater, før du flytter mappen igen.",
     "docker.actions.label": "FolderView-handlinger",

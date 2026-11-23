@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "5ffcf8a305c266c27f33c3bdae92679f43e82bed8059ad999cd20ea1e9beb2ef"
     },
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Grootte volgt de bedieningselementen van de host",
     "settings.theme.controls-default": "Standaardinstellingen voor plug-ins",
     "settings.theme.managed-layer": "Actief beheerd thema",
-    "settings.theme.host-status": "Hostthema: $1. Geïnstalleerde hostthema's worden beheerd in Unraid."
+    "settings.theme.host-status": "Hostthema: $1. Geïnstalleerde hostthema's worden beheerd in Unraid.",
+    "settings.operations.runtime-unconfirmed": "De huidige uitvoeringsstatus kon niet worden bevestigd.",
+    "settings.operations.confirm-action": "Mapactie toepassen?",
+    "settings.operations.confirm-details": "$1 op \"$2\" Geschikt: $3 Overgeslagen: $4",
+    "settings.operations.no-eligible-detail": "Er zijn geen in aanmerking komende items gevonden voor deze actie.",
+    "settings.operations.item-already-running": "Artikel is al gestart.",
+    "settings.operations.item-already-stopped": "Artikel is al gestopt.",
+    "settings.operations.item-already-paused": "Item is al onderbroken.",
+    "settings.operations.item-pause-requires-running": "Het item moet worden gestart voordat het wordt gepauzeerd.",
+    "settings.operations.item-stopped": "Artikel is gestopt.",
+    "settings.operations.item-action-unsupported": "Actie wordt niet ondersteund voor dit item.",
+    "settings.operations.item-unavailable": "Het item ontbreekt in de huidige runtime-inventaris."
 }

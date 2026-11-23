@@ -14,6 +14,7 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const $ = deps.$ || win?.jQuery || win?.$ || null;
+        const escapeHtml = deps.escapeHtml || win?.FolderViewPlusUI?.escapeHtml;
         const swal = typeof deps.swal === 'function' ? deps.swal : (() => {});
         const utils = deps.utils || {};
         const normalizeManagedType = typeof deps.normalizeManagedType === 'function'
@@ -72,16 +73,23 @@
         const executeFolderRuntimeAction = typeof deps.executeFolderRuntimeAction === 'function'
             ? deps.executeFolderRuntimeAction
             : (async () => ({}));
+        const getRuntimeInfo = deps.getRuntimeInfo || (() => ({}));
         const runtimePreviewByType = { docker: null, vm: null };
+        const pendingRuntimeActions = new Set();
         const runtimePlanSignature = (plan) => JSON.stringify({
             requestedCount: plan.requestedCount,
             eligible: plan.eligible.map((item) => [item.name, item.state]),
-            skipped: plan.skipped.map((item) => [item.name, item.state, item.reason])
+            skipped: plan.skipped.map((item) => [item.name, item.state])
         });
         const invalidateFolderRuntimePreview = (type, html = '') => {
             const resolvedType = normalizeManagedType(type);
             runtimePreviewByType[resolvedType] = null;
             setRuntimePreviewOutput(resolvedType, html);
+        };
+        const invalidateChangedRuntimePreview = (type) => {
+            const title = surfaceT("legacy.surface.3a580cdc4b8de001", "Folder state changed.");
+            const detail = surfaceT("legacy.surface.017d57696dc59152", "Preview the action again before applying it.");
+            invalidateFolderRuntimePreview(type, `<div class="fv-recovery-empty-state"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></div>`);
         };
         const treeIntegrityApi = deps.treeIntegrityApi
             || (deps.treeIntegrityModule && typeof deps.treeIntegrityModule.createApi === 'function'
@@ -302,8 +310,7 @@
                 eligibleCount ? surfaceT('settings.operations.ready-to-apply', 'Ready to apply') : surfaceT('settings.operations.no-eligible', 'No eligible items'));
         };
 
-        const applyFolderRuntimeAction = (type) => {
-            const resolvedType = normalizeManagedType(type);
+        const runFolderRuntimeAction = async (resolvedType) => {
             const folderId = String($(`#${resolvedType}-runtime-folder`).val() || '');
             const action = String($(`#${resolvedType}-runtime-action`).val() || '');
             if (!folderId || !action) {
@@ -317,59 +324,112 @@
             }
             const plan = getRuntimePlanForFolder(resolvedType, folderId, action);
             if (!plan || runtimePlanSignature(plan) !== preview.signature) {
-                invalidateFolderRuntimePreview(resolvedType, '<div class="fv-recovery-empty-state"><strong>Folder state changed.</strong><span>Preview the action again before applying it.</span></div>');
+                invalidateChangedRuntimePreview(resolvedType);
                 return;
             }
             if (!plan.eligible.length) {
                 invalidateFolderRuntimePreview(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan));
-                swal({
-                    title: 'Nothing to apply',
-                    text: 'No eligible items were found for this action.',
-                    type: 'info'
+                void win?.FolderViewPlusUI?.alert({
+                    title: surfaceT('settings.operations.no-eligible', 'No eligible items'),
+                    message: surfaceT("settings.operations.no-eligible-detail", "No eligible items were found for this action.")
                 });
                 return;
             }
 
             const folderName = getFolderNameForId(resolvedType, folderId);
-            swal({
-                title: 'Apply folder action?',
-                text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonText: surfaceT("common.actions.apply", "Apply"),
-                cancelButtonText: 'Cancel',
-                showLoaderOnConfirm: true
-            }, async (confirmed) => {
-                if (!confirmed) {
-                    return;
+            const ui = win?.FolderViewPlusUI;
+            const confirmed = await ui?.confirm({
+                title: surfaceT("settings.operations.confirm-action", "Apply folder action?"),
+                message: surfaceT("settings.operations.confirm-details", '$1 on "$2" Eligible: $3 Skipped: $4',
+                    surfaceT(action, action), folderName, plan.eligible.length, plan.skipped.length),
+                confirmLabel: surfaceT("common.actions.apply", "Apply")
+            });
+            if (!confirmed) return;
+            let current;
+            try {
+                const refresh = await refreshType(resolvedType, { render: false });
+                if (refresh?.runtimeFetched === true && !refresh.hasErrors) {
+                    current = getRuntimePlanForFolder(resolvedType, folderId, action);
                 }
-                invalidateFolderRuntimePreview(resolvedType);
-                try {
-                    const result = await executeFolderRuntimeAction(resolvedType, action, plan.eligible.map((row) => row.name));
-                    await refreshType(resolvedType);
-                    setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, result),
-                        surfaceT('settings.operations.action-complete', 'Action complete'));
-                    await trackDiagnosticsEvent({
-                        eventType: 'runtime_bulk_action',
-                        type: resolvedType,
-                        details: {
-                            action,
-                            folderId,
-                            requested: plan.requestedCount,
-                            eligible: plan.eligible.length,
-                            executed: result.executed || 0,
-                            failed: result.failed || 0
-                        }
-                    });
-                    swal({
-                        title: 'Action complete',
-                        text: `Executed: ${result.executed || 0}, succeeded: ${result.succeeded || 0}, failed: ${result.failed || 0}, skipped: ${(result.skipped || []).length}`,
-                        type: (result.failed || 0) > 0 ? 'warning' : 'success'
-                    });
-                } catch (error) {
-                    showError(surfaceT("common.repair.folder-runtime-action-failed-8cc3b7", "Folder runtime action failed"), error);
+            } catch {
+                // An unavailable snapshot cannot validate the preview.
+            }
+            if (runtimePreviewByType[resolvedType] !== preview) return;
+            if (!current || runtimePlanSignature(current) !== preview.signature
+                || String($(`#${resolvedType}-runtime-folder`).val() || '') !== folderId
+                || String($(`#${resolvedType}-runtime-action`).val() || '') !== action) {
+                invalidateChangedRuntimePreview(resolvedType);
+                return;
+            }
+            invalidateFolderRuntimePreview(resolvedType);
+            let result;
+            try {
+                result = await executeFolderRuntimeAction(resolvedType, folderId, action, current.eligible.map((row) => row.name));
+            } catch (error) {
+                showError(surfaceT("common.repair.folder-runtime-action-failed-8cc3b7", "Folder runtime action failed"), error);
+                return;
+            }
+
+            let refreshFailed;
+            try {
+                const refresh = await refreshType(resolvedType);
+                refreshFailed = refresh?.hasErrors === true || refresh?.runtimeFetched !== true;
+            } catch {
+                refreshFailed = true;
+            }
+            const observed = refreshFailed ? {} : getRuntimeInfo(resolvedType);
+            // Planning treats unknown runtime states as eligible or stopped in some cases.
+            // Verification requires a state explicitly returned by the host.
+            const expected = {
+                start: ['running', 'started'],
+                stop: ['stopped', 'exited', 'created', 'shutoff', 'shut off'],
+                pause: ['paused'],
+                resume: ['running', 'started']
+            }[action] || [];
+            const verified = (result.results || []).filter(row => {
+                const item = observed[row.item];
+                const state = resolvedType === 'docker' && item?.paused === true ? 'paused' : String(item?.state || '').trim().toLowerCase();
+                return row.ok === true && expected.includes(state);
+            }).length;
+            const skipped = (result.skipped || []).length;
+            const unconfirmed = verified < (result.succeeded || 0);
+            const warning = refreshFailed || unconfirmed || (result.failed || 0) > 0 || skipped > 0;
+            const status = warning
+                ? surfaceT("legacy.surface.9ea2e0345bba54c7", "Completed with warnings")
+                : surfaceT('settings.operations.action-complete', 'Action complete');
+            const notice = refreshFailed
+                ? surfaceT("legacy.surface.43fdf4e612fdabf7", "Refresh failed.")
+                : unconfirmed ? surfaceT("settings.operations.runtime-unconfirmed", "Current runtime status could not be confirmed.") : '';
+            setRuntimePreviewOutput(resolvedType, buildRuntimePreviewHtml(resolvedType, folderId, action, plan, { ...result, notice }), status);
+            void ui.alert({
+                title: status,
+                message: [surfaceT("legacy.surface.a38c47a703c5feff", "Executed: $1, succeeded: $2, failed: $3, skipped: $4",
+                    result.executed || 0, result.succeeded || 0, result.failed || 0, skipped), notice].filter(Boolean).join(' '),
+                tone: warning ? 'warning' : 'success'
+            });
+            await trackDiagnosticsEvent({
+                eventType: 'runtime_bulk_action',
+                type: resolvedType,
+                status: warning ? 'warning' : 'ok',
+                details: {
+                    action,
+                    folderId,
+                    requested: plan.requestedCount,
+                    eligible: plan.eligible.length,
+                    executed: result.executed || 0,
+                    failed: result.failed || 0
                 }
             });
+        };
+        const applyFolderRuntimeAction = async (type) => {
+            const resolvedType = normalizeManagedType(type);
+            if (pendingRuntimeActions.has(resolvedType)) return;
+            pendingRuntimeActions.add(resolvedType);
+            try {
+                return await runFolderRuntimeAction(resolvedType);
+            } finally {
+                pendingRuntimeActions.delete(resolvedType);
+            }
         };
 
         return Object.freeze({

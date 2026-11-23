@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "97a4c38f461beba43312fbe5280a420d7727f0f010e2a7ac399bed96cb63ffc1"
     },
     "dashboard.folder.toggle-members": "ফোল্ডার সদস্যদের টগল করুন",
     "dashboard.widget.docker": "ডকার",

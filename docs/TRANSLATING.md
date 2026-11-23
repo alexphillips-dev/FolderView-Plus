@@ -64,6 +64,8 @@ node scripts/build_i18n_surface_catalogs.mjs --translate
 
 The generator preserves existing translations, translates only new or changed surface messages, protects numbered parameters, updates catalog metadata, and writes the extraction report. Translation is a repository maintenance step; installed plugins never contact a translation service.
 
+Source catalog revisions derive from their message content. A wording correction in one locale updates that catalog and its locale metadata. Generation preserves byte-identical files, preserves existing review dates, and advances `last-updated` when the locale's message content changes. Record `last-reviewed` explicitly when a review occurs. Installed catalogs continue to use the plugin asset version for browser cache invalidation, and the dev package can substitute its channel-specific README copy.
+
 ## Pseudo-locales
 
 After a FolderView Plus page has loaded, use the browser console to test text expansion:
@@ -100,7 +102,7 @@ The shipped Arabic catalog is right-to-left. Changes to shared UI layout must co
 
 ## Review workflow
 
-1. Update the English source and increment the catalog version.
+1. Update the English source. The generator updates content revisions for the affected catalogs.
 2. Run the guards and review newly missing translations.
 3. Translate with UI context or screenshots available.
 4. Machine-assisted translation may be used, but preserve product terms, parameters, markup, and locale-specific plural forms.

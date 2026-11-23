@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "88417029286207ee4ee4a839e8cb5e2cc80382e6af58818c40ecff57b9729e24"
     },
     "settings.rules.save-changes": "Guardar cambios",
     "settings.rules.regex-placeholder": "Patrón de expresiones regulares (por ejemplo, ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "El tamaño sigue los controles del host",
     "settings.theme.controls-default": "Valores predeterminados del complemento",
     "settings.theme.managed-layer": "Tema administrado activo",
-    "settings.theme.host-status": "Tema anfitrión: $1. Los temas de host instalados se administran en Unraid."
+    "settings.theme.host-status": "Tema anfitrión: $1. Los temas de host instalados se administran en Unraid.",
+    "settings.operations.runtime-unconfirmed": "No se pudo confirmar el estado de ejecución actual.",
+    "settings.operations.confirm-action": "¿Aplicar acción de carpeta?",
+    "settings.operations.confirm-details": "$1 sobre \"$2\" Elegible: $3 Omitido: $4",
+    "settings.operations.no-eligible-detail": "No se encontraron artículos elegibles para esta acción.",
+    "settings.operations.item-already-running": "Artículo ya iniciado.",
+    "settings.operations.item-already-stopped": "El artículo ya se detuvo.",
+    "settings.operations.item-already-paused": "El artículo ya está en pausa.",
+    "settings.operations.item-pause-requires-running": "El elemento debe iniciarse antes de la pausa.",
+    "settings.operations.item-stopped": "El artículo está detenido.",
+    "settings.operations.item-action-unsupported": "No se admite ninguna acción para este elemento.",
+    "settings.operations.item-unavailable": "El elemento no está en el inventario actual."
 }

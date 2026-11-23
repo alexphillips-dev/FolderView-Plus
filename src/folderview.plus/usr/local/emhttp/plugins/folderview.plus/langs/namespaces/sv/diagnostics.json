@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "4185167805ac6db8473aec27029ae0462ed2cd880793b206191c22d3a679201e"
     },
     "diagnostics.cards.theme-integration": "Palettkälla: $1. Återställningsorsak: $2. Inbyggd storlek: $3.",
     "diagnostics.title": "Diagnostik",

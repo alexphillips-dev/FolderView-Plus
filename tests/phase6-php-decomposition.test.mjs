@@ -32,10 +32,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
         .filter((name) => name.endsWith('.php') && !name.startsWith('lib.'))
         .sort();
     assert.deepEqual(publicEndpoints, expectedEndpoints);
-    assert.deepEqual(Object.keys(JSON.parse(manifestSource).endpoints).sort(), expectedEndpoints);
+    const { endpoints } = JSON.parse(manifestSource);
+    assert.deepEqual(Object.keys(endpoints).sort(), expectedEndpoints);
+    assert.deepEqual(endpoints['bulk_folder_action.php'].requiredParameters, ['type', 'folderId']);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        '7c1c4647c629705e4bcb0b75f422bbcaf768086e3b0b545cd87044098b703774'
+        '0dc6a3d5c4e802557c7eb63bd2b94d7bb1e3aa3799888a7f7a7ce00f26ea9b23'
     );
 });
 

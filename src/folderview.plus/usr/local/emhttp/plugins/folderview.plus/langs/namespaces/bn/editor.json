@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "5590a538f8ca714a5cf700833f39b5c4657773fdf847dc5bde6e9856fe64c6fa"
     },
     "editor.settings.information-about": "$1 সম্পর্কে তথ্য",
     "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "801f57c2e16b7c1aab126b7e7ff2f75b52504a1c3aebde9525d1ee080a89202b"
     },
     "settings.rules.save-changes": "Desa els canvis",
     "settings.rules.regex-placeholder": "Patró d'expressió regular (p. ex., ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "La mida segueix els controls de l’amfitrió",
     "settings.theme.controls-default": "Els connectors per defecte",
     "settings.theme.managed-layer": "Tema gestionat actiu",
-    "settings.theme.host-status": "Tema de l'amfitrió: $1. Els temes d'amfitrió instal·lats es gestionen a Unraid."
+    "settings.theme.host-status": "Tema de l'amfitrió: $1. Els temes d'amfitrió instal·lats es gestionen a Unraid.",
+    "settings.operations.runtime-unconfirmed": "No s’ha pogut confirmar l’estat d’execució actual.",
+    "settings.operations.confirm-action": "Voleu aplicar l'acció de carpeta?",
+    "settings.operations.confirm-details": "$1 a \"$2\" Apte: $3 Omès: $4",
+    "settings.operations.no-eligible-detail": "No s'han trobat elements aptes per a aquesta acció.",
+    "settings.operations.item-already-running": "L'article ja ha començat.",
+    "settings.operations.item-already-stopped": "L'article ja s'ha aturat.",
+    "settings.operations.item-already-paused": "L'element ja s'ha posat en pausa.",
+    "settings.operations.item-pause-requires-running": "L'element s'ha de començar abans de fer una pausa.",
+    "settings.operations.item-stopped": "L'article està aturat.",
+    "settings.operations.item-action-unsupported": "L'acció no s'admet per a aquest element.",
+    "settings.operations.item-unavailable": "L’element no és a l’inventari d’execució."
 }

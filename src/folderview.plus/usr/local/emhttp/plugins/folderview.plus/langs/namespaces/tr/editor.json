@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "7738ec25ac10ea45dca97efc8993f624abe877e2fa8ca80503073d707796258c"
     },
     "editor.settings.information-about": "$1 hakkında bilgi",
     "editor.actions.add-custom": "Özel bir eylem ekle",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d458e51f4bf8688cc1ec6e0f99203044cd646f6f867e8a65442b1b4924f83c4a"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 otomatik başlatma sırası 2000 girişli başlatma sınırını aşıyor.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Geçersiz FolderView3 otomatik başlatma sırası adı.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 klasörü boole ayarı geçersiz.",
+    "common.server.runtime-action-preview-stale": "Klasör durumu değişti. Eylemi uygulamadan önce yeniden önizleyin.",
     "common.download.sent": "Dışa aktarılan dosya tarayıcınıza gönderildi",
     "common.download.check": "İndirilenler klasörünüzü kontrol edin.",
     "common.download.help": "Dosyayı bulamadınız mı? Yardım alın",

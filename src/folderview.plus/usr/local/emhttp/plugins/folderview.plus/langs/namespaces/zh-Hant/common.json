@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ea8592cc8ce72425784ac3e44b5868881a48b39a5537fb337e5866937163274f"
     },
     "common.labels.optional": "可選",
     "common.badges.recommended": "推薦",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 自動啟動序列超出了 2000 個條目的啟動限制。",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "FolderView3 自動啟動序列名稱無效。",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 資料夾布林設定無效。",
+    "common.server.runtime-action-preview-stale": "資料夾狀態已變更。 在應用操作之前再次預覽該操作。",
     "common.download.sent": "已將匯出檔案傳送至瀏覽器",
     "common.download.check": "請檢查「下載項目」資料夾。",
     "common.download.help": "找不到檔案？取得協助",

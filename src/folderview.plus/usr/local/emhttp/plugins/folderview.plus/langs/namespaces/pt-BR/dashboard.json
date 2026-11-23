@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "36d5b3a1c4895a3bc0ec14d07ca6a7462339b8afab537d89dfe0b3cc2a22c063"
     },
     "dashboard.folder.toggle-members": "Alternar membros da pasta",
     "dashboard.widget.docker": "Docker",

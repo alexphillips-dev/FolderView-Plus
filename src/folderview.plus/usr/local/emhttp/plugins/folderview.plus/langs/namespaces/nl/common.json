@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dbc2e9ddc6687cc517efc3933681cf3f92d200c7a4f4ea66109263ca4a7d931a"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "De automatische startreeks van FolderView3 overschrijdt de opstartlimiet van 2000 vermeldingen.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Ongeldige FolderView3 autostartreeksnaam.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "De Booleaanse instelling van FolderView3 is ongeldig.",
+    "common.server.runtime-action-preview-stale": "Mapstatus gewijzigd. Bekijk een voorbeeld van de actie voordat u deze toepast.",
     "common.download.sent": "Export naar uw browser verzonden",
     "common.download.check": "Controleer uw map Downloads.",
     "common.download.help": "Bestand niet gevonden? Hulp krijgen",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ab58a1b3fe237b17700a56f9997db45dcc47c640b54ddf0c1a1279d8f28c42de"
     },
     "import.subtitle": "Válassza ki a meglévő mappák kezelésének módját. Semmi sem változik, amíg ki nem választja az Importálás alkalmazása lehetőséget.",
     "import.behavior.question": "Hogyan kell kezelni a meglévő mappákat?",

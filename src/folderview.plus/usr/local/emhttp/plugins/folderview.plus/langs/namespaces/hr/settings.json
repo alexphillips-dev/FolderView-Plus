@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "f34c6e2ae078887105e63e9ace525f2095fd73a4bf788c85f8326a67eae428f9"
     },
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Veličina prati kontrole glavnog sučelja",
     "settings.theme.controls-default": "Zadane postavke dodatka",
     "settings.theme.managed-layer": "Aktivna upravljana tema",
-    "settings.theme.host-status": "Tema domaćina: $1. Instaliranim temama hosta upravlja se u Unraidu."
+    "settings.theme.host-status": "Tema domaćina: $1. Instaliranim temama hosta upravlja se u Unraidu.",
+    "settings.operations.runtime-unconfirmed": "Trenutačno stanje izvođenja nije bilo moguće potvrditi.",
+    "settings.operations.confirm-action": "Primijeniti radnju mape?",
+    "settings.operations.confirm-details": "$1 na \"$2\" Prihvatljivo: $3 Preskočeno: $4",
+    "settings.operations.no-eligible-detail": "Nisu pronađene stavke koje ispunjavaju uvjete za ovu radnju.",
+    "settings.operations.item-already-running": "Stavka je već pokrenuta.",
+    "settings.operations.item-already-stopped": "Stavka je već zaustavljena.",
+    "settings.operations.item-already-paused": "Stavka je već pauzirana.",
+    "settings.operations.item-pause-requires-running": "Stavka se mora pokrenuti prije pauze.",
+    "settings.operations.item-stopped": "Stavka je zaustavljena.",
+    "settings.operations.item-action-unsupported": "Radnja nije podržana za ovu stavku.",
+    "settings.operations.item-unavailable": "Stavka nedostaje na trenutačnom popisu."
 }

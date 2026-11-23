@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "88b9fffdf80c1c55f836a2af2aff1097f2521bc4fa2761d51096c6928f9db7ef"
     },
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Boyut ana bilgisayarın denetimlerini izler",
     "settings.theme.controls-default": "Eklenti varsayılanları",
     "settings.theme.managed-layer": "Etkin yönetilen tema",
-    "settings.theme.host-status": "Ana makine teması: $1. Yüklü ana makine temaları Unraid'de yönetilir."
+    "settings.theme.host-status": "Ana makine teması: $1. Yüklü ana makine temaları Unraid'de yönetilir.",
+    "settings.operations.runtime-unconfirmed": "Geçerli çalışma durumu doğrulanamadı.",
+    "settings.operations.confirm-action": "Klasör eylemi uygulansın mı?",
+    "settings.operations.confirm-details": "\"$2\" üzerinde $1 Uygun: $3 Atlandı: $4",
+    "settings.operations.no-eligible-detail": "Bu işlem için uygun öğe bulunamadı.",
+    "settings.operations.item-already-running": "Öğe zaten başlatıldı.",
+    "settings.operations.item-already-stopped": "Öğe zaten durduruldu.",
+    "settings.operations.item-already-paused": "Öğe zaten duraklatıldı.",
+    "settings.operations.item-pause-requires-running": "Öğe duraklatmadan önce başlatılmalıdır.",
+    "settings.operations.item-stopped": "Öğe durduruldu.",
+    "settings.operations.item-action-unsupported": "Bu öğe için işlem desteklenmiyor.",
+    "settings.operations.item-unavailable": "Öğe geçerli çalışma zamanı envanterinde bulunamadı."
 }

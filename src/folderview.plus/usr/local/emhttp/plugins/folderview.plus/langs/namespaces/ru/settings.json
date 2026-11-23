@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "2765f0ee53262d731c894dfad46bfa67d30e0fe9fc83321691983d4df1457624"
     },
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Размер соответствует элементам управления хоста",
     "settings.theme.controls-default": "Настройки плагина по умолчанию",
     "settings.theme.managed-layer": "Активная управляемая тема",
-    "settings.theme.host-status": "Хост-тема: $1. Установленные темы хоста управляются в Unraid."
+    "settings.theme.host-status": "Хост-тема: $1. Установленные темы хоста управляются в Unraid.",
+    "settings.operations.runtime-unconfirmed": "Не удалось подтвердить текущее состояние выполнения.",
+    "settings.operations.confirm-action": "Применить действие к папке?",
+    "settings.operations.confirm-details": "$1 на \"$2\" Допустимо: $3 Пропущено: $4",
+    "settings.operations.no-eligible-detail": "Для этого действия не найдено подходящих элементов.",
+    "settings.operations.item-already-running": "Объект уже запущен.",
+    "settings.operations.item-already-stopped": "Товар уже остановлен.",
+    "settings.operations.item-already-paused": "Объект уже приостановлен.",
+    "settings.operations.item-pause-requires-running": "Элемент должен быть запущен до паузы.",
+    "settings.operations.item-stopped": "Товар остановлен.",
+    "settings.operations.item-action-unsupported": "Действие не поддерживается для этого элемента.",
+    "settings.operations.item-unavailable": "Элемент отсутствует в текущем списке объектов."
 }

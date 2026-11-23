@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "acd45a0d8e0bc44a2a89e21f78a3010d60432f0b316e423418a8e8d6dee3ee42"
     },
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "আকার হোস্টের নিয়ন্ত্রণ অনুসরণ করে",
     "settings.theme.controls-default": "প্লাগইন ডিফল্ট",
     "settings.theme.managed-layer": "সক্রিয় পরিচালিত থিম",
-    "settings.theme.host-status": "হোস্ট থিম: $1। ইনস্টল করা হোস্ট থিম Unraid-এ পরিচালিত হয়।"
+    "settings.theme.host-status": "হোস্ট থিম: $1। ইনস্টল করা হোস্ট থিম Unraid-এ পরিচালিত হয়।",
+    "settings.operations.runtime-unconfirmed": "বর্তমান চলমান অবস্থা নিশ্চিত করা যায়নি।",
+    "settings.operations.confirm-action": "ফোল্ডার অ্যাকশন প্রয়োগ করবেন?",
+    "settings.operations.confirm-details": "$1 \"$2\" এ যোগ্য: $3 এড়িয়ে গেছে: $4",
+    "settings.operations.no-eligible-detail": "এই কর্মের জন্য কোন যোগ্য আইটেম পাওয়া যায়নি.",
+    "settings.operations.item-already-running": "আইটেম ইতিমধ্যে শুরু.",
+    "settings.operations.item-already-stopped": "আইটেম ইতিমধ্যে বন্ধ.",
+    "settings.operations.item-already-paused": "আইটেম ইতিমধ্যে বিরাম দেওয়া হয়েছে.",
+    "settings.operations.item-pause-requires-running": "আইটেম বিরতি আগে শুরু করা আবশ্যক.",
+    "settings.operations.item-stopped": "আইটেম বন্ধ করা হয়।",
+    "settings.operations.item-action-unsupported": "এই আইটেমটির জন্য অ্যাকশন সমর্থিত নয়।",
+    "settings.operations.item-unavailable": "বর্তমান রানটাইম তালিকায় আইটেমটি নেই।"
 }

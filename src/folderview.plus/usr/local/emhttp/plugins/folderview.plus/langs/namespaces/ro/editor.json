@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "933f074042375ec8d108d4da0886036e4b43393201c8b4b31a63eb50ccb21cf7"
     },
     "editor.settings.information-about": "Informații despre $1",
     "editor.actions.add-custom": "Adaugă o acțiune personalizată",

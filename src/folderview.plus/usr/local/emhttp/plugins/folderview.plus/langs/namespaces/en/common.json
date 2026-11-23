@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "af416edbe2b24da644bea5d09fb000f42e3b857f28c32b1732bb6eec6db34e68"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 autostart sequence exceeds the 2000-entry startup limit.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Invalid FolderView3 autostart sequence name.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 folder boolean setting is invalid.",
+    "common.server.runtime-action-preview-stale": "Folder state changed. Preview the action again before applying it.",
     "common.download.sent": "Export sent to your browser",
     "common.download.check": "Check your Downloads folder.",
     "common.download.help": "File missing? Get help",

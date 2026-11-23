@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "9fa3c31383b71832af9cc3aac9b7a6838ea99d21136f06216f004f9f96baabe6"
     },
     "import.subtitle": "Choisissez comment gérer les dossiers existants. Rien ne change tant que vous n'avez pas sélectionné Appliquer l'importation.",
     "import.behavior.question": "Comment les dossiers existants doivent-ils être gérés ?",

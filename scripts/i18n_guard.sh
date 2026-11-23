@@ -13,9 +13,10 @@ if [[ ! -d "${LANG_DIR}" ]]; then
   fvplus::fail "Missing language directory: ${LANG_DIR}"
 fi
 
-"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}/scripts/lib/i18n_surface_tools.cjs")" <<'NODE'
 const fs = require('fs');
 const path = require('path');
+const { catalogContentRevision, localeContentRevision } = require(process.argv[3]);
 
 const langDir = process.argv[2];
 const rootFiles = fs.readdirSync(langDir).filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name)).sort();
@@ -59,11 +60,16 @@ const localeNamespaceFiles = (locale) => {
 const buildCatalog = (locale) => {
   const files = [path.join(langDir, `${locale}.json`), ...localeNamespaceFiles(locale)].filter(fs.existsSync);
   const messages = {};
+  const revisions = [];
   let metadata = null;
   for (const fullPath of files) {
     const parsed = readJson(fullPath);
     const fileMetadata = parsed['@metadata'];
-    if (fullPath === path.join(langDir, `${locale}.json`)) metadata = fileMetadata;
+    const rootCatalog = fullPath === path.join(langDir, `${locale}.json`);
+    if (rootCatalog) metadata = fileMetadata;
+    const revision = catalogContentRevision(parsed);
+    if (fileMetadata?.['content-revision'] !== revision) fail(`${fullPath} content-revision is stale; regenerate the catalogs.`);
+    revisions.push([rootCatalog ? 'legacy' : path.basename(fullPath), revision]);
     for (const [key, value] of Object.entries(parsed)) {
       if (key === '@metadata') continue;
       if (Object.prototype.hasOwnProperty.call(messages, key)) {
@@ -72,6 +78,9 @@ const buildCatalog = (locale) => {
       }
       messages[key] = value;
     }
+  }
+  if (metadata?.['locale-content-revision'] !== localeContentRevision(revisions)) {
+    fail(`${locale} locale-content-revision is stale; regenerate the catalogs.`);
   }
   return { files, messages, metadata };
 };

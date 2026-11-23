@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "5bd8f1ca5e2387a2576daea41be95581921eaac091e934b2475c9f2e74ac39f2"
     },
     "editor.settings.information-about": "有关 $1 的信息",
     "editor.actions.add-custom": "添加自定义操作",

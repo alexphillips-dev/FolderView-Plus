@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "wizard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "64f03a0ae97d92893846f33395fba5eb528e5094c90e5977a34db4b3b4404f1b"
     },
     "wizard.title": "সহকারী সেটআপ করুন",
     "wizard.welcome.kicker": "ফোল্ডার ভিউ প্লাস সেটআপ সহকারী",

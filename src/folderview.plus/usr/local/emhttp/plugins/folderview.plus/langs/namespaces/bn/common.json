@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "2934707f1c134917ea04dda20f2ff507a3e2c720895d9c0122a7a432b647b409"
     },
     "common.labels.optional": "ঐচ্ছিক",
     "common.badges.recommended": "প্রস্তাবিত",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 অটোস্টার্ট সিকোয়েন্স 2000-এন্ট্রি স্টার্টআপ সীমা ছাড়িয়ে গেছে।",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "অবৈধ FolderView3 অটোস্টার্ট সিকোয়েন্স নাম।",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 ফোল্ডার বুলিয়ান সেটিং অবৈধ৷",
+    "common.server.runtime-action-preview-stale": "ফোল্ডারের অবস্থা পরিবর্তিত হয়েছে। এটি প্রয়োগ করার আগে ক্রিয়াটি আবার পূর্বরূপ দেখুন।",
     "common.download.sent": "রপ্তানি করা ফাইলটি আপনার ব্রাউজারে পাঠানো হয়েছে",
     "common.download.check": "আপনার ডাউনলোড ফোল্ডার দেখুন।",
     "common.download.help": "ফাইলটি খুঁজে পাচ্ছেন না? সহায়তা নিন",

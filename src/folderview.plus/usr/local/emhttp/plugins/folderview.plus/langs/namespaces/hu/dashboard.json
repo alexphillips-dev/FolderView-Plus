@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "767fe03e31b25813096614dca9e5ebe8090d4f3ad2fccd4557ce0e681d226b46"
     },
     "dashboard.folder.toggle-members": "Mappatagok váltása",
     "dashboard.widget.docker": "Docker",

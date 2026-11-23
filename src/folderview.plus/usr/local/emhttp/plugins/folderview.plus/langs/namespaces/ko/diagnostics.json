@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "f6d01af3d1a87292ee339f62f28788f364155b5098ceeef17885b1778434d450"
     },
     "diagnostics.cards.theme-integration": "팔레트 소스: $1. 복구 이유: $2. 기본 크기: $3.",
     "diagnostics.title": "진단",

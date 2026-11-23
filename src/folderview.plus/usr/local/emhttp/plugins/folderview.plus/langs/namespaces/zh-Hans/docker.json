@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "c6a90d189bad876c70ad67d860d60f5dae6b25e7ea11a1af9bf8781c733e85ae"
     },
     "docker.folder.move-reload": "文件夹配置已更改。再次移动文件夹之前刷新。",
     "docker.actions.label": "FolderView 操作",

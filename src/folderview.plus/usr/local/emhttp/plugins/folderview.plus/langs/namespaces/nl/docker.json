@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ed3f15c254dffba96c3bf1443cc08f20eab197e8476ca845e2114b89290762c2"
     },
     "docker.folder.move-reload": "Mapconfiguratie gewijzigd. Vernieuw voordat u de map opnieuw verplaatst.",
     "docker.actions.label": "Mapweergave acties",

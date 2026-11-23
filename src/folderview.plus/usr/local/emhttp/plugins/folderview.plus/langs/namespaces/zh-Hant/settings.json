@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "e9c806545c9910b538404dd220207a82abe216350a7be75fcf08e3c85c525ccb"
     },
     "settings.rules.save-changes": "儲存變更",
     "settings.rules.regex-placeholder": "正規表示式模式（例如 ^media-）",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "尺寸隨宿主控制項調整",
     "settings.theme.controls-default": "外掛預設值",
     "settings.theme.managed-layer": "目前啟用的受管理主題",
-    "settings.theme.host-status": "主機主題：$1。安裝的主機主題在 Unraid 中進行管理。"
+    "settings.theme.host-status": "主機主題：$1。安裝的主機主題在 Unraid 中進行管理。",
+    "settings.operations.runtime-unconfirmed": "無法確認目前的執行狀態。",
+    "settings.operations.confirm-action": "應用資料夾操作？",
+    "settings.operations.confirm-details": "「$2」上的 $1 符合條件：$3 跳過：$4",
+    "settings.operations.no-eligible-detail": "沒有找到符合此操作條件的專案。",
+    "settings.operations.item-already-running": "專案已經開始。",
+    "settings.operations.item-already-stopped": "專案已經停止。",
+    "settings.operations.item-already-paused": "專案已暫停。",
+    "settings.operations.item-pause-requires-running": "專案必須在暫停之前啟動。",
+    "settings.operations.item-stopped": "專案已停止。",
+    "settings.operations.item-action-unsupported": "該專案不支援操作。",
+    "settings.operations.item-unavailable": "目前的執行清單中沒有此項目。"
 }

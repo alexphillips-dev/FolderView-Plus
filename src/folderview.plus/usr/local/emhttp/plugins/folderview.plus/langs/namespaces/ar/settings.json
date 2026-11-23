@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "bb948db33d42e6e60eaa009be6d95440110795a640b430bb6fae32cfd82f06cd"
     },
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "الحجم يتبع عناصر تحكم المضيف",
     "settings.theme.controls-default": "افتراضيات البرنامج المساعد",
     "settings.theme.managed-layer": "السمة المُدارة النشطة",
-    "settings.theme.host-status": "سمة المضيف: $1. تتم إدارة سمات المضيف المثبتة في Unraid."
+    "settings.theme.host-status": "سمة المضيف: $1. تتم إدارة سمات المضيف المثبتة في Unraid.",
+    "settings.operations.runtime-unconfirmed": "تعذّر تأكيد حالة التشغيل الحالية.",
+    "settings.operations.confirm-action": "تطبيق عمل المجلد؟",
+    "settings.operations.confirm-details": "$1 على \"$2\" مؤهل: $3 تم تخطيه: $4",
+    "settings.operations.no-eligible-detail": "لم يتم العثور على عناصر مؤهلة لهذا الإجراء.",
+    "settings.operations.item-already-running": "بدأ العنصر بالفعل.",
+    "settings.operations.item-already-stopped": "العنصر متوقف بالفعل.",
+    "settings.operations.item-already-paused": "تم إيقاف العنصر مؤقتًا بالفعل.",
+    "settings.operations.item-pause-requires-running": "يجب أن يبدأ العنصر قبل الإيقاف المؤقت.",
+    "settings.operations.item-stopped": "تم إيقاف العنصر.",
+    "settings.operations.item-action-unsupported": "الإجراء غير مدعوم لهذا العنصر.",
+    "settings.operations.item-unavailable": "العنصر غير موجود في قائمة التشغيل الحالية."
 }

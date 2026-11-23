@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "7b2ced358bba5a7f1ce5fbf2a28f1e1a193c0e9c63334c6445c320265aef9ae2"
     },
     "diagnostics.cards.theme-integration": "調色盤來源：$1。復原原因：$2。本機大小：$3。",
     "diagnostics.title": "診斷",

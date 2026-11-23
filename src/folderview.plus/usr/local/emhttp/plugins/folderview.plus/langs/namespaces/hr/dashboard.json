@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "05fe1d807bf2f90f4ead2169540847475c221265ed8b59f8bd88e05b366ac657"
     },
     "dashboard.folder.toggle-members": "Promjena članova mape",
     "dashboard.widget.docker": "Docker",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.23.01">
-<!ENTITY md5 "accbee2537d4c682660205b88cb1d93f">
-<!ENTITY sha256 "74c2b23977ca9d07b6d5be7b6497a4c65b0a5c68f2a387efd909a729ffe0e35e">
+<!ENTITY version "2026.11.23.02">
+<!ENTITY md5 "43dd19eb31acb7227be9d8c29f889e51">
+<!ENTITY sha256 "87afd0a2d705ccfd2b98d72b144ab6157a90cc4bc49dc12e1e1832309b7461a3">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.23.02
+- Fix: Settings Docker and VM folder actions now recheck the preview after confirmation and before dispatch. Changed membership or eligibility requires a new preview.
+- Fix: Folder action results separate command totals from the runtime state seen after refresh. Partial results and refresh problems display a warning without losing the command totals.
+- Improvement: Folder action confirmations and results use the shared dialogs with localized action labels and failure reasons.
+- Maintenance: Translation generation preserves review dates and updates only the source catalog revisions affected by a wording change.
+
 
 ###2026.11.23.01
 - Fix: Clarify which folders Merge and Replace can delete, which backups Restore Latest uses, and what FolderView3 migration will replace. The optional Docker autostart warning now appears in its own paragraph.

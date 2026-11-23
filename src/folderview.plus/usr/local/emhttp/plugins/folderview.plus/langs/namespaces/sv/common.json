@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "8cc5d3c0793281b985b39d2cb02ad5ca1016304373bdf3386025fc32d666e62a"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 autostartsekvens överskrider startgränsen för 2000 ingångar.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Ogiltigt namn på FolderView3 autostartsekvens.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 mapp boolesk inställning är ogiltig.",
+    "common.server.runtime-action-preview-stale": "Mappstatus har ändrats. Förhandsgranska åtgärden igen innan du tillämpar den.",
     "common.download.sent": "Exporten har skickats till webbläsaren",
     "common.download.check": "Kontrollera mappen Hämtade filer.",
     "common.download.help": "Saknas filen? Få hjälp",

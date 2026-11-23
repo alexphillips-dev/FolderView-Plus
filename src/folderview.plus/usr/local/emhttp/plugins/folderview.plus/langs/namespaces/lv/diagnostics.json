@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "fa997a795cf2fb96c2d372f00b58229c931dd80bad91e2c71e8cd9543d400cac"
     },
     "diagnostics.cards.theme-integration": "Paletes avots: $1. Atkopšanas iemesls: $2. Vietējais lielums: $3.",
     "diagnostics.title": "Diagnostika",

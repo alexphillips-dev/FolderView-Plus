@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "01bd2023fef92d7210295e378465f6112be583185985f313af0bd25a0024ed55"
     },
     "settings.rules.save-changes": "Saglabāt izmaiņas",
     "settings.rules.regex-placeholder": "Regex modelis (piem., ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Izmērs atbilst resursdatora vadīklām",
     "settings.theme.controls-default": "Spraudņa noklusējuma iestatījumi",
     "settings.theme.managed-layer": "Aktīvs pārvaldīts motīvs",
-    "settings.theme.host-status": "Saimniekdatora motīvs: $1. Instalētās saimniekdatora tēmas tiek pārvaldītas pakalpojumā Unraid."
+    "settings.theme.host-status": "Saimniekdatora motīvs: $1. Instalētās saimniekdatora tēmas tiek pārvaldītas pakalpojumā Unraid.",
+    "settings.operations.runtime-unconfirmed": "Pašreizējo darbības stāvokli nevarēja apstiprināt.",
+    "settings.operations.confirm-action": "Vai lietot mapes darbību?",
+    "settings.operations.confirm-details": "$1 uz \"$2\" Piemērots: $3 Izlaists: $4",
+    "settings.operations.no-eligible-detail": "Šai darbībai netika atrasts neviens piemērots vienums.",
+    "settings.operations.item-already-running": "Vienums jau ir sākts.",
+    "settings.operations.item-already-stopped": "Prece jau ir apturēta.",
+    "settings.operations.item-already-paused": "Vienums jau ir apturēts.",
+    "settings.operations.item-pause-requires-running": "Vienums jāsāk pirms pauzes.",
+    "settings.operations.item-stopped": "Vienums ir apturēts.",
+    "settings.operations.item-action-unsupported": "Darbība ar šo vienumu netiek atbalstīta.",
+    "settings.operations.item-unavailable": "Vienums nav atrodams pašreizējā izpildes sarakstā."
 }

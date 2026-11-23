@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "47d1ae6ac175ec6fc559601ab7ba049cb295ef145c6dbd8a705a39ca73250735"
     },
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "尺寸随宿主控件调整",
     "settings.theme.controls-default": "插件默认值",
     "settings.theme.managed-layer": "当前启用的托管主题",
-    "settings.theme.host-status": "主机主题：$1。安装的主机主题在 Unraid 中进行管理。"
+    "settings.theme.host-status": "主机主题：$1。安装的主机主题在 Unraid 中进行管理。",
+    "settings.operations.runtime-unconfirmed": "无法确认当前运行状态。",
+    "settings.operations.confirm-action": "应用文件夹操作？",
+    "settings.operations.confirm-details": "“$2”上的 $1 符合条件：$3 跳过：$4",
+    "settings.operations.no-eligible-detail": "没有找到符合此操作条件的项目。",
+    "settings.operations.item-already-running": "项目已经开始。",
+    "settings.operations.item-already-stopped": "项目已经停止。",
+    "settings.operations.item-already-paused": "项目已暂停。",
+    "settings.operations.item-pause-requires-running": "项目必须在暂停之前启动。",
+    "settings.operations.item-stopped": "项目已停止。",
+    "settings.operations.item-action-unsupported": "该项目不支持操作。",
+    "settings.operations.item-unavailable": "当前运行时清单中没有此项目。"
 }

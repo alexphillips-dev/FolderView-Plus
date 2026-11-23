@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "70e09dddea4c0c9d43770f660cd930b6e817ca1dcebda097d99800436578da20"
     },
     "diagnostics.cards.theme-integration": "Источник палитры: $1. Причина восстановления: $2. Собственный размер: $3.",
     "diagnostics.title": "Диагностика",

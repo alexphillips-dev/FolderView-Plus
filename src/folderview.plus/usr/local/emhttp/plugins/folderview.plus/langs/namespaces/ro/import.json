@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d515721296b6c02091eff9b22168deabad8b80f7fed217a8bc7b3bd26790960a"
     },
     "import.subtitle": "Alegeți cum să gestionați folderele existente. Nimic nu se schimbă până când selectați Aplică importul.",
     "import.behavior.question": "Cum ar trebui gestionate folderele existente?",

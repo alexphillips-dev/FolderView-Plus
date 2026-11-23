@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "bd65f6a96604f358052029141250c9611951d500c48dc12c3b598f36671af835"
     },
     "editor.settings.information-about": "معلومات حول $1",
     "editor.actions.add-custom": "إضافة إجراء مخصص",

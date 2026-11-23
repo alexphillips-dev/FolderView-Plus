@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "506e2c0bb350cde1e306471ab723ef2ea3a17ed14910e2d5424f69bec8d9d8d6"
     },
     "docker.folder.move-reload": "La configurazione della cartella è cambiata. Aggiorna prima di spostare nuovamente la cartella.",
     "docker.actions.label": "Azioni della Vista Cartella",

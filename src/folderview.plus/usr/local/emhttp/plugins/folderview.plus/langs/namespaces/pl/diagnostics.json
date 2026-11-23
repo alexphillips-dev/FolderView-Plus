@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "457d4d60e17188e281e27a2e347e46798a4ae83032d75eb86b1b9d83eeb67f39"
     },
     "diagnostics.cards.theme-integration": "Źródło palety: $1. Powód odzyskiwania: $2. Rozmiar natywny: $3.",
     "diagnostics.title": "Diagnostyka",

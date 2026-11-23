@@ -11,6 +11,8 @@ FolderView Plus ships one theme-aware UI layer on Settings, Docker, VM, Dashboar
 
 Managed dialogs provide dialog semantics, focus trapping, Escape and backdrop policy, nested-modal ordering, body scroll locking, initial focus, live announcements, busy state, and focus restoration. Callers provide content and labels; they do not recreate that behavior.
 
+For plugin-owned mutations, give the confirmation a localized action, target, and consequence. Recheck the preview after confirmation. Report command results, verified state, and refresh problems separately. Use semantic message keys for specific failure reasons and keep resource names and diagnostic details as escaped values.
+
 ## Delegated actions
 
 New static markup should use `data-fv-ui-action="name"` and register the handler once:

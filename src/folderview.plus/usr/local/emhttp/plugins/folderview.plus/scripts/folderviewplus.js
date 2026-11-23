@@ -3598,6 +3598,7 @@ const getSettingsRuntimeActionsApi = (() => {
             setRuntimePreviewOutput: (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args),
             buildRuntimePreviewHtml: (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args),
             getRuntimePlanForFolder,
+            getRuntimeInfo: (type) => infoByType[type] || {},
             executeFolderRuntimeAction
         });
         return cachedApi;
@@ -8171,6 +8172,7 @@ const refreshType = async (type, options = {}) => {
     }
     return {
         hasErrors: degradedReasons.length > 0,
+        runtimeFetched,
         degradedReasons
     };
 };

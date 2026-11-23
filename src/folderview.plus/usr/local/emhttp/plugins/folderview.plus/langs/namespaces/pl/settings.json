@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dd9196cddf555bfb5560e1fd875a2e6ef3e1d72ece482afc7e9786a7d9994292"
     },
     "settings.rules.save-changes": "Zapisz zmiany",
     "settings.rules.regex-placeholder": "Wzorzec wyrażenia regularnego (np. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Rozmiar zgodny z elementami sterującymi hosta",
     "settings.theme.controls-default": "Domyślne ustawienia wtyczki",
     "settings.theme.managed-layer": "Aktywny motyw zarządzany",
-    "settings.theme.host-status": "Temat hosta: $1. Zainstalowane motywy hosta są zarządzane w Unraid."
+    "settings.theme.host-status": "Temat hosta: $1. Zainstalowane motywy hosta są zarządzane w Unraid.",
+    "settings.operations.runtime-unconfirmed": "Nie udało się potwierdzić bieżącego stanu działania.",
+    "settings.operations.confirm-action": "Zastosować akcję folderu?",
+    "settings.operations.confirm-details": "$1 w „$2” Odpowiednie: $3 Pominięte: $4",
+    "settings.operations.no-eligible-detail": "Nie znaleziono żadnych elementów spełniających kryteria tej akcji.",
+    "settings.operations.item-already-running": "Przedmiot już rozpoczęty.",
+    "settings.operations.item-already-stopped": "Element został już zatrzymany.",
+    "settings.operations.item-already-paused": "Element już wstrzymany.",
+    "settings.operations.item-pause-requires-running": "Element musi zostać rozpoczęty przed pauzą.",
+    "settings.operations.item-stopped": "Element został zatrzymany.",
+    "settings.operations.item-action-unsupported": "Akcja nie jest obsługiwana w przypadku tego elementu.",
+    "settings.operations.item-unavailable": "Elementu brakuje w aktualnym wykazie uruchomieniowym."
 }

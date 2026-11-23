@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "57b56c306e4adb107af55b29d6c0c1bb0fd9cee26be9de7b3a3a568a04544ba8"
     },
     "common.labels.optional": "اختياري",
     "common.badges.recommended": "موصى به",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "يتجاوز تسلسل التشغيل التلقائي لـ FolderView3 حد بدء التشغيل البالغ 2000 إدخال.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "اسم تسلسل التشغيل التلقائي لـ FolderView3 غير صالح.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "الإعداد المنطقي لمجلد FolderView3 غير صالح.",
+    "common.server.runtime-action-preview-stale": "تغيرت حالة المجلد. قم بمعاينة الإجراء مرة أخرى قبل تطبيقه.",
     "common.download.sent": "تم إرسال ملف التصدير إلى متصفحك",
     "common.download.check": "تحقق من مجلد التنزيلات.",
     "common.download.help": "لم تجد الملف؟ احصل على المساعدة",

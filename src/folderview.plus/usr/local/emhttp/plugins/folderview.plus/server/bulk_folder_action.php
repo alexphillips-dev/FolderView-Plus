@@ -1,5 +1,6 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
+require_once(__DIR__ . '/lib.runtime-snapshot.php');
 
 fvplus_json_try(function (): array {
     requireMutationRequestGuard();
@@ -19,7 +20,7 @@ fvplus_json_try(function (): array {
         $items = $itemsRaw;
     }
 
-    $result = executeFolderRuntimeAction($type, $action, $items);
+    $result = executeFolderRuntimeAction($type, $action, $items, (string)($_POST['folderId'] ?? ''));
     return [
         'result' => $result
     ];

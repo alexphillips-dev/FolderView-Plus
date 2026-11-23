@@ -168,6 +168,10 @@ const collectSurfaceCandidates = (pluginDir) => {
 };
 
 const keyForPhrase = (phrase) => `${AUTO_KEY_PREFIX}${crypto.createHash('sha256').update(normalizePhrase(phrase)).digest('hex').slice(0, 16)}`;
+const hashContent = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const catalogContentRevision = (catalog) => hashContent(Object.keys(catalog).filter(key => key !== '@metadata')
+    .sort().map(key => [key, catalog[key]]));
+const localeContentRevision = (revisions) => catalogContentRevision(Object.fromEntries(revisions));
 
 module.exports = Object.freeze({
     AUTO_KEY_PREFIX,
@@ -178,5 +182,7 @@ module.exports = Object.freeze({
     extractFileCandidates,
     collectSourceFiles,
     collectSurfaceCandidates,
-    keyForPhrase
+    keyForPhrase,
+    catalogContentRevision,
+    localeContentRevision
 });

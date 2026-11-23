@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ff9458b6c3248527f956a302680b3bb82d0d33ca6334c7a9bfc8cc21736ea2a2"
     },
     "import.subtitle": "Escolha como lidar com as pastas existentes. Nada muda até selecionar Aplicar importação.",
     "import.behavior.question": "Como devem ser tratadas as pastas existentes?",

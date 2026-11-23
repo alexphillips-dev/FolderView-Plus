@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "b1b2b68eaebfa2b4627b35ff0b697bd8bf4a1a29dfdb8c64d337bf7089c78489"
     },
     "diagnostics.cards.theme-integration": "Origine tavolozza: $1. Motivo del ripristino: $2. Dimensionamento nativo: $3.",
     "diagnostics.title": "Diagnostica",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "0a7f8a12f5f5425492475b532680c17200d8a9a30460cdfb78136eda3244d485"
     },
     "import.subtitle": "Trieu com gestionar les carpetes existents. No canvia res fins que seleccioneu Aplica la importació.",
     "import.behavior.question": "Com s'han de gestionar les carpetes existents?",

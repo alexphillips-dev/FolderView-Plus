@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d90e5554eeee5944ef9239eb07cf4ca110d92cbb3f076e108f367db7d3f5fa4e"
     },
     "common.labels.optional": "Választható",
     "common.badges.recommended": "Ajánlott",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "A FolderView3 automatikus indítási sorrendje meghaladja a 2000 bejegyzéses indítási korlátot.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Érvénytelen FolderView3 automatikus indítási sorozat neve.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "A FolderView3 mappa logikai beállítása érvénytelen.",
+    "common.server.runtime-action-preview-stale": "A mappa állapota megváltozott. Alkalmazása előtt tekintse meg újra a művelet előnézetét.",
     "common.download.sent": "Az exportált fájl elküldve a böngészőnek",
     "common.download.check": "Ellenőrizze a Letöltések mappát.",
     "common.download.help": "Hiányzik a fájl? Segítség kérése",

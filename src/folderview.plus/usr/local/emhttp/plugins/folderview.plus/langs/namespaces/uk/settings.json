@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dca044b61c50b38225b0726b79d654e6aea3808daa57ef0e31760a7e06807952"
     },
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Розмір відповідає елементам керування хоста",
     "settings.theme.controls-default": "Стандартні параметри плагіна",
     "settings.theme.managed-layer": "Активна керована тема",
-    "settings.theme.host-status": "Тема хоста: $1. Встановлені теми хосту керуються в Unraid."
+    "settings.theme.host-status": "Тема хоста: $1. Встановлені теми хосту керуються в Unraid.",
+    "settings.operations.runtime-unconfirmed": "Не вдалося підтвердити поточний стан виконання.",
+    "settings.operations.confirm-action": "Застосувати дію папки?",
+    "settings.operations.confirm-details": "$1 на \"$2\" Придатний: $3 Пропущено: $4",
+    "settings.operations.no-eligible-detail": "Для цієї дії не знайдено відповідних елементів.",
+    "settings.operations.item-already-running": "Елемент уже розпочато.",
+    "settings.operations.item-already-stopped": "Товар уже зупинено.",
+    "settings.operations.item-already-paused": "Елемент уже призупинено.",
+    "settings.operations.item-pause-requires-running": "Елемент має бути запущений до паузи.",
+    "settings.operations.item-stopped": "Товар зупинено.",
+    "settings.operations.item-action-unsupported": "Дія не підтримується для цього елемента.",
+    "settings.operations.item-unavailable": "Елемента немає в поточному списку об’єктів."
 }

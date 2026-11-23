@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dab0a678e8c94bcf8d94f105e94c8594f6705432ef39859bd9c8547ebb40c58d"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "La séquence de démarrage automatique de FolderView3 dépasse la limite de démarrage de 2 000 entrées.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nom de séquence de démarrage automatique FolderView3 non valide.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Le paramètre booléen du dossier FolderView3 n’est pas valide.",
+    "common.server.runtime-action-preview-stale": "L'état du dossier a changé. Prévisualisez à nouveau l’action avant de l’appliquer.",
     "common.download.sent": "Export envoyé à votre navigateur",
     "common.download.check": "Vérifiez votre dossier Téléchargements.",
     "common.download.help": "Fichier introuvable ? Obtenir de l’aide",

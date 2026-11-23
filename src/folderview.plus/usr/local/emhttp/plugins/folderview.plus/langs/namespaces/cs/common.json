@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "644119e608f8a1a2ae209092076a3f1f1752638e907b8516ed414b6f877a6af7"
     },
     "common.labels.optional": "Volitelné",
     "common.badges.recommended": "Doporučeno",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Sekvence automatického spuštění FolderView3 překračuje limit spouštění 2000 položek.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Neplatný název sekvence automatického spuštění FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Booleovské nastavení složky FolderView3 je neplatné.",
+    "common.server.runtime-action-preview-stale": "Stav složky se změnil. Před použitím si akci znovu prohlédněte.",
     "common.download.sent": "Export byl odeslán do prohlížeče",
     "common.download.check": "Zkontrolujte složku Stažené soubory.",
     "common.download.help": "Soubor chybí? Získat pomoc",

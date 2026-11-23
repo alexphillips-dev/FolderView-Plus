@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "f36e73d353b62f3907e771d8662bb4173355ca497a536f8697ac2a7e29118df9"
     },
     "diagnostics.cards.theme-integration": "Sursa paletei: $1. Motivul recuperării: $2. Dimensiune nativă: $3.",
     "diagnostics.title": "Diagnostic",

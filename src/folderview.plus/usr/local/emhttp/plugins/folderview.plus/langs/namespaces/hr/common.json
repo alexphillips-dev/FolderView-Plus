@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "b5654fb79cae55af7b1e8e4adee16b75559e2b4c61d4207a05f9fe3d87b2119d"
     },
     "common.labels.optional": "Neobavezno",
     "common.badges.recommended": "Preporučeno",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Slijed automatskog pokretanja FolderView3 premašuje ograničenje pokretanja od 2000 unosa.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nevažeći naziv slijeda za automatsko pokretanje FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Booleova postavka mape FolderView3 nije važeća.",
+    "common.server.runtime-action-preview-stale": "Stanje mape promijenjeno. Ponovno pregledajte radnju prije nego što je primijenite.",
     "common.download.sent": "Izvoz je poslan vašem pregledniku",
     "common.download.check": "Provjerite mapu Preuzimanja.",
     "common.download.help": "Datoteka nedostaje? Potražite pomoć",

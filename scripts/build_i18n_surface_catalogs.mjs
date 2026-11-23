@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
 
 const require = createRequire(import.meta.url);
 const tools = require('./lib/i18n_surface_tools.cjs');
+const { catalogContentRevision, localeContentRevision } = tools;
 const OpenCC = require('opencc-js');
 const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
@@ -44,7 +44,10 @@ const scaffoldDefinitions = Object.freeze({
     'zh-Hant': { direction: 'ltr', nativeName: '繁體中文' }
 });
 
-const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const pendingJson = new Map();
+const hasJson = (file) => pendingJson.has(file) || fs.existsSync(file);
+const readJson = (file) => JSON.parse(pendingJson.get(file) ?? fs.readFileSync(file, 'utf8'));
+const writeJson = (file, value) => pendingJson.set(file, `${JSON.stringify(value, null, 4)}\n`);
 const translationContext = readJson(path.join(repoRoot, 'scripts/lib/i18n_translation_context.json'));
 const reviewedRuntime = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_runtime.json'));
 const reviewedTerms = readJson(path.join(repoRoot, 'scripts/lib/i18n_reviewed_terms.json'));
@@ -59,7 +62,6 @@ for (const [locale, values] of Object.entries(reviewedPlurals.locales)) {
     reviewedPlurals.en.forEach((english, index) => { translationContext.overrides[locale][english] = values[index]; });
 }
 const reviewedSurfaces = Object.fromEntries(['counts', 'actions', 'ui', 'dialogs', 'server', 'download', 'startup', 'controls', 'icon-browser'].map(name => [name === 'ui' ? 'audit' : name, readJson(path.join(repoRoot, `scripts/lib/i18n_reviewed_${name}.json`))]));
-const contextRevision = createHash('sha256').update(JSON.stringify([translationContext, reviewedRuntime, reviewedTerms, reviewedWorkflows, reviewedSurfaces, reviewedWording, repairMessages, reviewedRepair])).digest('hex');
 const runtimeReviews = Object.fromEntries(Object.entries(reviewedRuntime.locales).map(([locale, values]) => {
     if (values.length !== reviewedRuntime.keys.length) throw new Error(`Incomplete runtime review for ${locale}`);
     return [locale, Object.fromEntries(reviewedRuntime.keys.map((key, index) => [key, values[index]]))];
@@ -114,7 +116,6 @@ const applyReviewedValues = (locale, messages, entries) => {
     }
     return messages;
 };
-const writeJson = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 4)}\n`, 'utf8');
 const commonEnglishFile = path.join(namespaceRoot, 'en/common.json');
 const commonEnglish = readJson(commonEnglishFile);
 // These semantic families are generated exclusively from the reviewed tables.
@@ -132,7 +133,7 @@ const scaffoldLocale = (locale) => {
     const definition = scaffoldDefinitions[locale];
     if (!definition) throw new Error(`No scaffold definition is registered for ${locale}.`);
     const rootFile = path.join(langDir, `${locale}.json`);
-    if (!fs.existsSync(rootFile)) {
+    if (!hasJson(rootFile)) {
         writeJson(rootFile, {
             '@metadata': {
                 authors: ['FolderView Plus maintainers'],
@@ -151,10 +152,9 @@ const scaffoldLocale = (locale) => {
         });
     }
     const localeNamespaceRoot = path.join(namespaceRoot, locale);
-    fs.mkdirSync(localeNamespaceRoot, { recursive: true });
     for (const file of fs.readdirSync(path.join(namespaceRoot, 'en')).filter((name) => name.endsWith('.json'))) {
         const namespaceFile = path.join(localeNamespaceRoot, file);
-        if (fs.existsSync(namespaceFile)) continue;
+        if (hasJson(namespaceFile)) continue;
         writeJson(namespaceFile, {
             '@metadata': {
                 'catalog-version': catalogVersion,
@@ -166,9 +166,10 @@ const scaffoldLocale = (locale) => {
     console.log(`Scaffolded ${locale}.`);
 };
 for (const locale of requestedScaffolds) scaffoldLocale(locale);
-const locales = fs.readdirSync(langDir)
+const existingLocales = fs.readdirSync(langDir)
     .filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))
-    .map((name) => name.replace(/\.json$/, ''))
+    .map((name) => name.replace(/\.json$/, ''));
+const locales = [...new Set([...existingLocales, ...requestedScaffolds])]
     .sort((left, right) => left === 'en' ? -1 : (right === 'en' ? 1 : left.localeCompare(right)));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const placeholderSignature = (value) => {
@@ -270,7 +271,7 @@ const translateBatch = async (batch, target, attempt = 1) => {
 
 const buildLocaleMessages = async (locale) => {
     const file = path.join(namespaceRoot, locale, 'legacy-surface.json');
-    const existing = applyReviewedValues(locale, fs.existsSync(file) ? readJson(file) : {}, Object.entries(englishMessages));
+    const existing = applyReviewedValues(locale, hasJson(file) ? readJson(file) : {}, Object.entries(englishMessages));
     const messages = {};
     const missing = [];
     const comparisonLocale = retranslateMatchLocales.get(locale);
@@ -297,18 +298,15 @@ const buildLocaleMessages = async (locale) => {
     return Object.fromEntries(Object.entries(applyReviewedValues(locale, messages, Object.entries(englishMessages))).sort(([left], [right]) => left.localeCompare(right)));
 };
 
-const built = new Map();
 const workers = Math.min(3, locales.length);
 let cursor = 0;
 await Promise.all(Array.from({ length: workers }, async () => {
     while (cursor < locales.length) {
         const locale = locales[cursor++];
         const messages = await buildLocaleMessages(locale);
-        built.set(locale, messages);
         const dir = path.join(namespaceRoot, locale);
-        fs.mkdirSync(dir, { recursive: true });
         writeJson(path.join(dir, 'legacy-surface.json'), {
-            '@metadata': { 'catalog-version': catalogVersion, locale, namespace: 'legacy-surface', 'translation-context-revision': contextRevision },
+            '@metadata': { 'catalog-version': catalogVersion, locale, namespace: 'legacy-surface' },
             ...messages
         });
         console.log(`Completed ${locale}: ${Object.keys(messages).length} surface messages.`);
@@ -384,14 +382,12 @@ for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-sur
 }
 
 const traditionalRoot = path.join(langDir, 'zh-Hant.json');
-if (fs.existsSync(traditionalRoot)) {
+if (hasJson(traditionalRoot)) {
     const traditionalCatalog = readJson(traditionalRoot);
     if (traditionalCatalog['@metadata']?.['normalization-profile'] !== traditionalChineseNormalizationProfile) {
         for (const file of [
             traditionalRoot,
-            ...fs.readdirSync(path.join(namespaceRoot, 'zh-Hant'))
-                .filter((name) => name.endsWith('.json'))
-                .map((name) => path.join(namespaceRoot, 'zh-Hant', name))
+            ...namespaceNames.map((name) => path.join(namespaceRoot, 'zh-Hant', name))
         ]) {
             const catalog = readJson(file);
             for (const [key, value] of Object.entries(catalog)) {
@@ -418,25 +414,37 @@ aggregateCount += Object.keys(readJson(path.join(langDir, 'en.json'))).filter((k
 for (const locale of locales) {
     const rootFile = path.join(langDir, `${locale}.json`);
     const rootCatalog = readJson(rootFile);
-    rootCatalog['@metadata']['catalog-version'] = catalogVersion;
-    rootCatalog['@metadata']['source-revision'] = catalogVersion;
-    rootCatalog['@metadata']['translation-context-revision'] = contextRevision;
-    rootCatalog['@metadata']['last-updated'] = catalogDate;
-    rootCatalog['@metadata']['last-reviewed'] = catalogDate;
-    rootCatalog['@metadata']['translated-messages'] = aggregateCount;
-    rootCatalog['@metadata']['total-source-messages'] = aggregateCount;
-    writeJson(rootFile, rootCatalog);
+    const metadata = rootCatalog['@metadata'];
+    const priorLocaleRevision = metadata['locale-content-revision'];
+    const revisions = [['legacy', catalogContentRevision(rootCatalog)]];
     for (const namespaceName of namespaceNames) {
         const namespaceFile = path.join(namespaceRoot, locale, namespaceName);
         const catalog = readJson(namespaceFile);
         catalog['@metadata']['catalog-version'] = catalogVersion;
-        catalog['@metadata']['translation-context-revision'] = contextRevision;
+        delete catalog['@metadata']['translation-context-revision'];
+        const revision = catalogContentRevision(catalog);
+        catalog['@metadata']['content-revision'] = revision;
+        revisions.push([namespaceName, revision]);
         writeJson(namespaceFile, catalog);
     }
+    const localeRevision = localeContentRevision(revisions);
+    delete metadata['translation-context-revision'];
+    metadata['catalog-version'] = catalogVersion;
+    metadata['source-revision'] = catalogVersion;
+    metadata['content-revision'] = revisions[0][1];
+    metadata['locale-content-revision'] = localeRevision;
+    if (!metadata['last-updated'] || (priorLocaleRevision && priorLocaleRevision !== localeRevision)) {
+        metadata['last-updated'] = catalogDate;
+    }
+    metadata['translated-messages'] = aggregateCount;
+    metadata['total-source-messages'] = aggregateCount;
+    writeJson(rootFile, rootCatalog);
 }
 
 const largestSurfaces = Object.fromEntries(Object.entries(fileCounts).sort((left, right) => right[1] - left[1]).slice(0, 10));
-writeJson(path.join(langDir, 'extraction-report.json'), {
+const reportFile = path.join(langDir, 'extraction-report.json');
+const priorReport = hasJson(reportFile) ? readJson(reportFile) : {};
+const report = {
     'catalog-version': catalogVersion,
     'generated-at': catalogDate,
     'candidate-count': 0,
@@ -444,6 +452,16 @@ writeJson(path.join(langDir, 'extraction-report.json'), {
     'catalog-message-count': aggregateCount,
     description: 'All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.',
     'largest-surfaces': largestSurfaces
-});
+};
+if (JSON.stringify({ ...priorReport, 'generated-at': catalogDate }) === JSON.stringify(report)) {
+    report['generated-at'] = priorReport['generated-at'] || catalogDate;
+}
+writeJson(reportFile, report);
+
+for (const [file, json] of pendingJson) {
+    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === json) continue;
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, json, 'utf8');
+}
 
 console.log(`Built ${phrases.length} auto-bound surface messages across ${locales.length} locales; aggregate catalog ${aggregateCount} messages.`);

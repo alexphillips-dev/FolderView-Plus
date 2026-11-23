@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "66b8c31fa1a50fe9b6299d78063830d7f1850db039f13ce5e5f16da72d331fc2"
     },
     "settings.rules.save-changes": "Enregistrer les modifications",
     "settings.rules.regex-placeholder": "Modèle Regex (par exemple ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "La taille suit les commandes de l’hôte",
     "settings.theme.controls-default": "Valeurs par défaut du plugin",
     "settings.theme.managed-layer": "Thème géré actif",
-    "settings.theme.host-status": "Thème hôte : $1. Les thèmes hôtes installés sont gérés dans Unraid."
+    "settings.theme.host-status": "Thème hôte : $1. Les thèmes hôtes installés sont gérés dans Unraid.",
+    "settings.operations.runtime-unconfirmed": "L’état d’exécution actuel n’a pas pu être confirmé.",
+    "settings.operations.confirm-action": "Appliquer l'action sur le dossier ?",
+    "settings.operations.confirm-details": "$1 sur \"$2\" Éligible : $3 Ignoré : $4",
+    "settings.operations.no-eligible-detail": "Aucun élément éligible n'a été trouvé pour cette action.",
+    "settings.operations.item-already-running": "Article déjà commencé.",
+    "settings.operations.item-already-stopped": "Article déjà arrêté.",
+    "settings.operations.item-already-paused": "Élément déjà mis en pause.",
+    "settings.operations.item-pause-requires-running": "L'élément doit être démarré avant la pause.",
+    "settings.operations.item-stopped": "L'article est arrêté.",
+    "settings.operations.item-action-unsupported": "L'action n'est pas prise en charge pour cet élément.",
+    "settings.operations.item-unavailable": "L’élément est absent de l’inventaire d’exécution."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "1eb1ea73d5bce3e23672041f66c5837d7d2b70036b10a870a095957c70f36961"
     },
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "サイズはホストの操作部品に追従",
     "settings.theme.controls-default": "プラグインのデフォルト",
     "settings.theme.managed-layer": "アクティブな管理対象テーマ",
-    "settings.theme.host-status": "ホスト テーマ: $1。インストールされたホスト テーマは Unraid で管理されます。"
+    "settings.theme.host-status": "ホスト テーマ: $1。インストールされたホスト テーマは Unraid で管理されます。",
+    "settings.operations.runtime-unconfirmed": "現在の実行状態を確認できませんでした。",
+    "settings.operations.confirm-action": "フォルダーアクションを適用しますか?",
+    "settings.operations.confirm-details": "「$2」で $1 対象: $3 スキップ: $4",
+    "settings.operations.no-eligible-detail": "このアクションに適格なアイテムは見つかりませんでした。",
+    "settings.operations.item-already-running": "アイテムはすでに開始されています。",
+    "settings.operations.item-already-stopped": "アイテムはすでに停止しています。",
+    "settings.operations.item-already-paused": "アイテムはすでに一時停止されています。",
+    "settings.operations.item-pause-requires-running": "項目は一時停止する前に開始する必要があります。",
+    "settings.operations.item-stopped": "アイテムが停止されています。",
+    "settings.operations.item-action-unsupported": "この項目ではアクションはサポートされていません。",
+    "settings.operations.item-unavailable": "現在の実行時一覧に項目がありません。"
 }

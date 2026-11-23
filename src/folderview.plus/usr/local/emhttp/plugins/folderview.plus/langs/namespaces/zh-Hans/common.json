@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "1401082789e951dc6ac875ff2b3728e700d83ed57982097636891511f2e25201"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 自动启动序列超出了 2000 个条目的启动限制。",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "FolderView3 自动启动序列名称无效。",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3 文件夹布尔设置无效。",
+    "common.server.runtime-action-preview-stale": "文件夹状态已更改。 应用操作之前再次预览该操作。",
     "common.download.sent": "已将导出文件发送到浏览器",
     "common.download.check": "请检查“下载”文件夹。",
     "common.download.help": "找不到文件？获取帮助",

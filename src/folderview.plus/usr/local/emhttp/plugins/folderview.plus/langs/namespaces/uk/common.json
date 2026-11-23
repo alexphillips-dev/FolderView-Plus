@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d31c79eb74d9f1ed62d348587d8196195e27758a4aeb60dc2f7156256f227eef"
     },
     "common.labels.optional": "Необов'язково",
     "common.badges.recommended": "Рекомендовано",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Послідовність автозапуску FolderView3 перевищує ліміт запуску в 2000 записів.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Недійсна назва послідовності автозапуску FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "Логічний параметр папки FolderView3 недійсний.",
+    "common.server.runtime-action-preview-stale": "Стан папки змінено. Перегляньте дію ще раз перед її застосуванням.",
     "common.download.sent": "Файл експорту передано браузеру",
     "common.download.check": "Перевірте теку «Завантаження».",
     "common.download.help": "Файл не знайдено? Отримати допомогу",

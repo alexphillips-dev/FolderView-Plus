@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "17ab4508e8c3e3cc097e4fe628d0d7866bfe812c493fca0b17c4a6c294d366b2"
     },
     "editor.settings.information-about": "有關 $1 的資訊",
     "editor.actions.add-custom": "新增自訂操作",

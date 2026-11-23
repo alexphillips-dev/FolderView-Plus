@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "acc2783aa50d46941f733990363dba65fff19eb38d2520d9688b53c927abceb1"
     },
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Dimensiunea urmează comenzile gazdei",
     "settings.theme.controls-default": "Valoarea implicită a pluginului",
     "settings.theme.managed-layer": "Temă gestionată activă",
-    "settings.theme.host-status": "Tema gazdă: $1. Temele gazdă instalate sunt gestionate în Unraid."
+    "settings.theme.host-status": "Tema gazdă: $1. Temele gazdă instalate sunt gestionate în Unraid.",
+    "settings.operations.runtime-unconfirmed": "Starea curentă de rulare nu a putut fi confirmată.",
+    "settings.operations.confirm-action": "Aplicați acțiunea pentru folder?",
+    "settings.operations.confirm-details": "$1 pe „$2” Eligibil: $3 Omis: $4",
+    "settings.operations.no-eligible-detail": "Nu au fost găsite articole eligibile pentru această acțiune.",
+    "settings.operations.item-already-running": "Elementul a început deja.",
+    "settings.operations.item-already-stopped": "Elementul sa oprit deja.",
+    "settings.operations.item-already-paused": "Elementul a fost deja întrerupt.",
+    "settings.operations.item-pause-requires-running": "Elementul trebuie pornit înainte de pauză.",
+    "settings.operations.item-stopped": "Elementul este oprit.",
+    "settings.operations.item-action-unsupported": "Acțiunea nu este acceptată pentru acest articol.",
+    "settings.operations.item-unavailable": "Elementul lipsește din inventarul de execuție."
 }

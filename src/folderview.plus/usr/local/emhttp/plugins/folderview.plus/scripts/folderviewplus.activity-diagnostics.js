@@ -793,7 +793,7 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
     const statusValue = String(status || 'ok');
     const activityMessage = describeTrackedEvent(eventType, type, details);
     if (activityMessage && (statusValue !== 'ok' || LOGGED_DIAGNOSTIC_EVENTS.has(String(eventType)))) {
-        addActivityEntry(activityMessage, statusValue === 'ok' ? 'success' : 'error');
+        addActivityEntry(activityMessage, statusValue === 'ok' ? 'success' : statusValue === 'warning' ? 'warning' : 'error');
         if (statusValue === 'ok' && ['import', 'clear_folders', 'delete_folder', 'runtime_bulk_action', 'bulk_assign'].includes(String(eventType))) {
             diagnosticsShowToastMessage({
                 title: 'Action completed',
@@ -975,9 +975,9 @@ const restoreLatestUndo = async (type) => {
     return response.restore;
 };
 
-const executeFolderRuntimeAction = async (type, runtimeAction, items) => {
+const executeFolderRuntimeAction = async (type, folderId, runtimeAction, items) => {
     const response = await apiPostJson('/plugins/folderview.plus/server/bulk_folder_action.php', {
-        type,
+        type, folderId,
         runtimeAction,
         items: JSON.stringify(items || [])
     });

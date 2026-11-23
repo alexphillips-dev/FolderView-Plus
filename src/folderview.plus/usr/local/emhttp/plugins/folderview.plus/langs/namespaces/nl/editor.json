@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "ef5a02be1b0ee578f894fdd096955a8b6dab74a627626fa61baf1dad572723b0"
     },
     "editor.settings.information-about": "Informatie over $1",
     "editor.actions.add-custom": "Een aangepaste actie toevoegen",

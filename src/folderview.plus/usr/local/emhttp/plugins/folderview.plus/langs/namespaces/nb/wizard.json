@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "wizard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "c8c7dc645a22ca285bce639c6a497de135e0f7d6595aa97b6328b91a1c881716"
     },
     "wizard.title": "Oppsettassistent",
     "wizard.welcome.kicker": "FolderView Plus oppsettassistent",

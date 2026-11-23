@@ -747,28 +747,32 @@
                 `;
             }
             const folderName = getFolderNameForId(resolvedType, folderId);
+            if (result) {
+                const summary = translate("legacy.surface.a38c47a703c5feff", "Executed: $1, succeeded: $2, failed: $3, skipped: $4",
+                    result.executed || 0, result.succeeded || 0, result.failed || 0, (result.skipped || []).length);
+                return `<div class="fv-operations-runtime-summary"><strong>${escapeHtml(folderName)}</strong>
+                    <div class="fv-operations-runtime-copy">${escapeHtml(summary)}</div>
+                    ${result.notice ? `<div>${escapeHtml(result.notice)}</div>` : ''}</div>`;
+            }
             const eligiblePreview = plan.eligible.slice(0, 6);
             const skippedPreview = plan.skipped.slice(0, 6);
             const eligibleOverflow = Math.max(0, plan.eligible.length - eligiblePreview.length);
             const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
-            const resultCopy = result
-                ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
-                : translate("settings.operations.plan-summary", "$1 eligible, $2 skipped", plan.eligible.length, plan.skipped.length);
+            const resultCopy = translate("settings.operations.plan-summary", "$1 eligible, $2 skipped", plan.eligible.length, plan.skipped.length);
             return `
                 <div class="fv-operations-runtime-summary">
                     <div class="fv-operations-runtime-head">
                         <div>
-                            <div class="fv-operations-runtime-title">${escapeHtml(folderName)} - ${escapeHtml(String(action || '').toUpperCase())}</div>
+                            <div class="fv-operations-runtime-title">${escapeHtml(folderName)} - ${escapeHtml(translate(action, action))}</div>
                             <div class="fv-operations-runtime-copy">${escapeHtml(resultCopy)}</div>
                         </div>
-                        ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
                     </div>
                     <div class="fv-operations-runtime-columns">
                         <div class="fv-operations-runtime-list">
                             <strong>${escapeHtml(translate("legacy.surface.de1b6744e82ff61e", "Will change"))}</strong>
                             ${eligiblePreview.length ? `
                                 <ul>
-                                    ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
+                                    ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(translate(row.state, row.state))}</span></li>`).join('')}
                                 </ul>
                                 ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
                             ` : `<div class="fv-operations-runtime-empty">${escapeHtml(translate("legacy.surface.85e2efe37bad1a44", "No eligible items for this action."))}</div>`}

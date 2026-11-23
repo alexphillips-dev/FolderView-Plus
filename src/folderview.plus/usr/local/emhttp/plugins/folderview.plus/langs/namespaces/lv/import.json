@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "dcfeef4e33a419bb518e92f1fecd5af1ac04f1a5a45fdf47c5939059808fc7d8"
     },
     "import.subtitle": "Izvēlieties, kā rīkoties ar esošajām mapēm. Nekas nemainās, kamēr nav atlasīta opcija Lietot importēšanu.",
     "import.behavior.question": "Kā rīkoties ar esošajām mapēm?",

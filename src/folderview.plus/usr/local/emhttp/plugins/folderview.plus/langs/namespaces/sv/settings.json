@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d5b1850d2c03ff8b9f60fa81ca9e927f9e49c8146f374cdfce849194b8fdca88"
     },
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Storleken följer värdens kontroller",
     "settings.theme.controls-default": "Plugin standardinställningar",
     "settings.theme.managed-layer": "Aktivt hanterat tema",
-    "settings.theme.host-status": "Värdtema: $1. Installerade värdteman hanteras i Unraid."
+    "settings.theme.host-status": "Värdtema: $1. Installerade värdteman hanteras i Unraid.",
+    "settings.operations.runtime-unconfirmed": "Den aktuella körningsstatusen kunde inte bekräftas.",
+    "settings.operations.confirm-action": "Vill du använda mappåtgärd?",
+    "settings.operations.confirm-details": "$1 på \"$2\" Kvalificerad: $3 hoppade över: $4",
+    "settings.operations.no-eligible-detail": "Inga kvalificerade objekt hittades för den här åtgärden.",
+    "settings.operations.item-already-running": "Objektet har redan börjat.",
+    "settings.operations.item-already-stopped": "Objektet har redan stoppats.",
+    "settings.operations.item-already-paused": "Objektet har redan pausats.",
+    "settings.operations.item-pause-requires-running": "Objektet måste startas innan paus.",
+    "settings.operations.item-stopped": "Objektet är stoppat.",
+    "settings.operations.item-action-unsupported": "Åtgärden stöds inte för det här objektet.",
+    "settings.operations.item-unavailable": "Objektet saknas i den aktuella körningslistan."
 }

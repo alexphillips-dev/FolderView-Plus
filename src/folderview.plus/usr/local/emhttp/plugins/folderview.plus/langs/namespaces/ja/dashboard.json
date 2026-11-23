@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "9a73785f188c95fb43343b93ffe8d34745d1a9a63f3d31e8640f652ce75a5b1b"
     },
     "dashboard.folder.toggle-members": "フォルダーのメンバーを切り替える",
     "dashboard.widget.docker": "ドッカー",

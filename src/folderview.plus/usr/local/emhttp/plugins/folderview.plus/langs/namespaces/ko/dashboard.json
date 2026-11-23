@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "98a44888e3eb18a9456af41f505a3f2cae2e8602819751e0be3e50c55244a324"
     },
     "dashboard.folder.toggle-members": "폴더 구성원 전환",
     "dashboard.widget.docker": "도커",

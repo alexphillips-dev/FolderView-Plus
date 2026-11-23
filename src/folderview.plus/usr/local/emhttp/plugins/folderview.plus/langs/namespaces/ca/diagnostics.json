@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "6b26112ae92916b1af12f897faaded1ba22cb448460ac78f4ded7c92adf6cd00"
     },
     "diagnostics.cards.theme-integration": "Font de la paleta: $1. Motiu de la recuperació: $2. Talla nativa: $3.",
     "diagnostics.title": "Diagnòstics",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "d0ba3fee86268e48bb09770c3b4f9c0756277995fcdbb234f96567a98e5d2a72"
     },
     "dashboard.folder.toggle-members": "Veksle mappemedlemmer",
     "dashboard.widget.docker": "Docker",

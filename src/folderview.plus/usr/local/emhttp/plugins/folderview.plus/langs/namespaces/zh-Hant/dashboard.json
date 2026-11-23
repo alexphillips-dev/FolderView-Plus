@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "52a9c6b61d5eb7786a62917a2db2f5b663dd348aa9d20b2ff99fd114244ea9e6"
     },
     "dashboard.folder.toggle-members": "展開或收合資料夾成員",
     "dashboard.widget.docker": "Docker",

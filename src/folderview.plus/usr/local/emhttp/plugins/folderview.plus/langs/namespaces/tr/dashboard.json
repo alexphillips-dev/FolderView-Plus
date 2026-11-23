@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "dashboard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "18bfcd05d4c418fbb069591cb25b5b855c5d6130aaf1d06e497afbab88ccaacf"
     },
     "dashboard.folder.toggle-members": "Klasör üyelerini değiştir",
     "dashboard.widget.docker": "Docker",

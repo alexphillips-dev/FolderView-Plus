@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "wizard",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "cac6bbb08336c47ce6855bc20ec4a683ac10c0c00d3c76d73e4f9a8e668cd55b"
     },
     "wizard.title": "設定助手",
     "wizard.welcome.kicker": "FolderView Plus 設定助手",

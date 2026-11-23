@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "716343c88bfe9b17226d327978548a8ce1e6da51891ffc34dd47eb8b34ef3965"
     },
     "diagnostics.cards.theme-integration": "Palet kaynağı: $1. Kurtarma nedeni: $2. Yerel boyutlandırma: $3.",
     "diagnostics.title": "Teşhis",

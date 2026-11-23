@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "aeca3aa5bb9df09760016e6611ab0ff4469ebfcf9b41e61a5b08e7a825790d1a"
     },
     "common.labels.optional": "Valgfritt",
     "common.badges.recommended": "Anbefalt",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 autostartsekvens overskrider oppstartsgrensen på 2000 oppføringer.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Ugyldig FolderView3 autostart-sekvensnavn.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "FolderView3-mappens boolske innstilling er ugyldig.",
+    "common.server.runtime-action-preview-stale": "Mappestatus endret. Forhåndsvis handlingen på nytt før du bruker den.",
     "common.download.sent": "Eksporten er sendt til nettleseren",
     "common.download.check": "Se i mappen Nedlastinger.",
     "common.download.help": "Mangler filen? Få hjelp",

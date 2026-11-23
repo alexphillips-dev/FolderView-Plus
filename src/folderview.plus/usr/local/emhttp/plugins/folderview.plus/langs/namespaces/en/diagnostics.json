@@ -4,7 +4,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "diagnostics",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "37d8a750acb405995ff8d8ec6edd9861be1c1051a2165630e9ca652e6eac80bf"
     },
     "diagnostics.title": "Diagnostics",
     "diagnostics.workspace.description": "Monitor plugin health, troubleshoot issues, and share support data.",

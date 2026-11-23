@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "75d801dad40e6cf87ba0bbb7f7479f83140dc69b246b0f6e6f97c86c87218d94"
     },
     "settings.rules.save-changes": "Lagre endringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Størrelsen følger vertens kontroller",
     "settings.theme.controls-default": "Plugin standarder",
     "settings.theme.managed-layer": "Aktivt administrert tema",
-    "settings.theme.host-status": "Vertstema: $1. Installerte vertstemaer administreres i Unraid."
+    "settings.theme.host-status": "Vertstema: $1. Installerte vertstemaer administreres i Unraid.",
+    "settings.operations.runtime-unconfirmed": "Gjeldende kjøretidsstatus kunne ikke bekreftes.",
+    "settings.operations.confirm-action": "Vil du bruke mappehandlingen?",
+    "settings.operations.confirm-details": "$1 på \"$2\" Kvalifisert: $3 Hoppet over: $4",
+    "settings.operations.no-eligible-detail": "Ingen kvalifiserte elementer ble funnet for denne handlingen.",
+    "settings.operations.item-already-running": "Varen er allerede startet.",
+    "settings.operations.item-already-stopped": "Elementet er allerede stoppet.",
+    "settings.operations.item-already-paused": "Elementet er allerede satt på pause.",
+    "settings.operations.item-pause-requires-running": "Elementet må startes før pause.",
+    "settings.operations.item-stopped": "Varen er stoppet.",
+    "settings.operations.item-action-unsupported": "Handlingen støttes ikke for dette elementet.",
+    "settings.operations.item-unavailable": "Elementet mangler i den gjeldende kjøretidslisten."
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "docker",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "211bf3d74f63c4d8849c62a028ca9a9ed12587c9d1c862321c897abc6769e201"
     },
     "docker.folder.move-reload": "資料夾設定已變更。請重新整理後再移動資料夾。",
     "docker.actions.label": "FolderView 操作",

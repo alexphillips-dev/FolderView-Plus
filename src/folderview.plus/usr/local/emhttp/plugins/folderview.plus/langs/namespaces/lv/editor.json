@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "40d4d02b035d8a94cae1880180c804f2b033e30c8d1c61da9d32a7a75626ae5d"
     },
     "editor.settings.information-about": "Informācija par $1",
     "editor.actions.add-custom": "Pievienojiet pielāgotu darbību",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "9942f87cf9c7e4d2c8cb39b536e67c068931ea38a85c3d886cbec5438944b0f8"
     },
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "A méret a gazdagép vezérlőelemeit követi",
     "settings.theme.controls-default": "A beépülő modulok alapértelmezett beállításai",
     "settings.theme.managed-layer": "Aktív kezelt téma",
-    "settings.theme.host-status": "Gazdatéma: $1. A telepített gazdagéptémákat az Unraid kezeli."
+    "settings.theme.host-status": "Gazdatéma: $1. A telepített gazdagéptémákat az Unraid kezeli.",
+    "settings.operations.runtime-unconfirmed": "Az aktuális futási állapotot nem sikerült megerősíteni.",
+    "settings.operations.confirm-action": "Alkalmazza a mappaműveletet?",
+    "settings.operations.confirm-details": "$1 itt: \"$2\" Használható: $3 Kihagyva: $4",
+    "settings.operations.no-eligible-detail": "Ehhez a művelethez nem található alkalmas elem.",
+    "settings.operations.item-already-running": "Az elem már elkezdődött.",
+    "settings.operations.item-already-stopped": "Az elem már leállt.",
+    "settings.operations.item-already-paused": "Az elem már szünetel.",
+    "settings.operations.item-pause-requires-running": "Az elemet a szüneteltetés előtt kell elindítani.",
+    "settings.operations.item-stopped": "Az elem leállt.",
+    "settings.operations.item-action-unsupported": "A művelet nem támogatott ennél az elemnél.",
+    "settings.operations.item-unavailable": "Az elem nem található az aktuális futási listában."
 }

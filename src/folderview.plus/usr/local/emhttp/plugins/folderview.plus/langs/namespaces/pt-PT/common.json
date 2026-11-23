@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "c27e6a08adb69e6a4c2668457dda8ab3b5bec59b8969cd7a8bc779689ffcb9cf"
     },
     "common.labels.optional": "Opcional",
     "common.badges.recommended": "Recomendado",
@@ -250,6 +250,7 @@
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "A sequência de arranque automático do FolderView3 excede o limite de 2000 entradas.",
     "common.server.folderview3-invalid-folderview3-autostart-sequence-name-6326e7": "Nome inválido para a sequência de arranque automático do FolderView3.",
     "common.server.folderview3-folderview3-folder-boolean-setting-is-invalid-1c0182": "A configuração booleana da pasta FolderView3 é inválida.",
+    "common.server.runtime-action-preview-stale": "Estado da pasta alterado. Visualize a ação novamente antes de aplicá-la.",
     "common.download.sent": "Exportação enviada para o navegador",
     "common.download.check": "Verifique a pasta Transferências.",
     "common.download.help": "Não encontra o ficheiro? Obter ajuda",

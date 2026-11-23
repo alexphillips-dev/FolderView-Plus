@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "9f16a6aad47dcf4236149151524f445ff8ea03d9b022fb849ad98b4d026655e7"
     },
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",
@@ -260,5 +260,16 @@
     "settings.theme.controls-host": "Velikost podle ovládacích prvků hostitele",
     "settings.theme.controls-default": "Výchozí nastavení pluginu",
     "settings.theme.managed-layer": "Aktivní spravovaný motiv",
-    "settings.theme.host-status": "Motiv hostitele: $1. Nainstalovaná hostitelská témata se spravují v Unraid."
+    "settings.theme.host-status": "Motiv hostitele: $1. Nainstalovaná hostitelská témata se spravují v Unraid.",
+    "settings.operations.runtime-unconfirmed": "Aktuální provozní stav se nepodařilo ověřit.",
+    "settings.operations.confirm-action": "Použít akci složky?",
+    "settings.operations.confirm-details": "$1 na \"$2\" Způsobilé: $3 Vynecháno: $4",
+    "settings.operations.no-eligible-detail": "Pro tuto akci nebyly nalezeny žádné vhodné položky.",
+    "settings.operations.item-already-running": "Položka již začala.",
+    "settings.operations.item-already-stopped": "Položka již zastavena.",
+    "settings.operations.item-already-paused": "Položka již byla pozastavena.",
+    "settings.operations.item-pause-requires-running": "Položka musí být spuštěna před pauzou.",
+    "settings.operations.item-stopped": "Položka je zastavena.",
+    "settings.operations.item-action-unsupported": "Akce není u této položky podporována.",
+    "settings.operations.item-unavailable": "Položka chybí v seznamu spuštěného prostředí."
 }

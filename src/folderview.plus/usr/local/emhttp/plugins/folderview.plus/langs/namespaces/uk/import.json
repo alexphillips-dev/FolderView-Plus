@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "import",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "f6d3eefe7c945c4d9efe38ec4cbb20b7e8c1b7a11e33e9607e63f769d02ebd8a"
     },
     "import.subtitle": "Виберіть, як обробляти існуючі папки. Нічого не змінюється, поки ви не натиснете Застосувати імпорт.",
     "import.behavior.question": "Як слід обробляти існуючі папки?",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "editor",
-        "translation-context-revision": "81fca0569dbfe25906c0714386248b419045e1654c655f46e1175f60f56e7e04"
+        "content-revision": "c5b5a73eca42cd3674c4f0c6419390d0dda83e29be129f57de30ede6aa1d522a"
     },
     "editor.settings.information-about": "Informace o $1",
     "editor.actions.add-custom": "Přidejte vlastní akci",

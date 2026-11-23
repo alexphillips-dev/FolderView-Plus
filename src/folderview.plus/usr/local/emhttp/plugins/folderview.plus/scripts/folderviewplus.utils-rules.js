@@ -84,22 +84,26 @@
         return false;
     };
 
-    const skipReasonForAction = (action, state) => {
     const repairT40ba899d = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
+    const skipReasonForAction = (action, state) => {
         const normalizedAction = String(action || '').toLowerCase();
         if (normalizedAction === 'start') {
-            return state === 'paused' ? repairT40ba899d("common.repair.item-is-paused-resume-instead-09b805", "Item is paused, resume instead.") : 'Item already started.';
+            return state === 'paused' ? repairT40ba899d("common.repair.item-is-paused-resume-instead-09b805", "Item is paused, resume instead.") : repairT40ba899d("settings.operations.item-already-running", "Item already started.");
         }
         if (normalizedAction === 'stop') {
-            return 'Item already stopped.';
+            return repairT40ba899d("settings.operations.item-already-stopped", "Item already stopped.");
         }
         if (normalizedAction === 'pause') {
-            return state === 'paused' ? 'Item already paused.' : 'Item must be started before pause.';
+            return state === 'paused'
+                ? repairT40ba899d("settings.operations.item-already-paused", "Item already paused.")
+                : repairT40ba899d("settings.operations.item-pause-requires-running", "Item must be started before pause.");
         }
         if (normalizedAction === 'resume') {
-            return state === 'started' ? 'Item already started.' : 'Item is stopped.';
+            return state === 'started'
+                ? repairT40ba899d("settings.operations.item-already-running", "Item already started.")
+                : repairT40ba899d("settings.operations.item-stopped", "Item is stopped.");
         }
-        return 'Action is not supported for this item.';
+        return repairT40ba899d("settings.operations.item-action-unsupported", "Action is not supported for this item.");
     };
 
     const planFolderRuntimeAction = ({ type, folderId, folder, folders, names, infoByName, rules, action, snapshot }) => {
@@ -139,11 +143,12 @@
 
         for (const name of effectiveMembers.members) {
             const item = infos[name] || {};
-            const state = normalizedType === 'docker'
+            const known = Object.hasOwn(infos, name);
+            const state = !known ? 'unknown' : normalizedType === 'docker'
                 ? dockerRuntimeStateKind(item)
                 : vmRuntimeStateKind(item);
             countsByState[state] = (countsByState[state] || 0) + 1;
-            const canRun = isRuntimeActionAllowed(normalizedType, normalizedAction, state);
+            const canRun = known && isRuntimeActionAllowed(normalizedType, normalizedAction, state);
             if (canRun) {
                 eligible.push({
                     name,
@@ -154,7 +159,7 @@
                 skipped.push({
                     name,
                     state,
-                    reason: skipReasonForAction(normalizedAction, state)
+                    reason: known ? skipReasonForAction(normalizedAction, state) : repairT40ba899d("settings.operations.item-unavailable", "Item is missing from the runtime inventory.")
                 });
             }
         }

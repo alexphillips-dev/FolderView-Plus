@@ -156,7 +156,7 @@ jobs:
           [[ "$BASE_REF" =~ ^[a-f0-9]{40}$ ]]
           echo "base=$BASE_REF" >> "$GITHUB_OUTPUT"
       - name: Enforce dependency vulnerability and license policy
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5
         with:
           base-ref: ${{ steps.refs.outputs.base }}
           head-ref: ${{ github.sha }}

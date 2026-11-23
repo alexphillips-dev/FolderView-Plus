@@ -975,7 +975,7 @@
     {
       "type": "library",
       "name": "axe-core",
-      "version": "4.14.0",
+      "version": "4.14.1",
       "scope": "optional",
       "licenses": [
         {
@@ -984,7 +984,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/axe-core@4.14.0"
+      "purl": "pkg:npm/axe-core@4.14.1"
     },
     {
       "type": "library",
@@ -1252,7 +1252,7 @@
     {
       "type": "library",
       "name": "fast-check",
-      "version": "4.10.2",
+      "version": "4.10.3",
       "scope": "optional",
       "licenses": [
         {
@@ -1261,7 +1261,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fast-check@4.10.2"
+      "purl": "pkg:npm/fast-check@4.10.3"
     },
     {
       "type": "library",
@@ -1493,7 +1493,7 @@
     {
       "type": "library",
       "name": "jquery",
-      "version": "3.7.1",
+      "version": "3.8.0",
       "scope": "optional",
       "licenses": [
         {
@@ -1502,7 +1502,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/jquery@3.7.1"
+      "purl": "pkg:npm/jquery@3.8.0"
     },
     {
       "type": "library",

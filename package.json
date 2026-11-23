@@ -11,12 +11,12 @@
     "compare:support-bundles": "node scripts/compare_support_bundles.mjs"
   },
   "devDependencies": {
-    "axe-core": "4.14.0",
+    "axe-core": "4.14.1",
     "c8": "12.0.0",
-    "fast-check": "4.10.2",
-    "jquery": "3.7.1",
+    "fast-check": "4.10.3",
+    "jquery": "3.8.0",
     "opencc-js": "1.4.2",
-    "playwright": "1.64.1"
+    "playwright": "1.65.1"
   },
   "overrides": {
     "glob": "14.0.6",

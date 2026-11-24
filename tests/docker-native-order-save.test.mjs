@@ -435,7 +435,12 @@ test('the stored order is read from userprefs.cfg as Unraid writes it, without s
         encoding: 'utf8',
         env: { ...process.env, FVPLUS_TEST_CONFIG_DIR: configDir, FVPLUS_TEST_SOURCE_DIR: sourceDir, FVPLUS_TEST_DOCUMENT_ROOT: documentRoot }
     }));
-    const readStored = () => php(`echo json_encode(readUnraidStoredDockerOrder(${phpString(prefs)}));`);
+    const readStored = (file = prefs) => php(`echo json_encode(readUnraidStoredDockerOrder(${phpString(file)}));`);
+    const readFixture = (name, content, options) => {
+        const file = path.join(tempDir, name);
+        fs.writeFileSync(file, content, options);
+        return readStored(file);
+    };
     try {
         assert.deepEqual(readStored(), { status: 'missing', entries: [] });
 
@@ -455,24 +460,22 @@ test('the stored order is read from userprefs.cfg as Unraid writes it, without s
         assert.equal(fs.statSync(prefs).mtimeMs, mtime);
 
         // Stored order is returned as is: no name sort, no containers added.
-        fs.writeFileSync(prefs, '0="example-zeta"\n1="example-alpha"\n');
-        assert.deepEqual(readStored().entries.map((entry) => entry.name), ['example-zeta', 'example-alpha']);
+        const unsorted = readFixture('unsorted.cfg', '0="example-zeta"\n1="example-alpha"\n');
+        assert.deepEqual(unsorted.entries.map((entry) => entry.name), ['example-zeta', 'example-alpha']);
         // Saving an empty list makes UserPrefs.php write a single newline.
-        fs.writeFileSync(prefs, '\n');
-        assert.deepEqual(readStored(), { status: 'ok', entries: [] });
+        assert.deepEqual(readFixture('empty.cfg', '\n'), { status: 'ok', entries: [] });
 
-        for (const content of ['', '0="example-plex"', '0="example-plex"\n1="example-sonarr', 'example-plex\n', '0="example-plex"\r\n', '0="a"b"\n']) {
-            fs.writeFileSync(prefs, content);
-            assert.deepEqual(readStored(), { status: 'invalid', entries: [] }, JSON.stringify(content));
+        const malformed = ['', '0="example-plex"', '0="example-plex"\n1="example-sonarr', 'example-plex\n', '0="example-plex"\r\n', '0="a"b"\n'];
+        for (const [index, content] of malformed.entries()) {
+            assert.deepEqual(readFixture(`malformed-${index}.cfg`, content), { status: 'invalid', entries: [] }, JSON.stringify(content));
         }
 
-        fs.rmSync(prefs);
-        fs.mkdirSync(prefs);
-        assert.deepEqual(readStored(), { status: 'unreadable', entries: [] });
-        fs.rmdirSync(prefs);
+        const directory = path.join(tempDir, 'prefs-directory');
+        fs.mkdirSync(directory);
+        assert.deepEqual(readStored(directory), { status: 'unreadable', entries: [] });
         if (typeof process.getuid === 'function' && process.getuid() !== 0) {
-            fs.writeFileSync(prefs, '0="example-plex"\n', { mode: 0o000 });
-            assert.deepEqual(readStored(), { status: 'unreadable', entries: [] });
+            const unreadable = readFixture('unreadable.cfg', '0="example-plex"\n', { mode: 0o000 });
+            assert.deepEqual(unreadable, { status: 'unreadable', entries: [] });
         }
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });

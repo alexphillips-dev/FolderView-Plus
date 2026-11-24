@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "editor",
-        "content-revision": "48744f6d42c9678cecc8e2248ebed48892e63bbb22e3464371b4ea666fbbdef3"
+        "content-revision": "26f67f5e136d6a29809b25efa2b7e8eed03cf7c55e282541774419e5e30247a5"
     },
     "editor.settings.information-about": "Informasjon om $1",
     "editor.actions.add-custom": "Legg til en egendefinert handling",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Hver WebUI-profil trenger et navn.",
     "editor.webui-profiles.error-duplicate": "WebUI-profilnavn må være unike i denne mappen.",
     "editor.webui-profiles.error-members": "Hver WebUI-profil må velge minst ett mappemedlem.",
-    "editor.webui-profiles.limit": "Denne mappen har nådd sikkerhetsgrensen for WebUI-profilen."
+    "editor.webui-profiles.limit": "Denne mappen har nådd sikkerhetsgrensen for WebUI-profilen.",
+    "editor.members.assignment-why": "Hvorfor denne mappen?",
+    "editor.members.assignment-elsewhere": "Tilordnet til andre mapper",
+    "editor.members.assignment-manual": "Manuelt tildelt",
+    "editor.members.assignment-label": "Matches av etikett",
+    "editor.members.assignment-regex": "Matchet av regulært uttrykk",
+    "editor.members.assignment-rule": "Matches av regel",
+    "editor.members.assignment-owner": "Tilordnet til $1 · $2",
+    "editor.members.assignment-match": "Matcher $1 · $2",
+    "editor.members.assignment-preview": "Forhåndsvisning · $1",
+    "editor.members.assignment-none": "Ingen mappeoppdrag",
+    "editor.members.assignment-loading": "Laster inn oppgaven …"
 }

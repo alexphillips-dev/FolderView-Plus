@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "editor",
-        "content-revision": "6d709e65f7180d9dbabeb9cb1339072405434ed33c3f5db94a32bbe38e39e00a"
+        "content-revision": "6d91a923273df0b29c060b7fdc6a74e3d784c6b31e0c3b3bb96864d66426b802"
     },
     "editor.settings.information-about": "$1 に関する情報",
     "editor.actions.add-custom": "カスタムアクションを追加",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "すべての WebUI プロファイルには名前が必要です。",
     "editor.webui-profiles.error-duplicate": "WebUI プロファイル名は、このフォルダー内で一意である必要があります。",
     "editor.webui-profiles.error-members": "すべての WebUI プロファイルは、少なくとも 1 つのフォルダー メンバーを選択する必要があります。",
-    "editor.webui-profiles.limit": "このフォルダーは WebUI プロファイルの安全制限に達しています。"
+    "editor.webui-profiles.limit": "このフォルダーは WebUI プロファイルの安全制限に達しています。",
+    "editor.members.assignment-why": "なぜこのフォルダなのでしょうか？",
+    "editor.members.assignment-elsewhere": "他のフォルダーに割り当てられている",
+    "editor.members.assignment-manual": "手動で割り当て",
+    "editor.members.assignment-label": "ラベルで一致",
+    "editor.members.assignment-regex": "正規表現で一致",
+    "editor.members.assignment-rule": "ルールにより一致",
+    "editor.members.assignment-owner": "$1 · $2 に割り当てられています",
+    "editor.members.assignment-match": "$1 · $2 に一致します",
+    "editor.members.assignment-preview": "プレビュー · $1",
+    "editor.members.assignment-none": "フォルダーの割り当てがありません",
+    "editor.members.assignment-loading": "割り当てを読み込み中…"
 }

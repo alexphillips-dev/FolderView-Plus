@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "editor",
-        "content-revision": "c5b5a73eca42cd3674c4f0c6419390d0dda83e29be129f57de30ede6aa1d522a"
+        "content-revision": "913deed8a4189b8a49dc94f6ab071a9ccd864befe6e32afb2ec0b8a93b15b48f"
     },
     "editor.settings.information-about": "Informace o $1",
     "editor.actions.add-custom": "Přidejte vlastní akci",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Každý profil WebUI potřebuje jméno.",
     "editor.webui-profiles.error-duplicate": "Názvy profilů webového rozhraní musí být v této složce jedinečné.",
     "editor.webui-profiles.error-members": "Každý profil WebUI musí vybrat alespoň jednoho člena složky.",
-    "editor.webui-profiles.limit": "Tato složka dosáhla bezpečnostního limitu profilu WebUI."
+    "editor.webui-profiles.limit": "Tato složka dosáhla bezpečnostního limitu profilu WebUI.",
+    "editor.members.assignment-why": "Proč tato složka?",
+    "editor.members.assignment-elsewhere": "Přiřazeno do jiných složek",
+    "editor.members.assignment-manual": "Ručně přiřazeno",
+    "editor.members.assignment-label": "Shodováno podle štítku",
+    "editor.members.assignment-regex": "Odpovídá regulárnímu výrazu",
+    "editor.members.assignment-rule": "Shodné podle pravidla",
+    "editor.members.assignment-owner": "Přiřazeno $1 · $2",
+    "editor.members.assignment-match": "Shody $1 · $2",
+    "editor.members.assignment-preview": "Náhled · $1",
+    "editor.members.assignment-none": "Žádné přiřazení složky",
+    "editor.members.assignment-loading": "Načítání úkolu…"
 }

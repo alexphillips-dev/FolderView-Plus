@@ -100,11 +100,12 @@ test('rapid Docker start-order changes queue only edited fields and retain both 
 });
 
 test('folder editor rule saves discard unrelated cached preferences before reaching the coordinator', async () => {
-    const writes = [];
+    const writes = [], reconciled = [];
     const original = { autoRules: [{ id: 'old' }], pinnedFolderIds: ['stale'], dashboard: { privacyMode: false } };
     const context = vm.createContext({
         rootWindow: { FolderViewPlusPrefsStore: store }, type: 'vm', folderEditorPrefs: original,
         folderEditorPrefsLoaded: true, normalizePrefs: value => value,
+        deps: { onPrefsReconciled: () => reconciled.push(plain(context.folderEditorPrefs)) },
         preferenceCoordinator: { save: async (_type, patch) => { writes.push(plain(patch)); return patch; } }
     });
     const source = read('folder.editor.rules.js');
@@ -113,4 +114,5 @@ test('folder editor rule saves discard unrelated cached preferences before reach
     vm.runInContext(`${source.slice(start, end)}\nthis.save = saveFolderEditorPrefs;`, context);
     await context.save({ ...original, autoRules: [] });
     assert.deepEqual(writes, [{ autoRules: [] }]);
+    assert.deepEqual(reconciled, [{ autoRules: [] }]);
 });

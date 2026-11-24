@@ -5372,6 +5372,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${contextFolderId}), container ${ct.shortId}: tooltip target is valid. Deferring tooltipster initialization until first interaction.`);
                 const triggerMode = contextFolder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
                 const tooltip_trigger_element = tooltipTarget;
+                let disposeRuntimeSummary;
                 initializeDockerTooltipOnDemand($(tooltip_trigger_element), () => $(tooltip_trigger_element).tooltipster({
                     interactive: true,
                     theme: ['tooltipster-docker-folder'],
@@ -5417,6 +5418,11 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
 
                         const triggerOriginEl = helper.origin;  // This is the jQuery object of the element that triggered the tooltip
                         const tooltipDomEl = helper.tooltip;  // This is the jQuery object of the tooltip's outermost DOM element
+                        disposeRuntimeSummary?.();
+                        disposeRuntimeSummary = window.FolderViewPlusFoundationModules?.runtimePreviewSummary?.attach(tooltipDomEl, {
+                            instance, surface: 'docker', entry: ct, origin: helper.origin,
+                            getCurrentEntry: () => getDockerRuntimeContainerInfo(container_name_in_folder)
+                        });
 
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionReady. Instance:`, instance, "Helper:", helper, "Trigger Origin Element:", triggerOriginEl[0], "Tooltip DOM Element:", tooltipDomEl[0]);
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-start event.`);
@@ -5614,6 +5620,8 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                         }}));
                     },
                     functionAfter: function(instance, helper) {
+                        disposeRuntimeSummary?.();
+                        disposeRuntimeSummary = null;
                         const origin = helper.origin;
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): functionAfter. Instance:`, instance, "Helper:", helper, "Origin:", origin);
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-after event.`);

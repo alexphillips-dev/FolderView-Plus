@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "editor",
-        "content-revision": "bd65f6a96604f358052029141250c9611951d500c48dc12c3b598f36671af835"
+        "content-revision": "304b48dc1836ed67bd1f658cc550ae710d3ca3c0d3db1bc54cf790e0c8bf8502"
     },
     "editor.settings.information-about": "معلومات حول $1",
     "editor.actions.add-custom": "إضافة إجراء مخصص",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "يحتاج كل ملف تعريف WebUI إلى اسم.",
     "editor.webui-profiles.error-duplicate": "يجب أن تكون أسماء ملفات تعريف WebUI فريدة داخل هذا المجلد.",
     "editor.webui-profiles.error-members": "يجب أن يحدد كل ملف تعريف WebUI عضو مجلد واحد على الأقل.",
-    "editor.webui-profiles.limit": "لقد وصل هذا المجلد إلى حد أمان ملف تعريف WebUI."
+    "editor.webui-profiles.limit": "لقد وصل هذا المجلد إلى حد أمان ملف تعريف WebUI.",
+    "editor.members.assignment-why": "لماذا هذا المجلد؟",
+    "editor.members.assignment-elsewhere": "المخصصة لمجلدات أخرى",
+    "editor.members.assignment-manual": "تم تعيينه يدويًا",
+    "editor.members.assignment-label": "متطابقة حسب التسمية",
+    "editor.members.assignment-regex": "متطابق مع regex",
+    "editor.members.assignment-rule": "متطابقة مع القاعدة",
+    "editor.members.assignment-owner": "تم التعيين إلى $1 · $2",
+    "editor.members.assignment-match": "التطابقات $1 · $2",
+    "editor.members.assignment-preview": "معاينة · $1",
+    "editor.members.assignment-none": "لا توجد مهمة المجلد",
+    "editor.members.assignment-loading": "جارٍ تحميل المهمة…"
 }

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "editor",
-        "content-revision": "40d4d02b035d8a94cae1880180c804f2b033e30c8d1c61da9d32a7a75626ae5d"
+        "content-revision": "e37c1162154715dff1ebde02a91da26690860240737803c68ba5b3aef5d4f186"
     },
     "editor.settings.information-about": "Informācija par $1",
     "editor.actions.add-custom": "Pievienojiet pielāgotu darbību",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Katram WebUI profilam ir nepieciešams nosaukums.",
     "editor.webui-profiles.error-duplicate": "WebUI profilu nosaukumiem šajā mapē ir jābūt unikāliem.",
     "editor.webui-profiles.error-members": "Katrā WebUI profilā ir jāatlasa vismaz viens mapes dalībnieks.",
-    "editor.webui-profiles.limit": "Šī mape ir sasniegusi WebUI profila drošības ierobežojumu."
+    "editor.webui-profiles.limit": "Šī mape ir sasniegusi WebUI profila drošības ierobežojumu.",
+    "editor.members.assignment-why": "Kāpēc šī mape?",
+    "editor.members.assignment-elsewhere": "Piešķirts citām mapēm",
+    "editor.members.assignment-manual": "Manuāli piešķirts",
+    "editor.members.assignment-label": "Atbilst pēc etiķetes",
+    "editor.members.assignment-regex": "Atbilst ar regulāru izteiksmi",
+    "editor.members.assignment-rule": "Atbilst likumam",
+    "editor.members.assignment-owner": "Piešķirts $1 · $2",
+    "editor.members.assignment-match": "Atbilst $1 · $2",
+    "editor.members.assignment-preview": "Priekšskatījums · $1",
+    "editor.members.assignment-none": "Nav piešķirta mape",
+    "editor.members.assignment-loading": "Notiek uzdevuma ielāde…"
 }

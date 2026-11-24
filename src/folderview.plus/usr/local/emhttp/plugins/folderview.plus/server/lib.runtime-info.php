@@ -129,6 +129,7 @@ function getDockerTemplateCachePath(): string {
                 $info[$name] = [
                     'name' => $name,
                     'id' => substr(str_replace('sha256:', '', (string)($container['Id'] ?? '')), 0, 12),
+                    'fullContainerId' => preg_match('/^[a-f0-9]{64}$/D', $containerId) ? $containerId : '',
                     'shortImageId' => substr(str_replace('sha256:', '', (string)($container['ImageID'] ?? '')), 0, 12),
                     'Image' => trim((string)($container['Image'] ?? '')),
                     'Labels' => $labels,
@@ -204,6 +205,7 @@ function getDockerTemplateCachePath(): string {
             foreach ($cts as $key => &$ct) {
                 $ct['info'] = $dockerClient->getContainerDetails($ct['Id'] ?? null);
                 if (empty($ct['info'])) { fv3_debug_log("Skipped container due to empty details: ID " . ($ct['Id'] ?? 'N/A')); continue; }
+                unset($ct['info']['Config']['Env']);
 
                 $containerLabels = is_array($ct['Labels'] ?? null) ? $ct['Labels'] : [];
                 $configLabels = is_array($ct['info']['Config']['Labels'] ?? null) ? $ct['info']['Config']['Labels'] : [];

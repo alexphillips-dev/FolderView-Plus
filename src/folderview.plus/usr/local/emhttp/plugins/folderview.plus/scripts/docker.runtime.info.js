@@ -434,6 +434,7 @@
             nextEntry.isRebuildReady = rebuild;
             nextEntry.isRebuildReadyFromHost = hostUpdated === 'rebuild';
             nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
+            nextEntry.fullContainerId = source.fullContainerId;
             nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
             nextEntry.Labels = labels;
             nextEntry.image = nextEntry.Image = String(source.Image ?? previous?.image ?? previous?.Image ?? previousConfig.Image ?? '').trim();

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "editor",
-        "content-revision": "7b3b074adef574d8ec47a70cce6139e92a615a944afa0c7cf3984f43f783f8c0"
+        "content-revision": "a36fa62728d45cb48c735d36d580c7cc5692e83082089ee030fe26a2dbbd68d5"
     },
     "editor.settings.information-about": "Informationen zu $1",
     "editor.actions.add-custom": "Fügen Sie eine benutzerdefinierte Aktion hinzu",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Jedes WebUI-Profil benötigt einen Namen.",
     "editor.webui-profiles.error-duplicate": "WebUI-Profilnamen müssen innerhalb dieses Ordners eindeutig sein.",
     "editor.webui-profiles.error-members": "Jedes WebUI-Profil muss mindestens ein Ordnermitglied auswählen.",
-    "editor.webui-profiles.limit": "Dieser Ordner hat die Sicherheitsgrenze des WebUI-Profils erreicht."
+    "editor.webui-profiles.limit": "Dieser Ordner hat die Sicherheitsgrenze des WebUI-Profils erreicht.",
+    "editor.members.assignment-why": "Warum dieser Ordner?",
+    "editor.members.assignment-elsewhere": "Anderen Ordnern zugewiesen",
+    "editor.members.assignment-manual": "Manuell zugewiesen",
+    "editor.members.assignment-label": "Passend zum Label",
+    "editor.members.assignment-regex": "Abgeglichen durch Regex",
+    "editor.members.assignment-rule": "Nach Regel abgeglichen",
+    "editor.members.assignment-owner": "Zugewiesen an $1 · $2",
+    "editor.members.assignment-match": "Entspricht $1 · $2",
+    "editor.members.assignment-preview": "Vorschau · $1",
+    "editor.members.assignment-none": "Keine Ordnerzuordnung",
+    "editor.members.assignment-loading": "Aufgabe wird geladen…"
 }

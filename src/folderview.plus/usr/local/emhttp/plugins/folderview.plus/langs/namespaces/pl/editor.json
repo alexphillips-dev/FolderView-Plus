@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "editor",
-        "content-revision": "9724b1e94125f22e0b7e50947aa3b708f8962b80ee71fdcfbdc3d2300aa11b7c"
+        "content-revision": "b8984343b0e98f7f65f70dd405e2770c4798481673c1eef2b26ec393bb73cb0b"
     },
     "editor.settings.information-about": "Informacje o $1",
     "editor.actions.add-custom": "Dodaj niestandardową akcję",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Każdy profil WebUI potrzebuje nazwy.",
     "editor.webui-profiles.error-duplicate": "Nazwy profili WebUI muszą być unikalne w tym folderze.",
     "editor.webui-profiles.error-members": "Każdy profil WebUI musi wybierać co najmniej jednego członka folderu.",
-    "editor.webui-profiles.limit": "Ten folder osiągnął limit bezpieczeństwa profilu WebUI."
+    "editor.webui-profiles.limit": "Ten folder osiągnął limit bezpieczeństwa profilu WebUI.",
+    "editor.members.assignment-why": "Dlaczego ten folder?",
+    "editor.members.assignment-elsewhere": "Przypisane do innych folderów",
+    "editor.members.assignment-manual": "Przypisane ręcznie",
+    "editor.members.assignment-label": "Dopasowane według etykiety",
+    "editor.members.assignment-regex": "Dopasowane przez wyrażenie regularne",
+    "editor.members.assignment-rule": "Dopasowane według zasady",
+    "editor.members.assignment-owner": "Przypisany do $1 · $2",
+    "editor.members.assignment-match": "Dopasowania $1 · $2",
+    "editor.members.assignment-preview": "Podgląd · $1",
+    "editor.members.assignment-none": "Brak przypisania folderu",
+    "editor.members.assignment-loading": "Ładowanie zadania…"
 }

@@ -322,7 +322,8 @@ test('Dashboard Started only reconciles folder members without a full widget rel
 test('dashboard advanced preview module is loaded before dashboard runtime and exposes attach api', () => {
     assert.match(dashboardPage, /chart\.min\.js[\s\S]*chartjs-plugin-streaming\.min\.js[\s\S]*dashboard\.advanced-preview\.js[\s\S]*dashboard\.js/);
     assert.match(dashboardAdvancedPreviewScript, /root\.FolderViewPlusDashboardAdvancedPreview = factory\(\)/);
-    assert.match(dashboardAdvancedPreviewScript, /const attachAdvancedPreview = \(\{ triggerEl, ct, folder = \{\}, id = '', settings = \{\}, cpus = 1 \} = \{\}\) =>/);
+    assert.match(dashboardPage, /runtime\.privacy\.js[\s\S]*runtime\.preview-summary\.js[\s\S]*dashboard\.advanced-preview\.js/);
+    assert.match(dashboardAdvancedPreviewScript, /const attachAdvancedPreview = \(\{ triggerEl, ct, getCurrentEntry, folder = \{\}, id = '', settings = \{\}, cpus = 1 \} = \{\}\) =>/);
     assert.match(dashboardAdvancedPreviewScript, /const parseStatsMessage = \(event, ct, cpus = 1\) =>/);
     assert.match(dashboardAdvancedPreviewScript, /chart\.canvas/);
     assert.doesNotMatch(dashboardScript, /FolderViewPlusNativeOrganizer|syncDockerOrganizer/);

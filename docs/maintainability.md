@@ -46,6 +46,7 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - `docs/unraid-compatibility-baseline.json` records human-reviewed upstream versions and Git blob signatures. Review tools report drift but never modify or approve the baseline.
 - Run `scripts/php_runtime_compatibility.sh` manually in isolated PHP profiles for the supported Unraid releases. It syntax-checks every shipped PHP file and runs a request-authority smoke contract without connecting to a server. The retired monitor no longer schedules the PHP profile matrix.
 - The installer recovery fixture runs the manifest hook with synthetic boot archives and failure injection. To include the Unraid 7.4.0 plugin manager, fetch the [pinned CLI source](https://raw.githubusercontent.com/unraid/webgui/b135287c706a30da44f71cc7820615209e83e9a0/emhttp/plugins/dynamix.plugin.manager/scripts/plugin) and set `FVPLUS_TEST_UNRAID_PLUGIN_CLI` to its absolute Linux path when running `node --test tests/install-upgrade-recovery.test.mjs`. The fixture verifies the source hash and runs update, manual reinstall, and offline boot with temporary paths and simulated package operations.
+- The [Unraid 7.4.0 browser fixture](#run-the-pinned-unraid-browser-fixture) loads the pinned native Docker, VM, and Dashboard pages with the same synthetic Docker and libvirt data across stock, Plus, and uninstalled states.
 - Community Applications validation uses the official public portal guidance, starter repository, catalog feed, and canonical template. The authenticated portal Validate/Scan session is never stored in GitHub Actions.
 - The scheduled validation workflow runs deterministic fixtures in Chromium, Firefox, and WebKit every Monday. It does not connect to live Unraid targets or require live-system repository secrets.
 - Review scheduled workflow results directly in GitHub Actions when needed; there is no separate freshness monitor or recovery-issue automation.
@@ -53,3 +54,18 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - Audit current and reachable package history with `bash scripts/artifact_history_audit.sh` and `bash scripts/artifact_history_audit.sh --history`.
 - Follow [artifact retention](artifact-retention.md) before any coordinated Git LFS or history migration. History rewriting is intentionally never automated.
 - Architectural decisions and invariants are recorded under [`docs/adr/`](adr/).
+
+### Run the pinned Unraid browser fixture
+
+Run these commands from the repository root on Linux or WSL with unprivileged user, mount, PID and network namespaces enabled. The fixture uses Bash, util-linux, iproute2, cURL, PHP CLI with `mbstring`, `curl`, SQLite and SimpleXML, and the repository's Playwright Chromium. It verifies both archives before extraction and serves requests over loopback inside a fresh network namespace.
+
+```sh
+mkdir -p tmp/unraid-synthetic-input
+curl --fail --location --output tmp/unraid-synthetic-input/webgui.tar.gz https://codeload.github.com/unraid/webgui/tar.gz/b135287c706a30da44f71cc7820615209e83e9a0
+curl --fail --location --output tmp/unraid-synthetic-input/folderview3.tar.gz https://codeload.github.com/chodeus/folder.view3/tar.gz/09842a3f2c8938db005200168f8fd0186c88426e
+bash scripts/verify_unraid_webgui.sh tmp/unraid-synthetic-input/webgui.tar.gz tmp/unraid-synthetic-input/folderview3.tar.gz
+```
+
+The browser opens the Docker runtime preview on demand, verifies Docker and VM tiles can finish independently, saves container order through Unraid's handler, reloads the page, and verifies the saved order and autostart survive the native plugin manager's uninstall. Slackware package removal and cron updates use fixture commands. The synthetic host omits the optional stock Dashboard CPU telemetry service. Qualification of a live Unraid host remains manual.
+
+For Linux distributions that supply PHP extensions as separate packages, `FVPLUS_TEST_PHP_MODULE_DIR` can point to matching extracted `mbstring.so`, `curl.so`, `sqlite3.so`, `pdo_sqlite.so`, and `libonig.so.5` files.

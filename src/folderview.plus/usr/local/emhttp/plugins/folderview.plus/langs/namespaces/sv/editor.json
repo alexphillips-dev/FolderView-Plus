@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "editor",
-        "content-revision": "0aa18e69ae375b9bb475a787344f643b599bc9b6fda4182114164bedd43203a8"
+        "content-revision": "bf3bc3366a278008d27e85cfa6d640cf86b4e09eced974f1acbf6809180803a9"
     },
     "editor.settings.information-about": "Information om $1",
     "editor.actions.add-custom": "Lägg till en anpassad åtgärd",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Varje WebUI-profil behöver ett namn.",
     "editor.webui-profiles.error-duplicate": "WebUI-profilnamn måste vara unika i den här mappen.",
     "editor.webui-profiles.error-members": "Varje WebUI-profil måste välja minst en mappmedlem.",
-    "editor.webui-profiles.limit": "Den här mappen har nått säkerhetsgränsen för WebUI-profilen."
+    "editor.webui-profiles.limit": "Den här mappen har nått säkerhetsgränsen för WebUI-profilen.",
+    "editor.members.assignment-why": "Varför denna mapp?",
+    "editor.members.assignment-elsewhere": "Tilldelad till andra mappar",
+    "editor.members.assignment-manual": "Manuellt tilldelad",
+    "editor.members.assignment-label": "Matchas av etikett",
+    "editor.members.assignment-regex": "Matchas av regex",
+    "editor.members.assignment-rule": "Matchas av regel",
+    "editor.members.assignment-owner": "Tilldelad till $1 · $2",
+    "editor.members.assignment-match": "Matchar $1 · $2",
+    "editor.members.assignment-preview": "Förhandsgranska · $1",
+    "editor.members.assignment-none": "Ingen mapptilldelning",
+    "editor.members.assignment-loading": "Läser in uppgift..."
 }

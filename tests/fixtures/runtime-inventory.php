@@ -151,6 +151,11 @@ namespace {
         writeReadInfoCache($type, 'full', ['cached-gone' => []]);
         $lv = new Libvirt(); $lv->stale = true;
     }
+    if (isset($request['cachedRuntimeDetails'])) {
+        fv3_write_json_cache_payload(getReadInfoCachePath('docker', 'full'), [
+            'type' => 'docker', 'mode' => 'full', 'data' => $request['cachedRuntimeDetails']
+        ]);
+    }
     if (!empty($request['corruptConfig'])) file_put_contents("$root/config/$type.json", '{');
     $folderFile = getFolderFilePath($type);
     $folderData = [

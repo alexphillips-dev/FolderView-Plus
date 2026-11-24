@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "editor",
-        "content-revision": "5bd8f1ca5e2387a2576daea41be95581921eaac091e934b2475c9f2e74ac39f2"
+        "content-revision": "4c14286e5717b0b5591cb2f1f861ba0960c113c0eaa11aec062bae196fdb7f1f"
     },
     "editor.settings.information-about": "有关 $1 的信息",
     "editor.actions.add-custom": "添加自定义操作",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "每套 WebUI 配置方案都需要名称。",
     "editor.webui-profiles.error-duplicate": "同一文件夹内的 WebUI 配置方案名称不可重复。",
     "editor.webui-profiles.error-members": "每套 WebUI 配置方案都必须选择至少一个文件夹成员。",
-    "editor.webui-profiles.limit": "此文件夹的 WebUI 配置方案数量已达上限。"
+    "editor.webui-profiles.limit": "此文件夹的 WebUI 配置方案数量已达上限。",
+    "editor.members.assignment-why": "为什么是这个文件夹？",
+    "editor.members.assignment-elsewhere": "分配给其他文件夹",
+    "editor.members.assignment-manual": "手动分配",
+    "editor.members.assignment-label": "按标签匹配",
+    "editor.members.assignment-regex": "通过正则表达式匹配",
+    "editor.members.assignment-rule": "按规则匹配",
+    "editor.members.assignment-owner": "分配给 $1 · $2",
+    "editor.members.assignment-match": "匹配 $1 · $2",
+    "editor.members.assignment-preview": "预览 · $1",
+    "editor.members.assignment-none": "没有文件夹分配",
+    "editor.members.assignment-loading": "正在加载作业..."
 }

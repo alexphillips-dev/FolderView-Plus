@@ -201,7 +201,7 @@
                 if (preferenceCoordinator) {
                     folderEditorPrefs = preferenceCoordinator.reconcile(type, folderEditorPrefs);
                 }
-                folderEditorPrefsLoaded = true;
+                folderEditorPrefsLoaded = true; deps.onPrefsReconciled?.();
                 return folderEditorPrefs;
             })();
             try {
@@ -218,7 +218,7 @@
                     currentPrefs: folderEditorPrefs,
                     immediate: true
                 }));
-                folderEditorPrefsLoaded = true;
+                folderEditorPrefsLoaded = true; deps.onPrefsReconciled?.();
                 return folderEditorPrefs;
             }
             if (!requestClient || typeof requestClient.postJson !== 'function') {
@@ -243,7 +243,7 @@
                 ...(response?.prefs || nextPrefs),
                 _metadata: response?.metadata || {}
             });
-            folderEditorPrefsLoaded = true;
+            folderEditorPrefsLoaded = true; deps.onPrefsReconciled?.();
             return folderEditorPrefs;
         };
 
@@ -774,7 +774,8 @@
         };
 
         return Object.freeze({
-            refresh
+            refresh,
+            getAssignmentPrefs: () => folderEditorPrefsLoaded ? folderEditorPrefs : undefined
         });
     };
 

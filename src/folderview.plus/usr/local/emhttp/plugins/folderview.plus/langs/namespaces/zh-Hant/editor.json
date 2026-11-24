@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "editor",
-        "content-revision": "17ab4508e8c3e3cc097e4fe628d0d7866bfe812c493fca0b17c4a6c294d366b2"
+        "content-revision": "965319b40d9ba699ec479e24584c4c4e63093f0f88af79956053af8e87fefb7d"
     },
     "editor.settings.information-about": "有關 $1 的資訊",
     "editor.actions.add-custom": "新增自訂操作",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "每個 WebUI 設定檔都需要一個名稱。",
     "editor.webui-profiles.error-duplicate": "WebUI 設定檔名稱在此資料夾中必須是唯一的。",
     "editor.webui-profiles.error-members": "每個 WebUI 設定檔必須至少選擇一個資料夾成員。",
-    "editor.webui-profiles.limit": "此資料夾已達到 WebUI 設定檔安全限制。"
+    "editor.webui-profiles.limit": "此資料夾已達到 WebUI 設定檔安全限制。",
+    "editor.members.assignment-why": "為什麼是這個資料夾？",
+    "editor.members.assignment-elsewhere": "分配給其他資料夾",
+    "editor.members.assignment-manual": "手動分配",
+    "editor.members.assignment-label": "按標籤匹配",
+    "editor.members.assignment-regex": "透過正規表示式匹配",
+    "editor.members.assignment-rule": "按規則匹配",
+    "editor.members.assignment-owner": "分配給 $1 · $2",
+    "editor.members.assignment-match": "匹配 $1 · $2",
+    "editor.members.assignment-preview": "預覽 · $1",
+    "editor.members.assignment-none": "沒有資料夾分配",
+    "editor.members.assignment-loading": "正在載入作業..."
 }

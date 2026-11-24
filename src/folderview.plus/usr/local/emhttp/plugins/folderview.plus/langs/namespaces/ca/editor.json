@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "editor",
-        "content-revision": "691f109bd30a2543494d2100293dfcbfd8789a24b642299945be090f6f23402f"
+        "content-revision": "ae294225202e133feee2c392ebac2a9b06278526e9d36c30ab6da2d77aae6d2e"
     },
     "editor.settings.information-about": "Informació sobre $1",
     "editor.actions.add-custom": "Afegeix una acció personalitzada",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Cada perfil de WebUI necessita un nom.",
     "editor.webui-profiles.error-duplicate": "Els noms de perfil de la UI web han de ser únics dins d'aquesta carpeta.",
     "editor.webui-profiles.error-members": "Cada perfil de WebUI ha de seleccionar almenys un membre de la carpeta.",
-    "editor.webui-profiles.limit": "Aquesta carpeta ha assolit el límit de seguretat del perfil WebUI."
+    "editor.webui-profiles.limit": "Aquesta carpeta ha assolit el límit de seguretat del perfil WebUI.",
+    "editor.members.assignment-why": "Per què aquesta carpeta?",
+    "editor.members.assignment-elsewhere": "Assignat a altres carpetes",
+    "editor.members.assignment-manual": "Assignat manualment",
+    "editor.members.assignment-label": "Coincidint per etiqueta",
+    "editor.members.assignment-regex": "Coincidit amb regex",
+    "editor.members.assignment-rule": "Coincidint per regla",
+    "editor.members.assignment-owner": "Assignat a $1 · $2",
+    "editor.members.assignment-match": "Partits $1 · $2",
+    "editor.members.assignment-preview": "Vista prèvia · $1",
+    "editor.members.assignment-none": "No hi ha assignació de carpeta",
+    "editor.members.assignment-loading": "S'està carregant la tasca..."
 }

@@ -383,7 +383,7 @@
             };
         };
 
-        const attachAdvancedPreview = ({ triggerEl, ct, folder = {}, id = '', settings = {}, cpus = 1 } = {}) => {
+        const attachAdvancedPreview = ({ triggerEl, ct, getCurrentEntry, folder = {}, id = '', settings = {}, cpus = 1 } = {}) => {
             if (!jq || !triggerEl || !ct || typeof jq.fn?.tooltipster !== 'function') {
                 return false;
             }
@@ -419,9 +419,12 @@
                         origin.data('fvDashboardAdvancedPreviewBuilt', true);
                     }
                 },
-                functionReady: function(_instance, helper) {
+                functionReady: function(instance, helper) {
                     disposePreview();
                     const tooltipDom = helper.tooltip && helper.tooltip.length ? helper.tooltip : jq(helper.tooltip);
+                    const disposeRuntimeSummary = win.FolderViewPlusFoundationModules?.runtimePreviewSummary?.attach(tooltipDom, {
+                        instance, surface: 'dashboard', entry: ct, getCurrentEntry, origin: helper.origin
+                    });
                     const CPU = [];
                     const MEM = [];
                     let charts = [];
@@ -436,6 +439,7 @@
                     const preview = {
                         tooltip: tooltipDom.get(0),
                         dispose: () => {
+                            disposeRuntimeSummary?.();
                             clearGraphqlTimer();
                             stopLegacyStats();
                             tooltipObserver?.disconnect();

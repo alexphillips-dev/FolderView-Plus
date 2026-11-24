@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "editor",
-        "content-revision": "7738ec25ac10ea45dca97efc8993f624abe877e2fa8ca80503073d707796258c"
+        "content-revision": "4dc6ac12db7c13e1abdfcad388108bf365980d5902ec763ed31f355ee4439c0f"
     },
     "editor.settings.information-about": "$1 hakkında bilgi",
     "editor.actions.add-custom": "Özel bir eylem ekle",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Her WebUI profilinin bir ada ihtiyacı vardır.",
     "editor.webui-profiles.error-duplicate": "WebUI profil adları bu klasörde benzersiz olmalıdır.",
     "editor.webui-profiles.error-members": "Her WebUI profili en az bir klasör üyesi seçmelidir.",
-    "editor.webui-profiles.limit": "Bu klasör WebUI profili güvenlik sınırına ulaştı."
+    "editor.webui-profiles.limit": "Bu klasör WebUI profili güvenlik sınırına ulaştı.",
+    "editor.members.assignment-why": "Neden bu klasör?",
+    "editor.members.assignment-elsewhere": "Diğer klasörlere atandı",
+    "editor.members.assignment-manual": "Manuel olarak atandı",
+    "editor.members.assignment-label": "Etikete göre eşleştirildi",
+    "editor.members.assignment-regex": "Normal ifadeyle eşleştirildi",
+    "editor.members.assignment-rule": "Kurala göre eşleştirildi",
+    "editor.members.assignment-owner": "$1 · $2 adlı kişiye atandı",
+    "editor.members.assignment-match": "$1 · $2 ile eşleşir",
+    "editor.members.assignment-preview": "Önizleme · $1",
+    "editor.members.assignment-none": "Klasör ataması yok",
+    "editor.members.assignment-loading": "Ödev yükleniyor…"
 }

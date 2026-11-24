@@ -21,7 +21,7 @@ const phpString = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'
 test('Phase 6 preserves the complete public endpoint manifest', () => {
     const expectedEndpoints = [
         'apply_folder_settings.php', 'backup.php', 'batch.php', 'bulk_assign.php', 'bulk_folder_action.php',
-        'cpu.php', 'create.php', 'delete.php', 'diagnostics.php', 'docker_start_order.php',
+        'cpu.php', 'create.php', 'delete.php', 'diagnostics.php', 'docker_runtime_preview.php', 'docker_start_order.php',
         'environment_snapshot.php', 'migrate_legacy_regex.php', 'prefs.php', 'read.php', 'read_info.php',
         'read_order.php', 'read_unraid_order.php', 'reconcile_member_identities.php', 'reorder.php',
         'rule_preview.php', 'runtime_snapshot.php', 'security.php', 'sync_order.php', 'templates.php', 'theme_workspace.php',
@@ -37,12 +37,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     assert.deepEqual(endpoints['bulk_folder_action.php'].requiredParameters, ['type', 'folderId']);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        '0dc6a3d5c4e802557c7eb63bd2b94d7bb1e3aa3799888a7f7a7ce00f26ea9b23'
+        'a4e9a9788db1f4e2a99aac2ba569dcc477b52fad6e456df741ba0d4c22d82f01'
     );
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 59);
+    assert.equal(architecture.serverModuleContracts.length, 60);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));

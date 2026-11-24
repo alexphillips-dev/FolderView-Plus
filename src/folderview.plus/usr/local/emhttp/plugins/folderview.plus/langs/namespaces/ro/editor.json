@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "editor",
-        "content-revision": "933f074042375ec8d108d4da0886036e4b43393201c8b4b31a63eb50ccb21cf7"
+        "content-revision": "d496f5a482a3e0bb26049189705d3f001b413f038cded428a4c8a16e12c71645"
     },
     "editor.settings.information-about": "Informații despre $1",
     "editor.actions.add-custom": "Adaugă o acțiune personalizată",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Fiecare profil WebUI are nevoie de un nume.",
     "editor.webui-profiles.error-duplicate": "Numele profilului WebUI trebuie să fie unice în acest folder.",
     "editor.webui-profiles.error-members": "Fiecare profil WebUI trebuie să selecteze cel puțin un membru al folderului.",
-    "editor.webui-profiles.limit": "Acest folder a atins limita de siguranță a profilului WebUI."
+    "editor.webui-profiles.limit": "Acest folder a atins limita de siguranță a profilului WebUI.",
+    "editor.members.assignment-why": "De ce acest folder?",
+    "editor.members.assignment-elsewhere": "Atribuit altor dosare",
+    "editor.members.assignment-manual": "Alocate manual",
+    "editor.members.assignment-label": "Se potrivește după etichetă",
+    "editor.members.assignment-regex": "Potrivită de expresii regizate",
+    "editor.members.assignment-rule": "Se potrivește prin regulă",
+    "editor.members.assignment-owner": "Atribuit la $1 · $2",
+    "editor.members.assignment-match": "Potriviri $1 · $2",
+    "editor.members.assignment-preview": "Previzualizare · $1",
+    "editor.members.assignment-none": "Nicio atribuire de foldere",
+    "editor.members.assignment-loading": "Se încarcă tema..."
 }

@@ -1183,7 +1183,8 @@ const getFolderEditorRulesApi = () => {
             suppressUnloadPrompt = true;
             location.reload();
         },
-        ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null
+        ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null,
+        onPrefsReconciled: () => getFolderEditorMembersApi()?.refreshAssignmentDetails?.()
     });
     return folderEditorRulesApi;
 };
@@ -1735,6 +1736,7 @@ const registerFolderEditorModuleTeardown = () => {
         folderThemeSurfaceBinding?.disconnect();
         folderEditorRegexSelectionApi?.dispose();
         folderEditorMemberListApi?.dispose();
+        folderEditorMembersApi?.disposeAssignmentDetails?.();
         folderWebuiProfilesApi?.dispose();
     }, { once: true });
 };
@@ -2371,7 +2373,25 @@ const getFolderEditorMembersApi = () => {
         validateForm: () => validateForm(),
         updateUnsavedIndicator: () => updateUnsavedIndicator(),
         updateLiveSummary: () => updateLiveSummary(),
-        isFormInitialized: () => isFormInitialized === true
+        isFormInitialized: () => isFormInitialized === true,
+        translate: surfaceT,
+        showAssignmentDetails: () => !editingFolderDefaults,
+        readAssignmentOrder: () => requestClient.getJson('/plugins/folderview.plus/server/read_order.php', {
+            data: { type }, cache: false, retries: 0
+        }),
+        getAssignmentContext: () => {
+            const form = getForm();
+            const id = getActiveFolderIdForChildOrdering();
+            const savedMembers = new Set(utils.normalizeFolderMembers(allFoldersById[id]?.containers || []));
+            const containers = $('table.sortable > tbody input.container-switch:checked').map((_, input) =>
+                !input.disabled || savedMembers.has(input.value) ? input.value : null).get();
+            return {
+                utils, type, folders: allFoldersById, folderId: id, memberIdentity: memberIdentityModule,
+                ordering: window.FolderViewPlusRuntimeFolderOrdering,
+                prefs: getFolderEditorRulesApi()?.getAssignmentPrefs?.() ?? folderEditorTypePrefs,
+                draft: { name: String(form?.name?.value || '').trim(), regex: String(form?.regex?.value || ''), containers }
+            };
+        }
     });
     return folderEditorMembersApi;
 };
@@ -3422,12 +3442,14 @@ const startFolderEditorRuntime = async () => {
     const typeMemberMapper = typeof getFolderEditorTypeApi()?.mapRuntimeMember === 'function'
         ? getFolderEditorTypeApi().mapRuntimeMember
         : ((entry) => entry);
-    choose = Object.values(await requestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
+    const memberInventory = await requestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
         data: { type, mode: 'state', _: cacheBust },
         cache: false
-    }))
+    });
+    choose = Object.values(memberInventory)
         .map((entry) => typeMemberMapper(entry))
         .filter((entry) => entry && String(entry.Name || '').trim() !== '');
+    getFolderEditorMembersApi()?.setAssignmentInventory?.(memberInventory, choose);
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';
     setBootstrapDiagnostics({
         mode: 'post-read-info',
@@ -3717,7 +3739,10 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
 const normalizeChildFolderOrder = (value) => folderEditorMemberListModule.normalizeChildFolderOrder(value);
 const getActiveFolderIdForChildOrdering = () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim();
 const getChildFolderOrderIds = () => getFolderEditorMemberListApi().getChildFolderOrderIds();
-const updateList = (afterRender = null) => getFolderEditorMemberListApi().updateList(afterRender);
+const updateList = (afterRender = null) => getFolderEditorMemberListApi().updateList(() => {
+    getFolderEditorMembersApi()?.renderAssignmentDetails?.();
+    if (typeof afterRender === 'function') afterRender();
+});
 
 /**
  * Handle the form submission

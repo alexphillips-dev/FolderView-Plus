@@ -94,6 +94,7 @@
       "server/lib.webui-profiles.php": { "limit": 128, "target": 120, "history": [128] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
+      "server/lib.docker-preview-summary.php": { "limit": 85, "target": 80, "history": [85] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
       "server/lib.environment-snapshot.php": { "limit": 174, "target": 160, "history": [174] },
       "server/lib.environment-transaction.php": { "limit": 162, "target": 150, "history": [162] },
@@ -119,6 +120,7 @@
       "server/lib.theme-bulk-update.php": { "limit": 49, "target": 49, "history": [49] },
       "scripts/folderviewplus.fatal-banner.js": { "limit": 1412, "target": 500, "history": [1412] },
       "scripts/docker.runtime.actions.js": { "limit": 1157, "target": 600, "history": [1157] },
+      "scripts/runtime.preview-summary.js": { "limit": 215, "target": 190, "history": [215] },
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
       "scripts/dashboard.capture-feedback.js": { "limit": 70, "target": 60, "history": [70] },
@@ -339,6 +341,16 @@
       "compatibilityGlobals": []
     },
     {
+      "file": "server/docker_runtime_preview.php",
+      "surface": "docker-runtime-preview-endpoint",
+      "kind": "server-endpoint",
+      "stateModel": "request-scoped",
+      "consumers": ["server-endpoints"],
+      "dependsOn": ["server/lib.php", "server/lib.docker-preview-summary.php"],
+      "lifecycle": { "startup": "http-request", "teardown": "request-end" },
+      "compatibilityGlobals": []
+    },
+    {
       "file": "server/rule_preview.php",
       "surface": "rules-preview-endpoint",
       "kind": "server-endpoint",
@@ -357,6 +369,7 @@
     }
   ],
   "serverModuleContracts": [
+    {"file": "server/lib.docker-preview-summary.php", "owner": "docker-preview-projection", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": [], "compatibilityGlobals": [], "loadedBy": "server/docker_runtime_preview.php", "functionInventory": { "count": 4, "sha256": "fe96c1d44822b8d539d54c809689fcad373c8e85d48640c550d901cd882cc7e3" }},
     {"file": "server/lib.custom-icon-references.php", "owner": "custom-icon-reference-policy", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.preflight.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 6, "sha256": "9b987781f993b548bdaae59e3892adc12f79cdd26f136a7f9356ecf8c9ad1a55" }},
     {"file": "server/lib.custom-icon-repair.php", "owner": "compensated-custom-icon-repair", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.custom-icon-references.php", "server/lib.custom-icon-storage.php", "server/lib.environment-transaction.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 1, "sha256": "d25a815833ec720bba74fbc5b51751e152b22a3a1f19e05ad7fb542bd05414d8" }},
     {"file": "server/lib.global-rollback.php", "owner": "global-rollback-checkpoints", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.backup-schedule.php", "functionInventory": { "count": 8, "sha256": "22da026ff8933f084ef2dde7aef385d2f9464336cc9a25b209d7739a31d42d40" }},
@@ -927,6 +940,18 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/runtime.preview-summary.js",
+      "owner": "docker-runtime-preview-panel",
+      "consumers": ["docker", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.request.js", "scripts/runtime.privacy.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "runtimePreviewSummary",
+      "loader": "window",
+      "exports": ["attach"]
+    },
     {"file": "scripts/runtime.page-title.js", "owner": "docker-page-title", "consumers": ["settings", "docker"], "stateModel": "factory-owned", "dependsOn": ["scripts/folderviewplus.utils-normalization.js"], "compatibilityGlobals": ["FolderViewPlusFoundationModules"], "global": "FolderViewPlusFoundationModules", "globalMember": "pageTitle", "loader": "commonjs", "exports": ["applyAppearance", "createController", "createSettingsController"], "lifecycleFactories": [{"name": "createController", "exports": ["sync", "dispose"]}, {"name": "createSettingsController", "exports": ["sync", "dispose"]}]},
     {
       "file": "scripts/runtime.folder-badges.js", "owner": "folder-status-badge-visibility",

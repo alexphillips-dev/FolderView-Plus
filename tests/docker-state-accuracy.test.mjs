@@ -48,6 +48,12 @@ test('complete Docker runtime data distinguishes paused, missing namespace, know
         const result = loadState(mode);
         assert.equal(result.error, '');
         assert.equal(result.native, result.nativeBefore);
+        if (mode === 'state') {
+            fixture.forEach(([name], index) => {
+                assert.equal(result.response[name].id, index.toString(16).repeat(12));
+                assert.equal(result.response[name].fullContainerId, index.toString(16).repeat(64));
+            });
+        }
         const entries = api.normalizeDockerRuntimeInfoMap(result.response);
         assert.equal(entries.paused.info.State.Running, true);
         assert.equal(entries.paused.info.State.Paused, true);

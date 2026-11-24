@@ -456,6 +456,7 @@ const attachDashboardAdvancedPreviewIfEnabled = ($containerEl, ct, folder, id) =
     return dashboardAdvancedPreviewApi.attachAdvancedPreview({
         triggerEl: $target,
         ct,
+        getCurrentEntry: () => dashboardRuntimeInfoByType.docker[ct.info?.Name],
         folder,
         id,
         cpus: dashboardDockerCpuCores || window.fvplusCpuCores || window.fv3CpuCores || 1,

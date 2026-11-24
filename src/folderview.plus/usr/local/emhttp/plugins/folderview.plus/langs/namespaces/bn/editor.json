@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "editor",
-        "content-revision": "5590a538f8ca714a5cf700833f39b5c4657773fdf847dc5bde6e9856fe64c6fa"
+        "content-revision": "9a87753c8d14de36a8951f198b7f4d799e36176201a4598a41d1373f0542bdac"
     },
     "editor.settings.information-about": "$1 সম্পর্কে তথ্য",
     "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "প্রতিটি WebUI প্রোফাইলের একটি নাম প্রয়োজন৷",
     "editor.webui-profiles.error-duplicate": "WebUI প্রোফাইল নাম এই ফোল্ডারের মধ্যে অনন্য হতে হবে।",
     "editor.webui-profiles.error-members": "প্রতিটি WebUI প্রোফাইলকে অবশ্যই অন্তত একজন ফোল্ডার সদস্য নির্বাচন করতে হবে।",
-    "editor.webui-profiles.limit": "এই ফোল্ডারটি WebUI প্রোফাইল নিরাপত্তা সীমাতে পৌঁছেছে।"
+    "editor.webui-profiles.limit": "এই ফোল্ডারটি WebUI প্রোফাইল নিরাপত্তা সীমাতে পৌঁছেছে।",
+    "editor.members.assignment-why": "কেন এই ফোল্ডার?",
+    "editor.members.assignment-elsewhere": "অন্যান্য ফোল্ডারে বরাদ্দ করা হয়েছে৷",
+    "editor.members.assignment-manual": "ম্যানুয়ালি বরাদ্দ করা হয়েছে",
+    "editor.members.assignment-label": "লেবেল দ্বারা মিলিত",
+    "editor.members.assignment-regex": "regex দ্বারা মিলিত",
+    "editor.members.assignment-rule": "নিয়ম অনুসারে মিলেছে",
+    "editor.members.assignment-owner": "$1 এ বরাদ্দ করা হয়েছে · $2",
+    "editor.members.assignment-match": "মেলে $1 · $2",
+    "editor.members.assignment-preview": "পূর্বরূপ · $1",
+    "editor.members.assignment-none": "কোনো ফোল্ডার অ্যাসাইনমেন্ট নেই",
+    "editor.members.assignment-loading": "অ্যাসাইনমেন্ট লোড হচ্ছে..."
 }

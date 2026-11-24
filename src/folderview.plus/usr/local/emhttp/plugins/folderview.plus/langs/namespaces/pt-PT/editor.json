@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "editor",
-        "content-revision": "4dfb123615d276be70d649caf805ab809318fafefe2782e8b0cb4c9e856ad580"
+        "content-revision": "8560dba15fef3c7cce51d5ee503316efe99f663a608eb5500acc92c5ed55a279"
     },
     "editor.settings.information-about": "Informações sobre $1",
     "editor.actions.add-custom": "Adicionar uma ação personalizada",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Todo perfil WebUI precisa de um nome.",
     "editor.webui-profiles.error-duplicate": "Os nomes dos perfis WebUI devem ser exclusivos nesta pasta.",
     "editor.webui-profiles.error-members": "Cada perfil WebUI deve selecionar pelo menos um membro da pasta.",
-    "editor.webui-profiles.limit": "Esta pasta atingiu o limite de segurança do perfil WebUI."
+    "editor.webui-profiles.limit": "Esta pasta atingiu o limite de segurança do perfil WebUI.",
+    "editor.members.assignment-why": "Por que esta pasta?",
+    "editor.members.assignment-elsewhere": "Atribuído a outras pastas",
+    "editor.members.assignment-manual": "Atribuído manualmente",
+    "editor.members.assignment-label": "Correspondido por rótulo",
+    "editor.members.assignment-regex": "Correspondido por regex",
+    "editor.members.assignment-rule": "Correspondido por regra",
+    "editor.members.assignment-owner": "Atribuído a $1 · $2",
+    "editor.members.assignment-match": "Corresponde a $1 · $2",
+    "editor.members.assignment-preview": "Visualização · $1",
+    "editor.members.assignment-none": "Nenhuma atribuição de pasta",
+    "editor.members.assignment-loading": "Carregando tarefa…"
 }

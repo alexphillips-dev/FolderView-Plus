@@ -74,6 +74,10 @@
         "create_backup": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.backup"}
       }
     },
+    "docker_runtime_preview.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": [], "responseType": "json", "auditCategory": "runtime.docker-preview"
+    },
     "docker_start_order.php": {
       "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "docker.start-order",
       "actionParameter": "action", "defaultAction": "preview",

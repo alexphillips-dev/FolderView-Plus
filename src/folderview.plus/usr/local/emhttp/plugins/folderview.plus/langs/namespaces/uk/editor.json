@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "editor",
-        "content-revision": "f48887ae31b3df21d3b7b107c5562ee867dbad8c1adce241863cc76496d3f685"
+        "content-revision": "9e71ba928bfa3b1683a2828de0c14b5ccf4219a3edb4ce4c1a78dffce252a406"
     },
     "editor.settings.information-about": "Інформація про $1",
     "editor.actions.add-custom": "Додати користувацьку дію",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Кожен профіль WebUI потребує імені.",
     "editor.webui-profiles.error-duplicate": "Імена профілів WebUI мають бути унікальними в цій папці.",
     "editor.webui-profiles.error-members": "Кожен профіль WebUI має вибрати принаймні одного члена папки.",
-    "editor.webui-profiles.limit": "Ця папка досягла обмеження безпеки профілю WebUI."
+    "editor.webui-profiles.limit": "Ця папка досягла обмеження безпеки профілю WebUI.",
+    "editor.members.assignment-why": "Чому ця папка?",
+    "editor.members.assignment-elsewhere": "Призначено для інших папок",
+    "editor.members.assignment-manual": "Призначено вручну",
+    "editor.members.assignment-label": "Відповідає мітці",
+    "editor.members.assignment-regex": "Збігається регулярним виразом",
+    "editor.members.assignment-rule": "Узгоджено за правилом",
+    "editor.members.assignment-owner": "Призначено для $1 · $2",
+    "editor.members.assignment-match": "Збігається з $1 · $2",
+    "editor.members.assignment-preview": "Попередній перегляд · $1",
+    "editor.members.assignment-none": "Немає призначення папок",
+    "editor.members.assignment-loading": "Завантаження завдання…"
 }

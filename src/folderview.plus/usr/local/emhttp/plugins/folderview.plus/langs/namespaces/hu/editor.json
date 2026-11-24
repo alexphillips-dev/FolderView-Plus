@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "editor",
-        "content-revision": "efd7b81661a46157e6d19462692635b8efe941f44a3ea64648ab56c2424dffb9"
+        "content-revision": "f8916b5854784f1ab32290742b032132159ed7e2d50978e90d723f61b4cdfebc"
     },
     "editor.settings.information-about": "Információ a következőről: $1",
     "editor.actions.add-custom": "Egyéni művelet hozzáadása",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Minden WebUI-profilnak szüksége van egy névre.",
     "editor.webui-profiles.error-duplicate": "A WebUI-profilneveknek egyedinek kell lenniük ebben a mappában.",
     "editor.webui-profiles.error-members": "Minden WebUI-profilnak ki kell választania legalább egy mappatagot.",
-    "editor.webui-profiles.limit": "Ez a mappa elérte a WebUI-profil biztonsági korlátját."
+    "editor.webui-profiles.limit": "Ez a mappa elérte a WebUI-profil biztonsági korlátját.",
+    "editor.members.assignment-why": "Miért ez a mappa?",
+    "editor.members.assignment-elsewhere": "Más mappákhoz hozzárendelve",
+    "editor.members.assignment-manual": "Manuálisan hozzárendelve",
+    "editor.members.assignment-label": "Címke szerint egyeztetve",
+    "editor.members.assignment-regex": "Reguláris kifejezéssel egyeztetve",
+    "editor.members.assignment-rule": "Szabály szerint egyeztetve",
+    "editor.members.assignment-owner": "Hozzárendelve: $1 · $2",
+    "editor.members.assignment-match": "Megfelel $1 · $2",
+    "editor.members.assignment-preview": "Előnézet · $1",
+    "editor.members.assignment-none": "Nincs mappa hozzárendelés",
+    "editor.members.assignment-loading": "Feladat betöltése…"
 }

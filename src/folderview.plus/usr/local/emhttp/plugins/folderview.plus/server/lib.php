@@ -625,6 +625,12 @@
             return null;
         }
         $data = $payload['data'] ?? null;
+        if ($type === 'docker' && $mode === 'full' && is_array($data)) {
+            foreach ($data as &$entry) {
+                if (array_key_exists('Env', (array)($entry['info']['Config'] ?? []))) unset($entry['info']['Config']['Env']);
+            }
+            unset($entry);
+        }
         return is_array($data) ? $data : null;
     }
 

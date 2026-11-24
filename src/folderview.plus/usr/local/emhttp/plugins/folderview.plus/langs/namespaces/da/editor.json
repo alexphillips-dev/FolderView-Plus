@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "editor",
-        "content-revision": "0b0142d056387717ec1171f9a9bdcbf7b1e90ee4e2e88493b8b0eae5f5f74899"
+        "content-revision": "c8c024657fc38a45e10becfefa1ae0b6201b1a4c13e6edba9b3b390f91010f68"
     },
     "editor.settings.information-about": "Oplysninger om $1",
     "editor.actions.add-custom": "Tilføj en tilpasset handling",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Hver WebUI-profil har brug for et navn.",
     "editor.webui-profiles.error-duplicate": "WebUI-profilnavne skal være unikke i denne mappe.",
     "editor.webui-profiles.error-members": "Hver WebUI-profil skal vælge mindst ét mappemedlem.",
-    "editor.webui-profiles.limit": "Denne mappe har nået sikkerhedsgrænsen for WebUI-profilen."
+    "editor.webui-profiles.limit": "Denne mappe har nået sikkerhedsgrænsen for WebUI-profilen.",
+    "editor.members.assignment-why": "Hvorfor denne mappe?",
+    "editor.members.assignment-elsewhere": "Tildelt til andre mapper",
+    "editor.members.assignment-manual": "Manuelt tildelt",
+    "editor.members.assignment-label": "Matchet efter etiket",
+    "editor.members.assignment-regex": "Matchet af regex",
+    "editor.members.assignment-rule": "Matchet efter regel",
+    "editor.members.assignment-owner": "Tildelt til $1 · $2",
+    "editor.members.assignment-match": "Matcher $1 · $2",
+    "editor.members.assignment-preview": "Forhåndsvisning · $1",
+    "editor.members.assignment-none": "Ingen mappetildeling",
+    "editor.members.assignment-loading": "Indlæser opgave..."
 }

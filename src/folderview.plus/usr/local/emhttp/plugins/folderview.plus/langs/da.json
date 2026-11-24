@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4768,
-        "total-source-messages": 4768,
+        "translated-messages": 4791,
+        "total-source-messages": 4791,
         "content-revision": "90937191c44ad3d11dbc9c746c6c816aeedec43f3b41f626d6fd4f56016b3c82",
-        "locale-content-revision": "6609918c0595077619fe765ab7a49847c663bb6bdbbc57550efbdbdb488249ad"
+        "locale-content-revision": "2defcdb0d3d2f04afd50e8a97078bb79e3c30750537dec74e1ba657d25870e5c"
     },
     "add-folder": "Tilføj mappe",
     "up-to-date": "opdateret",

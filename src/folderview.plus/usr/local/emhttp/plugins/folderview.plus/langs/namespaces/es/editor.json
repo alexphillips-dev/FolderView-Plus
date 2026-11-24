@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "editor",
-        "content-revision": "57d9262d2bc09e90bcd786d9be22186420dd208789275ca2a1594dac8c9d7a52"
+        "content-revision": "6089a8b08ed975da8f294d5d1029ec938d85eec1a0370067abf2d0cffb01ce6a"
     },
     "editor.settings.information-about": "Información sobre $1",
     "editor.actions.add-custom": "Agregar una acción personalizada",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Cada perfil WebUI necesita un nombre.",
     "editor.webui-profiles.error-duplicate": "Los nombres de los perfiles de WebUI deben ser únicos dentro de esta carpeta.",
     "editor.webui-profiles.error-members": "Cada perfil de WebUI debe seleccionar al menos un miembro de la carpeta.",
-    "editor.webui-profiles.limit": "Esta carpeta ha alcanzado el límite de seguridad del perfil WebUI."
+    "editor.webui-profiles.limit": "Esta carpeta ha alcanzado el límite de seguridad del perfil WebUI.",
+    "editor.members.assignment-why": "¿Por qué esta carpeta?",
+    "editor.members.assignment-elsewhere": "Asignado a otras carpetas",
+    "editor.members.assignment-manual": "Asignado manualmente",
+    "editor.members.assignment-label": "Emparejado por etiqueta",
+    "editor.members.assignment-regex": "Emparejado por expresiones regulares",
+    "editor.members.assignment-rule": "Emparejado por regla",
+    "editor.members.assignment-owner": "Asignado a $1 · $2",
+    "editor.members.assignment-match": "Coincidencias $1 · $2",
+    "editor.members.assignment-preview": "Vista previa · $1",
+    "editor.members.assignment-none": "Sin asignación de carpeta",
+    "editor.members.assignment-loading": "Cargando tarea…"
 }

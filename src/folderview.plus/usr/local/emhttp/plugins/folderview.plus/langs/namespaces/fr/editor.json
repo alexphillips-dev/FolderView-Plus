@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "editor",
-        "content-revision": "1ff1ca9ed54c9c3c4011189803c87b28f3a5474bc501e6d676f6b02dba90fc35"
+        "content-revision": "6ff437d330ccdbfcd6e2f5bff177ed9bd27088f38b2ce5ff843759caa3387cc2"
     },
     "editor.settings.information-about": "Informations sur $1",
     "editor.actions.add-custom": "Ajouter une action personnalisée",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Chaque profil WebUI a besoin d'un nom.",
     "editor.webui-profiles.error-duplicate": "Les noms de profil WebUI doivent être uniques dans ce dossier.",
     "editor.webui-profiles.error-members": "Chaque profil WebUI doit sélectionner au moins un membre de dossier.",
-    "editor.webui-profiles.limit": "Ce dossier a atteint la limite de sécurité du profil WebUI."
+    "editor.webui-profiles.limit": "Ce dossier a atteint la limite de sécurité du profil WebUI.",
+    "editor.members.assignment-why": "Pourquoi ce dossier ?",
+    "editor.members.assignment-elsewhere": "Attribué à d'autres dossiers",
+    "editor.members.assignment-manual": "Attribué manuellement",
+    "editor.members.assignment-label": "Assorti par étiquette",
+    "editor.members.assignment-regex": "Correspondance par regex",
+    "editor.members.assignment-rule": "Correspondance par règle",
+    "editor.members.assignment-owner": "Attribué à $1 · $2",
+    "editor.members.assignment-match": "Correspond à $1 · $2",
+    "editor.members.assignment-preview": "Aperçu · $1",
+    "editor.members.assignment-none": "Aucune attribution de dossier",
+    "editor.members.assignment-loading": "Chargement de la mission…"
 }

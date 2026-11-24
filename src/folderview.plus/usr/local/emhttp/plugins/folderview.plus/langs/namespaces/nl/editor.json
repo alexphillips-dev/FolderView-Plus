@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "editor",
-        "content-revision": "ef5a02be1b0ee578f894fdd096955a8b6dab74a627626fa61baf1dad572723b0"
+        "content-revision": "c486ccc90e6fb5b0b96f92b7e309114b891056c6a8a8e77347c36320b4c2ef5a"
     },
     "editor.settings.information-about": "Informatie over $1",
     "editor.actions.add-custom": "Een aangepaste actie toevoegen",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Elk WebUI-profiel heeft een naam nodig.",
     "editor.webui-profiles.error-duplicate": "WebUI-profielnamen moeten uniek zijn binnen deze map.",
     "editor.webui-profiles.error-members": "Elk WebUI-profiel moet ten minste één maplid selecteren.",
-    "editor.webui-profiles.limit": "Deze map heeft de veiligheidslimiet voor het WebUI-profiel bereikt."
+    "editor.webui-profiles.limit": "Deze map heeft de veiligheidslimiet voor het WebUI-profiel bereikt.",
+    "editor.members.assignment-why": "Waarom deze map?",
+    "editor.members.assignment-elsewhere": "Toegewezen aan andere mappen",
+    "editor.members.assignment-manual": "Handmatig toegewezen",
+    "editor.members.assignment-label": "Matched per label",
+    "editor.members.assignment-regex": "Komt overeen met regex",
+    "editor.members.assignment-rule": "Matched per regel",
+    "editor.members.assignment-owner": "Toegewezen aan $1 · $2",
+    "editor.members.assignment-match": "Komt overeen met $1 · $2",
+    "editor.members.assignment-preview": "Voorbeeld · $1",
+    "editor.members.assignment-none": "Geen maptoewijzing",
+    "editor.members.assignment-loading": "Opdracht laden…"
 }

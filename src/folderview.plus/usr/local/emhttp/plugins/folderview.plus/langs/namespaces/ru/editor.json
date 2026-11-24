@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "editor",
-        "content-revision": "9f07a0afb1ada908b27d126d6408dd1bfbcb7bf21ab09c36f71c12342edb0e01"
+        "content-revision": "1deb8962d2dca533f9768275043758da308fc2b44facbabe77570165208f2c0d"
     },
     "editor.settings.information-about": "Информация о $1",
     "editor.actions.add-custom": "Добавить пользовательское действие",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Каждому профилю WebUI необходимо имя.",
     "editor.webui-profiles.error-duplicate": "Имена профилей WebUI должны быть уникальными в этой папке.",
     "editor.webui-profiles.error-members": "В каждом профиле WebUI необходимо выбрать хотя бы одного члена папки.",
-    "editor.webui-profiles.limit": "В этой папке достигнут предел безопасности профиля WebUI."
+    "editor.webui-profiles.limit": "В этой папке достигнут предел безопасности профиля WebUI.",
+    "editor.members.assignment-why": "Почему эта папка?",
+    "editor.members.assignment-elsewhere": "Назначено другим папкам",
+    "editor.members.assignment-manual": "Назначено вручную",
+    "editor.members.assignment-label": "Соответствует ярлыку",
+    "editor.members.assignment-regex": "Соответствует регулярному выражению",
+    "editor.members.assignment-rule": "Соответствует правилу",
+    "editor.members.assignment-owner": "Назначено $1 · $2",
+    "editor.members.assignment-match": "Соответствует $1 · $2",
+    "editor.members.assignment-preview": "Предварительный просмотр · $1",
+    "editor.members.assignment-none": "Нет назначения папок",
+    "editor.members.assignment-loading": "Загрузка задания…"
 }

@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4768,
-        "total-source-messages": 4768,
+        "translated-messages": 4791,
+        "total-source-messages": 4791,
         "content-revision": "af3339b4efb7989227dea66b2a516e56d887fb71726724432251e8c7b34f94b3",
-        "locale-content-revision": "6d37a0486a35641230cb704b482307cfbfcc49e8fd68cf11393e1264b64e1cff"
+        "locale-content-revision": "6fd5ca201df99ae258a9e3168c4b8c98683cdb7108d36aa96958b2a04cb85d1b"
     },
     "add-folder": "Dodaj folder",
     "up-to-date": "aktualny",

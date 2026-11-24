@@ -4,7 +4,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "editor",
-        "content-revision": "b2cb5007b755260ecf3fd09121187c66ff3451038a10244cdf6b689b95f671e7"
+        "content-revision": "dac15459fdfc8c8751f6a7d2f0d44651689a42963873f1749d8286c83cd1e5ad"
     },
     "editor.actions.add-custom": "Add a custom action",
     "editor.actions.standard": "Standard",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Every WebUI profile needs a name.",
     "editor.webui-profiles.error-duplicate": "WebUI profile names must be unique within this folder.",
     "editor.webui-profiles.error-members": "Every WebUI profile must select at least one folder member.",
-    "editor.webui-profiles.limit": "This folder has reached the WebUI profile safety limit."
+    "editor.webui-profiles.limit": "This folder has reached the WebUI profile safety limit.",
+    "editor.members.assignment-why": "Why this folder?",
+    "editor.members.assignment-elsewhere": "Assigned to other folders",
+    "editor.members.assignment-manual": "Manually assigned",
+    "editor.members.assignment-label": "Matched by label",
+    "editor.members.assignment-regex": "Matched by regex",
+    "editor.members.assignment-rule": "Matched by rule",
+    "editor.members.assignment-owner": "Assigned to $1 · $2",
+    "editor.members.assignment-match": "Matches $1 · $2",
+    "editor.members.assignment-preview": "Preview · $1",
+    "editor.members.assignment-none": "No folder assignment",
+    "editor.members.assignment-loading": "Loading assignment…"
 }

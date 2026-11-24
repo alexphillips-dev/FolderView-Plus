@@ -15,6 +15,74 @@
     const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
     const MEMBER_REGEX_SEARCH_HINT = 'Use a regex pattern such as sentry-.* to filter member names.';
     const MEMBER_BULK_SCOPE_VALUES = Object.freeze(new Set(['shown', 'included_shown', 'excluded_shown', 'all_included']));
+    const ASSIGNMENT_REASONS = ['manual', 'label', 'regex', 'rule'];
+
+    const buildAssignmentDetails = ({ utils, type, folders, prefs, folderId, draft, infoByName, order,
+        ordering, memberIdentity, unnamedFolderName = '(unnamed)' }) => {
+        const saved = Object.hasOwn(folders, folderId) ? folders[folderId] : null;
+        let activeId = folderId;
+        if (!saved) {
+            activeId = '__folderview_editor_draft__';
+            while (Object.hasOwn(folders, activeId)) activeId += '_';
+        }
+        const normalizedMembers = (record) => utils.normalizeFolderMembers(record?.containers || []);
+        const savedMembers = new Set(normalizedMembers(saved));
+        const draftMembers = normalizedMembers(draft);
+        const preview = !saved || draft.name !== String(saved.name || '') || draft.regex !== String(saved.regex || '')
+            || savedMembers.size !== draftMembers.length || draftMembers.some((name) => !savedMembers.has(name));
+        const candidateFolders = preview ? { ...folders, [activeId]: { ...saved, ...draft } } : folders;
+        const configuration = memberIdentity?.reconcileFolders(type, candidateFolders, infoByName)?.folders || candidateFolders;
+        if (Array.isArray(order) && ordering) {
+            order = ordering.reorderFolderSlotsInBaseOrder(order, configuration, prefs, {
+                orderFolders: utils.orderFoldersByPrefs,
+                isFolderToken: (entry) => entry.startsWith('folder-') && (type === 'vm' || Object.hasOwn(configuration, entry.slice(7)))
+            });
+        }
+        const displayFolderIds = Array.isArray(order)
+            ? order.filter((key) => typeof key === 'string' && key.startsWith('folder-')).map((key) => key.slice(7))
+            : [];
+        const snapshot = utils.buildMembershipSnapshot({ type, folders: configuration, rules: prefs?.autoRules, infoByName, displayFolderIds });
+        const assignments = new Map();
+        const liveCountByName = new Map();
+        for (const [id, entry] of Object.entries(snapshot.byFolder)) {
+            const configuredName = snapshot.configuration.folders[id].name;
+            const folderName = configuredName || unnamedFolderName;
+            const imported = snapshot.configuration.folders[id].membershipPolicy === 'folderview3';
+            const importedManual = imported ? new Set(entry.manualMembers) : null;
+            for (const name of entry.liveMembers) liveCountByName.set(name, (liveCountByName.get(name) || 0) + 1);
+            for (const [name, reasons] of Object.entries(entry.reasonsByName)) {
+                // The shared evaluator marks accepted FolderView3 matches as legacy. Describe only accepted matches.
+                let reason = ASSIGNMENT_REASONS.find((value) => reasons.includes(value));
+                if (reasons.includes('legacy')) {
+                    if (importedManual?.has(name)) reason = 'manual';
+                    else if (type === 'docker' && configuredName && utils.getFolderLabelValue(snapshot.factsByName[name]?.Labels) === configuredName) reason = 'label';
+                    else reason = snapshot.decisionsByName[name]?.assignedRule?.kind === 'name_regex' ? 'regex' : 'rule';
+                }
+                if (!reason) continue;
+                if (!assignments.has(name)) assignments.set(name, []);
+                assignments.get(name).push({ id, folderName, reason });
+            }
+            if (id === activeId && imported) {
+                for (const name of entry.manualMembers) {
+                    if (!Object.hasOwn(snapshot.factsByName, name)) {
+                        if (!assignments.has(name)) assignments.set(name, []);
+                        assignments.get(name).push({ id, folderName, reason: 'manual' });
+                    }
+                }
+            }
+        }
+        return {
+            activeId,
+            preview,
+            rows: new Map([...assignments].map(([name, matches]) => {
+                const liveOwnerId = snapshot.primaryOwnerByName[name];
+                const owner = (Array.isArray(order) || liveCountByName.get(name) === 1)
+                    ? matches.find(({ id }) => id === liveOwnerId) : null;
+                const active = matches.find(({ id }) => id === activeId);
+                return [name, { owner: owner || null, active: active || null, matches }];
+            }))
+        };
+    };
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -26,6 +94,135 @@
         const updateUnsavedIndicator = typeof deps.updateUnsavedIndicator === 'function' ? deps.updateUnsavedIndicator : (() => false);
         const updateLiveSummary = typeof deps.updateLiveSummary === 'function' ? deps.updateLiveSummary : (() => {});
         const isFormInitialized = typeof deps.isFormInitialized === 'function' ? deps.isFormInitialized : (() => false);
+        const translate = (key, fallback, ...values) => deps.translate?.(key, fallback, ...values)
+            || fallback.replace(/\$(\d+)/g, (token, number) => String(values[Number(number) - 1] ?? token));
+        let assignmentInventory = {};
+        let assignmentNames = [];
+        let assignmentRows = new Map();
+        let assignmentContext;
+        let assignmentForm;
+        let assignmentOrder;
+        let assignmentRenderId = 0;
+        let assignmentRenderQueued = false;
+        let assignmentDisposed = false;
+
+        const setAssignmentInventory = (infoByName, members) => {
+            assignmentInventory = infoByName;
+            assignmentNames = members.map(({ Name }) => Name);
+        };
+
+        const getReasonLabel = (reason) => ({
+            manual: translate('editor.members.assignment-manual', 'Manually assigned'),
+            label: translate('editor.members.assignment-label', 'Matched by label'),
+            regex: translate('editor.members.assignment-regex', 'Matched by regex'),
+            rule: translate('editor.members.assignment-rule', 'Matched by rule')
+        }[reason]);
+
+        const getAssignmentText = ({ owner, matches = [] } = {}, preview = false) => {
+            const lines = [];
+            if (owner) {
+                lines.push(translate('editor.members.assignment-owner', 'Assigned to $1 · $2', owner.folderName, getReasonLabel(owner.reason)));
+            }
+            for (const match of matches) {
+                if (match === owner) continue;
+                lines.push(translate('editor.members.assignment-match', 'Matches $1 · $2', match.folderName, getReasonLabel(match.reason)));
+            }
+            const value = lines.join(' · ') || translate('editor.members.assignment-none', 'No folder assignment');
+            return preview ? translate('editor.members.assignment-preview', 'Preview · $1', value) : value;
+        };
+
+        const refreshAssignmentDetails = () => {
+            if (assignmentDisposed || !deps.getAssignmentContext
+                || (!assignmentContext?.open && ![...assignmentRows.values()].some((details) => details.open))) return;
+            assignmentRenderId += 1;
+            if (assignmentRenderQueued) return;
+            assignmentRenderQueued = true;
+            Promise.resolve().then(async () => {
+                assignmentRenderQueued = false;
+                const renderId = assignmentRenderId;
+                assignmentOrder ||= Promise.resolve().then(() => deps.readAssignmentOrder?.()).catch(() => null);
+                const order = await assignmentOrder;
+                if (assignmentDisposed || renderId !== assignmentRenderId) return;
+                const context = deps.getAssignmentContext();
+                if (!context?.utils?.buildMembershipSnapshot) return;
+                const unnamedFolderName = translate('common.runtime.unnamed', '(unnamed)');
+                const { rows, preview, activeId } = buildAssignmentDetails({ ...context, infoByName: assignmentInventory, order, unnamedFolderName });
+                for (const [name, details] of assignmentRows) {
+                    if (details.open && details.isConnected) details.lastElementChild.textContent = getAssignmentText(rows.get(name), preview);
+                }
+                if (!assignmentContext?.open || !assignmentContext.isConnected) return;
+                const list = win.document.createElement('ul');
+                for (const name of assignmentNames) {
+                    const row = rows.get(name);
+                    if (assignmentRows.has(name) || !row?.matches.some(({ id }) => id !== activeId)) continue;
+                    const item = win.document.createElement('li');
+                    const nameLabel = win.document.createElement('strong');
+                    nameLabel.textContent = name;
+                    item.append(nameLabel, win.document.createTextNode(` · ${getAssignmentText(row, preview)}`));
+                    list.append(item);
+                }
+                assignmentContext.lastElementChild.replaceChildren(list.childElementCount ? list
+                    : win.document.createTextNode(translate('editor.members.assignment-none', 'No folder assignment')));
+            });
+        };
+
+        const createAssignmentDisclosure = (className, label) => {
+            const details = win.document.createElement('details');
+            details.className = className;
+            const summary = win.document.createElement('summary');
+            summary.textContent = label;
+            const output = win.document.createElement('div');
+            output.setAttribute('aria-live', 'polite');
+            output.textContent = translate('editor.members.assignment-loading', 'Loading assignment…');
+            details.append(summary, output);
+            details.addEventListener('toggle', () => {
+                if (details.open && details.isConnected) refreshAssignmentDetails();
+            });
+            return details;
+        };
+
+        const renderAssignmentDetails = () => {
+            if (!deps.getAssignmentContext || deps.showAssignmentDetails?.() === false || assignmentDisposed) return;
+            const table = $('table.sortable').get(0);
+            if (!table) return;
+            const form = table.closest('form');
+            if (form && form !== assignmentForm) {
+                $(assignmentForm).off('.fvMemberAssignment');
+                assignmentForm = form;
+                $(form).on('input.fvMemberAssignment change.fvMemberAssignment',
+                    'input[name="name"], input[name="regex"], input[name="containers[]"]', refreshAssignmentDetails);
+            }
+            const nextRows = new Map();
+            for (const row of table.querySelectorAll('tbody > tr[data-name]')) {
+                const cell = row.querySelector('.name-col');
+                if (!cell) continue;
+                const name = row.dataset.name;
+                const previous = assignmentRows.get(name);
+                const details = previous || createAssignmentDisclosure('fv-member-assignment',
+                    translate('editor.members.assignment-why', 'Why this folder?'));
+                if (details.parentElement !== cell) cell.append(details);
+                nextRows.set(name, details);
+            }
+            assignmentRows = nextRows;
+            if (assignmentNames.some((name) => !assignmentRows.has(name))) {
+                assignmentContext ||= createAssignmentDisclosure('fv-member-assignment-context',
+                    translate('editor.members.assignment-elsewhere', 'Assigned to other folders'));
+                if (!assignmentContext.isConnected) table.after(assignmentContext);
+                assignmentContext.hidden = false;
+            } else if (assignmentContext) {
+                assignmentContext.hidden = true;
+                assignmentContext.open = false;
+            }
+            refreshAssignmentDetails();
+        };
+
+        const disposeAssignmentDetails = () => {
+            assignmentDisposed = true;
+            $(assignmentForm).off('.fvMemberAssignment');
+            assignmentRows.clear();
+            assignmentInventory = {};
+            assignmentNames = [];
+        };
 
         const isRegexMemberSearchEnabled = () => (($ && $('#fvMemberFilter').val()) || 'all') === MEMBER_REGEX_SEARCH_FILTER;
 
@@ -383,11 +580,16 @@
             bindMemberDragReorder,
             setMemberDragState,
             syncMemberSearchUiState,
-            collectBulkMoveScope
+            collectBulkMoveScope,
+            setAssignmentInventory,
+            refreshAssignmentDetails,
+            renderAssignmentDetails,
+            disposeAssignmentDetails
         });
     };
 
     return Object.freeze({
-        createApi
+        createApi,
+        buildAssignmentDetails
     });
 }));

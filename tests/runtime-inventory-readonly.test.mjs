@@ -37,6 +37,28 @@ test('cached full and state reads preserve native bytes without runtime discover
     }
 });
 
+test('fresh and previously cached Docker details omit environment values from runtime reads', () => {
+    const name = 'docker-present';
+    const config = { Image: 'fixture/image:latest', Env: ['FVPLUS_FIXTURE_TOKEN=fixture-value-that-must-stay-server-side'] };
+    for (const operation of ['read', 'snapshot']) {
+        for (const cached of [false, true]) {
+            const result = runInventoryRepair({
+                type: 'docker', operation, scenario: 'healthy', mode: 'full', force: !cached,
+                details: { [name]: { Config: config, State: { Running: false }, HostConfig: { NetworkMode: 'host' } } },
+                cachedRuntimeDetails: cached ? { [name]: { info: { Name: name, Config: config } } } : undefined
+            });
+            assert.equal(result.error, '');
+            assert.ok(result.response);
+            const runtime = operation === 'snapshot' ? result.response.runtime : result.response;
+            assert.equal(runtime[name].info.Config.Image, config.Image);
+            assert.equal(Object.hasOwn(runtime[name].info.Config, 'Env'), false);
+            assert.equal(JSON.stringify(result.response).includes('fixture-value-that-must-stay-server-side'), false);
+            assert.equal(result.native, result.nativeBefore);
+            if (cached) assert.deepEqual(result.calls, []);
+        }
+    }
+});
+
 test('explicit managed sync uses fresh authority to remove stale records in Docker page order with native waits', () => {
     for (const scenario of ['healthy', 'stale-cache', 'failed-detail']) {
         const result = runInventoryRepair({ type: 'docker', operation: 'sync', scenario });

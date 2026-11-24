@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "editor",
-        "content-revision": "2850d5716c03e8e9e35ffa6f0c26991950c3cd293f74e310b8e8a5e206d1e6c5"
+        "content-revision": "9e10210e7518d70683a8feea7961eeba935d46b9b41ababdb77a65c7daaa5056"
     },
     "editor.settings.information-about": "$1에 대한 정보",
     "editor.actions.add-custom": "사용자 정의 동작 추가",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "모든 WebUI 프로필에는 이름이 필요합니다.",
     "editor.webui-profiles.error-duplicate": "WebUI 프로필 이름은 이 폴더 내에서 고유해야 합니다.",
     "editor.webui-profiles.error-members": "모든 WebUI 프로필은 하나 이상의 폴더 구성원을 선택해야 합니다.",
-    "editor.webui-profiles.limit": "이 폴더는 WebUI 프로필 안전 제한에 도달했습니다."
+    "editor.webui-profiles.limit": "이 폴더는 WebUI 프로필 안전 제한에 도달했습니다.",
+    "editor.members.assignment-why": "왜 이 폴더인가요?",
+    "editor.members.assignment-elsewhere": "다른 폴더에 할당됨",
+    "editor.members.assignment-manual": "수동으로 할당됨",
+    "editor.members.assignment-label": "라벨과 일치함",
+    "editor.members.assignment-regex": "정규식과 일치",
+    "editor.members.assignment-rule": "규칙에 따라 일치",
+    "editor.members.assignment-owner": "$1 · $2에 할당됨",
+    "editor.members.assignment-match": "$1 · $2과 일치",
+    "editor.members.assignment-preview": "미리보기 · $1",
+    "editor.members.assignment-none": "폴더 할당 없음",
+    "editor.members.assignment-loading": "과제 로드 중…"
 }

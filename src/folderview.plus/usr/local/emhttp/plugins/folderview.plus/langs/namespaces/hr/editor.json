@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "editor",
-        "content-revision": "feae61ea11291aeddd4b4c1e0c809988a08f1920d7ead54c0a3e6e757fe0c1a3"
+        "content-revision": "9e5ccc8d9339251191d653d521db56331ae279151de4658a7e1f31c797af2640"
     },
     "editor.settings.information-about": "Informacije o $1",
     "editor.actions.add-custom": "Dodajte prilagođenu radnju",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Svaki WebUI profil treba ime.",
     "editor.webui-profiles.error-duplicate": "Imena WebUI profila moraju biti jedinstvena unutar ove mape.",
     "editor.webui-profiles.error-members": "Svaki WebUI profil mora odabrati barem jednog člana mape.",
-    "editor.webui-profiles.limit": "Ova je mapa dosegla sigurnosno ograničenje profila web sučelja."
+    "editor.webui-profiles.limit": "Ova je mapa dosegla sigurnosno ograničenje profila web sučelja.",
+    "editor.members.assignment-why": "Zašto ova mapa?",
+    "editor.members.assignment-elsewhere": "Dodijeljeno drugim mapama",
+    "editor.members.assignment-manual": "Ručno dodijeljeno",
+    "editor.members.assignment-label": "Odgovara etiketi",
+    "editor.members.assignment-regex": "Odgovara regularnom izrazu",
+    "editor.members.assignment-rule": "Usklađeno prema pravilu",
+    "editor.members.assignment-owner": "Dodijeljeno $1 · $2",
+    "editor.members.assignment-match": "Odgovara $1 · $2",
+    "editor.members.assignment-preview": "Pregled · $1",
+    "editor.members.assignment-none": "Nema dodjele mape",
+    "editor.members.assignment-loading": "Učitavanje zadatka…"
 }

@@ -10,10 +10,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "source",
-        "translated-messages": 4768,
-        "total-source-messages": 4768,
+        "translated-messages": 4791,
+        "total-source-messages": 4791,
         "content-revision": "1c9c558fc512ece73f567c38d87e99e6224c9cd10aab7145894263f9a4ed9c9a",
-        "locale-content-revision": "38cc724804426ebc6ddcb8ed4f399dfbbd9f41b56e539ba4ee10195967351996"
+        "locale-content-revision": "ba8695189ccae86a79d724cc91b79ca4c8bf15d8b555fda7eb5f8015d0a4f037"
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",

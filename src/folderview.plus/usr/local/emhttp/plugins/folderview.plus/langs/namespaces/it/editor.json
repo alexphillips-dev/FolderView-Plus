@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "editor",
-        "content-revision": "448699e9c0c0cd5c0495d086227e201cf7cad5722ad8f1b197ee347082131978"
+        "content-revision": "ec485715035b7c27c1e2eaf4697c012edfcc05be277931e360d56a1fc787b874"
     },
     "editor.settings.information-about": "Informazioni su $1",
     "editor.actions.add-custom": "Aggiungi un'azione personalizzata",
@@ -50,5 +50,16 @@
     "editor.webui-profiles.error-name": "Ogni profilo WebUI necessita di un nome.",
     "editor.webui-profiles.error-duplicate": "I nomi dei profili WebUI devono essere univoci all'interno di questa cartella.",
     "editor.webui-profiles.error-members": "Ogni profilo WebUI deve selezionare almeno un membro della cartella.",
-    "editor.webui-profiles.limit": "Questa cartella ha raggiunto il limite di sicurezza del profilo WebUI."
+    "editor.webui-profiles.limit": "Questa cartella ha raggiunto il limite di sicurezza del profilo WebUI.",
+    "editor.members.assignment-why": "Perché questa cartella?",
+    "editor.members.assignment-elsewhere": "Assegnato ad altre cartelle",
+    "editor.members.assignment-manual": "Assegnato manualmente",
+    "editor.members.assignment-label": "Abbinato per etichetta",
+    "editor.members.assignment-regex": "Corrispondente a regex",
+    "editor.members.assignment-rule": "Abbinato per regola",
+    "editor.members.assignment-owner": "Assegnato a $1 · $2",
+    "editor.members.assignment-match": "Partite $1 · $2",
+    "editor.members.assignment-preview": "Anteprima · $1",
+    "editor.members.assignment-none": "Nessuna assegnazione di cartella",
+    "editor.members.assignment-loading": "Caricamento compito…"
 }

@@ -564,6 +564,23 @@ function getDockerTemplateCachePath(): string {
         fv3_debug_log("readUnraidOrder for type: $type completed. Order: " . json_encode($order));
         return $order;
     }
+    // The entries Unraid's Docker order file holds, exactly as stored: no sorting, no fallback, no containers added.
+    // Unraid's dynamix.docker.manager/include/UserPrefs.php (7.4.0, lines 29-34) writes one `<index>="<name>"` line
+    // per posted name, joined by newlines, plus a final newline. Anything else is reported as invalid.
+    function readUnraidStoredDockerOrder(string $prefsFile = '/boot/config/plugins/dockerMan/userprefs.cfg'): array {
+        clearstatcache(true, $prefsFile);
+        if (!file_exists($prefsFile)) return ['status' => 'missing', 'entries' => []];
+        $raw = is_file($prefsFile) ? @file_get_contents($prefsFile) : false;
+        if (!is_string($raw)) return ['status' => 'unreadable', 'entries' => []];
+        if (!str_ends_with($raw, "\n")) return ['status' => 'invalid', 'entries' => []];
+        $entries = [];
+        $body = substr($raw, 0, -1);
+        foreach ($body === '' ? [] : explode("\n", $body) as $line) {
+            if (!preg_match('/^(\d+)="([^"]*)"\z/', $line, $match)) return ['status' => 'invalid', 'entries' => []];
+            $entries[] = ['index' => $match[1], 'name' => $match[2]];
+        }
+        return ['status' => 'ok', 'entries' => $entries];
+    }
     function pathToMultiDimArray($dir) {
         $final = [];
         try {

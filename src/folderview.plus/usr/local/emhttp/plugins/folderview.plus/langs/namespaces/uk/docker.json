@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "docker",
-        "content-revision": "3fa85df1efe6d3a358ba104b403c9f4de472b2eba0f951a2feeaa19bd376f692"
+        "content-revision": "57d7cf7c34c74cf655412d691f71851b4e399eeeb1aeba21cb3ad4c3164ba6c4"
     },
     "docker.folder.move-reload": "Змінено конфігурацію папки. Оновіть перед повторним переміщенням папки.",
     "docker.actions.label": "Дії FolderView",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Переглянути скопійовані налаштування…",
     "docker.transfer.clear": "Очистити скопійовані налаштування",
     "docker.transfer.clone-settings": "Лише параметри клонування",
-    "docker.transfer.clone-settings-menu": "Лише налаштування клонування…"
+    "docker.transfer.clone-settings-menu": "Лише налаштування клонування…",
+    "docker.native-order.folderview-only": "Перейдіть до перегляду FolderView, щоб зберегти порядок його контейнерів.",
+    "docker.actions.save-native-order": "Зберегти поточний порядок в Unraid",
+    "docker.native-order.not-ready": "Список Docker на цій сторінці неповний або застарілий. Нічого не змінилося. Перезавантажте вкладку Docker і повторіть спробу.",
+    "docker.native-order.incomplete": "Ці контейнери відсутні в списку на цій сторінці: $1. Unraid переміщує будь-який контейнер, пропущений, коли порядок контейнерів зберігається, на початок свого списку, тому нічого не змінено. Перезавантажте вкладку Docker і повторіть спробу.",
+    "docker.native-order.folder": "Папка: $1",
+    "docker.native-order.intro": "Unraid збереже контейнери в наведеному нижче порядку. Unraid використовує цей порядок на вкладці Docker, коли FolderView Plus не встановлено, і сортує свій список автозапуску за ним, тому це може змінити порядок, у якому починаються контейнери.",
+    "docker.native-order.start-managed": "Потім FolderView Plus застосовує власне налаштування для порядку початку контейнерів, як це робиться після перетягування рядка.",
+    "docker.native-order.start-unmanaged": "FolderView Plus налаштовано на те, щоб порядок запуску залишався Unraid, тому після цього нічого не коригує результат: контейнери з увімкненим автозапуском запускатимуться в порядку, наведеному нижче.",
+    "docker.native-order.saved-title": "Порядок контейнерів збережено",
+    "docker.native-order.not-saved-title": "Порядок контейнерів не зберігся",
+    "docker.native-order.unconfirmed-title": "Не вдалося підтвердити збереження",
+    "docker.native-order.read-failed": "Список контейнерів не вдалося прочитати з Unraid ($1), тому порядок контейнерів неможливо перевірити. Нічого не змінилося.",
+    "docker.native-order.changed": "Список Docker або порядок контейнерів, збережених в Unraid, змінився, коли був відкритий попередній перегляд. Нічого не змінилося. Перевірте список і повторіть спробу.",
+    "docker.native-order.request-failed": "Unraid не підтвердив запит на збереження ($1). Перезавантажте вкладку Docker, щоб побачити порядок контейнерів, збережених в Unraid.",
+    "docker.native-order.unverified": "Запит на збереження було надіслано, але порядок контейнерів не вдалося прочитати з Unraid ($1), тому збереження не підтверджено. Перезавантажте вкладку Docker, щоб перевірити її.",
+    "docker.native-order.stored-missing": "файл userprefs.cfg не знайдено",
+    "docker.native-order.stored-unreadable": "файл userprefs.cfg не вдалося прочитати",
+    "docker.native-order.stored-invalid": "файл userprefs.cfg не у форматі, у якому його записує Unraid",
+    "docker.native-order.saved": "Unraid тепер зберігає контейнери в порядку, показаному в попередньому перегляді.",
+    "docker.native-order.mismatch": "Порядок контейнерів, збережених в Unraid, тепер відрізняється від порядку, який було надіслано. Або Unraid його не зберіг, або інша сторінка Docker у той самий момент зберегла власний порядок контейнерів. Перевірте вкладку Docker і збережіть ще раз."
 }

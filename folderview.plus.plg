@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.01">
-<!ENTITY md5 "9d403f3087b0c7ba2266c41a4b7b2c65">
-<!ENTITY sha256 "258f4ed9564069ba45b8a16bb7ccf73fcd1a4e3adfb43eddf9846983c2c64bc9">
+<!ENTITY version "2026.11.24.02">
+<!ENTITY md5 "7de163a0eab70640906cfb0bc083e5bd">
+<!ENTITY sha256 "502acc77e99b445e0eecaf97740644d9f9cb66e869cce75592e3afdb9bdf7ba7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.02
+- Feature: Preview and explicitly save the Docker page container order to Unraid for use in the native Docker view. The preview explains how the save can affect startup order.
+- Reliability: Confirm the save by checking the stored order, including nested folder entries. Report a changed order or an unreadable preferences file.
+
 
 ###2026.11.24.01
 - Privacy: Limit legacy keyboard debug downloads to aggregate runtime information. Mask the native Tailscale tooltip while Docker privacy and public IP masking are enabled.

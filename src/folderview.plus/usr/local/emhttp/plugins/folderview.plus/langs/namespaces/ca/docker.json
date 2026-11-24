@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "docker",
-        "content-revision": "46aa60feb1ceafeb0b0f3cee3138c5ab3026d3f31212dd8753b041c50267abc7"
+        "content-revision": "7d1740c9f33bda6967d39177d35a63fb89ac596356f477a63ef4d65b9d0f8089"
     },
     "docker.folder.move-reload": "La configuració de la carpeta ha canviat. Actualitzeu abans de tornar a moure la carpeta.",
     "docker.actions.label": "Accions de FolderView",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Mostra la configuració copiada...",
     "docker.transfer.clear": "Esborra la configuració copiada",
     "docker.transfer.clone-settings": "Només clon la configuració",
-    "docker.transfer.clone-settings-menu": "Només clon la configuració..."
+    "docker.transfer.clone-settings-menu": "Només clon la configuració...",
+    "docker.native-order.folderview-only": "Canvieu a la vista FolderView per desar l'ordre dels seus contenidors.",
+    "docker.actions.save-native-order": "Desa l'ordre actual a Unraid",
+    "docker.native-order.not-ready": "La llista Docker d'aquesta pàgina està incompleta o no està actualitzada. No es va canviar res. Torneu a carregar la pestanya Docker i torneu-ho a provar.",
+    "docker.native-order.incomplete": "Aquests contenidors no es troben a la llista d'aquesta pàgina: $1. Unraid mou qualsevol contenidor que quedi fora quan l'ordre dels contenidors es desa a la part superior de la seva llista, de manera que no s'ha canviat res. Torneu a carregar la pestanya Docker i torneu-ho a provar.",
+    "docker.native-order.folder": "Carpeta: $1",
+    "docker.native-order.intro": "Unraid desarà els contenidors en l'ordre següent. Unraid utilitza aquesta ordre a la pestanya Docker quan FolderView Plus no està instal·lat i ordena la seva llista d'inici automàtic per ella, de manera que això pot canviar l'ordre d'inici dels contenidors.",
+    "docker.native-order.start-managed": "FolderView Plus aplica la seva pròpia configuració per a l'ordre en què s'inicien els contenidors, com ho fa després d'arrossegar una fila.",
+    "docker.native-order.start-unmanaged": "FolderView Plus està configurat per deixar l'ordre d'inici a Unraid, de manera que res no ajusta el resultat després: els contenidors amb l'inici automàtic activat començaran en l'ordre següent.",
+    "docker.native-order.saved-title": "S'ha guardat l'ordre dels contenidors",
+    "docker.native-order.not-saved-title": "No es va guardar l'ordre dels contenidors",
+    "docker.native-order.unconfirmed-title": "No s'ha pogut confirmar el desament",
+    "docker.native-order.read-failed": "La llista de contenidors no s'ha pogut llegir des de Unraid ($1), de manera que no s'ha pogut comprovar l'ordre dels contenidors. No es va canviar res.",
+    "docker.native-order.changed": "La llista Docker, o l'ordre dels contenidors desats a Unraid, va canviar mentre la previsualització estava oberta. No es va canviar res. Comproveu la llista i torneu-ho a provar.",
+    "docker.native-order.request-failed": "Unraid no ha confirmat la sol·licitud de desat ($1). Torneu a carregar la pestanya Docker per veure l'ordre dels contenidors que es desa a Unraid.",
+    "docker.native-order.unverified": "S'ha enviat la sol·licitud de desat, però l'ordre dels contenidors no s'ha pogut llegir des de Unraid ($1), de manera que no es confirma el desat. Torneu a carregar la pestanya Docker per comprovar-ho.",
+    "docker.native-order.stored-missing": "no s'ha trobat el fitxer userprefs.cfg",
+    "docker.native-order.stored-unreadable": "no s'ha pogut llegir el fitxer userprefs.cfg",
+    "docker.native-order.stored-invalid": "el fitxer userprefs.cfg no té el format que escriu Unraid",
+    "docker.native-order.saved": "Unraid ara té els contenidors desats en l'ordre que es mostra a la vista prèvia.",
+    "docker.native-order.mismatch": "L'ordre dels contenidors desats a Unraid ara difereix de l'ordre que es va enviar. O bé Unraid no l'ha desat, o bé una altra pàgina de Docker ha desat el seu propi ordre dels contenidors al mateix moment. Comproveu la pestanya Docker i torna a desar."
 }

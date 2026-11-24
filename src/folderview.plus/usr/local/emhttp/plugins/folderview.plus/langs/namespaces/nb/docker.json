@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "docker",
-        "content-revision": "38d96d481fb359cc853e15e7dc5ca7c61450a048faa5ad4ad739021996c6ae0a"
+        "content-revision": "85572d223bb4b74624163ce6e241f232f38a5cfebe5c2a9049596374f7dd96dc"
     },
     "docker.folder.move-reload": "Mappekonfigurasjon endret. Oppdater før du flytter mappen igjen.",
     "docker.actions.label": "FolderView-handlinger",
@@ -121,5 +121,25 @@
     "docker.transfer.view-menu": "Se kopierte innstillinger...",
     "docker.transfer.clear": "Slett kopierte innstillinger",
     "docker.transfer.clone-settings": "Bare kloneinnstillinger",
-    "docker.transfer.clone-settings-menu": "Bare kloneinnstillinger..."
+    "docker.transfer.clone-settings-menu": "Bare kloneinnstillinger...",
+    "docker.native-order.folderview-only": "Bytt til FolderView-visningen for å lagre rekkefølgen på beholderne.",
+    "docker.actions.save-native-order": "Lagre gjeldende rekkefølge i Unraid",
+    "docker.native-order.not-ready": "Docker-listen på denne siden er ufullstendig eller utdatert. Ingenting ble endret. Last Docker-fanen på nytt og prøv igjen.",
+    "docker.native-order.incomplete": "Disse beholderne er ikke i listen på denne siden: $1. Unraid flytter enhver beholder som er utelatt når rekkefølgen på beholderne er lagret øverst på listen, så ingenting ble endret. Last Docker-fanen på nytt og prøv igjen.",
+    "docker.native-order.folder": "Mappe: $1",
+    "docker.native-order.intro": "Unraid vil lagre containerne i rekkefølgen nedenfor. Unraid bruker den rekkefølgen på Docker-fanen når FolderView Plus ikke er installert, og den sorterer autostartlisten etter den, slik at dette kan endre rekkefølgen containere starter i.",
+    "docker.native-order.start-managed": "FolderView Plus bruker deretter sin egen innstilling for rekkefølgen containere starter i, slik den gjør etter at en rad er trukket.",
+    "docker.native-order.start-unmanaged": "FolderView Plus er satt til å overlate startrekkefølgen til Unraid, så ingenting justerer resultatet etterpå: containere med autostart på vil starte i rekkefølgen nedenfor.",
+    "docker.native-order.saved-title": "Rekkefølgen på beholderne ble lagret",
+    "docker.native-order.not-saved-title": "Rekkefølgen på beholderne ble ikke lagret",
+    "docker.native-order.unconfirmed-title": "Lagringen kunne ikke bekreftes",
+    "docker.native-order.read-failed": "Beholderlisten kunne ikke leses fra Unraid ($1), så rekkefølgen på beholderne kunne ikke kontrolleres. Ingenting ble endret.",
+    "docker.native-order.changed": "Docker-listen, eller rekkefølgen på beholderne som er lagret i Unraid, endret seg mens forhåndsvisningen var åpen. Ingenting ble endret. Sjekk listen og prøv igjen.",
+    "docker.native-order.request-failed": "Unraid bekreftet ikke lagringsforespørselen ($1). Last Docker-fanen på nytt for å se rekkefølgen på beholderne som er lagret i Unraid.",
+    "docker.native-order.unverified": "Lagringsforespørselen ble sendt, men rekkefølgen på beholderne kunne ikke leses tilbake fra Unraid ($1), så lagringen er ikke bekreftet. Last Docker-fanen på nytt for å sjekke den.",
+    "docker.native-order.stored-missing": "finner ikke userprefs.cfg",
+    "docker.native-order.stored-unreadable": "userprefs.cfg kunne ikke leses",
+    "docker.native-order.stored-invalid": "userprefs.cfg er ikke i formatet som Unraid skriver",
+    "docker.native-order.saved": "Unraid har nå beholderne lagret i rekkefølgen vist i forhåndsvisningen.",
+    "docker.native-order.mismatch": "Rekkefølgen på containerne som er lagret i Unraid er nå forskjellig fra rekkefølgen som ble sendt. Enten lagret ikke Unraid den, eller så lagret en annen Docker-side sin egen rekkefølge på containerne i samme øyeblikk. Sjekk Docker-fanen og lagre på nytt."
 }

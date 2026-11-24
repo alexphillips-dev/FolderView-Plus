@@ -13,9 +13,10 @@ const implementation = [
     section(main, 'const importType =', 'const clearType =')
 ].join('\n');
 
-function fixture(type, failure = '', { dryRun = false, cancelled = false } = {}) {
+function fixture(type, failure = '', { dryRun = false, cancelled = false, revision = 0 } = {}) {
     const events = [];
-    const state = { folders: ['original'], prefs: 'original' };
+    const state = { folders: ['original'], prefs: 'original', revision };
+    const reviewedFolders = { original: { name: 'Original' } };
     const backup = { name: 'fixture-backup' };
     const operations = { deletes: [], upserts: [], creates: [{ folder: { name: 'Imported' } }] };
     const noop = () => {};
@@ -24,8 +25,21 @@ function fixture(type, failure = '', { dryRun = false, cancelled = false } = {})
         normalizeManagedType: value => value,
         ensureRuntimeConflictActionAllowed: () => true,
         selectJsonFile: async () => cancelled ? null : { text: '{}' },
-        utils: { parseImportPayload: () => ({ ok: true }) },
-        showImportPreviewDialog: async () => ({ mode: 'merge', operations, dryRunOnly: dryRun }),
+        utils: { parseImportPayload: () => ({ ok: true }), normalizeFolderMap: folders => folders },
+        apiGetJson: async (url, { data }) => {
+            assert.equal(url, '/plugins/folderview.plus/server/read.php');
+            assert.equal(data.type, type);
+            assert.equal(data.includeMetadata, '1');
+            return { ok: true, folders: reviewedFolders, metadata: { folderRevision: state.revision } };
+        },
+        showImportPreviewDialog: async (_type, _parsed, folders) => {
+            assert.deepEqual(Object.entries(folders).map(([id, folder]) => [id, folder.name]), [['original', 'Original']]);
+            if (failure === 'conflict') {
+                state.revision += 1;
+                state.folders.push('concurrent');
+            }
+            return { mode: 'merge', operations, dryRunOnly: dryRun };
+        },
         countImportOperations: () => 1,
         createBackup: async () => {
             events.push('backup');
@@ -33,8 +47,11 @@ function fixture(type, failure = '', { dryRun = false, cancelled = false } = {})
             return backup;
         },
         apiPostJson: async (url, payload) => {
-            events.push({ url, type: payload.type, operations: JSON.parse(payload.operations) });
-            state.folders.push('concurrent');
+            events.push({ url, type: payload.type, operations: JSON.parse(payload.operations), revision: payload.expectedRevision });
+            if (payload.expectedRevision !== undefined && Number(payload.expectedRevision) !== state.revision) {
+                throw new Error('This folder configuration changed in another page or browser tab.');
+            }
+            if (failure !== 'conflict') state.folders.push('concurrent');
             state.prefs = 'concurrent';
             if (failure === 'batch') throw new Error('Atomic batch rejected');
             state.folders.push('imported');
@@ -93,6 +110,7 @@ for (const type of ['docker', 'vm']) {
         assert.equal(f.events.find(event => event?.offeredBackup)?.offeredBackup, f.backup);
         assert.ok(!f.events.includes('restore'));
         assert.equal(f.events.find(event => event?.url)?.type, type);
+        assert.equal(f.events.find(event => event?.url)?.revision, '0');
     });
 }
 
@@ -103,4 +121,23 @@ test('cancel, dry run and failed safety backup never apply or restore configurat
         assert.ok(!f.events.includes('restore'));
         assert.deepEqual(f.state.folders, ['original']);
     }
+});
+
+test('ordinary import carries the reviewed revision even when another tab saves before apply', async () => {
+    const f = fixture('docker', 'conflict', { revision: 9 });
+    await f.run();
+    assert.equal(f.events.find(event => event?.url)?.revision, '9');
+    assert.equal(f.state.revision, 10);
+    assert.deepEqual(f.state.folders, ['original', 'concurrent']);
+    assert.ok(f.events.some(event => /configuration changed/.test(event?.error)));
+    assert.ok(!f.events.includes('restore'));
+});
+
+test('ordinary import without a verifiable snapshot never opens a write transaction', async () => {
+    const f = fixture('vm', '', { revision: null });
+    await f.run();
+    assert.ok(f.events.some(event => /configuration revision is unavailable/.test(event?.error)));
+    assert.ok(!f.events.includes('backup'));
+    assert.ok(!f.events.some(event => event?.url));
+    assert.deepEqual(f.state.folders, ['original']);
 });

@@ -19,13 +19,10 @@ try {
         $ttl = (int)($_GET['ttl'] ?? $_REQUEST['ttl'] ?? 0);
         $ttl = max(0, min(30, $ttl));
     }
-    if ($preferLiveUpdateStatus) {
-        echo json_encode(readInfoState($type, true));
-        return;
-    }
-    echo json_encode(readInfoCached($type, $mode, $ttl, $forceRefresh));
+    $info = $preferLiveUpdateStatus ? readInfoState($type, true) : readInfoCached($type, $mode, $ttl, $forceRefresh);
+    echo json_encode($info !== [] && array_is_list($info) ? (object)$info : $info);
 } catch (Throwable $e) {
-    http_response_code(400);
+    http_response_code($e instanceof FVPlusApiContractException ? fvplus_get_api_error_status($e) : 400);
     echo json_encode([
         'ok' => false,
         'error' => $e->getMessage()

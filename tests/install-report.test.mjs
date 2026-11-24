@@ -128,7 +128,7 @@ test('manifest captures pre-install state and reports post-install completion or
     assert.match(manifest, /install_report\}" failure/);
     assert.match(manifest, /install_report\}" complete/);
     assert.match(manifest, /scheduler_status="registered-restart-warning"/);
-    assert.match(manifest, /install_summary="\$\([^\n]+ complete[^\n]+\n[\s\S]*?mv -fT -- "\$\{version_stage\}" \/boot\/config\/plugins\/&name;\/version/);
+    assert.match(manifest, /install_summary="\$\([^\n]+ complete[^\n]+\n[\s\S]*?mv -fT -- "\$\{version_stage\}" "\$\{config_dir\}\/version"/);
     assert.doesNotMatch(manifest, /&name; has been installed/);
     assert.match(reportSource, /detect_operation/);
     assert.match(iconInstallerSource, /ICON_PACK_INSTALL_STATE="reused"/);

@@ -51,32 +51,6 @@ if [[ "$PUSH_MAIN" == 1 ]]; then
   export FVPLUS_REQUIRE_GITHOOKS=1
 fi
 
-chmod +x \
-  pkg_build.sh \
-  scripts/build_release_notes.sh \
-  scripts/doctor.sh \
-  scripts/docs_metadata_guard.sh \
-  scripts/ensure_plg_changes_entry.sh \
-  scripts/release_guard.sh \
-  scripts/install_smoke.sh \
-  scripts/fixture_browser_tests.sh \
-  scripts/runtime_performance_benchmarks.sh \
-  scripts/browser_smoke.sh \
-  scripts/run_ci_suite.sh \
-  scripts/api_contract_guard.sh \
-  scripts/legacy_support_guard.sh \
-  scripts/i18n_guard.sh \
-  scripts/lang_usage_guard.sh \
-  scripts/include_order_guard.sh \
-  scripts/theme_scope_guard.sh \
-  scripts/theme_runtime_guard.sh \
-  scripts/dead_code_guard.sh \
-  scripts/perf_baseline_refresh.sh \
-  scripts/perf_budget_guard.sh \
-  scripts/repro_build_guard.sh \
-  scripts/prune_archives.sh \
-  scripts/theme_matrix_smoke.sh
-
 bash scripts/doctor.sh
 
 if [[ "$WORKFLOW_ONLY" == 1 ]]; then
@@ -119,11 +93,18 @@ if [[ -n "${NOTES_OUTPUT}" ]]; then
 fi
 
 if [[ "${PUSH_MAIN}" == "1" ]]; then
-  git add -A
-  if git diff --cached --quiet; then
+  if [[ "$WORKFLOW_ONLY" == "1" ]]; then
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+      fvplus::fail 'Workflow-only preparation changed tracked files.'
+    fi
     echo "No release file changes to commit."
   else
-    git commit -m "Stable release ${FINAL_VERSION}"
+    git add -A
+    if git diff --cached --quiet; then
+      echo "No release file changes to commit."
+    else
+      git commit -m "Stable release ${FINAL_VERSION}"
+    fi
   fi
   node scripts/release_validation.mjs qualify
   git push origin main

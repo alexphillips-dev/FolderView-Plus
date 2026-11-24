@@ -27,13 +27,11 @@ trap 'rm -rf "${TMP_DIR}"' EXIT
 OUTPUT_FILE="${TMP_DIR}/release_notes.md"
 
 if env_truthy "${FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:-0}"; then
-  chmod +x scripts/ensure_plg_changes_entry.sh
   FVPLUS_TARGET_RELEASE_VERSION="${VERSION}" \
   FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
   bash scripts/ensure_plg_changes_entry.sh --check-only --require-explicit --version "${VERSION}"
 fi
 
-chmod +x scripts/build_release_notes.sh
 bash scripts/build_release_notes.sh --version "${VERSION}" --output "${OUTPUT_FILE}"
 
 "${NODE_BIN}" - "${VERSION}" "$(fvplus::path_for_command "${NODE_BIN}" "${OUTPUT_FILE}")" "$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}")" <<'NODE'

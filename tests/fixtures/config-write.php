@@ -111,12 +111,14 @@ namespace {
         if (is_file("$server/$file")) fixtureEval(substr(file_get_contents("$server/$file"), 5));
     }
     fixtureEval(fixtureFunction(file_get_contents("$server/lib.php"), 'writeRawFolderMap'));
+    fixtureEval(fixtureFunction(file_get_contents("$server/lib.php"), 'reorderFoldersByIdList'));
     fixtureEval(fixtureFunction(file_get_contents("$server/lib.prefs.php"), 'writeTypePrefs'));
     if (!is_dir("$root/rename-denied")) mkdir("$root/rename-denied");
     file_put_contents("$root/rename-denied/sentinel", 'keep');
     $old = ['old' => ['name' => 'Old fixture', 'containers' => ['fixture-member']]];
     if (($request['operation'] ?? '') === 'bulk') $old['target'] = ['name' => 'Target fixture', 'containers' => []];
-    $prefs = normalizeTypePrefs(['sortMode' => 'manual', 'manualOrder' => ['old'], 'backupSchedule' => ['enabled' => false]]);
+    if (($request['operation'] ?? '') === 'reorder') $old['second'] = ['name' => 'Second fixture'];
+    $prefs = normalizeTypePrefs(['sortMode' => 'manual', 'manualOrder' => array_keys($old), 'backupSchedule' => ['enabled' => false]]);
     $operation = $request['operation'] ?? 'writer';
     if (empty($request['first']) && empty($request['skipSeed'])) {
         foreach (['docker', 'vm'] as $seedType) {
@@ -152,6 +154,16 @@ namespace {
     try {
         if ($operation === 'batch') {
             \ConfigWriteFault\applyFolderBatchOperations($type, ['deletes' => ['old'], 'creates' => [], 'upserts' => []]);
+        } elseif (in_array($operation, ['create', 'delete', 'reorder'], true)) {
+            \ConfigWriteFault\withConfigMutationLock(static function () use ($operation, $type): void {
+                if ($operation === 'create') {
+                    \ConfigWriteFault\updateFolder($type, '{"name":"Synthetic new folder"}');
+                } elseif ($operation === 'delete') {
+                    \ConfigWriteFault\deleteFolder($type, 'old');
+                } else {
+                    \ConfigWriteFault\reorderFoldersByIdList($type, ['second', 'old']);
+                }
+            });
         } elseif ($operation === 'bulk') {
             \ConfigWriteFault\bulkAssignItemsToFolders($type, [['folderId' => 'target', 'items' => ['fixture-member']]]);
         } elseif ($operation === 'backup') {

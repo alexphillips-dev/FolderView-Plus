@@ -188,7 +188,7 @@
             const state = ensureHookState(name);
             const current = win?.[state.name];
             const existingMetadata = current?.[WRAPPER_MARK];
-            if (existingMetadata?.adapterId === adapterId) {
+            if (existingMetadata?.adapterId === adapterId && current === state.wrapper) {
                 state.handler = handler;
                 state.wrapper = current;
                 state.wrapped = true;
@@ -197,18 +197,17 @@
             const original = captureHook(state.name, options);
             state.handler = handler;
             const wrapper = function folderViewPlusHostHookWrapper(...args) {
+                const invokeOriginal = (...overrideArgs) => original?.apply(this, overrideArgs.length > 0 ? overrideArgs : args);
+                // Another plugin may still call this wrapper after it has been released.
+                if (state.wrapper !== wrapper) return invokeOriginal();
                 state.callCount += 1;
                 state.lastInvokedAt = isoNow();
                 options.onInvoke?.(state.name, args);
-                const invokeOriginal = (...overrideArgs) => {
-                    if (typeof state.original !== 'function') return undefined;
-                    return state.original.apply(this, overrideArgs.length > 0 ? overrideArgs : args);
-                };
                 return state.handler({
                     adapter: api,
                     args,
                     invokeOriginal,
-                    original: state.original,
+                    original,
                     thisArg: this
                 });
             };

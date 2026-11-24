@@ -37,9 +37,11 @@ if (window.FolderViewPlusDockerBootstrapModuleLoaded !== true) {
 }
 if (dockerHostCompatibilityDecision.runtimeActivationAllowed !== true) {
     if (window.FolderViewPlusDockerBootstrapModuleLoaded !== true) {
-        window.addEventListener?.('pagehide', () => {
+        window.addEventListener?.('pagehide', function releaseDockerSafeMode(event) {
+            if (event?.persisted) return;
+            window.removeEventListener?.('pagehide', releaseDockerSafeMode);
             dockerProviderRegistry?.dispose?.();
-        }, { once: true });
+        });
     }
     return;
 }
@@ -7888,7 +7890,9 @@ $(document).ajaxComplete((event, xhr, settings = {}) => {
 
 window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('docker');
 
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', function releaseDockerPage(event) {
+    if (event?.persisted) return;
+    window.removeEventListener('pagehide', releaseDockerPage);
     dockerRuntimePageDisposed = true;
     clearDockerUnassignedGroup();
     dockerBootstrapGeneration += 1;
@@ -7909,7 +7913,7 @@ window.addEventListener('pagehide', () => {
     dockerDeferredPreviewController.destroy();
     dockerProviderHealthController?.dispose?.();
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
-}, { once: true });
+});
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);

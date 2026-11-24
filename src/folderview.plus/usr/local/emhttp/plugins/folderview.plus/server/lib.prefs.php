@@ -684,26 +684,21 @@
     function readTypePrefs(string $type): array {
         $type = ensureType($type);
         return withConfigMutationLock(static function () use ($type): array {
-            migrateLegacyTypeDataIfNeeded($type, 'prefs');
             $path = getTypePrefsPath($type);
-            $parent = dirname($path);
-            if (!is_dir($parent)) {
-                @mkdir($parent, 0770, true);
+            $decoded = readJsonObjectFile($path);
+            if ($decoded === null) {
+                $lastGood = readJsonObjectFile(getLastGoodJsonPath($path));
+                if ($lastGood !== null) {
+                    return writeTypePrefs($type, $lastGood);
+                }
             }
-            if (!file_exists($path)) {
+            migrateLegacyTypeDataIfNeeded($type, 'prefs');
+            $decoded = readJsonObjectFile($path);
+            if ($decoded === null) {
                 return writeTypePrefs($type, defaultTypePrefs());
             }
-            $decoded = readJsonObjectFile($path);
-            $recoveredFromLastGood = false;
-            if (!is_array($decoded)) {
-                $decoded = recoverJsonObjectFromLastGood($path);
-                $recoveredFromLastGood = is_array($decoded);
-            }
-            if (!is_array($decoded)) {
-                $decoded = [];
-            }
             $normalized = normalizeTypePrefs($decoded);
-            if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+            if (jsonObjectsDiffer($decoded, $normalized)) {
                 writeTypePrefs($type, $normalized);
             }
             return $normalized;

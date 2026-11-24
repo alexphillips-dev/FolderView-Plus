@@ -45,6 +45,18 @@ test('browser and server share ordered predicate, Unicode and target contracts',
         { pattern: '^repo\\/', name: 'repo/app' },
         { pattern: '^.$', name: '\u{1F600}' },
         { pattern: '^..$', name: '\u{1F600}' },
+        { pattern: '^\\w+$', name: 'Café' },
+        { pattern: '^\\W+$', name: 'é' },
+        { pattern: '^\\d+$', name: '\u06f5' },
+        { pattern: '\\bé', name: 'aé' },
+        { pattern: '^x$', name: 'x\n' },
+        { pattern: '^.$', name: '\u2028' },
+        { pattern: '^[^]$', name: '\u2028' },
+        { pattern: '^x[]*$', name: 'x' },
+        { pattern: '^x[\\s_]y$', name: 'x\u00a0y' },
+        { pattern: '^x[\\S_]y$', name: 'x\u00a0y' },
+        { pattern: '^x\\Sy$', name: 'x\u0085y' },
+        { pattern: '^~#!%@$', name: '~#!%@' },
         { pattern: ' ', name: 'space fixture' },
         { pattern: '^[a?+]+$', name: 'a' },
         { pattern: '^[a}+]+$', name: 'a' },
@@ -76,6 +88,36 @@ test('browser and server share ordered predicate, Unicode and target contracts',
     }
     assert.equal(server.at(-3).assignedRule.id, 'fallback', 'an orphan include must not shadow a valid later target');
     assert.equal(server.at(-4).blockedBy.id, 'fixture-rule', 'exclude remains global when its old target disappears');
+});
+
+test('browser and PHP keep legacy VM membership and diagnostics regex matching in sync', () => {
+    const names = ['aéb', 'fixture/x', '😀', 'é', '\uE000', 'space fixture', 'with\uFEFFbom'];
+    const types = { type: 'vm', rules: [] };
+    const folders = {
+        unicode: { regex: '^a.b$' },
+        slash: { regex: '^fixture\\/x$' },
+        units: { regex: '^..$' },
+        surrogate: { regex: '^\\uD83D\\uDE00$' },
+        emoji: { regex: '^😀$' },
+        low: { regex: '^[\\u0000-\\uDFFF]$' },
+        high: { regex: '^[\\uD800-\\uFFFF]$' },
+        bom: { regex: '^with\\sbom$' },
+        space: { regex: ' ' },
+        wildcard: { regex: '^[^]$' },
+        malformed: { regex: '[' }
+    };
+    const info = Object.fromEntries(names.map(name => [name, {}]));
+    const browser = utils.buildMembershipSnapshot({ ...types, folders, infoByName: info });
+    const server = runPhp({ ...types, folders, info, operation: 'membership' });
+    for (const id of Object.keys(folders)) {
+        assert.deepEqual(server.byFolder[id].liveMembers, [...browser.byFolder[id].liveMembers], id);
+    }
+    assert.deepEqual(server.issues, browser.issues);
+    assert.deepEqual(server.byFolder.unicode.liveMembers, ['aéb']);
+    assert.deepEqual(server.byFolder.slash.liveMembers, ['fixture/x']);
+    assert.deepEqual(server.byFolder.units.liveMembers, ['😀']);
+    assert.deepEqual(server.byFolder.high.liveMembers, ['\uE000']);
+    assert.deepEqual(server.byFolder.bom.liveMembers, ['with\uFEFFbom']);
 });
 
 test('template preview evaluates the exact candidate sequence saved before catch-all', () => {

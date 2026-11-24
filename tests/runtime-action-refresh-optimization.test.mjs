@@ -27,12 +27,11 @@ const createActionRunner = (window) => window.FolderViewPlusFoundationModules.ru
 const bindPagehide = (source, context) => {
     const events = new EventTarget();
     context.window.addEventListener = events.addEventListener.bind(events);
-    const start = source.lastIndexOf("window.addEventListener('pagehide',");
-    const suffix = '}, { once: true });';
-    const end = source.indexOf(suffix, start);
-    assert.ok(start >= 0 && end > start);
-    vm.runInContext(source.slice(start, end + suffix.length), context);
-    return () => events.dispatchEvent(new Event('pagehide'));
+    context.window.removeEventListener = events.removeEventListener.bind(events);
+    const binding = source.match(/^window\.addEventListener\('pagehide', [\s\S]+?^\}\);/m)?.[0];
+    assert.ok(binding, 'Use the production pagehide handler');
+    vm.runInContext(binding, context);
+    return (persisted = false) => events.dispatchEvent(Object.assign(new Event('pagehide'), { persisted }));
 };
 
 test('docker runtime actions refresh visible state in place instead of forcing a full reload', () => {
@@ -303,6 +302,8 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
     assert.equal((await retry).ok, true);
 
     const lateAction = run('first', 0);
+    pagehide(true);
+    assert.equal(groupCleared, false);
     pagehide();
     assert.equal(groupCleared, true);
     pending[4].resolve({ error: 'Fixture host refusal' });
@@ -317,6 +318,7 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
 const createVmActionFixture = () => {
     const pending = [], timers = new Map(), summaries = [], dialogs = [], refreshes = [];
     let groupCleared = false;
+    let nativeAborted = false;
     let timerId = 0;
     const $ = () => ({ show() {}, hide() {}, removeClass() { return this; }, addClass() { return this; } });
     $.i18n = () => 'Execution error';
@@ -341,6 +343,7 @@ const createVmActionFixture = () => {
         document: { body: { classList: { contains: () => false } } },
         globalFolders: folders,
         vmRuntimePageDisposed: false,
+        vmNativeListRequest: { abort: () => { nativeAborted = true; } },
         vmUnassignedGroup: { clear: () => { groupCleared = true; } },
         vmSafeUiActionRunner: createActionRunner(window),
         runVmGuardedAction: (_key, fn) => fn(),
@@ -366,7 +369,8 @@ const createVmActionFixture = () => {
     });
     const run = vm.runInContext(vmActionSource + '\nactionFolder', context);
     const pagehide = bindPagehide(vmJs, context);
-    return { run, pagehide, folders, timers, pending, summaries, refreshes, dialogs, isGroupCleared: () => groupCleared };
+    return { run, pagehide, folders, timers, pending, summaries, refreshes, dialogs,
+        isGroupCleared: () => groupCleared, isNativeAborted: () => nativeAborted };
 };
 
 test('VM folder action completion updates the rerendered folder and skips one removed in flight', async () => {
@@ -391,7 +395,7 @@ test('VM folder action completion updates the rerendered folder and skips one re
 });
 
 test('VM pagehide cancels the scheduled fallback and drops a late native response', async () => {
-    const { run, pagehide, timers, pending, summaries, refreshes, dialogs, isGroupCleared } = createVmActionFixture();
+    const { run, pagehide, timers, pending, summaries, refreshes, dialogs, isGroupCleared, isNativeAborted } = createVmActionFixture();
     const action = run('fixture', 'domain-resume');
     pending[0].resolve({ error: 'Fixture host refusal' });
     assert.equal((await action).ok, true);
@@ -403,8 +407,13 @@ test('VM pagehide cancels the scheduled fallback and drops a late native respons
     assert.equal(summaries.length, 1);
 
     const lateAction = run('fixture', 'domain-resume');
+    pagehide(true);
+    assert.equal(isGroupCleared(), false);
+    assert.equal(isNativeAborted(), false);
+    assert.equal(timers.size, 1);
     pagehide();
     assert.equal(isGroupCleared(), true);
+    assert.equal(isNativeAborted(), true);
     assert.equal(timers.size, 0);
     // Simulate a callback already taken from the timer queue when pagehide ran.
     callback();

@@ -117,11 +117,12 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                 }
             }
 
+            $dockerSync = null;
             if (count($changedFolderIds) > 0) {
                 $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
                 try {
                     writeRawFolderMap($type, $nextFolders);
-                    if ($type === 'docker') syncContainerOrder('docker');
+                    if ($type === 'docker') $dockerSync = syncContainerOrder('docker');
                     if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))) {
                         throw new RuntimeException('Bulk assignment transaction verification failed.');
                     }
@@ -180,7 +181,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                 'skippedInvalidCount' => $skippedInvalidCount,
                 'changedFolderIds' => $changedFolderIds,
                 'changedFolderCount' => count($changedFolderIds),
-                'dockerOrderSynced' => $type === 'docker' && count($changedFolderIds) > 0,
+                'dockerOrderSynced' => ($dockerSync['syncOutcome'] ?? null) === 'synced',
                 'durationMs' => $durationMs,
                 'metadata' => readConfigMetadata($type, false)
             ];

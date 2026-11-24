@@ -1111,11 +1111,13 @@ const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepth
     maxDepth: 8
 });
 
-const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
+const isVmSavedFolderToken = (entry, vmInfo) => folderRegex.test(String(entry ?? '')) && !Object.hasOwn(vmInfo || {}, entry);
+
+const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, vmInfo) => (
     runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
         orderFolders: getPrefsOrderedFolderMap,
         folderTokenPrefix: 'folder-',
-        isFolderToken: (entry) => folderRegex.test(String(entry || ''))
+        isFolderToken: (entry) => isVmSavedFolderToken(entry, vmInfo)
     })
 );
 
@@ -1168,7 +1170,7 @@ const buildVmStateSignature = (source, fromStateMode = false) => {
 const buildVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => utils.buildFolderMatchCache({
     type: 'vm', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: vmInfo || {},
     names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(vmInfo || {}, name)) : [],
-    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && isVmSavedFolderToken(name, vmInfo || {}) && Object.hasOwn(folders || {}, name.slice(7))).map(name => name.slice(7))
 });
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-vm');
@@ -1523,15 +1525,16 @@ function handleVmNativeToggleClick(event) {
     scheduleVmZebraRefresh(420);
 }
 
-let createFoldersInFlight = false;
-let createFoldersQueued = false;
+let vmRenderingBundle = null;
 
 /**
  * Handles the creation of all folders
  */
 const vmFolderRenderRecovery = window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage('vm', '#kvm_list', { deferred: vmDeferredPreviewController });
 
-const createFolders = async () => {
+const createFolders = async (currentBundle) => {
+    const prom = await Promise.all(currentBundle.requests);
+    if (currentBundle !== folderReq || vmRuntimePageDisposed) return;
     vmUnassignedGroup?.clear();
     vmUnassignedNames.clear();
     vmDeferredPreviewController.flush();
@@ -1545,16 +1548,11 @@ const createFolders = async () => {
         ? performance.now()
         : Date.now();
     vmPerfTelemetry.begin('createFolders.total');
-    showVmRuntimeLoadingRow();
-    setVmFatalBannerPhase('bootstrap-data');
     try {
     ensureVmExpandedStateLifecycleHooks();
     markVmFatalBannerStep('VM runtime lifecycle hooks ready');
     persistVmExpandedStateFromDom();
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
-    const currentRequests = folderReq;
-    const prom = await Promise.all(currentRequests);
-    if (currentRequests !== folderReq || vmRuntimePageDisposed) return;
     markVmFatalBannerStep('VM runtime request bundle resolved');
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -1570,10 +1568,12 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = applyVmPinnedFolderPrefsOverride(normalizeVmPrefsResponse(prefsResponse));
+    lastVmRuntimeSnapshotToken = '';
+    rememberVmRuntimeSnapshot(currentBundle.snapshot);
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     const folderDepthById = buildFolderDepthById(folders);
-    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
+    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs, vmInfo);
     applyRuntimePrefs(folderTypePrefs);
     lastLiveRefreshStateSignature = buildVmStateSignature(vmInfo, false);
     
@@ -1585,7 +1585,7 @@ const createFolders = async () => {
     // Insert the folder in the unraid folder into the order shifted by the unlisted containers
     for (let index = 0; index < unraidOrder.length; index++) {
         const element = unraidOrder[index];
-        if((folderRegex.test(element) && folders[element.slice(7)])) {
+        if (isVmSavedFolderToken(element, vmInfo) && folders[element.slice(7)]) {
             order.splice(index+newOnes.length, 0, element);
         }
     }
@@ -1607,7 +1607,7 @@ const createFolders = async () => {
     // Draw the folders in the order
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
-        if (container && folderRegex.test(container)) {
+        if (container && isVmSavedFolderToken(container, vmInfo)) {
             let id = container.replace(folderRegex, '');
             if (folders[id]) {
                 key -= createFolder(
@@ -1634,7 +1634,8 @@ const createFolders = async () => {
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
     for (const [id, value] of remainingFolders) {
         // Add the folder on top of the array
-        order.unshift(`folder-${id}`);
+        const token = `folder-${id}`;
+        if (!Object.hasOwn(vmInfo || {}, token)) order.unshift(token);
         createFolder(
             value,
             id,
@@ -1727,7 +1728,6 @@ const createFolders = async () => {
         vmLastRenderMs = Math.max(0, (typeof performance !== 'undefined' && typeof performance.now === 'function'
             ? performance.now()
             : Date.now()) - performanceRenderStartedAt);
-        hideVmRuntimeLoadingRow();
         vmPerfTelemetry.end('createFolders.total', {
             folderCount: Object.keys(globalFolders || {}).length,
             strictPerf: vmRuntimePerformanceProfile?.strict === true
@@ -1739,15 +1739,15 @@ const createFolders = async () => {
 };
 
 const queueCreateFoldersRender = () => {
-    if (createFoldersInFlight) {
-        createFoldersQueued = true;
-        return;
-    }
-    createFoldersInFlight = true;
+    const bundle = folderReq;
+    if (!bundle || bundle === vmRenderingBundle || vmRuntimePageDisposed) return;
+    vmRenderingBundle = bundle;
+    showVmRuntimeLoadingRow();
+    setVmFatalBannerPhase('bootstrap-data');
     Promise.resolve()
-        .then(() => createFolders())
+        .then(() => createFolders(bundle))
         .catch((error) => {
-            if (!error?.fvplusBannerShown) {
+            if (bundle === folderReq && !vmRuntimePageDisposed && !error?.fvplusBannerShown) {
                 reportVmFatalRuntimeError(error, {
                     phase: error?.fvplusPhase || 'runtime',
                     category: error?.fvplusCategory || inferVmFatalBannerCategory(error, 'promise-rejection')
@@ -1755,10 +1755,10 @@ const queueCreateFoldersRender = () => {
             }
         })
         .finally(() => {
-            createFoldersInFlight = false;
-            if (createFoldersQueued) {
-                createFoldersQueued = false;
-                queueLoadlistRefresh();
+            if (bundle === vmRenderingBundle) vmRenderingBundle = null;
+            if (bundle === folderReq) {
+                vmFullRenderPending = false;
+                hideVmRuntimeLoadingRow();
             }
         });
 };
@@ -1918,7 +1918,8 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order,
         completedFolderIds: foldersDone,
-        currentFolderId: id
+        currentFolderId: id,
+        isFolderToken: (entry) => isVmSavedFolderToken(entry, vmInfo)
     });
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
@@ -3043,9 +3044,12 @@ let loadedFolder = false;
 let globalFolders = {};
 let lastAppliedRuntimePrefs = null;
 const folderRegex = /^folder-/;
-let folderReq = [];
+let folderReq = null;
 let folderTypePrefs = utils.normalizePrefs({});
 let vmRuntimeInfoByName = {};
+let vmRuntimeRequestGeneration = 0;
+let vmFullRenderPending = false;
+let vmNativeListRequest = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
@@ -3296,7 +3300,9 @@ const syncVmRuntimeRows = (changedNames) => {
 };
 
 const refreshVmRuntimeStateInPlace = async (options = {}) => {
-    if (vmRuntimePageDisposed) return false;
+    if (vmRuntimePageDisposed || vmFullRenderPending) return false;
+    const generation = ++vmRuntimeRequestGeneration;
+    const isVmRefreshCurrent = () => !vmRuntimePageDisposed && generation === vmRuntimeRequestGeneration;
     const preserveGroupedDom = options?.preserveGroupedDom === true;
     vmRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     try {
@@ -3304,7 +3310,7 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         const payload = await pluginRequestClient.getJson(useSnapshot
             ? runtimeSnapshotApi.buildUrl('vm', 'state', { forceRefresh: true })
             : '/plugins/folderview.plus/server/read_info.php?type=vm&mode=state&nocache=1', { cache: false });
-        if (vmRuntimePageDisposed) return false;
+        if (!isVmRefreshCurrent()) return false;
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !vmRuntimeSnapshotConfigMatches(snapshot))) {
@@ -3334,7 +3340,7 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
         return true;
     } catch (_error) {
-        if (!preserveGroupedDom) queueLoadlistRefresh();
+        if (isVmRefreshCurrent() && !preserveGroupedDom) queueLoadlistRefresh();
         return false;
     } finally {
         vmRuntimePerformanceTelemetry?.end?.('incrementalReconciliation', { preserveGroupedDom });
@@ -3367,12 +3373,14 @@ const vmLiveRefreshController = runtimeLiveRefreshModule.createController({
     keys: ['vm'],
     isEnabled: () => folderTypePrefs?.liveRefreshEnabled === true && $('#kvm_list').length > 0,
     tick: async () => {
+        const generation = vmRuntimeRequestGeneration;
         let check = null;
         try {
             check = await fetchVmRuntimeSnapshotCheck();
         } catch (_error) {
             check = null;
         }
+        if (vmRuntimePageDisposed || vmFullRenderPending || generation !== vmRuntimeRequestGeneration) return false;
         if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
             queueLoadlistRefresh();
             return false;
@@ -3635,6 +3643,9 @@ window.getVmRuntimePerformancePolicySnapshot = () => ({
 window.getVmRuntimeStateSnapshot = () => vmRuntimeStateStore.getState();
 
 function buildVmFolderReq() {
+    // Native reload owns the next commit of configuration, runtime data, and its token.
+    vmRuntimeRequestGeneration += 1;
+    vmFullRenderPending = true;
     const cacheBust = Date.now();
     const legacyFactories = [
         () => createVmRuntimeRequest('/plugins/folderview.plus/server/read.php?type=vm', {
@@ -3661,7 +3672,7 @@ function buildVmFolderReq() {
         })
     ];
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
-        return legacyFactories.map((factory) => factory());
+        return { requests: legacyFactories.map((factory) => factory()), snapshot: null };
     }
     const snapshotRequest = createVmRuntimeRequest(runtimeSnapshotApi.buildUrl('vm', 'full', {
         cacheBust
@@ -3669,16 +3680,18 @@ function buildVmFolderReq() {
         source: 'runtime-snapshot-full',
         label: 'VM runtime snapshot'
     });
-    return runtimeSnapshotApi.createProjectedBundle(
+    const bundle = { requests: [], snapshot: null };
+    bundle.requests = runtimeSnapshotApi.createProjectedBundle(
         snapshotRequest,
         ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
         {
             onSnapshot: (snapshot) => {
-                rememberVmRuntimeSnapshot(snapshot);
+                bundle.snapshot = snapshot;
             },
             fallbackFactories: legacyFactories
         }
     );
+    return bundle;
 }
 
 // Prime requests for environments where loadlist isn't called first.
@@ -3691,6 +3704,7 @@ vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
     vmUnassignedNames.clear();
     loadedFolder = false;
     folderReq = buildVmFolderReq();
+    vmNativeListRequest?.abort();
     if (typeof window.loadlist_original === 'function') {
         return invokeOriginal(...args);
     } else {
@@ -3760,6 +3774,7 @@ function ensureVmQuickFinder() {
     vmQuickFinderApi ||= window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.createApi({
         window, document, type: 'vm', hostAdapter: vmHostAdapter,
         getFolders: () => globalFolders, getRuntime: () => vmRuntimeInfoByName,
+        getVmState: (entry) => getVmRuntimeStateMeta(entry).key,
         clearFocus: () => toggleVmFolderFocus(vmFocusedFolderId),
         revealHidden: (item) => item.kind === 'item' && vmUnassignedGroup?.reveal(findVmRuntimeRowsByName(item.id).get(0)),
         expand: dropDownButton, edit: editFolder, focus: toggleVmFolderFocus
@@ -3779,34 +3794,53 @@ bindVmFolderRowActions(); ensureVmQuickFinder();
 
 
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {
-    // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders
     if (options.url === "/plugins/dynamix.vm.manager/include/UserPrefs.php") {
         const data = new URLSearchParams(options.data);
-        const containers = data.get('names').split(';');
-        const folderFixRegex = /^(.*?)(?=folder-)/g;
-        let num = "";
-        for (let index = 0; index < containers.length - 1; index++) {
-            containers[index] = containers[index].replace(folderFixRegex, '');
-            num += index + ';';
+        const serializedNames = data.get('names');
+        if (serializedNames === null) return;
+        const names = serializedNames.split(';');
+        const count = names.at(-1) === '' ? names.length - 1 : names.length;
+        // The host concatenates every anchor's text in each name cell, including both anchors of a Plus folder.
+        const nameCells = $('#kvm_list').children().find('td.vm-name').get();
+        if (nameCells.length !== count) return;
+        const indexes = [];
+        for (let index = 0; index < count; index++) {
+            const cell = nameCells[index];
+            const folderToken = cell.parentElement?.classList.contains('folder') && cell.querySelector('.folder-appname-id');
+            if (folderToken && $(cell).find('a').text() === names[index]) {
+                names[index] = folderToken.textContent;
+            }
+            indexes.push(index);
         }
-        data.set('names', containers.join(';'));
-        data.set('index', num);
+        data.set('names', names.join(';'));
+        data.set('index', indexes.length ? indexes.join(';') + ';' : '');
         options.data = data.toString();
         $('.unhide').show();
     // this is needed to trigger the funtion to create the folders
     } else if (options.url === "/plugins/dynamix.vm.manager/include/VMMachines.php" && !loadedFolder) {
+        const bundle = folderReq;
+        vmNativeListRequest = jqXHR;
         jqXHR.promise().then(() => {
+            if (vmRuntimePageDisposed || bundle !== folderReq || loadedFolder) return;
             queueCreateFoldersRender();
             $('div.spinner.fixed').hide();
-            loadedFolder = !loadedFolder
+            loadedFolder = true;
+        }, () => {
+            if (bundle === folderReq) vmFullRenderPending = false;
+        });
+        jqXHR.always(() => {
+            if (vmNativeListRequest === jqXHR) vmNativeListRequest = null;
         });
     }
 });
 
 window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('vm');
 
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', function releaseVmPage(event) {
+    if (event?.persisted) return;
+    window.removeEventListener('pagehide', releaseVmPage);
     vmRuntimePageDisposed = true;
+    vmNativeListRequest?.abort();
     vmUnassignedGroup?.clear();
     window.clearTimeout(vmFolderActionRefreshTimer);
     vmQuickFinderApi?.dispose();
@@ -3821,4 +3855,4 @@ window.addEventListener('pagehide', () => {
     }
     vmDeferredPreviewController.destroy();
     runtimeHostAdapters?.release?.('vm', { window, restoreHooks: true });
-}, { once: true });
+});

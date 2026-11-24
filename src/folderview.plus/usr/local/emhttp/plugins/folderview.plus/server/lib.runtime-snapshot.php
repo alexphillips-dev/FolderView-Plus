@@ -84,7 +84,7 @@ function runtimeSnapshotSignature(string $type, array $runtime): string {
 
 function runtimeSnapshotOrderFromEntities(string $type, array $runtime): array {
     $safeType = ensureType($type);
-    $names = array_keys(runtimeSnapshotStateProjection($safeType, $runtime));
+    $names = array_map('strval', array_keys(runtimeSnapshotStateProjection($safeType, $runtime)));
     $prefsPath = $safeType === 'docker'
         ? '/boot/config/plugins/dockerMan/userprefs.cfg'
         : '/boot/config/plugins/dynamix.vm.manager/userprefs.cfg';
@@ -275,7 +275,8 @@ function buildRuntimeSnapshot(
     $response['prefs'] = is_array($config['prefs'] ?? null) ? $config['prefs'] : [];
     $response['metadata'] = $metadata;
     if ($safeMode !== 'config') {
-        $response['runtime'] = $runtime;
+        // PHP serializes contiguous numeric keys as a JSON list, even for VM names like "0".
+        $response['runtime'] = $runtime !== [] && array_is_list($runtime) ? (object)$runtime : $runtime;
     }
     return $response;
 }

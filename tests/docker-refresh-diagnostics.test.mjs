@@ -32,7 +32,7 @@ const createHarness = () => {
         window,
         now: () => clock,
         advance: (ms) => { clock += ms; },
-        pagehide: () => listeners.get('pagehide')?.(),
+        pagehide: (persisted = false) => listeners.get('pagehide')?.({ persisted }),
         persisted: () => JSON.parse(records.get(diagnostics.STORAGE_KEY) || '{}')
     };
 };
@@ -97,6 +97,18 @@ test('refresh diagnostics classifies recurring full reloads without persisting r
     assert.equal(persisted.currentSession, null);
     assert.equal(persisted.completedSessionCount, 1);
     assert.equal(persisted.completedSessions[0].exitReason, 'pagehide');
+});
+
+test('persisted navigation retains a diagnostics session until final teardown', () => {
+    const harness = createHarness();
+    const tracker = diagnostics.createTracker({ window: harness.window, storage: harness.storage, now: harness.now });
+    tracker.record('loadlist');
+    harness.pagehide(true);
+    assert.equal(harness.persisted().currentSession.counts.loadlist, 1);
+    tracker.record('loadlist');
+    harness.pagehide();
+    assert.equal(harness.persisted().currentSession, null);
+    assert.equal(harness.persisted().completedSessions[0].counts.loadlist, 2);
 });
 
 test('refresh diagnostics records explicit reload sources and native busy recovery', () => {

@@ -16,8 +16,8 @@ function dockerSyncOrderLockPath(): string {
         return $configDir . '/docker-sync-order.pending';
     }
 
-    function markDockerSyncOrderPending(): void {
-        @file_put_contents(dockerSyncOrderPendingPath(), (string)microtime(true));
+    function markDockerSyncOrderPending(): bool {
+        return @file_put_contents(dockerSyncOrderPendingPath(), (string)microtime(true)) !== false;
     }
 
     function clearDockerSyncOrderPending(): void {
@@ -104,7 +104,7 @@ function dockerSyncOrderLockPath(): string {
         $allContainerNames = [];
         if ($verifiedInventory === null) {
             $dockerClient = new DockerClient();
-            foreach ((array)$dockerClient->getDockerContainers() as $containerMeta) {
+            foreach ((array)fvplusReadDockerHostValue(static fn() => $dockerClient->getDockerContainers(), true) as $containerMeta) {
                 $name = trim((string)($containerMeta['Name'] ?? ''));
                 if ($name === '' || in_array($name, $allContainerNames, true)) {
                     continue;
@@ -330,24 +330,24 @@ function dockerSyncOrderLockPath(): string {
         return buildDockerStartOrderPlan($context);
     }
 
-    function syncContainerOrderUnlocked(): ?string {
+    function syncContainerOrderUnlocked(): array {
         // Rewrites the autostart file to match the configured FolderView Plus start order.
         // Docker userprefs.cfg is owned by Unraid and is only read here.
         try {
             $context = buildDockerStartOrderContext(fvplusReadRepairInventory('docker'));
         } catch (\UnexpectedValueException $error) {
             fv3_debug_log('syncContainerOrder: Docker folders could not be verified');
-            return 'docker_order_folders_unavailable';
+            return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_folders_unavailable'];
         } catch (Throwable $error) {
             // Sync is also a post-save hook: retain native records without rejecting committed configuration.
             fv3_debug_log('syncContainerOrder: skipped because inventory or context could not be verified');
-            return null;
+            return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_inventory_unavailable'];
         }
         $plan = buildDockerStartOrderPlan($context);
-        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return null; }
+        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return ['syncOutcome' => 'unmanaged']; }
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $autoStartFile = (string)($context['autoStartFile'] ?? "/var/lib/docker/unraid-autostart");
-        if (file_exists($autoStartFile)) {
+        if (is_file($autoStartFile)) {
             $autoStartMap = (array)($context['autoStartMap'] ?? []);
             $newAutoStart = [];
             foreach ((array)($plan['autostartOrder'] ?? []) as $name) {
@@ -364,38 +364,43 @@ function dockerSyncOrderLockPath(): string {
                 ? implode("\n", $newAutoStart) . "\n"
                 : '';
             $currentAutoStartContent = @file_get_contents($autoStartFile);
-            if ($currentAutoStartContent !== ($context['autoStartContent'] ?? null)) {
+            if ($currentAutoStartContent === false || $currentAutoStartContent !== ($context['autoStartContent'] ?? null)) {
                 fv3_debug_log('syncContainerOrder: native autostart changed during planning; skipped');
-                return null;
+                return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_changed'];
             }
             if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
-                writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
+                try {
+                    writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
+                } catch (Throwable $error) {
+                    return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_write_failed'];
+                }
+                if (@file_get_contents($autoStartFile) !== $nextAutoStartContent) return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_changed'];
                 fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries using " . (string)($plan['mode'] ?? 'docker-page') . " mode");
             } else {
                 fv3_debug_log("syncContainerOrder: autostart file already up to date");
             }
+            return ['syncOutcome' => 'synced', 'preview' => $plan];
         }
-        return null;
+        return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_unavailable'];
     }
 
-    function syncContainerOrder(string $type): ?string {
+    function syncContainerOrder(string $type): array {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
-        if ($type !== 'docker') { return null; }
-        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return null; }
+        if ($type !== 'docker') { return ['syncOutcome' => 'not-applicable']; }
+        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return ['syncOutcome' => 'unmanaged']; }
 
         $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
         if (!is_resource($lockHandle)) {
             fv3_debug_log('syncContainerOrder: could not open the sync lock');
-            return 'docker_order_lock_unavailable';
+            return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_lock_unavailable'];
         }
 
         if (!@flock($lockHandle, LOCK_EX | LOCK_NB, $wouldBlock)) {
             @fclose($lockHandle);
-            if (!$wouldBlock) return 'docker_order_lock_unavailable';
-            markDockerSyncOrderPending();
+            if (!$wouldBlock || !markDockerSyncOrderPending()) return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_lock_unavailable'];
             fv3_debug_log('syncContainerOrder: coalesced while another sync is already running');
-            return null;
+            return ['syncOutcome' => 'queued'];
         }
 
         try {
@@ -404,22 +409,26 @@ function dockerSyncOrderLockPath(): string {
                 $attempt++;
                 clearDockerSyncOrderPending();
                 $startedAt = microtime(true);
-                $failure = syncContainerOrderUnlocked();
+                $result = syncContainerOrderUnlocked();
                 $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
                 $shouldRerun = hasDockerSyncOrderPending();
                 fv3_debug_log("syncContainerOrder: pass $attempt completed in {$durationMs}ms" . ($shouldRerun ? ' (pending rerun requested)' : ''));
             } while ($shouldRerun && $attempt < 3);
-            return $failure;
+            return $shouldRerun && $result['syncOutcome'] === 'synced' ? ['syncOutcome' => 'queued'] : $result;
         } finally {
             @flock($lockHandle, LOCK_UN);
             @fclose($lockHandle);
         }
     }
 
-    function fvplusRespondToDockerOrderSync(string $type): bool {
-        $failure = syncContainerOrder($type);
-        if ($failure === null) return true;
+    function fvplusRespondToDockerOrderSync(string $type, bool $bestEffort = false): ?array {
+        $result = syncContainerOrder($type);
+        $failure = $result['errorCode'] ?? null;
+        // Post-save callers acknowledge skipped work without invalidating the saved folder.
+        if ($failure === null || ($bestEffort && in_array($failure, [
+            'docker_order_inventory_unavailable', 'docker_order_native_changed', 'docker_order_native_unavailable', 'docker_order_native_write_failed'
+        ], true))) return $result;
         $status = $failure === 'docker_order_lock_unavailable' ? 503 : 409;
-        fvplus_json_error('Docker start order sync failed', $status, ['errorCode' => $failure]);
-        return false;
+        fvplus_json_error('Docker start order sync failed', $status, $result);
+        return null;
     }

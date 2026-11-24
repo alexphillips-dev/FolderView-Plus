@@ -131,17 +131,20 @@
             return preview ? translate('editor.members.assignment-preview', 'Preview · $1', value) : value;
         };
 
+        const hasOpenAssignmentDetails = () =>
+            assignmentContext?.open || [...assignmentRows.values()].some((details) => details.open);
+
         const refreshAssignmentDetails = () => {
-            if (assignmentDisposed || !deps.getAssignmentContext
-                || (!assignmentContext?.open && ![...assignmentRows.values()].some((details) => details.open))) return;
+            if (assignmentDisposed || !deps.getAssignmentContext || !hasOpenAssignmentDetails()) return;
             assignmentRenderId += 1;
             if (assignmentRenderQueued) return;
             assignmentRenderQueued = true;
             Promise.resolve().then(async () => {
                 assignmentRenderQueued = false;
                 const renderId = assignmentRenderId;
-                assignmentOrder ||= Promise.resolve().then(() => deps.readAssignmentOrder?.()).catch(() => null);
-                const order = await assignmentOrder;
+                const request = assignmentOrder ||= Promise.resolve().then(() => deps.readAssignmentOrder?.()).catch(() => null);
+                const order = await request;
+                if (assignmentOrder === request && !Array.isArray(order)) assignmentOrder = null;
                 if (assignmentDisposed || renderId !== assignmentRenderId) return;
                 const context = deps.getAssignmentContext();
                 if (!context?.utils?.buildMembershipSnapshot) return;
@@ -177,6 +180,7 @@
             details.append(summary, output);
             details.addEventListener('toggle', () => {
                 if (details.open && details.isConnected) refreshAssignmentDetails();
+                else if (!hasOpenAssignmentDetails()) assignmentOrder = null;
             });
             return details;
         };

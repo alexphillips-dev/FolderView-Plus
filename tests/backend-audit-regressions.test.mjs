@@ -25,6 +25,24 @@ for (const kind of ['folder', 'prefs']) test(`${kind} GET holds its lock between
     else assert.equal(result.response.prefs.sortMode, 'created');
 });
 
+test('preference recovery preserves the last good file across missing, corrupt and blocked writes', () => {
+    for (const type of ['docker', 'vm']) {
+        for (const scenario of ['missing', 'corrupt', 'folder-bootstrap', 'write-failure']) {
+            const result = run('prefs-recovery', type, scenario);
+            assert.equal(result.mirrorPreserved, true, `${type}/${scenario}`);
+            assert.equal(result.prefs.groupUnassignedItems, true);
+            if (scenario === 'write-failure') {
+                assert.match(result.error, /Injected durable storage failure/);
+                assert.equal(result.primary, null);
+            } else {
+                assert.equal(result.error, '');
+                assert.deepEqual(result.restored, result.prefs);
+                assert.deepEqual(result.primary, result.prefs);
+            }
+        }
+    }
+});
+
 for (const type of ['docker', 'vm']) test(`${type} bulk move retains canonical identity and removes source identity`, () => {
     const result = run('bulk', type);
     assert.equal(result.result.assignedCount, 1);

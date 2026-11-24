@@ -1,12 +1,14 @@
 (function(root, factory) {
-    const api = factory(root);
+    const outbox = typeof module === 'object' && module.exports
+        ? require('./folderviewplus.prefs-outbox.js') : root.FolderViewPlusFoundationModules?.prefsOutbox;
+    const api = factory(root, outbox);
     if (typeof module === 'object' && module.exports) {
         module.exports = api;
         return;
     }
     root.FolderViewPlusPrefsStore = api;
     root.FolderViewPlusPrefsStoreModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(root, outboxApi) {
     const STORAGE_PREFIX = 'fvplus.prefs.outbox.v1.';
     const CHANNEL_NAME = 'fvplus-prefs-sync-v1';
     const DEFAULT_DEBOUNCE_MS = 160;
@@ -275,11 +277,12 @@
         const setTimer = typeof options.setTimeout === 'function' ? options.setTimeout : setTimeout;
         const clearTimer = typeof options.clearTimeout === 'function' ? options.clearTimeout : clearTimeout;
         const now = typeof options.now === 'function' ? options.now : Date.now;
+        const outbox = outboxApi?.createStorage({ storage, prefix: storagePrefix, sourceId, now });
         const states = new Map();
         const subscribers = new Set();
         let broadcastChannel = null;
 
-        const storageKeyForType = (type) => `${storagePrefix}${normalizeType(type)}`;
+        const storageKeyForType = (type) => outbox?.key(normalizeType(type)) || `${storagePrefix}${normalizeType(type)}`;
         const newState = (type) => ({
             type: normalizeType(type),
             hydrated: false,
@@ -287,8 +290,11 @@
             optimisticPrefs: null,
             pendingPatch: {},
             inFlightPatch: {},
+            restoring: [],
+            inFlightRestore: null,
             externalPatch: {},
             generation: 0,
+            settledGeneration: 0,
             publicationGeneration: 0,
             mutationPublicationGeneration: 0,
             flushTimer: null,
@@ -324,22 +330,27 @@
             return states.get(resolvedType);
         };
 
+        const hasQueuedWork = (state) => !patchIsEmpty(state.pendingPatch) || state.restoring.length > 0;
+        const queuedPatches = (state) => [
+            ...state.restoring.map(entry => entry.record.patch),
+            state.inFlightRestore ? {} : state.inFlightPatch,
+            state.pendingPatch
+        ];
         const buildOptimisticPrefs = (state) => normalizePrefs(
-            [state.externalPatch, state.inFlightPatch, state.pendingPatch]
+            [state.externalPatch, ...queuedPatches(state)]
                 .reduce(mergePatch, state.confirmedPrefs || normalizePrefs({}))
         );
 
         const synchronizationSnapshot = (state, emptyValue = '') => ({
             status: state.status,
             hydrated: state.hydrated,
-            pending: !patchIsEmpty(state.pendingPatch) || !patchIsEmpty(state.inFlightPatch),
-            pendingFieldCount: Object.keys({ ...state.inFlightPatch, ...state.pendingPatch }).length,
+            pending: hasQueuedWork(state) || !patchIsEmpty(state.inFlightPatch),
+            pendingFieldCount: new Set(queuedPatches(state).flatMap(Object.keys)).size,
             revision: readRevision(state.confirmedPrefs),
             lastSavedAt: state.lastSavedAt || emptyValue,
             lastLatencyMs: state.lastLatencyMs,
             lastError: state.lastError || emptyValue
         });
-
         const publicSnapshot = (state, includePrefs = true) => ({
             type: state.type,
             ...synchronizationSnapshot(state),
@@ -370,58 +381,29 @@
             }
         };
 
-        const readStoredOutbox = (type) => {
-            if (!storage || typeof storage.getItem !== 'function') {
-                return null;
-            }
-            try {
-                const parsed = JSON.parse(String(storage.getItem(storageKeyForType(type)) || 'null'));
-                if (!isPlainObject(parsed) || Number(parsed.schemaVersion) !== 1 || !isPlainObject(parsed.patch)) {
-                    return null;
-                }
-                return parsed;
-            } catch (_error) {
-                return null;
-            }
+        const updateExternalPatch = (state) => {
+            state.externalPatch = (outbox?.read(state.type) || [])
+                .filter(entry => entry.record.sourceId !== sourceId)
+                .reduce((patch, entry) => mergePatch(patch, entry.record.patch), {});
         };
 
-        const combinedOwnPatch = (state) => mergePatch(state.inFlightPatch, state.pendingPatch);
         const persistOutbox = (state) => {
-            if (!storage) return;
-            let patch = combinedOwnPatch(state);
-            const existing = readStoredOutbox(state.type);
-            if (existing && existing.sourceId !== sourceId && isPlainObject(existing.patch)) {
-                // Preserve another tab's ownership until it clears its committed work.
-                if (patchIsEmpty(patch)) return;
-                patch = mergePatch(existing.patch, patch);
-            }
-            try {
-                if (patchIsEmpty(patch)) {
-                    storage.removeItem(storageKeyForType(state.type));
-                    return;
-                }
-                storage.setItem(storageKeyForType(state.type), JSON.stringify({
-                    schemaVersion: 1,
-                    type: state.type,
-                    sourceId,
-                    updatedAt: new Date(now()).toISOString(),
-                    patch
-                }));
-            } catch (_error) {
-                // Server persistence remains available when browser storage is blocked.
-            }
+            outbox?.write(state.type, mergePatch(state.inFlightRestore ? {} : state.inFlightPatch, state.pendingPatch));
         };
 
         const restoreOutbox = (state) => {
-            const stored = readStoredOutbox(state.type);
-            if (!stored || patchIsEmpty(stored.patch)) {
-                return false;
-            }
-            state.pendingPatch = mergePatch(state.pendingPatch, stored.patch);
+            state.restoring = outbox?.read(state.type) || [];
+            if (!state.restoring.length) return false;
             state.status = 'sync-pending';
             return true;
         };
 
+        const finishRestoredOutbox = (state, entry) => {
+            if (!entry) return;
+            state.restoring = state.restoring.filter(other => other !== entry);
+            outbox?.acknowledge(entry);
+            updateExternalPatch(state);
+        };
         const broadcast = (payload) => {
             try {
                 broadcastChannel?.postMessage({ ...payload, sourceId });
@@ -448,10 +430,10 @@
             const state = getState(type);
             let restoredPendingChanges = false;
             publishConfirmedPrefs(state, prefs, settings.publicationGeneration, settings.fromHydration === true);
-            if (settings.restoreOutbox !== false && patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
+            if (settings.restoreOutbox !== false && !hasQueuedWork(state) && !state.flushing) {
                 restoredPendingChanges = restoreOutbox(state);
             }
-            if (patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
+            if (!hasQueuedWork(state) && !state.flushing) {
                 state.status = 'saved';
                 state.lastError = '';
             }
@@ -473,16 +455,17 @@
                 : response;
             const optimistic = reconcile(type, prefs || {}, { ...settings, publicationGeneration, fromHydration: true });
             const state = getState(type);
-            if (!patchIsEmpty(state.pendingPatch) && settings.replay !== false) {
+            if (hasQueuedWork(state) && settings.replay !== false) {
                 scheduleFlush(state, 0);
             }
             return optimistic;
         };
 
-        const resolveWaiters = (state, generation, value) => {
+        const resolveWaiters = (state, generation, value, restored = false) => {
             const remaining = [];
             for (const waiter of state.waiters) {
-                if (waiter.generation <= generation) {
+                if (waiter.drain ? !state.restoring.length && waiter.generation <= state.settledGeneration
+                    : !restored && waiter.generation <= generation) {
                     waiter.resolve(value);
                 } else {
                     remaining.push(waiter);
@@ -491,10 +474,10 @@
             state.waiters = remaining;
         };
 
-        const rejectWaiters = (state, generation, error) => {
+        const rejectWaiters = (state, generation, error, restored = false) => {
             const remaining = [];
             for (const waiter of state.waiters) {
-                if (waiter.generation <= generation) {
+                if (waiter.generation <= generation && (!restored || waiter.drain)) {
                     waiter.reject(error);
                 } else {
                     remaining.push(waiter);
@@ -504,7 +487,7 @@
         };
 
         const scheduleRetry = (state) => {
-            if (state.retryTimer || patchIsEmpty(state.pendingPatch)) {
+            if (state.retryTimer || !hasQueuedWork(state)) {
                 return;
             }
             const delayMs = Math.min(30000, retryDelayMs * Math.max(1, 2 ** Math.max(0, state.failureStreak - 1)));
@@ -517,7 +500,7 @@
         };
 
         const runFlush = async (state) => {
-            if (state.flushing || patchIsEmpty(state.pendingPatch) || !writePrefs) {
+            if (state.flushing || !hasQueuedWork(state) || !writePrefs) {
                 return;
             }
             if (!state.hydrated && fetchPrefs) {
@@ -528,12 +511,25 @@
                 }
             }
             // Hydration can yield while another flush takes the queued work.
-            if (state.flushing || patchIsEmpty(state.pendingPatch)) return;
-            const batchPatch = state.pendingPatch;
+            if (state.flushing) return;
+            state.restoring = state.restoring.filter(entry => outbox?.isCurrent(entry));
+            if (!hasQueuedWork(state)) {
+                updateExternalPatch(state);
+                state.status = 'saved';
+                emit(state);
+                resolveWaiters(state, state.generation, state.optimisticPrefs, true);
+                return;
+            }
+            const restored = state.restoring[0] || null;
+            // Replay each previous owner separately from the user's new changes.
+            const batchPatch = restored ? restored.record.patch : state.pendingPatch;
             const batchGeneration = state.generation;
-            const mutationId = createMutationId(sourceId, batchGeneration);
-            state.pendingPatch = {};
+            const mutationId = restored
+                ? createMutationId(`${sourceId}-restore`, state.stats.requests + 1)
+                : createMutationId(sourceId, batchGeneration);
+            if (!restored) state.pendingPatch = {};
             state.inFlightPatch = batchPatch;
+            state.inFlightRestore = restored;
             state.flushing = true;
             state.status = 'saving';
             state.lastMutationId = mutationId;
@@ -556,6 +552,9 @@
                 publishConfirmedPrefs(state, savedPrefs || mergePatch(state.confirmedPrefs, batchPatch), mutationPublicationGeneration);
                 state.lastBackup = response?.backup || null;
                 state.inFlightPatch = {};
+                state.inFlightRestore = null;
+                finishRestoredOutbox(state, restored);
+                if (!restored) state.settledGeneration = batchGeneration;
                 state.flushing = false;
                 state.conflictRetries = 0;
                 state.failureStreak = 0;
@@ -566,24 +565,33 @@
                 state.stats.maxLatencyMs = Math.max(state.stats.maxLatencyMs, state.lastLatencyMs);
                 state.lastSavedAt = new Date(now()).toISOString();
                 state.lastError = '';
-                state.status = patchIsEmpty(state.pendingPatch) ? 'saved' : 'saving';
+                state.status = hasQueuedWork(state) ? 'saving' : 'saved';
                 persistOutbox(state);
                 emit(state);
-                resolveWaiters(state, batchGeneration, state.optimisticPrefs);
+                resolveWaiters(state, batchGeneration, state.optimisticPrefs, Boolean(restored));
                 broadcast({
                     action: 'committed',
                     type: state.type,
                     mutationId,
                     prefs: state.confirmedPrefs
                 });
-                if (!patchIsEmpty(state.pendingPatch)) {
+                if (hasQueuedWork(state)) {
                     scheduleFlush(state, 0);
                 }
             } catch (error) {
                 state.inFlightPatch = {};
+                state.inFlightRestore = null;
                 state.flushing = false;
-                state.pendingPatch = mergePatch(batchPatch, state.pendingPatch);
-                const isConflict = Number(error?.status || error?.httpStatus || 0) === 409;
+                const status = Number(error?.status || error?.httpStatus || 0);
+                const rejected = (status === 400 || status === 422) && (!error?.phase || error.phase === 'request');
+                if (rejected) {
+                    finishRestoredOutbox(state, restored);
+                    state.conflictRetries = 0;
+                    if (!restored) state.settledGeneration = batchGeneration;
+                } else if (!restored) {
+                    state.pendingPatch = mergePatch(batchPatch, state.pendingPatch);
+                }
+                const isConflict = status === 409;
                 if (isConflict && fetchPrefs && state.conflictRetries < MAX_CONFLICT_RETRIES) {
                     state.conflictRetries += 1;
                     state.stats.conflicts += 1;
@@ -600,13 +608,15 @@
                     }
                 }
                 state.stats.failures += 1;
-                state.failureStreak += 1;
-                state.status = 'sync-pending';
+                state.failureStreak = rejected ? 0 : state.failureStreak + 1;
+                state.status = rejected && !hasQueuedWork(state) ? 'failed' : 'sync-pending';
                 state.lastError = String(error?.message || error || 'Preference synchronization failed.');
                 persistOutbox(state);
                 emit(state);
-                rejectWaiters(state, batchGeneration, error);
-                if (isRetryableSyncError(error)) {
+                rejectWaiters(state, batchGeneration, error, Boolean(restored));
+                if (rejected && hasQueuedWork(state)) {
+                    scheduleFlush(state, 0);
+                } else if (isRetryableSyncError(error)) {
                     scheduleRetry(state);
                 }
             }
@@ -631,10 +641,6 @@
             if (!state.hydrated && settings.currentPrefs) {
                 reconcile(state.type, settings.currentPrefs, { restoreOutbox: true, force: true });
             }
-            if (!patchIsEmpty(state.externalPatch)) {
-                state.pendingPatch = mergePatch(state.externalPatch, state.pendingPatch);
-                state.externalPatch = {};
-            }
             const alreadyPending = !patchIsEmpty(state.pendingPatch);
             state.pendingPatch = mergePatch(state.pendingPatch, normalizedPatch);
             state.generation += 1;
@@ -655,13 +661,13 @@
 
         const flush = (type) => {
             const state = getState(type);
-            if (patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
+            if (!hasQueuedWork(state) && !state.flushing) {
                 return Promise.resolve(state.optimisticPrefs || state.confirmedPrefs || normalizePrefs({}));
             }
             const promise = new Promise((resolve, reject) => {
-                state.waiters.push({ generation: state.generation, resolve, reject });
+                state.waiters.push({ generation: state.generation, resolve, reject, drain: true });
             });
-            if (!patchIsEmpty(state.pendingPatch)) {
+            if (hasQueuedWork(state)) {
                 scheduleFlush(state, 0);
             }
             return promise;
@@ -708,10 +714,11 @@
             if (!key.startsWith(storagePrefix)) {
                 return;
             }
-            const type = normalizeType(key.slice(storagePrefix.length));
+            const type = key.slice(storagePrefix.length).split('.')[0];
+            if (type !== 'docker' && type !== 'vm') return;
             const state = getState(type);
+            updateExternalPatch(state);
             if (!event?.newValue) {
-                state.externalPatch = {};
                 if (fetchPrefs) {
                     hydrateFromServer(type, { restoreOutbox: false, replay: false, force: true }).catch(() => {});
                 } else {
@@ -719,17 +726,10 @@
                 }
                 return;
             }
-            try {
-                const record = JSON.parse(String(event.newValue));
-                if (!isPlainObject(record) || record.sourceId === sourceId || !isPlainObject(record.patch)) {
-                    return;
-                }
-                state.externalPatch = record.patch;
+            if (!patchIsEmpty(state.externalPatch)) {
                 state.status = state.flushing ? 'saving' : 'sync-pending';
-                emit(state);
-            } catch (_error) {
-                // Ignore malformed browser state.
             }
+            emit(state);
         };
 
         const handleBroadcast = (event) => {
@@ -738,7 +738,7 @@
                 return;
             }
             const state = getState(message.type);
-            state.externalPatch = {};
+            updateExternalPatch(state);
             reconcile(message.type, message.prefs || {}, { restoreOutbox: false });
         };
 
@@ -755,7 +755,7 @@
             win?.addEventListener?.('storage', handleStorageEvent);
             win?.addEventListener?.('online', () => {
                 for (const state of states.values()) {
-                    if (!patchIsEmpty(state.pendingPatch) && !state.flushing) {
+                    if (hasQueuedWork(state) && !state.flushing) {
                         if (state.retryTimer) {
                             clearTimer(state.retryTimer);
                             state.retryTimer = null;

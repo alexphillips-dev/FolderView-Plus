@@ -58,6 +58,29 @@ namespace {
         $response = json_decode(ob_get_clean(), true);
         echo json_encode(['blocked' => !$GLOBALS['contenderCouldWrite'], 'before' => $before,
             'response' => $response, 'persisted' => readConfigMetadata('vm')]);
+    } elseif ($mode === 'prefs-recovery') {
+        $type = $argv[4];
+        $scenario = $argv[5];
+        $prefs = writeTypePrefs($type, ['groupUnassignedItems' => true, 'sortMode' => 'alpha',
+            'dashboard' => ['privacyMode' => true], 'dockerStartOrder' => ['mode' => 'unmanaged']]);
+        $path = getTypePrefsPath($type);
+        $mirror = getLastGoodJsonPath($path);
+        $before = file_get_contents($mirror);
+        unlink($path);
+        if ($scenario === 'corrupt') file_put_contents($path, '{fixture');
+        if ($scenario === 'write-failure') {
+            putenv('FVPLUS_STORAGE_FAILURE_INJECTION=1');
+            putenv('FVPLUS_STORAGE_FAILURE_STAGE=rename');
+        }
+        $error = ''; $restored = null;
+        try {
+            if ($scenario === 'folder-bootstrap') readRawFolderMap($type);
+            $restored = readTypePrefs($type);
+        } catch (Throwable $failure) {
+            $error = $failure->getMessage();
+        }
+        echo json_encode(['error' => $error, 'prefs' => $prefs, 'restored' => $restored,
+            'primary' => readJsonObjectFile($path), 'mirrorPreserved' => file_get_contents($mirror) === $before]);
     } elseif ($mode === 'bulk') {
         $type = $argv[4];
         $identity = $type === 'vm' ? ['kind' => 'vm', 'uuid' => 'fixture-uuid']

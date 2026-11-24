@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 import {
     classifyPaths,
@@ -78,6 +82,47 @@ test('workflow changes allow the generated SBOM as a focused validation companio
         production_surfaces: '',
         preview_changed: false
     });
+});
+
+test('a standalone generated SBOM change selects lint and its freshness guard', () => {
+    const result = classifyPaths(['docs/sbom.cdx.json']);
+    assert.equal(result.outputs.no_changes, false);
+    assert.equal(result.outputs.docs_only, false);
+    assert.equal(result.outputs.workflow_only, false);
+    assert.equal(result.outputs.needs_browser, false);
+    assert.equal(result.outputs.needs_performance, false);
+});
+
+test('Git comparisons classify deletions from runtime paths even when Git detects a rename', t => {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-ci-rename-'));
+    t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+    const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: 'pipe' }).trim();
+    git('init', '-q');
+    git('config', 'user.name', 'Fixture');
+    git('config', 'user.email', 'fixture@example.invalid');
+    git('config', 'diff.renames', 'true');
+    fs.mkdirSync(path.join(cwd, 'src'));
+    fs.mkdirSync(path.join(cwd, 'docs'));
+    fs.writeFileSync(path.join(cwd, 'src', 'fixture.js'), 'const fixture = true;\n');
+    git('add', 'src/fixture.js');
+    git('commit', '--no-verify', '-qm', 'Add runtime fixture');
+    const base = git('rev-parse', 'HEAD');
+    git('mv', 'src/fixture.js', 'docs/fixture.js');
+    git('commit', '--no-verify', '-qm', 'Archive runtime fixture');
+    assert.equal(git('diff', '--name-only', base, 'HEAD'), 'docs/fixture.js');
+
+    const script = fileURLToPath(new URL('../scripts/classify_ci_changes.mjs', import.meta.url));
+    for (const eventName of ['push', 'pull_request', 'workflow_dispatch', '']) {
+        const output = execFileSync(process.execPath, [script], {
+            cwd, encoding: 'utf8', env: { ...process.env, FVPLUS_CI_EVENT_NAME: eventName,
+                FVPLUS_CI_BEFORE_SHA: base, FVPLUS_CI_BASE_SHA: base, FVPLUS_CI_HEAD_SHA: 'HEAD',
+                GITHUB_OUTPUT: '', GITHUB_STEP_SUMMARY: '' }
+        });
+        assert.match(output, /^docs_only=false$/m);
+        assert.match(output, /^needs_browser=true$/m);
+        assert.match(output, /^needs_theme=true$/m);
+        assert.match(output, /^preview_changed=true$/m);
+    }
 });
 
 test('manual compatibility review scripts and baseline use focused workflow validation', () => {

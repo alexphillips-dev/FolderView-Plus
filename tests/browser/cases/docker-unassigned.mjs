@@ -87,6 +87,15 @@ export const registerDockerUnassignedCases = ({ test }) => {
             await enabled();
             await page.reload({ waitUntil: 'load' });
             await enabled();
+            assert.deepEqual(await page.evaluate(() => {
+                const wrapper = window.loadlist;
+                window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+                window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+                return {
+                    wrapperRetained: window.loadlist === wrapper,
+                    groupRetained: !!document.querySelector('#docker_list > [data-fv-unassigned-group]')
+                };
+            }), { wrapperRetained: true, groupRetained: true });
             await page.evaluate(() => window.fixtureDockerUnassigned.setEnabled(false));
             await clear();
             assert.equal(await page.locator('#docker_list > tr[data-fv-unassigned-item]').count(), 0);

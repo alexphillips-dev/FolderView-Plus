@@ -94,24 +94,24 @@ function readUnraidVersionString(): ?string {
     }
 
     function diagnosticsBuildRegex(string $pattern): string {
-        return '/' . str_replace('/', '\/', $pattern) . '/';
+        return serverRuleRegex($pattern, false);
     }
 
     function diagnosticsRegexIsValid(string $pattern): bool {
-        if (trim($pattern) === '') {
+        if ($pattern === '') {
             return true;
         }
         return @preg_match(diagnosticsBuildRegex($pattern), '') !== false;
     }
 
     function diagnosticsRegexMatches(string $pattern, string $subject): bool {
-        if (trim($pattern) === '') {
+        if ($pattern === '') {
             return false;
         }
         if (!diagnosticsRegexIsValid($pattern)) {
             return false;
         }
-        return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
+        return @preg_match(diagnosticsBuildRegex($pattern), fvplusLegacyRegexCodeUnits($subject)) === 1;
     }
 
     function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type, ?array $folders = null): ?array {

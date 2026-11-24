@@ -82,7 +82,7 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
     }
 
     function exportEnvironmentSnapshotPayload(): array {
-        $snapshot = [
+        $snapshot = withConfigMutationLock(static fn(): array => [
             'kind' => FVPLUS_ENVIRONMENT_SNAPSHOT_KIND,
             'schemaVersion' => FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION,
             'pluginVersion' => readInstalledVersion(),
@@ -100,7 +100,7 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
                 ]
             ],
             'themeWorkspace' => readThemeWorkspace()
-        ];
+        ]);
         return normalizeEnvironmentSnapshotPayload($snapshot);
     }
 

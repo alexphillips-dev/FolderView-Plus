@@ -255,6 +255,10 @@
             if (event.key === 'Escape' && tip) { event.preventDefault(); hideTip(); }
             else if (['Enter', ' '].includes(event.key) && event.target.matches?.('[data-fv-folder-status], [data-fv-folder-operation]')) onClick(event);
         };
+        const onPageHide = event => {
+            if (event?.persisted) hideTip();
+            else destroy();
+        };
         const destroy = () => {
             disposed = true; hideTip(); operations.forEach(operation => { win.clearTimeout(operation.timer); operation.indicator?.remove(); });
             operations.clear(); targets.clear(); reservations.clear();
@@ -262,14 +266,14 @@
             doc.removeEventListener('focusin', onPointer); doc.removeEventListener('focusout', onLeave);
             doc.removeEventListener('click', onClick, true); doc.removeEventListener('keydown', onKey);
             win.removeEventListener('resize', hideTip); win.removeEventListener('scroll', hideTip, true);
-            win.removeEventListener('pagehide', destroy);
+            win.removeEventListener('pagehide', onPageHide);
             instances.delete(win);
         };
         doc.addEventListener('pointerover', onPointer); doc.addEventListener('pointerout', onLeave);
         doc.addEventListener('focusin', onPointer); doc.addEventListener('focusout', onLeave);
         doc.addEventListener('click', onClick, true); doc.addEventListener('keydown', onKey);
         win.addEventListener('resize', hideTip); win.addEventListener('scroll', hideTip, true);
-        win.addEventListener('pagehide', destroy, { once: true });
+        win.addEventListener('pagehide', onPageHide);
         const api = Object.freeze({ decorateStatus, run, destroy }); instances.set(win, api); return api;
     };
     return Object.freeze({ summarize, eligible, matchesState, getApi });

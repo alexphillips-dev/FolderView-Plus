@@ -1,36 +1,5 @@
 <?php
-    function serverRuleRegex(string $pattern): string {
-        $translated = '';
-        for ($index = 0, $length = strlen($pattern); $index < $length; $index++) {
-            if ($pattern[$index] === '\\' && $index + 1 < $length) {
-                if ($pattern[$index + 1] === '\\') {
-                    $translated .= '\\\\'; $index++; continue;
-                }
-                if (preg_match('/\A\\\\u\{([a-fA-F0-9]{1,6})\}/', substr($pattern, $index), $match)) {
-                    $translated .= '\\x{' . $match[1] . '}'; $index += strlen($match[0]) - 1; continue;
-                }
-                if (preg_match('/\A\\\\u([a-fA-F0-9]{4})/', substr($pattern, $index), $match)) {
-                    $point = hexdec($match[1]); $index += 5;
-                    if ($point >= 0xd800 && $point <= 0xdbff && preg_match('/\A\\\\u([dD][c-fC-F][a-fA-F0-9]{2})/', substr($pattern, $index + 1), $low)) {
-                        $point = 0x10000 + (($point - 0xd800) << 10) + hexdec($low[1]) - 0xdc00; $index += 6;
-                    }
-                    $translated .= '\\x{' . dechex($point) . '}'; continue;
-                }
-                if ($pattern[$index + 1] === 'v') { $translated .= '\\x{b}'; $index++; continue; }
-                $translated .= $pattern[$index] . $pattern[++$index]; continue;
-            }
-            $translated .= $pattern[$index];
-        }
-        foreach (['~', '#', '%', '!', ';', '@', chr(1)] as $delimiter) {
-            if (strpos($translated, $delimiter) === false) return $delimiter . $translated . $delimiter . 'u';
-        }
-        return '~(?!)~';
-    }
-
-    function serverRegexMatches(string $pattern, string $input): bool {
-        return $pattern !== '' && @preg_match(serverRuleRegex($pattern), $input) === 1;
-    }
-
+require_once __DIR__ . '/lib.rules-regex.php';
     function dockerInfoLabelsForName(array $infoByName, string $name): array {
         $item = $infoByName[$name] ?? null;
         if (!is_array($item)) {
@@ -126,7 +95,7 @@
             $char = $pattern[$index];
             if ($char === '\\') {
                 if (++$index >= $length) return false;
-                if ((ctype_alpha($pattern[$index]) && strpos('bBcdDfnrstvwWxupPk', $pattern[$index]) === false) || ($pattern[$index] === 'x' && ($pattern[$index + 1] ?? '') === '{')) return false;
+                if ((ctype_alpha($pattern[$index]) && strpos('bBcdDfnrsStvwWxupPk', $pattern[$index]) === false) || ($pattern[$index] === 'x' && ($pattern[$index + 1] ?? '') === '{')) return false;
                 $escape = $pattern[$index]; $tail = substr($pattern, $index + 1);
                 $arguments = [
                     'p' => '/\A\{(?:[LMNPSZC][a-z]?|(?:Script|Script_Extensions|General_Category)=[A-Za-z_]+|ASCII|Any|Assigned|Alphabetic|Lowercase|Uppercase|White_Space|ID_Start|ID_Continue)\}/',
@@ -199,15 +168,22 @@
         foreach ($names as $name) $decisions[$name] = fvplusEvaluateRules($program['compiled'], (string)$name, $info, $type);
         $legacy = buildLegacyFolderMembership($folders, $names, $info, $type, $rules, $decisions);
         $byFolder = []; $matchCache = []; $primary = []; $issues = $program['issues'];
+        $legacySubjects = [];
         foreach ($folders as $id => $folder) {
             $manual = normalizeFolderMembers($folder['containers'] ?? []); $reasons = [];
             $buckets = ['explicit' => array_values(array_filter($manual, static fn($name): bool => array_key_exists($name, $info))), 'regex' => [], 'label' => [], 'rules' => []];
             foreach ($manual as $name) $reasons[$name] = ['manual'];
             $pattern = (string)($folder['regex'] ?? '');
-            $regex = '/' . str_replace('/', '\\/', $pattern) . '/';
-            if ($pattern !== '' && @preg_match($regex, '') === false) $issues[] = ['folderId' => (string)$id, 'code' => 'invalid-legacy-regex'];
+            $regex = $pattern === '' ? null : serverRuleRegex($pattern, false);
+            if ($regex !== null && @preg_match($regex, '') === false) {
+                $issues[] = ['folderId' => (string)$id, 'code' => 'invalid-legacy-regex'];
+                $regex = null;
+            }
             foreach ($names as $name) {
-                if ($pattern !== '' && @preg_match($regex, (string)$name) === 1) { $buckets['regex'][] = (string)$name; $reasons[$name][] = 'regex'; }
+                if ($regex !== null) {
+                    $subject = $legacySubjects[$name] ??= fvplusLegacyRegexCodeUnits((string)$name);
+                    if (@preg_match($regex, $subject) === 1) { $buckets['regex'][] = (string)$name; $reasons[$name][] = 'regex'; }
+                }
                 if ($type === 'docker' && (string)($folder['name'] ?? '') !== '' && getFolderLabelValueFromLabels(dockerInfoLabelsForName($info, (string)$name)) === (string)$folder['name']) {
                     $buckets['label'][] = (string)$name; $reasons[$name][] = 'label';
                 }

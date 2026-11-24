@@ -118,6 +118,29 @@ test('host hook wrapping is idempotent, preserves this and arguments, and restor
     assert.throws(() => adapter.wrapHook('startVm', () => {}, {}), /does not allow/);
 });
 
+test('a foreign hook wrapper safely retains its predecessor through release and reinstall', () => {
+    const fixture = createDocument('vm');
+    const host = {
+        document: fixture.document,
+        prefix: 'native',
+        loadlist(value) { return `${this.prefix}:${value}`; }
+    };
+    const adapter = hostAdapters.getOrCreate('vm', { window: host, document: fixture.document });
+    const predecessor = adapter.wrapHook('loadlist', ({ args, invokeOriginal }) => invokeOriginal(`old:${args[0]}`));
+    const peer = function (value) { return predecessor.call(this, `peer:${value}`); };
+    host.loadlist = peer;
+    assert.equal(host.loadlist('refresh'), 'native:old:peer:refresh');
+    assert.equal(hostAdapters.release('vm', { window: host, restoreHooks: true }), true);
+    assert.equal(host.loadlist, peer);
+    assert.equal(host.loadlist('refresh'), 'native:peer:refresh');
+
+    const next = hostAdapters.getOrCreate('vm', { window: host, document: fixture.document });
+    next.wrapHook('loadlist', ({ args, invokeOriginal }) => invokeOriginal(`new:${args[0]}`));
+    assert.equal(host.loadlist('refresh'), 'native:peer:new:refresh');
+    assert.equal(adapter.getSnapshot().hooks.loadlist.callCount, 1);
+    assert.equal(next.getSnapshot().hooks.loadlist.callCount, 1);
+});
+
 test('row observers are independently subscribed, batched, and disposed together', async () => {
     const fixture = createDocument('vm', [createRow({ name: 'vm-one' })]);
     const observerInstances = [];

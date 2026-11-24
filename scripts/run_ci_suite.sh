@@ -64,29 +64,6 @@ PHP_BIN="$(fvplus::resolve_platform_command php)"
 NPM_BIN="$(fvplus::resolve_platform_command npm)"
 NPX_BIN="$(fvplus::resolve_platform_command npx)"
 
-chmod +x \
-  scripts/actionlint_guard.sh \
-  scripts/api_contract_guard.sh \
-  scripts/browser_smoke.sh \
-  scripts/dead_code_guard.sh \
-  scripts/docs_metadata_guard.sh \
-  scripts/fixture_browser_tests.sh \
-  scripts/i18n_guard.sh \
-  scripts/include_order_guard.sh \
-  scripts/install_smoke.sh \
-  scripts/lang_usage_guard.sh \
-  scripts/legacy_support_guard.sh \
-  scripts/main_branch_history_guard.sh \
-  scripts/perf_budget_guard.sh \
-  scripts/release_guard.sh \
-  scripts/release_notes_consistency_guard.sh \
-  scripts/runtime_performance_benchmarks.sh \
-  scripts/repro_build_guard.sh \
-  scripts/theme_matrix_smoke.sh \
-  scripts/theme_runtime_guard.sh \
-  scripts/theme_scope_guard.sh \
-  scripts/workflow_self_check.sh
-
 run_timed_step() {
   local label="$1"
   shift

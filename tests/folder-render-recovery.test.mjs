@@ -24,6 +24,8 @@ for (const [file, type, suffix, index] of [
         assert.ok(loop, 'Extract the actual ordered render loop');
         const wrapper = source.match(new RegExp('^const createFolder' + suffix + ' = \\(\\.\\.\\.args\\).*$', 'm'))?.[0];
         assert.ok(wrapper, 'Use the production recovery wrapper');
+        const vmFolderToken = file === 'vm.js' ? source.match(/^const isVmSavedFolderToken = .*;$/m)?.[0] : '';
+        if (file === 'vm.js') assert.ok(vmFolderToken, 'Use the production VM folder-token matcher');
         const controller = createRecovery();
         const attempts = [];
         const folders = { broken: { name: 'Private folder', status: { expanded: true } }, healthy: { name: 'Healthy' } };
@@ -42,7 +44,7 @@ for (const [file, type, suffix, index] of [
                 return 0;
             }
         };
-        vm.runInNewContext(wrapper + '\n' + loop, context);
+        vm.runInNewContext([vmFolderToken, wrapper, loop].join('\n'), context);
         assert.deepEqual(attempts, ['broken', 'healthy']);
         assert.deepEqual(Object.keys(context.foldersDone), ['healthy']);
         assert.deepEqual(context.order, ['folder-healthy']);

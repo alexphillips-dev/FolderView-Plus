@@ -32,6 +32,27 @@ test('folder and preference failures restore exact payload, sidecar, mirrors and
     }
 });
 
+test('create, delete and reorder restore both configuration files when manual preferences fail', () => {
+    for (const type of ['docker', 'vm']) {
+        for (const operation of ['create', 'delete', 'reorder']) {
+            const parameters = { type, kind: 'prefs', operation };
+            const failed = runConfigWriteFixture({ ...parameters, stage: 'primary-rename' });
+            const label = `${type}/${operation}`;
+            assert.match(failed.error, /atomically replace/, label);
+            assert.deepEqual(failed.after, failed.before, label);
+            assert.equal(failed.runtimeSnapshot.ok, false, label);
+            assert.deepEqual(failed.temps, [], label);
+            const recovered = runConfigWriteFixture({ ...parameters, stage: 'none' });
+            assert.equal(recovered.error, '', label);
+            const after = Object.keys(JSON.parse(Buffer.from(recovered.after['.json'][0], 'base64')));
+            const prefs = JSON.parse(Buffer.from(recovered.after['.prefs.json'][0], 'base64'));
+            assert.deepEqual(prefs.manualOrder, after, label);
+            assert.equal(after.length, operation === 'delete' ? 0 : 2, label);
+            if (operation === 'reorder') assert.deepEqual(after, ['second', 'old'], label);
+        }
+    }
+});
+
 test('failed configuration compensation preserves recovery mirrors and reports the original failure', () => {
     for (const type of ['docker', 'vm']) for (const kind of ['folder', 'prefs']) {
         const result = runConfigWriteFixture({ type, kind, rollback: true });

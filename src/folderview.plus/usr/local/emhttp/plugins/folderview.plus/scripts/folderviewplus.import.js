@@ -338,7 +338,7 @@ const renderOperationSelection = (onSelectionChanged = null) => {
     }
 };
 
-const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
+const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve) => {
     const dialog = $('#import-preview-dialog');
     dialog.removeClass('fv-section-hidden fv-section-content-hidden');
     const modeSelect = $('#import-mode-select');
@@ -356,7 +356,6 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const previewFirstToggle = $('#import-preview-first-toggle');
     const reviewAckRow = $('#import-review-ack-row');
     const reviewAck = $('#import-review-ack');
-    const folders = getFolderMap(type);
     let dialogResult = null;
     let activePresetId = '';
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
@@ -880,7 +879,7 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const applyImportOperations = async (type, operations, onProgress = null) => {
+const applyImportOperations = async (type, operations, onProgress = null, { expectedRevision } = {}) => {
     const resolvedType = normalizeManagedType(type);
     const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
@@ -897,7 +896,7 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
     }
 
     emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1...", totalSteps));
-    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates });
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates }, { expectedRevision });
     emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {

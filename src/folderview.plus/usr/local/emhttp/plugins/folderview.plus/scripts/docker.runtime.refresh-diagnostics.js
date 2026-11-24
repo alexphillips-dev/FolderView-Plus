@@ -252,8 +252,8 @@
             write();
             win?.removeEventListener?.('pagehide', onPageHide);
         };
-        const onPageHide = () => dispose('pagehide');
-        win?.addEventListener?.('pagehide', onPageHide, { once: true });
+        const onPageHide = (event) => event?.persisted ? write() : dispose('pagehide');
+        win?.addEventListener?.('pagehide', onPageHide);
         write();
         return Object.freeze({ record, recordPageSnapshot, recordApiMismatch, markReloadSource, snapshot: aggregate, dispose });
     };

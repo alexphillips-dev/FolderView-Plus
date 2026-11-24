@@ -8,6 +8,12 @@ const plugin = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folder
 const utils = require(path.join(plugin, 'scripts/folderviewplus.utils.js'));
 const store = require(path.join(plugin, 'scripts/folderviewplus.prefs-store.js'));
 
+export const closeFilterViewHost = async (page, host) => {
+    await page.goto('about:blank');
+    await page.unrouteAll({ behavior: 'wait' });
+    await host.close();
+};
+
 export const createFilterViewSettingsHost = async page => {
     const host = createProductionPerfFixture(path.resolve('.'), { folders: 1, members: 2 });
     host.folders.empty = { name: 'Empty fixture', containers: [], settings: {}, actions: [] };
@@ -41,7 +47,7 @@ export const createFilterViewSettingsHost = async page => {
     });
     await page.route('**/server/backup.php?**', route => route.fulfill({ json: { ok: true, backups: [] } }));
     await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
-    return { url: `http://127.0.0.1:${host.server.address().port}/settings`, folders: host.folders, runtime, names: host.names,
+    return { url: `http://127.0.0.1:${host.server.address().port}/settings`, folders: host.folders, runtime, names: host.names, snapshot,
         prefs: type => prefs[type],
         close: async () => { host.server.closeAllConnections(); await new Promise(resolve => host.server.close(resolve)); } };
 };

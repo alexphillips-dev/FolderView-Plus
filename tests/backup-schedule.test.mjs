@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -140,6 +140,33 @@ test('Docker and VM cron processes preserve both schedules in their shared RAM s
         assert.deepEqual(Object.keys(state.types).sort(), ['docker', 'vm']);
         assert.deepEqual(state.events.map(row => row.type).sort(), ['docker', 'vm']);
         assert.equal(fs.readdirSync(path.join(fixture.root, 'config', 'backups')).length, 2);
+    } finally { fixture.close(); }
+});
+test('the unfiltered cron run backs up VM even when Docker configuration is unreadable', () => {
+    const fixture = setup();
+    try {
+        fixture.run({ type: 'docker', scenario: 'seed' });
+        const { baseline } = fixture.run({ type: 'vm', scenario: 'seed' });
+        const config = path.join(fixture.root, 'config');
+        const backups = path.join(config, 'backups');
+        fs.unlinkSync(path.join(backups, baseline));
+        const dockerPrefs = path.join(config, 'docker.prefs.json');
+        fs.unlinkSync(dockerPrefs);
+        fs.unlinkSync(dockerPrefs + '.lastgood');
+        fs.mkdirSync(dockerPrefs);
+
+        const runner = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php');
+        const execution = spawnSync('php', [runner], { env: fixture.env, encoding: 'utf8', timeout: 15000 });
+        assert.ifError(execution.error);
+        assert.equal(execution.status, 1);
+        const report = JSON.parse(execution.stdout);
+        assert.equal(report.ok, false);
+        assert.deepEqual(report.failedTypes, ['docker']);
+        assert.equal(report.schedules.docker, undefined);
+        assert.equal(report.schedules.vm.lastStatus, 'ok');
+        assert.ok(fs.readdirSync(backups).some(name => /^vm-.*-scheduled.*\.json$/.test(name)));
+        assert.ok(fs.statSync(dockerPrefs).isDirectory());
+        assert.ok(!execution.stdout.includes(fixture.root), 'cron errors must omit private paths');
     } finally { fixture.close(); }
 });
 test('RAM check history stays bounded without rewriting persistent diagnostic history', () => {

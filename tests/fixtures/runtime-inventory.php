@@ -40,6 +40,7 @@ namespace {
         public function getDockerJSON($url, $method = 'GET', &$code = null, $callback = null, $unchunk = false) {
             $request = $GLOBALS['inventory_request']; $scenario = $request['scenario'];
             $GLOBALS['inventory_calls'][] = ['docker-list', func_num_args(), $unchunk];
+            if ($scenario === 'socket-output') { echo 'synthetic-private-socket-detail'; return []; }
             $code = in_array($scenario, ['failed-list', 'disabled'], true) ? null : ($scenario === 'http-error' ? 'Error code 500' : true);
             $items = $GLOBALS['inventory_docker'];
             if (in_array($scenario, ['failed-list', 'disabled', 'http-error'], true)) $items = [];
@@ -52,12 +53,20 @@ namespace {
                 if (!empty($request['rejectVerifiedInventory'])) $code = null;
                 if ($scenario === 'echo-error') { echo 'private-socket-marker'; $code = null; }
                 foreach (explode("\n", $body) as $line) $callback($line . "\n");
+                if (!empty($request['failNativeWrite'])) {
+                    putenv('FVPLUS_STORAGE_FAILURE_INJECTION=1');
+                    putenv('FVPLUS_STORAGE_FAILURE_STAGE=rename');
+                }
             }
             return $scenario === 'multiline' ? [] : $items;
         }
         public function getContainerDetails($id) {
             $GLOBALS['inventory_calls'][] = ['docker-detail'];
             if ($GLOBALS['inventory_request']['scenario'] === 'failed-detail') return [];
+            if ($GLOBALS['inventory_request']['scenario'] === 'detail-output') {
+                echo 'synthetic-private-socket-detail';
+                return [];
+            }
             $name = 'docker-present';
             foreach ($GLOBALS['inventory_docker'] as $item) if (($item['Id'] ?? '') === $id) $name = ltrim($item['Names'][0] ?? '', '/');
             if (isset($GLOBALS['inventory_request']['details'][$name])) return ['Name' => "/$name"] + $GLOBALS['inventory_request']['details'][$name];
@@ -183,7 +192,7 @@ namespace {
         $result = [];
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $file) {
-            if (!$file->isFile() || $file->isLink() || $file->getFilename() === '.config-mutation.lock') continue;
+            if (!$file->isFile() || $file->isLink() || in_array($file->getFilename(), ['.config-mutation.lock', 'docker-sync-order.lock'], true)) continue;
             $result[$file->getPathname()] = [base64_encode(file_get_contents($file->getPathname())), $file->getPerms() & 0777];
         }
         ksort($result); return $result;
@@ -196,13 +205,13 @@ namespace {
         elseif ($operation === 'sync-hook') syncContainerOrder($type);
         elseif ($operation === 'sync-race') {
             eval('namespace InventorySyncFixture; use \\Throwable; use \\DockerClient;' . str_replace('__DIR__', var_export($server, true), substr(file_get_contents("$server/lib.docker-order.php"), 5)));
-            \InventorySyncFixture\syncContainerOrder('docker');
+            $response = \InventorySyncFixture\syncContainerOrder('docker');
         } else {
-            $isSyncRequest = in_array($operation, ['sync', 'start-sync'], true);
-            $_SERVER['REQUEST_METHOD'] = $isSyncRequest ? 'POST' : 'GET';
+            $isMutationRequest = in_array($operation, ['sync', 'start-sync', 'diagnostics-sync', 'batch'], true);
+            $_SERVER['REQUEST_METHOD'] = $isMutationRequest ? 'POST' : 'GET';
             $endpoint = ['read' => 'read_info.php', 'snapshot' => 'runtime_snapshot.php',
-                'diagnostics' => 'diagnostics.php', 'sync' => 'sync_order.php',
-                'preview' => 'docker_start_order.php', 'start-sync' => 'docker_start_order.php'][$operation];
+                'diagnostics' => 'diagnostics.php', 'diagnostics-sync' => 'diagnostics.php', 'sync' => 'sync_order.php',
+                'preview' => 'docker_start_order.php', 'start-sync' => 'docker_start_order.php', 'batch' => 'batch.php'][$operation];
             $_SERVER['SCRIPT_NAME'] = "/plugins/folderview.plus/server/$endpoint";
             $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
             $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
@@ -210,13 +219,15 @@ namespace {
             if (!empty($request['liveupdate'])) $_GET['liveupdate'] = '1';
             if ($operation === 'diagnostics') $_GET['action'] = 'report';
             if ($operation === 'preview') $_GET['action'] = 'preview';
-            $_POST = $isSyncRequest ? ['type' => $type] : [];
+            $_POST = $isMutationRequest ? ['type' => $type] : [];
             if ($operation === 'start-sync') $_POST['action'] = 'sync';
+            if ($operation === 'diagnostics-sync') $_POST['action'] = 'sync_docker_order';
+            if ($operation === 'batch') $_POST['operations'] = json_encode(['creates' => [['folder' => ['name' => 'Persisted while native unavailable']]]]);
             $_REQUEST = array_merge($_GET, $_POST);
-            if ($isSyncRequest) {
+            if ($isMutationRequest) {
                 $token = getConfiguredRequestToken();
                 $_SERVER['HTTP_X_FV_REQUEST'] = '1'; $_SERVER['HTTP_X_FV_TOKEN'] = $token;
-                $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $operation === 'start-sync' ? 'sync' : '')['nonce'];
+                $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $_POST['action'] ?? '')['nonce'];
             }
             $body = substr(file_get_contents("$server/$endpoint"), 5);
             $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace('\\', '/', $server) . '/', $body);
@@ -227,6 +238,7 @@ namespace {
     catch (Throwable $failure) { $error = $failure->getMessage(); }
     finally {
         if (is_resource($heldOrderLock)) fclose($heldOrderLock);
+        if (!empty($request['failNativeWrite'])) putenv('FVPLUS_STORAGE_FAILURE_INJECTION=0');
     }
     $after = fixtureInventoryFiles("$root/config");
     clearstatcache(true, "$root/config/native-autostart");

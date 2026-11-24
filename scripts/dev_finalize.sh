@@ -27,7 +27,7 @@ This script is the deterministic "finish dev work" path:
 2. Skip local doctor + shared lint/tests unless --full-local-checks is used
 3. Require a clean unstaged worktree with intended source changes already staged
 4. Rebuild the dev package via pkg_build.sh
-5. Stage generated manifest/archive artifacts
+5. Stage generated manifest, archive, and SBOM artifacts
 6. Commit the staged source + generated artifacts
 7. Push dev with --no-verify unless --full-local-checks is used
 EOF
@@ -79,7 +79,7 @@ done
 
 cd "${ROOT_DIR}"
 
-fvplus::require_commands bash node git
+fvplus::require_commands bash node git cmp
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ "${OPEN_FIXTURE}" == true ]]; then
@@ -133,7 +133,12 @@ fi
 bash pkg_build.sh --branch "${CURRENT_BRANCH}"
 
 VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
-git add folderview.plus.plg folderview.plus.xml archive/
+"${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_sbom.mjs")" --check
+git add folderview.plus.plg folderview.plus.xml archive/ docs/sbom.cdx.json
+for generated_path in folderview.plus.plg docs/sbom.cdx.json; do
+    git show ":${generated_path}" | cmp -s - "${generated_path}" \
+        || fvplus::fail "Staged ${generated_path} does not match the verified package metadata."
+done
 
 if git diff --cached --quiet; then
     fvplus::fail "No staged changes remain to commit after packaging."

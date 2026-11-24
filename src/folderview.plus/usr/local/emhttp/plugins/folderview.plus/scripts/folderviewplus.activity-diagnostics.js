@@ -1743,16 +1743,16 @@ const repairDiagnostics = async (action, type = '') => {
             throw new Error(diagnosticsT('diagnostics.repair.invalid-scope', 'Refresh Diagnostics and select a repair for Docker or VM.'));
         }
         const response = await runDiagnosticAction(action, type, 'full');
-        const diagnostics = response?.diagnostics || {};
-        renderDiagnostics(diagnostics);
+        const syncDeferred = action === 'sync_docker_order' && response?.syncOutcome !== 'synced';
+        renderDiagnostics(response?.diagnostics || {});
         diagnosticsSwal({
-            title: diagnosticsT('diagnostics.repair.complete', 'Repair complete'),
-            text: action === 'repair_orphaned_members'
-                ? (type === 'docker'
+            title: syncDeferred ? diagnosticsT('diagnostics.repair.unavailable', 'Repair unavailable') : diagnosticsT('diagnostics.repair.complete', 'Repair complete'),
+            text: action === 'repair_orphaned_members' ? (type === 'docker'
                     ? diagnosticsT('diagnostics.repair.done-docker', 'Removed $1 missing Docker references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0)
                     : diagnosticsT('diagnostics.repair.done-vm', 'Removed $1 missing VM references from $2 folders.', response?.repair?.repairedMemberCount || 0, response?.repair?.repairedFolderCount || 0))
-                : (window.FolderViewPlusI18n?.serverMessage?.(response) || diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.')),
-            type: 'success'
+                : (response?.syncOutcome === 'unmanaged' ? diagnosticsT('settings.start-order.unmanaged-heading', 'Unraid owns the start order.')
+                    : window.FolderViewPlusI18n?.serverMessage?.(response) || response?.message || (!syncDeferred && diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.')) || ''),
+            type: syncDeferred ? 'info' : 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
     } catch (error) {

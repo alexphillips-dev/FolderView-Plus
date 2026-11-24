@@ -294,4 +294,40 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         assert.equal(await page.locator('#fv-theme-profile-plan').isVisible(), true);
         assert.equal(await page.evaluate(() => themeErrors.length), 1);
     });
+
+    test('Appearance acknowledges only the submitted scope and retains newer edits', async ({ page }) => {
+        await mount(page, baseUrl);
+        await chooseTab(page, 'appearance');
+        await page.evaluate(() => {
+            const layers = {};
+            window.themePost = payload => {
+                if (payload.action === 'preview_profile') return { plan: { changed: true, changedScopes: [payload.scope] } };
+                layers[payload.scope] = { customCss: payload.customCss.trim(), variables: JSON.parse(payload.variables) };
+                const workspace = { activeProfileId: 'default', profiles: [{ id: 'default', name: 'Default profile', layers: structuredClone(layers) }] };
+                if (themeCalls.length > 2) return { workspace };
+                return new Promise(resolve => { window.completeThemeSave = () => resolve({ workspace }); });
+            };
+        });
+        const scope = page.locator('#fv-theme-profile-scope');
+        const css = page.locator('#fv-theme-custom-css');
+        const save = page.locator('[data-fv-onclick="saveThemeWorkspaceCustomize()"]');
+        await scope.selectOption('docker');
+        await css.fill('.docker-draft { opacity: .9; }');
+        await scope.selectOption('vm');
+        await css.fill('.vm-submitted { opacity: .8; }');
+        await save.click();
+        await page.waitForFunction(() => typeof window.completeThemeSave === 'function');
+        await css.fill('  .vm-newer { opacity: .7; }  ');
+        await scope.selectOption('docker');
+        await page.evaluate(() => window.completeThemeSave());
+        await page.waitForFunction(() => document.getElementById('fv-theme-profile-plan').textContent.includes('Customization layer saved'));
+        assert.equal(await css.inputValue(), '.docker-draft { opacity: .9; }');
+        await scope.selectOption('vm');
+        assert.equal(await css.inputValue(), '  .vm-newer { opacity: .7; }  ');
+        await save.click();
+        await page.waitForFunction(() => themeCalls.length === 4 && document.getElementById('fv-theme-custom-css').value === '.vm-newer { opacity: .7; }');
+        await scope.selectOption('docker');
+        assert.equal(await css.inputValue(), '.docker-draft { opacity: .9; }');
+        assert.deepEqual(await page.evaluate(() => themeCalls.filter(call => call.action === 'save_profile').map(call => call.scope)), ['vm', 'vm']);
+    });
 };

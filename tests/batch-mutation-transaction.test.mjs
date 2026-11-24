@@ -257,7 +257,7 @@ test('imports and deletes use one batch request instead of per-folder endpoints'
     assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
     assert.match(fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.folder-editor.js'), 'utf8'), /await requestFolderBatchMutation\(resolvedType, \{/);
-    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}\)/);
+    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}, \{ expectedRevision \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);
     assert.doesNotMatch(importRuntime, /runImportChunked/);
     assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}\)/);

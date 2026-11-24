@@ -1,4 +1,37 @@
 <?php
+function writeFolderMapAndManualOrder(string $type, array $folders, bool $reordered = false): float {
+    return withConfigMutationLock(static function () use ($type, $folders, $reordered): float {
+        $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type, false));
+        try {
+            writeRawFolderMap($type, $folders);
+            $persistedAt = microtime(true);
+            $prefs = readTypePrefs($type);
+            $nextPrefs = reconcileManualOrderPrefs($prefs, $folders);
+            if ($reordered) {
+                $nextPrefs['manualOrder'] = array_keys($folders);
+                if ($nextPrefs['sortMode'] !== 'alpha') $nextPrefs['sortMode'] = 'manual';
+            }
+            if ($reordered || $nextPrefs !== $prefs) writeTypePrefs($type, $nextPrefs);
+            return $persistedAt;
+        } catch (Throwable $error) {
+            $changed = array_filter($snapshots, static function (array $snapshot): bool {
+                try {
+                    return fvplusTransactionCaptureFile($snapshot['path']) !== $snapshot;
+                } catch (Throwable $readError) {
+                    return true;
+                }
+            });
+            $failureSnapshot = getDurableStorageRuntimeSnapshot();
+            try {
+                fvplusTransactionRestoreAfterFailure($changed, $error, 'fvplusTransactionRestoreFiles');
+            } finally {
+                $GLOBALS['fvplus_durable_storage_snapshot'] = $failureSnapshot;
+            }
+            throw $error;
+        }
+    });
+}
+
 function updateFolder(string $type, string $content, string $id = '', $expectedRevision = '') : array {
         $startedAt = microtime(true);
         $type = ensureType($type);
@@ -59,9 +92,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $fileData[$id]['createdAt'] = $createdAt;
         $fileData[$id]['updatedAt'] = gmdate('c');
         $validatedAt = microtime(true);
-        writeRawFolderMap($type, $fileData);
-        $persistedAt = microtime(true);
-        syncManualOrderWithFolders($type, $fileData);
+        $persistedAt = writeFolderMapAndManualOrder($type, $fileData);
         $syncedAt = microtime(true);
         try {
             appendDiagnosticsHistoryEvent($isCreate ? 'folder_create' : 'folder_update', $type, [
@@ -218,7 +249,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             try {
                 writeRawFolderMap($type, $nextFolders);
                 if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);
-                if ($type === 'docker') syncContainerOrder($type);
+                $dockerSync = $type === 'docker' ? syncContainerOrder($type) : null;
                 if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))
                     || jsonObjectsDiffer($nextPrefs, readTypePrefs($type))) {
                     throw new RuntimeException('Folder batch transaction verification failed.');
@@ -254,7 +285,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 'updatedIds' => $updatedIds,
                 'createdIds' => $createdIds,
                 'folderCount' => count($nextFolders),
-                'dockerOrderSynced' => $type === 'docker',
+                'dockerOrderSynced' => ($dockerSync['syncOutcome'] ?? null) === 'synced',
                 'durationMs' => $durationMs,
                 'metadata' => readConfigMetadata($type, false)
             ];
@@ -373,8 +404,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         }
         unset($folder);
         $fileData = normalizeFolderParentLinks($fileData);
-        writeRawFolderMap($type, $fileData);
-        syncManualOrderWithFolders($type, $fileData);
+        writeFolderMapAndManualOrder($type, $fileData);
         try {
             appendDiagnosticsHistoryEvent('folder_delete', $type, [
                 'folderId' => $id,
@@ -402,6 +432,6 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         }
         $prefsPath = getTypePrefsPath($type);
         if (!file_exists($prefsPath)) {
-            writeJsonObjectWithLastGood($prefsPath, defaultTypePrefs());
+            readTypePrefs($type);
         }
     }

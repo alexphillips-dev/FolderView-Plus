@@ -53,10 +53,11 @@ fvplus_json_try(function (): array {
 
     if ($action === 'run_schedule') {
         $requestedType = (string)($_POST['type'] ?? '');
-        $result = runScheduledBackups($requestedType !== '' ? $requestedType : null);
-        return [
-            'schedules' => $result
-        ];
+        $report = runScheduledBackups($requestedType !== '' ? $requestedType : null);
+        if ($report['failedTypes'] !== []) {
+            return ['ok' => false, 'error' => 'Scheduled backup run failed.', ...$report];
+        }
+        return ['schedules' => $report['schedules']];
     }
 
     $type = ensureType((string)((in_array($action, $mutatingActions, true) || in_array($action, $guardedReadActions, true))

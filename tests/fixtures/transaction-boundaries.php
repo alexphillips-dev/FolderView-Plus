@@ -19,16 +19,16 @@ require $server . '/lib.php';
 function seedState(string $label): void {
     foreach (['docker', 'vm'] as $type) {
         writeRawFolderMap($type, [$label => ['name' => $label . ' ' . $type]]);
-        writeTypePrefs($type, ['backupSchedule' => ['enabled' => false], 'dockerStartOrder' => ['mode' => 'unmanaged']]);
+        writeTypePrefs($type, ['backupSchedule' => ['enabled' => false], 'dockerStartOrder' => ['mode' => 'unmanaged'], 'manualOrder' => [$label]]);
     }
     $workspace = defaultThemeWorkspace();
     $workspace['profiles'][0]['layers']['global']['customCss'] = '.' . $label . ' { opacity: .8; }';
     writeThemeWorkspace($workspace);
 }
 
-if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'checkpoint-reader'], true)) {
+if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'checkpoint-reader', 'export-reader'], true)) {
     $GLOBALS['checkpoint_boundary_root'] = $root;
-    $GLOBALS['checkpoint_boundary_pause'] = $operation === 'checkpoint-reader';
+    $GLOBALS['checkpoint_boundary_pause'] = in_array($operation, ['checkpoint-reader', 'export-reader'], true);
     eval('namespace CheckpointBoundary;
         function gmdate(string $format, ?int $timestamp = null): string {
             return $format === "Ymd-His" ? "20260101-000000" : \\gmdate($format, $timestamp);
@@ -42,12 +42,17 @@ if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'che
                 $GLOBALS["checkpoint_boundary_pause"] = false; $root = $GLOBALS["checkpoint_boundary_root"];
                 file_put_contents($root . "/reader-paused", "yes"); $deadline = microtime(true) + 15;
                 while (!is_file($root . "/release-reader")) {
-                    if (microtime(true) > $deadline) throw new \\RuntimeException("Checkpoint barrier timeout.");
+                    if (microtime(true) > $deadline) throw new \\RuntimeException("Snapshot barrier timeout.");
                     usleep(10000);
                 }
             }
             return $value;
         }');
+    if ($operation === 'export-reader') {
+        $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/lib.environment-snapshot.php'));
+        eval('namespace CheckpointBoundary; use \\RuntimeException; use \\Throwable;' . substr($body, 5));
+        echo json_encode(CheckpointBoundary\exportEnvironmentSnapshotPayload(), JSON_THROW_ON_ERROR); exit;
+    }
     $module = is_file($server . '/lib.global-rollback.php') ? 'lib.global-rollback.php' : 'lib.backup-schedule.php';
     foreach ([$module, 'lib.environment-transaction.php'] as $file) {
         $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/' . $file));
@@ -97,6 +102,13 @@ if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'che
 if ($operation === 'checkpoint-writer') {
     withConfigMutationLock(static function (): void { seedState('writer'); });
     file_put_contents($root . '/writer-finished', 'yes'); echo '{}'; exit;
+}
+
+if ($operation === 'seed-export') {
+    seedState('initial'); echo '{}'; exit;
+}
+if ($operation === 'export-current') {
+    echo json_encode(exportEnvironmentSnapshotPayload(), JSON_THROW_ON_ERROR); exit;
 }
 
 if ($operation === 'rollback') {

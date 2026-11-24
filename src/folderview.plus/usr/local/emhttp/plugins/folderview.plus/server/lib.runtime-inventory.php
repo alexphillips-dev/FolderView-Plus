@@ -5,7 +5,7 @@ function fvplusRuntimeInventoryFailure(): void {
 
 function fvplusReadRuntimeEntityList(string $type, object $client, bool $requireComplete = false): ?array {
     if (!$requireComplete) {
-        $items = $type === 'docker' ? $client->getDockerJSON('/containers/json?all=1') : $client->get_domains();
+        $items = $type === 'docker' ? fvplusReadDockerHostValue(static fn() => $client->getDockerJSON('/containers/json?all=1'), true) : $client->get_domains();
         return is_array($items) ? $items : null;
     }
     if ($type === 'docker') {
@@ -13,8 +13,8 @@ function fvplusReadRuntimeEntityList(string $type, object $client, bool $require
         // HTTP/1.0 avoids chunk framing; validate the complete body and response status ourselves.
         $status = null;
         $body = '';
-        $client->getDockerJSON('/containers/json?all=1', 'GET', $status, static function ($line) use (&$body): void {
-            $body .= $line;
+        fvplusReadDockerHostValue(static function () use ($client, &$status, &$body): void {
+            $client->getDockerJSON('/containers/json?all=1', 'GET', $status, static function ($line) use (&$body): void { $body .= $line; }, true);
         }, true);
         $items = json_decode($body, true);
         if ($status !== true || json_last_error() !== JSON_ERROR_NONE || substr(ltrim($body), 0, 1) !== '[') {

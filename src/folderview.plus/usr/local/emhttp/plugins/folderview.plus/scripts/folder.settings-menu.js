@@ -212,7 +212,17 @@
                 }
             }
         };
-        win.addEventListener?.('pagehide', () => { disposed = true; toast?.remove(); if (timer !== null) win.clearTimeout(timer); for (const pending of hoverTimers.values()) win.clearTimeout(pending); hoverTimers.clear(); }, { once: true });
+        win.addEventListener?.('pagehide', function onPageHide(event) {
+            toast?.remove();
+            toast = null;
+            if (timer !== null) win.clearTimeout(timer);
+            timer = null;
+            for (const pending of hoverTimers.values()) win.clearTimeout(pending);
+            hoverTimers.clear();
+            if (event?.persisted) return;
+            disposed = true;
+            win.removeEventListener?.('pagehide', onPageHide);
+        });
         return Object.freeze({ copy, paste, view, clear, buildMenuItems, decorate });
     };
     return Object.freeze({ createApi });

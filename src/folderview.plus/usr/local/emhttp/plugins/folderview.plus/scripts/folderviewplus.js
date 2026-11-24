@@ -7819,15 +7819,25 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
 };
 
 const syncDockerStartOrderNow = async () => {
+    setUpdateStatus('');
+    const title = surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed");
     try {
         await flushDockerStartOrderSaveQueue();
         const response = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
             action: 'sync'
         });
-        renderDockerStartOrderPreview(response?.preview || {});
-        setUpdateStatus(surfaceT("common.repair.docker-start-order-synced-f11013", "Docker start order synced."));
+        if (response?.syncOutcome === 'queued') {
+            setUpdateStatus(surfaceT('common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', 'FolderView Plus configuration is busy. Please retry the action.'));
+        } else if (response?.syncOutcome === 'unmanaged') {
+            setUpdateStatus(surfaceT('settings.start-order.unmanaged-heading', 'Unraid owns the start order.'));
+        } else if (response?.syncOutcome === 'synced') {
+            renderDockerStartOrderPreview(response.preview || {});
+            setUpdateStatus(surfaceT("common.repair.docker-start-order-synced-f11013", "Docker start order synced."));
+        } else {
+            showError(title, response?.error || title);
+        }
     } catch (error) {
-        showError(surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed"), error);
+        showError(title, error);
     }
 };
 
@@ -8630,7 +8640,22 @@ const importType = async (type) => {
         return;
     }
 
-    const dialogResult = await showImportPreviewDialog(resolvedType, parsed);
+    let expectedRevision;
+    let dialogResult;
+    try {
+        const snapshot = await apiGetJson('/plugins/folderview.plus/server/read.php', {
+            data: { type: resolvedType, includeMetadata: '1' }
+        });
+        expectedRevision = snapshot?.metadata?.folderRevision;
+        if (snapshot?.ok !== true || !snapshot.folders || typeof snapshot.folders !== 'object'
+            || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+            throw new Error(surfaceT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
+        }
+        dialogResult = await showImportPreviewDialog(resolvedType, parsed, utils.normalizeFolderMap({ ...snapshot.folders }));
+    } catch (error) {
+        showError('Import failed', error);
+        return;
+    }
     if (!dialogResult) {
         return;
     }
@@ -8685,7 +8710,7 @@ const importType = async (type) => {
         await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
             const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
             setProgress(batchComplete ? 2 : 1, label || surfaceT("common.repair.applying-import-transaction-464c56", "Applying import transaction..."));
-        });
+        }, { expectedRevision });
 
         setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
@@ -8826,7 +8851,7 @@ const clearType = (type, id) => {
                     ? result.deletedIds.length
                     : deleteIds.length;
                 setProgress(2, id ? `Deleted ${folderName || id}` : `Deleted ${deletedCount} folders`, {
-                    current: resolvedType === 'docker'
+                    current: result.dockerOrderSynced === true
                         ? 'Folder configuration and Docker order updated.'
                         : 'Folder configuration updated.',
                     deletedCount

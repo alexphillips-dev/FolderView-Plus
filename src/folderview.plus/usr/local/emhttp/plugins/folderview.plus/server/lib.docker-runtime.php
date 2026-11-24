@@ -1,4 +1,17 @@
 <?php
+function fvplusReadDockerHostValue(callable $read, bool $requireQuietSuccess = false): mixed {
+    // The native Docker SDK can print transport errors directly into PHP output.
+    ob_start();
+    try {
+        $value = @$read();
+        if (ob_get_contents() === '') return $value;
+        if ($requireQuietSuccess) throw new FVPlusApiContractException('Request failed.', 503);
+        return null;
+    } finally {
+        ob_end_clean();
+    }
+}
+
 
 function getDockerTemplateIndexCached(DockerTemplates $dockerTemplates): array {
     try {

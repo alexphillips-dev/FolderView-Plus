@@ -64,17 +64,18 @@ function getTypeBackupSchedule(string $type): array {
 
     function runScheduledBackups(?string $type = null): array {
         $results = [];
-        if ($type !== null && $type !== '') {
-            $resolvedType = ensureType($type);
-            maybeRunScheduledBackup($resolvedType);
-            $results[$resolvedType] = getTypeBackupSchedule($resolvedType);
-            return $results;
+        $failedTypes = [];
+        $singleType = $type !== null && $type !== '';
+        foreach ($singleType ? [ensureType($type)] : FVPLUS_ALLOWED_TYPES as $resolvedType) {
+            try {
+                maybeRunScheduledBackup($resolvedType);
+                $results[$resolvedType] = getTypeBackupSchedule($resolvedType);
+            } catch (Throwable $error) {
+                if ($singleType) throw $error;
+                $failedTypes[] = $resolvedType;
+            }
         }
-        foreach (FVPLUS_ALLOWED_TYPES as $resolvedType) {
-            maybeRunScheduledBackup($resolvedType);
-            $results[$resolvedType] = getTypeBackupSchedule($resolvedType);
-        }
-        return $results;
+        return ['schedules' => $results, 'failedTypes' => $failedTypes];
     }
 
     function getBackupsDirPath(): string {

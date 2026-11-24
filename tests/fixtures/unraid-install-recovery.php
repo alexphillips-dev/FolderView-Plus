@@ -31,9 +31,22 @@ verifyInstallFixture(is_string($source), 'Could not read plugin manifest.');
 $previous = '2026.01.01.01';
 $candidate = '2026.01.01.02';
 $pluginName = 'folderview.plus';
+$scriptSource = __DIR__ . '/../../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts';
+$iconArchives = [];
+foreach (['1.0.0', '2.0.0'] as $iconVersion) {
+    $iconRoot = "$root/icons-$iconVersion";
+    mkdir("$iconRoot/third-party-icons", 0700, true);
+    file_put_contents("$iconRoot/asset-pack.json", "{\"version\": \"$iconVersion\", \"fileCount\": 1}\n");
+    file_put_contents("$iconRoot/third-party-icons/fixture.svg", "<svg><title>$iconVersion</title></svg>\n");
+    $iconArchive = "$root/icons-$iconVersion.txz";
+    $tar = proc_open(['tar', '-cJf', $iconArchive, '-C', $iconRoot, 'asset-pack.json', 'third-party-icons'], [], $pipes);
+    verifyInstallFixture(is_resource($tar) && proc_close($tar) === 0, 'Could not build the synthetic icon archive.');
+    $iconArchives[$iconVersion] = $iconArchive;
+}
 $cases = $cliSource === null
-    ? ['hook-icon', 'hook-scheduler', 'hook-report', 'hook-success', 'hook-unknown']
-    : ['update-icon', 'update-scheduler', 'update-report', 'install-icon', 'install-scheduler', 'install-report', 'update-success', 'install-success'];
+    ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-unknown']
+    : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-corrupt',
+        'install-icon', 'install-scheduler', 'install-report', 'install-fresh-report', 'update-success', 'install-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -48,6 +61,7 @@ foreach ($cases as $case) {
         '/boot/config/plugins' => $boot,
         '/usr/local/emhttp' => "$dir/emhttp",
         '/tmp/folderview.plus' => "$dir/folderview.plus",
+        '/tmp/folderview-plus-archive' => "$dir/archive-preflight",
         '/etc/cron.d' => "$dir/cron.d",
         '/etc/rc.d/rc.crond' => "$dir/bin/crond",
         '/etc/unraid-version' => "$dir/unraid-version",
@@ -56,14 +70,14 @@ foreach ($cases as $case) {
         '/tmp/inline' => "$dir/inline",
         '/usr/local/sbin/update_cron' => "$dir/bin/crond"
     ];
-    $manifest = static function (string $version, string $icon) use ($source, $rewrite): string {
+    $manifest = static function (string $version, string $icon) use ($source, $rewrite, $iconArchives): string {
         $values = [
             'version' => $version,
             'md5' => md5("core $version"),
             'sha256' => hash('sha256', "core $version"),
             'iconPackVersion' => $icon,
-            'iconPackMd5' => md5("icons $icon"),
-            'iconPackSha256' => hash('sha256', "icons $icon")
+            'iconPackMd5' => md5_file($iconArchives[$icon]),
+            'iconPackSha256' => hash_file('sha256', $iconArchives[$icon])
         ];
         $text = $source;
         foreach ($values as $name => $value) {
@@ -76,20 +90,41 @@ foreach ($cases as $case) {
     $newManifest = $manifest($candidate, '2.0.0');
     $bootManifest = "$boot/$pluginName.plg";
     $runningLink = "$dir/running/$pluginName.plg";
-    file_put_contents($bootManifest, $case === 'hook-unknown' ? '<PLUGIN/>' : $oldManifest);
-    symlink($bootManifest, $runningLink);
+    $fresh = str_contains($case, '-fresh-') || $case === 'hook-unknown';
+    $failed = !str_ends_with($case, 'success') && $case !== 'hook-unknown';
+    if (!$fresh) {
+        file_put_contents($bootManifest, $oldManifest);
+        symlink($bootManifest, $runningLink);
+        file_put_contents("$config/version", "$previous\n");
+        file_put_contents("$dir/core-installed", "$config/$pluginName-$previous.txz\n");
+        file_put_contents("$runtime/FolderViewPlus.page", "$config/$pluginName-$previous.txz\n");
+    } elseif ($case === 'hook-unknown') {
+        file_put_contents($bootManifest, '<PLUGIN/>');
+    }
     file_put_contents("$dir/downloads/$pluginName.plg", $newManifest);
     file_put_contents("$dir/manual/$pluginName.plg", $newManifest);
-    file_put_contents("$config/version", "$previous\n");
     file_put_contents("$config/docker.json", '{"previous":"Docker"}');
     file_put_contents("$config/vm.json", '{"previous":"VM"}');
     foreach ([$previous, $candidate, '2025.01.01.01'] as $version) file_put_contents("$config/$pluginName-$version.txz", "core $version");
-    foreach (['1.0.0', '2.0.0', '0.9.0'] as $icon) file_put_contents("$config/$pluginName-icons-$icon.txz", "icons $icon");
+    foreach ($iconArchives as $icon => $archive) copy($archive, "$config/$pluginName-icons-$icon.txz");
+    file_put_contents("$config/$pluginName-icons-0.9.0.txz", 'older icons');
+    if (str_ends_with($case, '-corrupt')) file_put_contents("$config/$pluginName-$previous.txz", 'corrupt archive');
 
     $cronFile = "$dir/cron.d/$pluginName";
-    if (str_ends_with($case, 'scheduler')) mkdir($cronFile);
-    $iconFailure = str_ends_with($case, 'icon') ? '[ "$1" != 2.0.0 ] || exit 23' : ':';
-    file_put_contents("$runtime/scripts/install_icon_asset_pack.sh", "$iconFailure\n");
+    $priorCron = "# fixture previous cron entry\n";
+    if (str_ends_with($case, 'scheduler')) {
+        mkdir($cronFile);
+    } elseif (!$fresh) {
+        file_put_contents($cronFile, $priorCron);
+        chmod($cronFile, 0600);
+    }
+    foreach (['archive_preflight.sh', 'install_icon_asset_pack.sh'] as $script) {
+        file_put_contents("$runtime/scripts/$script", strtr(file_get_contents("$scriptSource/$script"), $rewrite));
+    }
+    if (str_ends_with($case, 'icon')) {
+        // Fail after the real helper has activated the candidate's icon link and cache.
+        file_put_contents("$runtime/scripts/install_icon_asset_pack.sh", "\n[ \"\$1\" != 2.0.0 ] || exit 23\n", FILE_APPEND);
+    }
     $reportFailure = str_ends_with($case, 'report') ? '[ "$1 $2" != "complete ' . $candidate . '" ] || exit 24' : ':';
     file_put_contents("$runtime/scripts/install_report.sh", "$reportFailure\nprintf '%s\\n' \"\$1\"\n");
     file_put_contents("$dir/unraid-version", "version=7.4.0\n");
@@ -99,22 +134,37 @@ foreach ($cases as $case) {
         "$dir/emhttp/webGui/scripts/notify" => 'exit 0',
         "$dir/bin/crond" => 'exit 0',
         "$dir/bin/wget" => 'printf "offline fixture attempted a download\n" >&2; exit 4',
-        "$dir/bin/upgradepkg" => 'printf "%s\n" "$2" > "$FVPLUS_FIXTURE_CORE"'
+        "$dir/bin/upgradepkg" => 'archive="${@: -1}"
+printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
+printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
+if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
+        "$dir/bin/removepkg" => '[ "$1" = folderview.plus-2026.01.01.02 ] || exit 28
+rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"',
+        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" == *-version && "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
+    [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ]; then exit 25; fi
+exec /bin/mv "$@"'
     ] as $file => $body) {
         file_put_contents($file, "#!/bin/bash\n$body\n");
         chmod($file, 0700);
     }
-    $run = static function (array $command) use ($dir): array {
+    $run = static function (array $command) use ($dir, $case, $runtime): array {
         $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, $dir, [
             'PATH' => "$dir/bin:/usr/bin:/bin",
             'DOCUMENT_ROOT' => "$dir/emhttp",
-            'FVPLUS_FIXTURE_CORE' => "$dir/core-installed"
+            'FVPLUS_FIXTURE_CORE' => "$dir/core-installed",
+            'FVPLUS_FIXTURE_RUNTIME' => $runtime,
+            'FVPLUS_FIXTURE_CASE' => $case
         ]);
         if (!is_resource($process)) throw new RuntimeException('Could not start installer fixture.');
         $output = stream_get_contents($pipes[1]);
         fclose($pipes[1]);
         return [proc_close($process), $output];
     };
+
+    if (!$fresh) {
+        [$oldIconStatus, $oldIconOutput] = $run(['/bin/bash', "$runtime/scripts/install_icon_asset_pack.sh", '1.0.0', hash_file('sha256', $iconArchives['1.0.0'])]);
+        verifyInstallFixture($oldIconStatus === 0, "$case could not activate its previous icon pack: $oldIconOutput");
+    }
 
     if ($cliSource !== null) {
         $cli = "$dir/plugin.php";
@@ -129,23 +179,60 @@ foreach ($cases as $case) {
         $command = ['/bin/bash', '-c', (string)$hooks[1]->INLINE];
     }
     [$status, $output] = $run($command);
-    $failed = !str_ends_with($case, 'success') && $case !== 'hook-unknown';
     verifyInstallFixture(($status !== 0) === $failed, "$case returned $status: $output");
     verifyInstallFixture(file_get_contents("$config/docker.json") === '{"previous":"Docker"}', "$case changed Docker configuration.");
     verifyInstallFixture(file_get_contents("$config/vm.json") === '{"previous":"VM"}', "$case changed VM configuration.");
     verifyInstallFixture(is_file("$config/$pluginName-$previous.txz") && is_file("$config/$pluginName-icons-1.0.0.txz"), "$case removed registered boot files.");
     verifyInstallFixture(is_file("$config/$pluginName-$candidate.txz") && is_file("$config/$pluginName-icons-2.0.0.txz"), "$case removed incoming boot files.");
-    verifyInstallFixture(trim(file_get_contents("$config/version")) === ($failed ? $previous : $candidate), "$case wrote the wrong version.");
+    if ($fresh && $failed) {
+        verifyInstallFixture(!file_exists("$config/version") && !file_exists("$dir/core-installed")
+            && !file_exists("$runtime/FolderViewPlus.page") && !is_link("$runtime/images/third-party-icons")
+            && !file_exists("$runtime/icon-asset-pack.json") && !file_exists($cronFile), "$case left the failed first installation active.");
+    } else {
+        $activeCoreVersion = $failed ? $previous : $candidate;
+        $activeIconVersion = $failed ? '1.0.0' : '2.0.0';
+        verifyInstallFixture(trim(file_get_contents("$config/version")) === $activeCoreVersion, "$case wrote the wrong version.");
+        verifyInstallFixture(trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$activeCoreVersion.txz"
+            && trim(file_get_contents("$runtime/FolderViewPlus.page")) === "$config/$pluginName-$activeCoreVersion.txz", "$case left the wrong core package active.");
+        $link = "$runtime/images/third-party-icons";
+        verifyInstallFixture(is_link($link) && str_contains(readlink($link), "/icons-$activeIconVersion/")
+            && str_contains(file_get_contents("$link/fixture.svg"), "<title>$activeIconVersion</title>")
+            && json_decode(file_get_contents("$runtime/icon-asset-pack.json"), true)['version'] === $activeIconVersion, "$case left the wrong icon pack active.");
+        if ($failed && str_ends_with($case, 'scheduler')) {
+            verifyInstallFixture(is_dir($cronFile), "$case replaced the existing scheduler obstacle.");
+        } elseif ($failed) {
+            verifyInstallFixture(file_get_contents($cronFile) === $priorCron && (fileperms($cronFile) & 0777) === 0600,
+                "$case did not restore the previous scheduler bytes and mode.");
+        } else {
+            verifyInstallFixture(str_contains(file_get_contents($cronFile), '/scripts/scheduled_backup.php')
+                && (fileperms($cronFile) & 0777) === 0644, "$case did not install the scheduler.");
+        }
+    }
+    verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === [],
+        "$case left temporary installation state behind.");
     verifyInstallFixture(is_file("$config/$pluginName-2025.01.01.01.txz") === ($failed || $case === 'hook-unknown'), "$case pruned unexpectedly.");
     verifyInstallFixture(is_file("$config/$pluginName-icons-0.9.0.txz") === ($failed || $case === 'hook-unknown'), "$case pruned an icon pack unexpectedly.");
 
     if ($cliSource !== null) {
+        if ($fresh) {
+            verifyInstallFixture(!file_exists($bootManifest) && !is_link($runningLink), "$case registered a failed first installation.");
+            $check[] = $case;
+            continue;
+        }
         verifyInstallFixture(file_get_contents($bootManifest) === ($failed ? $oldManifest : $newManifest), "$case registered the wrong manifest.");
         verifyInstallFixture(readlink($runningLink) === $bootManifest, "$case changed the running manifest link.");
-        verifyInstallFixture(is_file("$dir/core-installed"), "$case did not reach package installation: $output");
+        if (str_ends_with($case, '-corrupt')) {
+            verifyInstallFixture(str_contains($output, 'cannot verify the previous core package'), "$case did not refuse an unverifiable rollback: $output");
+            $check[] = $case;
+            continue;
+        }
         if (is_dir($cronFile)) rmdir($cronFile);
         unlink($runningLink);
         unlink("$dir/core-installed");
+        unlink("$runtime/FolderViewPlus.page");
+        if (str_ends_with($case, '-version')) {
+            verifyInstallFixture(str_contains($output, 'restored the previous installation state'), "$case did not report recovery.");
+        }
         [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
         verifyInstallFixture($bootStatus === 0, "$case could not reinstall offline: $bootOutput");
         $bootVersion = $failed ? $previous : $candidate;

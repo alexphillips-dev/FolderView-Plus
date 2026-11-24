@@ -48,12 +48,13 @@ test('workflow-only publication keeps the package unchanged and rejects shipped 
     for (const changed of ['.github/workflows/fixture.yml', 'src/runtime.js', 'folderview.plus.plg', 'docs/sbom.cdx.json']) {
         await t.test(changed, t => {
             const f = fixture(t);
+            f.git('config', 'core.filemode', 'true');
             f.copy('scripts/lib.sh'); f.copy('scripts/release_prepare.sh');
             const source = fs.readFileSync(path.join(root, 'scripts/release_prepare.sh'), 'utf8');
             for (const name of new Set([...source.matchAll(/scripts\/[\w]+\.sh/g)].map(match => match[0]))) {
-                if (!['scripts/release_prepare.sh', 'scripts/lib.sh'].includes(name)) f.write(name, `echo ${name}\n`, 0o755);
+                if (!['scripts/release_prepare.sh', 'scripts/lib.sh'].includes(name)) f.write(name, `echo ${name}\n`, 0o644);
             }
-            f.write('pkg_build.sh', 'echo unexpected-build > build.log\nexit 99\n', 0o755);
+            f.write('pkg_build.sh', 'echo unexpected-build > build.log\nexit 99\n', 0o644);
             f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.06">\n');
             f.write('archive/fixture.txz', 'unchanged package');
             f.write('scripts/release_validation.mjs', `import fs from 'node:fs';
@@ -72,6 +73,9 @@ execFileSync('git', ['push', 'origin', 'HEAD:refs/tags/fvplus-release-candidate-
                 cwd: f.directory, encoding: 'utf8'
             });
             assert.equal(fs.existsSync(path.join(f.directory, 'build.log')), false);
+            assert.equal(f.git('diff', '--summary'), '');
+            assert.equal(f.git('diff', '--cached', '--summary'), '');
+            assert.match(f.git('ls-tree', 'HEAD', 'scripts/doctor.sh'), /^100644 blob /);
             if (changed.startsWith('.github/')) {
                 assert.equal(result.status, 0, result.stderr);
                 assert.equal(f.git('rev-parse', 'origin/main'), candidate);
@@ -83,6 +87,54 @@ execFileSync('git', ['push', 'origin', 'HEAD:refs/tags/fvplus-release-candidate-
                 assert.match(result.stderr, /Workflow-only publication cannot change/);
                 assert.equal(f.git('rev-parse', 'origin/main'), base);
                 assert.equal(fs.existsSync(path.join(f.directory, 'qualified.log')), false);
+            }
+        });
+    }
+});
+
+test('dev finalization verifies the generated and staged SBOM before committing', shellOnly, async t => {
+    for (const scenario of ['matching SBOM', 'stale SBOM', 'mismatched staged SBOM']) {
+        await t.test(scenario, t => {
+            const f = fixture(t);
+            for (const file of ['scripts/lib.sh', 'scripts/dev_finalize.sh', 'scripts/generate_sbom.mjs']) f.copy(file);
+            f.write('.github/workflows/fixture.yml', 'name: Fixture\n');
+            f.write('package-lock.json', '{}\n');
+            const include = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/.keep';
+            f.write(include, '');
+            f.write('scripts/runtime_components.json', JSON.stringify({ schemaVersion: 1, firstPartyFiles: [include] }));
+            fs.mkdirSync(path.join(f.directory, 'docs'));
+            f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.01">\n');
+            f.write('folderview.plus.xml', '<Plugin/>\n');
+            f.write('archive/fixture.txz', 'existing archive\n');
+            f.write('pkg_build.sh', [
+                "sed -i 's/2026.10.05.01/2026.10.05.02/' folderview.plus.plg",
+                "printf 'new archive\\n' > archive/candidate.txz",
+                scenario === 'stale SBOM' ? ':' : 'node scripts/generate_sbom.mjs'
+            ].join('\n') + '\n');
+            if (scenario === 'mismatched staged SBOM') {
+                f.write('.gitattributes', 'docs/sbom.cdx.json filter=fixture\n');
+                f.git('config', 'filter.fixture.clean', 'cat >/dev/null; printf "{}\n"');
+            }
+            execFileSync(process.execPath, ['scripts/generate_sbom.mjs'], { cwd: f.directory, stdio: 'pipe' });
+            const base = f.commit('Published fixture');
+            f.git('branch', '-M', 'dev');
+            f.write('src/runtime.js', 'fixture source update\n');
+            f.git('add', 'src/runtime.js');
+
+            const result = spawnSync('bash', ['scripts/dev_finalize.sh', '--no-push', '--message', 'Finalize fixture'], {
+                cwd: f.directory, encoding: 'utf8'
+            });
+            if (scenario !== 'matching SBOM') {
+                assert.notEqual(result.status, 0);
+                assert.match(result.stderr, scenario === 'stale SBOM'
+                    ? /docs\/sbom\.cdx\.json is stale/
+                    : /Staged docs\/sbom\.cdx\.json does not match/);
+                assert.equal(f.git('rev-parse', 'HEAD'), base);
+            } else {
+                assert.equal(result.status, 0, result.stderr);
+                assert.equal(JSON.parse(f.git('show', 'HEAD:docs/sbom.cdx.json')).metadata.component.version, '2026.10.05.02');
+                assert.equal(f.git('show', 'HEAD:archive/candidate.txz'), 'new archive');
+                assert.equal(f.git('status', '--porcelain'), '');
             }
         });
     }

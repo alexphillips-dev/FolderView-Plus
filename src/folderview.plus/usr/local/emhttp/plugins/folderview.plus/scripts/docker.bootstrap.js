@@ -36,11 +36,13 @@
         const timing = window.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('docker', { window, document: window.document });
         timing?.begin?.('providerPreparation');
         let pageExited = false;
-        window.addEventListener?.('pagehide', () => {
+        window.addEventListener?.('pagehide', function releaseDockerBootstrap(event) {
+            if (event?.persisted) return;
+            window.removeEventListener?.('pagehide', releaseDockerBootstrap);
             pageExited = true;
             releaseRuntimePreload();
             providerRegistry?.dispose?.();
-        }, { once: true });
+        });
         try {
             const source = String(window.FolderViewPlusDockerRuntimeAssetUrl || '').trim();
             if (decision.runtimeActivationAllowed === true && source && window.document?.head?.appendChild

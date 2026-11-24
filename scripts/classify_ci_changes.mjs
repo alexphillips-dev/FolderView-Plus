@@ -22,6 +22,7 @@ export const FILTERS = Object.freeze({
     metadata: [
         'folderview.plus.plg',
         'folderview.plus.xml',
+        'docs/sbom.cdx.json',
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/**'
     ],
     workflows: [
@@ -171,7 +172,7 @@ export function productionSurfacesForPaths(paths) {
     const surfaces = new Set();
     for (const file of paths) {
         if (!FILTERS.performance.some(pattern => matchesPattern(file, pattern))) continue;
-        if (file.startsWith('scripts/') || /\/(runtime[^/]*|folder(?:\.[^/]*)?|folderviewplus|folderviewplus\.(?:utils|membership|rules-engine|folder-groups-model|i18n|request|runtime-snapshot|prefs-store|theme-|ui|folder-contract|page-bootstrap|fatal-banner|csp-events|safe-dom)[^/]*)\.js$/.test(file)) {
+        if (file.startsWith('scripts/') || /\/(runtime[^/]*|folder(?:\.[^/]*)?|folderviewplus|folderviewplus\.(?:utils|membership|rules-engine|folder-groups-model|i18n|request|runtime-snapshot|prefs-(?:store|outbox)|theme-|ui|folder-contract|page-bootstrap|fatal-banner|csp-events|safe-dom)[^/]*)\.js$/.test(file)) {
             surfaces.add('settings'); surfaces.add('docker');
         } else if (/\/docker[^/]*\.js$/.test(file)) surfaces.add('docker');
         else if (/\/folderviewplus[^/]*\.js$/.test(file)) surfaces.add('settings');
@@ -180,6 +181,9 @@ export function productionSurfacesForPaths(paths) {
 }
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+
+// A move out of a runtime path still removes runtime code.
+const diffPaths = (base, head) => git('diff', '--name-only', '--no-renames', base, head).split(/\r?\n/).filter(Boolean);
 
 const ensureCommit = (sha) => {
     try {
@@ -201,7 +205,7 @@ export const resolveChangedPaths = ({
     if (eventName === 'workflow_dispatch' && baseSha) {
         if (!/^[a-f0-9]{40}$/.test(baseSha)) throw new Error('Invalid comparison commit');
         ensureCommit(baseSha);
-        return git('diff', '--name-only', baseSha, headSha).split(/\r?\n/).filter(Boolean);
+        return diffPaths(baseSha, headSha);
     }
     // A manual validation request must cover the whole selected revision.
     if (eventName === 'workflow_dispatch') {
@@ -209,18 +213,18 @@ export const resolveChangedPaths = ({
     }
     if (eventName === 'pull_request') {
         const baseParent = git('rev-parse', `${headSha}^1`);
-        return git('diff', '--name-only', baseParent, headSha).split(/\r?\n/).filter(Boolean);
+        return diffPaths(baseParent, headSha);
     }
     if (eventName === 'push' && beforeSha && !ZERO_SHA.test(beforeSha)) {
         ensureCommit(beforeSha);
-        return git('diff', '--name-only', beforeSha, headSha).split(/\r?\n/).filter(Boolean);
+        return diffPaths(beforeSha, headSha);
     }
     if (eventName === 'push') {
         return git('ls-tree', '-r', '--name-only', headSha).split(/\r?\n/).filter(Boolean);
     }
 
     try {
-        return git('diff', '--name-only', `${headSha}^`, headSha).split(/\r?\n/).filter(Boolean);
+        return diffPaths(`${headSha}^`, headSha);
     } catch {
         return git('ls-tree', '-r', '--name-only', headSha).split(/\r?\n/).filter(Boolean);
     }

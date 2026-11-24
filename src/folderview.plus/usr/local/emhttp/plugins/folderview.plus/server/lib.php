@@ -1718,15 +1718,7 @@
             $reordered[$id] = $folder;
         }
 
-        writeRawFolderMap($type, $reordered);
-
-        // Keep manual prefs synchronized when present.
-        $prefs = readTypePrefs($type);
-        $prefs['manualOrder'] = array_keys($reordered);
-        if (($prefs['sortMode'] ?? 'created') !== 'alpha') {
-            $prefs['sortMode'] = 'manual';
-        }
-        writeTypePrefs($type, $prefs);
+        writeFolderMapAndManualOrder($type, $reordered, true);
 
         if ($type === 'docker') {
             syncContainerOrder('docker');

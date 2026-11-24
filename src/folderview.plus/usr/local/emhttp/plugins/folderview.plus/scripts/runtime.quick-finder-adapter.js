@@ -66,7 +66,8 @@
         const getState = (item) => {
             const entry = item.entry;
             if (type === 'docker') return entry.state === true ? (entry.pause === true ? 'paused' : 'running') : 'stopped';
-            return entry.state === 'running' ? 'running' : ['paused', 'pmsuspended'].includes(entry.state) ? 'paused' : 'stopped';
+            const state = deps.getVmState?.(entry) ?? entry.state;
+            return state === 'started' || state === 'running' ? 'running' : ['paused', 'pmsuspended'].includes(state) ? 'paused' : 'stopped';
         };
         const nativeTrigger = (item) => findRow(item)?.querySelector(item.kind === 'folder' ? '.folder-hand, .folder-name .hand' : type === 'vm'
             ? '.vm-name .hand, .vm-name [onclick*="addVMContext"], .vm-name [data-fv-onclick*="addVMContext"]'

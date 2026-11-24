@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const modulePath = path.join(
@@ -16,6 +17,7 @@ const loadModule = () => {
     const context = {
         globalThis: {},
         module: { exports: {} },
+        require: createRequire(modulePath),
         exports: {},
         console,
         setTimeout,
@@ -40,6 +42,8 @@ const loadModule = () => {
 const createStorage = (initial = {}) => {
     const records = new Map(Object.entries(initial));
     return {
+        get length() { return records.size; },
+        key: index => Array.from(records.keys())[index] ?? null,
         getItem: (key) => records.has(key) ? records.get(key) : null,
         setItem: (key, value) => records.set(key, String(value)),
         removeItem: (key) => records.delete(key),
@@ -333,12 +337,13 @@ for (const type of ['docker', 'vm']) {
             await secondTab.hydrateFromServer(type, { restoreOutbox: false, replay: false });
             const secondSave = secondTab.save(type, { dashboard: { ports: false } });
             await started[1].promise;
-            const key = firstTab.storageKeyForType(type);
-            const secondOutbox = storage.getItem(key);
+            const secondKey = Object.keys(storage.snapshot()).find(key => key.startsWith(`${secondTab.storageKeyForType(type)}.`));
+            assert.ok(secondKey);
+            const secondOutbox = storage.getItem(secondKey);
             if (responseOrder === 'first-tab-first') {
                 responses[0]();
                 await firstSave;
-                assert.equal(storage.getItem(key), secondOutbox, 'a completed tab preserves the pending foreign outbox and its owner');
+                assert.equal(storage.getItem(secondKey), secondOutbox, 'a completed tab preserves the pending foreign outbox and its owner');
                 responses[1]();
                 await secondSave;
             } else {
@@ -347,7 +352,7 @@ for (const type of ['docker', 'vm']) {
                 responses[0]();
                 await firstSave;
             }
-            assert.equal(storage.getItem(key), null, 'both committed patches must leave no work to replay');
+            assert.deepEqual(storage.snapshot(), {}, 'both committed patches must leave no work to replay');
             assert.equal(firstTab.getSnapshot(type).status, 'saved');
             assert.equal(secondTab.getSnapshot(type).status, 'saved');
 
@@ -362,6 +367,115 @@ for (const type of ['docker', 'vm']) {
         });
     }
 }
+
+test('a successful tab cannot erase another tab’s still-uncommitted preferences', async () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const requests = [];
+    const handlers = {};
+    let started, finishFirst;
+    const firstStarted = new Promise(resolve => { started = resolve; });
+    let serverPrefs = normalizePrefs({ groupUnassignedItems: false, _metadata: { prefsRevision: 1 } });
+    const serverWrite = async (_type, patch) => {
+        requests.push(structuredClone(patch));
+        serverPrefs = normalizePrefs(api.mergePatch(serverPrefs, patch));
+        serverPrefs._metadata.prefsRevision += 1;
+        return { prefs: serverPrefs };
+    };
+    const common = { window: {}, storage, normalizePrefs, debounceMs: 0, fetchPrefs: async () => serverPrefs };
+    const first = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'first', writePrefs: () => new Promise(resolve => {
+        finishFirst = resolve;
+        started();
+    }) });
+    const second = api.createPreferenceSaveCoordinator({
+        ...common, sourceId: 'second', writePrefs: serverWrite,
+        window: { addEventListener: (type, handler) => { handlers[type] = handler; } }
+    });
+    for (const tab of [first, second]) tab.reconcile('docker', serverPrefs);
+    const pending = first.save('docker', { groupUnassignedItems: true });
+    await firstStarted;
+    const [firstKey] = Object.keys(storage.snapshot());
+    const firstRecord = storage.getItem(firstKey);
+    handlers.storage({ key: firstKey, newValue: firstRecord });
+    assert.equal(second.getOptimisticPrefs('docker').groupUnassignedItems, true);
+    await second.save('docker', { dashboard: { ports: false } });
+    assert.deepEqual(requests, [{ dashboard: { ports: false } }], 'the second tab only submits its own edit');
+    assert.equal(serverPrefs.groupUnassignedItems, false);
+    assert.deepEqual(storage.snapshot(), { [firstKey]: firstRecord });
+
+    const reloaded = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'reloaded', writePrefs: serverWrite });
+    await reloaded.hydrateFromServer('docker');
+    await reloaded.flush('docker');
+    assert.deepEqual(requests[1], { groupUnassignedItems: true });
+    assert.equal(serverPrefs.groupUnassignedItems, true);
+    assert.deepEqual(storage.snapshot(), {});
+    finishFirst({ prefs: serverPrefs });
+    await pending;
+});
+
+test('a replay acknowledgement cannot clear a newer edit owned by the originating tab', async () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const original = { _metadata: { prefsRevision: 1 }, groupUnassignedItems: false };
+    let startOrigin, startReplay, finishOrigin, finishReplay;
+    const originStarted = new Promise(resolve => { startOrigin = resolve; });
+    const replayStarted = new Promise(resolve => { startReplay = resolve; });
+    const options = { storage, window: {}, normalizePrefs, debounceMs: 0 };
+    const origin = api.createPreferenceSaveCoordinator({ ...options, sourceId: 'origin', writePrefs: (_type, patch) => {
+        if (patch.dashboard) return Promise.resolve({ prefs: { ...original, groupUnassignedItems: true, ...patch } });
+        return new Promise(resolve => { finishOrigin = resolve; startOrigin(); });
+    } });
+    origin.reconcile('vm', original);
+    const firstSave = origin.save('vm', { groupUnassignedItems: true });
+    await originStarted;
+    const [initialKey] = Object.keys(storage.snapshot());
+    const replay = api.createPreferenceSaveCoordinator({ ...options, sourceId: 'replay', writePrefs: (_type, patch) => {
+        assert.deepEqual(structuredClone(patch), { groupUnassignedItems: true });
+        return new Promise(resolve => { finishReplay = resolve; startReplay(); });
+    } });
+    replay.reconcile('vm', original);
+    await replayStarted;
+    const secondSave = origin.save('vm', { dashboard: { ports: false } });
+    const [newKey] = Object.keys(storage.snapshot());
+    assert.notEqual(newKey, initialKey);
+    finishReplay({ prefs: { ...original, groupUnassignedItems: true, _metadata: { prefsRevision: 2 } } });
+    await replay.flush('vm');
+    assert.deepEqual(JSON.parse(storage.getItem(newKey)).patch, { groupUnassignedItems: true, dashboard: { ports: false } });
+    finishOrigin({ prefs: { ...original, groupUnassignedItems: true, _metadata: { prefsRevision: 2 } } });
+    await Promise.all([firstSave, secondSave]);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('a rejected recovered owner does not erase another owner or a new local save', async () => {
+    const api = loadModule();
+    const outbox = (sourceId, patch) => JSON.stringify({ schemaVersion: 1, sourceId, patch });
+    const storage = createStorage({
+        'fvplus.prefs.outbox.v1.vm': outbox('legacy', { autoRules: [{ folderId: 'synthetic-missing' }] }),
+        'fvplus.prefs.outbox.v1.vm.foreign.1': outbox('foreign', { dashboard: { names: false } })
+    });
+    const writes = [];
+    let serverPrefs = normalizePrefs({ _metadata: { prefsRevision: 1 } });
+    const coordinator = api.createPreferenceSaveCoordinator({
+        window: {}, storage, normalizePrefs, debounceMs: 0,
+        writePrefs: async (_type, patch) => {
+            writes.push(structuredClone(patch));
+            if (patch.autoRules) throw Object.assign(new Error('Missing folder'), { status: 400 });
+            serverPrefs = normalizePrefs(api.mergePatch(serverPrefs, patch));
+            serverPrefs._metadata.prefsRevision += 1;
+            return { prefs: serverPrefs };
+        }
+    });
+    coordinator.reconcile('vm', serverPrefs);
+    await coordinator.save('vm', { groupUnassignedItems: true });
+    assert.deepEqual(writes, [
+        { autoRules: [{ folderId: 'synthetic-missing' }] },
+        { dashboard: { names: false } },
+        { groupUnassignedItems: true }
+    ]);
+    assert.equal(serverPrefs.dashboard.names, false);
+    assert.equal(serverPrefs.groupUnassignedItems, true);
+    assert.deepEqual(storage.snapshot(), {});
+});
 
 test('settings and dashboard layout commits reconcile without unrelated or stale writes restoring classic', async () => {
     const api = loadModule();
@@ -476,6 +590,67 @@ test('preference retry policy retries transient failures but not permanent valid
     assert.equal(api.isRetryableSyncError(Object.assign(new Error('busy'), { status: 503 })), true);
     assert.equal(api.isRetryableSyncError(Object.assign(new Error('invalid'), { status: 400 })), false);
     assert.equal(api.isRetryableSyncError(Object.assign(new Error('conflict'), { status: 409 })), false);
+});
+
+test('a rejected preference batch clears its durable work and never attaches it to a later save', async () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const requests = [];
+    let serverPrefs = normalizePrefs({ groupUnassignedItems: false, _metadata: { prefsRevision: 1 } });
+    const options = {
+        window: {}, storage, normalizePrefs, debounceMs: 0,
+        fetchPrefs: async () => serverPrefs,
+        writePrefs: async (_type, patch) => {
+            requests.push(structuredClone(patch));
+            if (patch.autoRules) throw Object.assign(new Error('Missing folder'), { status: 400, phase: 'request' });
+            serverPrefs = normalizePrefs(api.mergePatch(serverPrefs, patch));
+            serverPrefs._metadata.prefsRevision += 1;
+            return { prefs: serverPrefs };
+        }
+    };
+    const firstPage = api.createPreferenceSaveCoordinator({ ...options, sourceId: 'rejected-page' });
+    firstPage.reconcile('docker', serverPrefs);
+    await assert.rejects(firstPage.save('docker', { autoRules: [{ folderId: 'synthetic-missing' }] }), /Missing folder/);
+    assert.equal(firstPage.getSnapshot('docker').pending, false);
+    assert.equal(firstPage.getOptimisticPrefs('docker').autoRules, undefined);
+    assert.deepEqual(storage.snapshot(), {});
+
+    const reopened = api.createPreferenceSaveCoordinator({ ...options, sourceId: 'reopened-page' });
+    await reopened.hydrateFromServer('docker');
+    await reopened.save('docker', { groupUnassignedItems: true });
+    assert.deepEqual(requests[1], { groupUnassignedItems: true });
+    assert.equal(serverPrefs.groupUnassignedItems, true);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('a permanent error preserves and flushes edits queued after the rejected request started', async () => {
+    const api = loadModule();
+    let rejectFirst;
+    let requestStarted;
+    const started = new Promise(resolve => { requestStarted = resolve; });
+    const writes = [];
+    const coordinator = api.createPreferenceSaveCoordinator({
+        window: {}, storage: createStorage(), normalizePrefs, debounceMs: 0,
+        writePrefs: (_type, patch) => {
+            writes.push(structuredClone(patch));
+            if (writes.length === 1) {
+                return new Promise((_resolve, reject) => {
+                    rejectFirst = reject;
+                    requestStarted();
+                });
+            }
+            return Promise.resolve({ prefs: { ...patch, _metadata: { prefsRevision: 2 } } });
+        }
+    });
+    coordinator.reconcile('vm', { groupUnassignedItems: false, _metadata: { prefsRevision: 1 } });
+    const rejected = assert.rejects(coordinator.save('vm', { autoRules: [{ folderId: 'synthetic-missing' }] }), /Invalid rule/);
+    await started;
+    const next = coordinator.save('vm', { groupUnassignedItems: true });
+    rejectFirst(Object.assign(new Error('Invalid rule'), { status: 422 }));
+    await rejected;
+    assert.equal((await next).groupUnassignedItems, true);
+    assert.deepEqual(writes[1], { groupUnassignedItems: true });
+    assert.equal(coordinator.getSnapshot('vm').pending, false);
 });
 
 test('forced storage hydration cannot publish an older revision after a save commits', async () => {

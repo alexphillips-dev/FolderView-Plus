@@ -546,19 +546,31 @@
             return { ...(workspace.variables || {}) };
         };
 
-        const saveCustomize = async () => {
+        let customizationSave = Promise.resolve();
+        const saveCustomize = () => {
             const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
+            const profileId = workspace.activeProfileId;
+            const scope = activeScope;
+            const submittedDraft = draftLayersByProfile.get(profileId)?.[scope];
             const payload = {
-                profileId: workspace.activeProfileId,
-                scope: activeScope,
+                profileId,
+                scope,
                 variables: JSON.stringify(collectVariablesFromUi()),
                 customCss
             };
-            const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
-            const planNode = documentRef?.getElementById('fv-theme-profile-plan');
-            if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || activeScope}` : surfaceT("common.audit.no-output-changes", "No generated output changes.");
-            const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
-            return setWorkspace(response.workspace || {});
+            customizationSave = customizationSave.catch(() => {}).then(async () => {
+                const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
+                const planNode = documentRef?.getElementById('fv-theme-profile-plan');
+                if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || scope}` : surfaceT("common.audit.no-output-changes", "No generated output changes.");
+                const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
+                const drafts = draftLayersByProfile.get(profileId);
+                if (submittedDraft && drafts?.[scope] === submittedDraft) {
+                    delete drafts[scope];
+                    if (!Object.keys(drafts).length) draftLayersByProfile.delete(profileId);
+                }
+                return setWorkspace(response.workspace || {}, { preserveDrafts: true });
+            });
+            return customizationSave;
         };
 
         const createProfile = async (name) => {

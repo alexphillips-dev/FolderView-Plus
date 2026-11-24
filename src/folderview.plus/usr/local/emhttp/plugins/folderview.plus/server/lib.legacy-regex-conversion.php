@@ -40,9 +40,14 @@ function legacyRegexMigrationLockPath(string $type): string {
             if (!hash_equals($legacyPattern, $expectedPattern)) {
                 throw new RuntimeException('The legacy regex changed after this editor loaded. Reload and review it before converting.');
             }
-            $probe = '/' . str_replace('/', '\\/', $legacyPattern) . '/';
+            $probe = serverRuleRegex($legacyPattern, false);
             if (@preg_match($probe, '') === false) {
                 throw new RuntimeException('The legacy regex is invalid and cannot be converted.');
+            }
+            // The browser treats these as literal escapes in legacy expressions,
+            // while managed rules interpret them using the Unicode flag.
+            if (preg_match('~(?<!\\\\)(?:\\\\\\\\)*\\\\(?:u|[pP])\{~', $legacyPattern)) {
+                throw new RuntimeException('The legacy regex is not supported by managed rules and cannot be converted.');
             }
 
             $prefs = readTypePrefs($type);

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -56,6 +57,35 @@ test('server builds preview and sync order from Docker page or custom batches', 
     assert.match(prefsEndpoint, /normalizeDockerStartOrderPrefs\(\$current\['dockerStartOrder'\]/);
     assert.match(startOrderEndpoint, /dockerStartOrderPreview\(\)/);
     assert.match(startOrderEndpoint, /fvplusRespondToDockerOrderSync\('docker'\)/);
+});
+
+test('Settings acknowledges only a verified sync and keeps queued or unmanaged previews intact', async () => {
+    const start = settingsJs.indexOf('const syncDockerStartOrderNow =');
+    const end = settingsJs.indexOf('const normalizeSettingsTableRenderType', start);
+    const code = settingsJs.slice(start, end) + '\nsyncDockerStartOrderNow();';
+    for (const [outcome, expected] of [
+        ['synced', 'Docker start order synced.'],
+        ['queued', 'FolderView Plus configuration is busy. Please retry the action.'],
+        ['unmanaged', 'Unraid owns the start order.'],
+        ['failed', 'Docker start order sync failed']
+    ]) {
+        const statuses = [], previews = [], errors = [];
+        const preview = { order: ['fixture-container'] };
+        await vm.runInNewContext(code, {
+            flushDockerStartOrderSaveQueue: async () => {},
+            apiPostJson: async () => {
+                if (outcome === 'failed') throw new Error('Inventory unavailable');
+                return { syncOutcome: outcome, preview };
+            },
+            setUpdateStatus: status => statuses.push(status),
+            showError: (...args) => errors.push(args),
+            renderDockerStartOrderPreview: value => previews.push(value),
+            surfaceT: (_key, fallback) => fallback
+        });
+        assert.deepEqual(statuses, outcome === 'failed' ? [''] : ['', expected]);
+        assert.deepEqual(previews, outcome === 'synced' ? [preview] : []);
+        assert.equal(errors[0]?.[0], outcome === 'failed' ? expected : undefined);
+    }
 });
 
 test('settings page exposes a user-friendly Docker start-order workspace', () => {

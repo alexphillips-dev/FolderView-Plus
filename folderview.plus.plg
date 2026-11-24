@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.04">
-<!ENTITY md5 "451d618bde7fc7f8f564a514d2eea9e8">
-<!ENTITY sha256 "d630216d8b4ef40ba75fba1f34954e37bd67c2e8eb5ebffd93467ba3fcca5572">
+<!ENTITY version "2026.11.24.05">
+<!ENTITY md5 "1f48310621019f0d0737a53720c43ddd">
+<!ENTITY sha256 "10993352148413d55f3b1af07d1709f912712c6ddd6c91194149e99585d68e77">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.05
+- Reliability: Recover saved preferences before initializing defaults, roll back rejected folder changes, and keep imports and exports tied to a consistent saved configuration.
+- Reliability: Restore the previous core, icon pack, and backup schedule immediately if an update fails after activation begins.
+- Reliability: Keep preference changes and Appearance drafts intact across tabs, failed saves, and delayed responses. Continue eligible scheduled backups when the other runtime fails.
+- Fix: Keep Docker and VM controls available after browser Back navigation, preserve native VM names when saving order, and prevent older VM refreshes from replacing current state.
+- Fix: Align folder assignment matching between the browser and PHP, retry assignment details after a failed read, and report unsuccessful Docker start-order syncs accurately.
+
 
 ###2026.11.24.04
 - Feature: Enable Group unassigned items under Filters and view settings for Docker or VMs. The option adds a collapsible group to the corresponding runtime page and Dashboard tile.
@@ -10145,7 +10153,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 had_config=1
             fi
             if [ -f "${config_dir}/version" ]; then
-                previous_version="$(cat "${config_dir}/version" | tr -cd '0-9.')"
+                previous_version="$(tr -cd '0-9.' &lt; "${config_dir}/version")"
             fi
             if [ -d "${config_dir}/backups" ]; then
                 backup_count="$(find "${config_dir}/backups" -type f | wc -l | tr -d '[:space:]')"
@@ -10178,7 +10186,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
         <SHA256>&iconPackSha256;</SHA256>
     </FILE>
 
-    <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
+    <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz">
         <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
@@ -10187,51 +10195,151 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     <FILE Run="/bin/bash">
         <INLINE>
             set -e
-            install_stage="configuration"
+            config_dir="/boot/config/plugins/&name;"
+            registered_manifest="/boot/config/plugins/&name;.plg"
+            cron_file="/etc/cron.d/folderview.plus"
+            candidate_archive="${config_dir}/&name;-&version;.txz"
+            install_stage="rollback preparation"
             install_report="&plugdir;/scripts/install_report.sh"
             icon_status="/tmp/folderview.plus-icon-pack-status"
             scheduler_status="registered"
+            previous_archive=""
+            previous_icon_pack=""
+            previous_icon_sha=""
+            cron_backup=""
+            cron_stage=""
             version_stage=""
-            install_failure() {
-                exit_code=$?
-                trap - EXIT
-                if [ -n "${version_stage}" ]; then
-                    rm -f -- "${version_stage}" || true
+            core_attempted=0
+            cron_changed=0
+
+            read_manifest_value() {
+                sed -n "s/^&lt;!ENTITY $1 \"\([^\"]*\)\">$/\1/p" "${registered_manifest}" | head -n 1
+            }
+
+            archive_matches() {
+                local archive="$1" expected_sha="$2" expected_md5="${3:-}"
+                [ -f "${archive}" ] &amp;&amp; [ ! -L "${archive}" ] || return 1
+                if [[ "${expected_sha}" =~ ^[a-f0-9]{64}$ ]]; then
+                    printf '%s  %s\n' "${expected_sha}" "${archive}" | sha256sum --check --status
+                elif [ -z "${expected_sha}" ] &amp;&amp; [[ "${expected_md5}" =~ ^[a-f0-9]{32}$ ]]; then
+                    printf '%s  %s\n' "${expected_md5}" "${archive}" | md5sum --check --status
+                else
+                    return 1
                 fi
+            }
+
+            install_failure() {
+                local exit_code=$? restored=1
+                trap - EXIT
                 if [ -f "${install_report}" ]; then
                     /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
+                fi
+                if [ "${core_attempted}" -eq 1 ]; then
+                    if [ -L "&plugdir;/images/third-party-icons" ]; then
+                        rm -f -- "&plugdir;/images/third-party-icons" || restored=0
+                    fi
+                    rm -f -- "&plugdir;/icon-asset-pack.json" "&plugdir;/icon-asset-pack.json.tmp" || restored=0
+                    if [ -n "${previous_archive}" ]; then
+                        if upgradepkg --install-new --reinstall "${previous_archive}"; then
+                            if [ -n "${previous_icon_pack}" ]; then
+                                /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "${previous_icon_pack}" "${previous_icon_sha}" || restored=0
+                            fi
+                        else
+                            restored=0
+                        fi
+                    else
+                        removepkg "&name;-&version;" || restored=0
+                    fi
+                fi
+                if [ "${cron_changed}" -eq 1 ]; then
+                    if [ -n "${cron_backup}" ]; then
+                        if ! mv -fT -- "${cron_backup}" "${cron_file}"; then
+                            restored=0
+                            printf 'FolderView Plus kept the previous scheduler file at %s.\n' "${cron_backup}" >&amp;2
+                            cron_backup=""
+                        fi
+                    else
+                        rm -f -- "${cron_file}" || restored=0
+                    fi
+                    /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || restored=0
+                fi
+                rm -f -- "${version_stage}" "${cron_stage}" "${cron_backup}" || restored=0
+                if [ "${core_attempted}" -eq 1 ]; then
+                    if [ "${restored}" -eq 1 ]; then
+                        printf 'FolderView Plus restored the previous installation state.\n' >&amp;2
+                    else
+                        printf 'FolderView Plus could not fully restore the previous installation state. Review the installation output before retrying.\n' >&amp;2
+                    fi
                 fi
                 exit "${exit_code}"
             }
             trap install_failure EXIT
-            mkdir -p /boot/config/plugins/&name;/styles
-            mkdir -p /boot/config/plugins/&name;/scripts
+
+            if [ -f "&plugdir;/FolderViewPlus.page" ]; then
+                previous_version=""
+                if [ -r "${registered_manifest}" ]; then
+                    previous_version="$(read_manifest_value version)"
+                fi
+                if ! [[ "${previous_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                    || ! archive_matches "${config_dir}/&name;-${previous_version}.txz" "$(read_manifest_value sha256)" "$(read_manifest_value md5)"; then
+                    printf 'FolderView Plus cannot verify the previous core package for rollback. The active package was kept.\n' >&amp;2
+                    exit 1
+                fi
+                previous_archive="${config_dir}/&name;-${previous_version}.txz"
+                previous_icon_pack="$(read_manifest_value iconPackVersion)"
+                if [ -n "${previous_icon_pack}" ]; then
+                    previous_icon_sha="$(read_manifest_value iconPackSha256)"
+                    if ! [[ "${previous_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                        || ! archive_matches "${config_dir}/&name;-icons-${previous_icon_pack}.txz" "${previous_icon_sha}"; then
+                        printf 'FolderView Plus cannot verify the previous icon pack for rollback. The active package was kept.\n' >&amp;2
+                        exit 1
+                    fi
+                fi
+            fi
+            if [ -L "${cron_file}" ]; then
+                printf 'FolderView Plus cannot replace a symbolic link at the scheduled backup path.\n' >&amp;2
+                exit 1
+            fi
+            if [ -f "${cron_file}" ]; then
+                cron_backup="$(mktemp /etc/cron.d/.folderview.plus.rollback.XXXXXX)"
+                cp -p -- "${cron_file}" "${cron_backup}"
+            fi
+
+            install_stage="core package installation"
+            archive_matches "${candidate_archive}" "&sha256;" || exit 1
+            core_attempted=1
+            upgradepkg --install-new "${candidate_archive}"
+            install_stage="configuration"
+            mkdir -p "${config_dir}/styles" "${config_dir}/scripts"
             install_stage="obsolete runtime cleanup"
             rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js" \
                 "&plugdir;/scripts/docker.runtime.layout-geometry.js"
             install_stage="icon pack activation"
             FVPLUS_ICON_PACK_STATUS_FILE="${icon_status}" /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             install_stage="scheduled backup registration"
-            echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
-            chmod 644 /etc/cron.d/folderview.plus
+            cron_stage="$(mktemp /etc/cron.d/.folderview.plus.schedule.XXXXXX)"
+            echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > "${cron_stage}"
+            chmod 644 "${cron_stage}"
+            mv -fT -- "${cron_stage}" "${cron_file}"
+            cron_changed=1
             if ! /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1; then
                 scheduler_status="registered-restart-warning"
             fi
             install_stage="installation report"
             install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
             install_stage="version metadata"
-            version_stage="$(mktemp /boot/config/plugins/&name;/.version.XXXXXX)"
+            version_stage="$(mktemp "${config_dir}/.version.XXXXXX")"
             printf '%s\n' "&version;" > "${version_stage}"
-            mv -fT -- "${version_stage}" /boot/config/plugins/&name;/version
+            mv -fT -- "${version_stage}" "${config_dir}/version"
             trap - EXIT
+            rm -f -- "${cron_backup}" || true
             printf '%s\n' "${install_summary}"
 
             # Unraid registers the incoming manifest after this hook returns. Keep the files
             # named by both manifests until registration is visible on a later install or boot.
-            registered_manifest="/boot/config/plugins/&name;.plg"
             if [ -r "${registered_manifest}" ]; then
-                if registered_version="$(sed -n 's/^&lt;!ENTITY version "\([0-9.]*\)">$/\1/p' "${registered_manifest}")" \
-                    &amp;&amp; registered_icon_pack="$(sed -n 's/^&lt;!ENTITY iconPackVersion "\([0-9.]*\)">$/\1/p' "${registered_manifest}")" \
+                if registered_version="$(read_manifest_value version)" \
+                    &amp;&amp; registered_icon_pack="$(read_manifest_value iconPackVersion)" \
                     &amp;&amp; [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
                     &amp;&amp; [[ "${registered_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                     find /boot/config/plugins/&name; -maxdepth 1 -regextype posix-extended -type f \( \

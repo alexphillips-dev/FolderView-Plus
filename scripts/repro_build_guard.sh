@@ -13,10 +13,6 @@ source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands bash mktemp cp sha256sum cmp date sed
 
-if [[ ! -x "${PKG_BUILD_SCRIPT}" ]]; then
-  chmod +x "${PKG_BUILD_SCRIPT}"
-fi
-
 if [[ -z "${VERSION_OVERRIDE}" ]]; then
   fvplus::fail "Could not resolve release version for deterministic build guard."
 fi

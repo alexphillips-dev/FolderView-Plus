@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
+import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
 import { createDockerBadgeHost } from '../helpers/folder-badges-host.mjs';
+import { registerVmRuntimeRecoveryCases } from './vm-runtime-recovery.mjs';
 
 const waitFor = async (page, predicate, message) => {
     for (let i = 0; i < 150; i++) {
@@ -17,11 +18,6 @@ const openSettings = async (page, host) => {
         for (const type of ['docker', 'vm']) document.getElementById(type + '-view-settings').open = true;
     });
 };
-const closeHost = async (page, host) => {
-    await page.goto('about:blank');
-    await page.unrouteAll({ behavior: 'wait' });
-    await host.close();
-};
 const publishFromSettingsPeer = async (page, url, type, prefs) => {
     const peer = await page.context().newPage();
     try {
@@ -37,6 +33,8 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 };
 
 export const registerFilterViewSettingsFixes = ({ test }) => {
+    registerVmRuntimeRecoveryCases({ test });
+
     test('Filters and view settings persist unassigned grouping independently for Docker and VMs', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         const toggle = type => page.locator(`#${type}-group-unassigned-items`);

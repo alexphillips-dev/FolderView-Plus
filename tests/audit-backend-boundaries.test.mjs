@@ -26,7 +26,7 @@ const run = request => {
 };
 
 test('guarded legacy conversion refuses unsupported managed predicates without changing state or backups', () => {
-    for (const pattern of ['\\Qabc\\E', '(?>abc)', '[', '\\u{1F600}']) {
+    for (const pattern of ['\\Qabc\\E', '(?>abc)', '[', '\\u{1F600}', '^\\p{L}+$']) {
         const result = run({ operation: 'convert', pattern });
         assert.equal(result.response.ok, false, pattern);
         assert.equal(result.exactUnchanged, true, pattern);
@@ -37,8 +37,8 @@ test('guarded legacy conversion refuses unsupported managed predicates without c
 });
 
 test('guarded supported legacy conversions preserve membership and meaningful whitespace', () => {
-    for (const pattern of ['^media-', ' ^media$']) {
-        const result = run({ operation: 'convert', pattern, names: ['media-app', ' ^media$', ' media', 'media', 'other'] });
+    for (const pattern of ['^media-', ' ^media$', '^fixture\\/x$', '^\\\\u{1F600}$']) {
+        const result = run({ operation: 'convert', pattern, names: ['media-app', ' ^media$', ' media', 'media', 'other', 'fixture/x', '\\u{1F600}'] });
         assert.equal(result.response.ok, true, pattern);
         assert.equal(result.legacy, '');
         assert.equal(result.rules.length, 1);

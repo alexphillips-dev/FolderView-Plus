@@ -14,12 +14,15 @@ const run = (...args) => {
 };
 
 test('install hook retains registered core and icon archives through failures and staging', () => {
-    assert.deepEqual(run(), ['hook-icon', 'hook-scheduler', 'hook-report', 'hook-success', 'hook-unknown']);
+    assert.deepEqual(run(), [
+        'hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-unknown'
+    ]);
 });
 
 const pinnedCli = process.env.FVPLUS_TEST_UNRAID_PLUGIN_CLI;
 test('Unraid 7.4.0 installs, updates, and reinstalls boot assets offline', { skip: !pinnedCli }, () => {
     assert.deepEqual(run(pinnedCli), [
-        'update-icon', 'update-scheduler', 'update-report', 'install-icon', 'install-scheduler', 'install-report', 'update-success', 'install-success'
+        'update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-corrupt',
+        'install-icon', 'install-scheduler', 'install-report', 'install-fresh-report', 'update-success', 'install-success'
     ]);
 });

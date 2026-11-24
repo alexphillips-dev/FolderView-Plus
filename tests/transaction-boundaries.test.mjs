@@ -109,7 +109,7 @@ test('checkpoint pruning records only actual deletions and continues after a fai
     } finally { harness.cleanup(); }
 });
 
-test('checkpoint creation holds the configuration lock across all source reads', async () => {
+for (const action of ['checkpoint', 'export']) test(action + ' holds the configuration lock across all source reads', async () => {
     const harness = setup(); const children = [];
     const launch = operation => {
         const child = spawn('php', harness.args(operation), { env: harness.env }); children.push(child);
@@ -129,15 +129,26 @@ test('checkpoint creation holds the configuration lock across all source reads',
         }
     };
     try {
-        harness.run('seed-read');
-        const reader = launch(['checkpoint-reader']); await waitFor('reader-paused');
+        harness.run('seed-export');
+        const reader = launch([action + '-reader']); await waitFor('reader-paused');
         const writer = launch(['checkpoint-writer']); await waitFor('writer-started');
         assert.equal(fs.readFileSync(path.join(harness.root, 'writer-started'), 'utf8'), 'blocked');
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), false);
         fs.writeFileSync(path.join(harness.root, 'release-reader'), 'yes');
-        await Promise.all([reader, writer]);
+        const [snapshot] = await Promise.all([reader, writer]);
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), true);
+        if (action === 'export') {
+            const current = harness.run('export-current');
+            for (const type of ['docker', 'vm']) {
+                assert.deepEqual(Object.keys(snapshot.types[type].folders), ['initial']);
+                assert.deepEqual(Object.keys(current.types[type].folders), ['writer']);
+                assert.deepEqual(snapshot.types[type].prefs.manualOrder, ['initial']);
+                assert.deepEqual(current.types[type].prefs.manualOrder, ['writer']);
+            }
+            assert.match(JSON.stringify(snapshot.themeWorkspace), /\.initial \{/);
+            assert.match(JSON.stringify(current.themeWorkspace), /\.writer \{/);
+        }
     } finally {
         for (const child of children) if (child.exitCode === null) child.kill();
         await Promise.all(children.filter(child => child.exitCode === null).map(child => new Promise(resolve => child.once('close', resolve))));

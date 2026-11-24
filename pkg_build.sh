@@ -687,7 +687,6 @@ validate_manifest_branch_matrix "$plgfile" "$version"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.
-chmod +x "$ensure_changes_entry_script"
 changes_entry_status=0
 if [ "$changes_entry_timeout" -gt 0 ]; then
     timeout "${changes_entry_timeout}s" bash "$ensure_changes_entry_script" || changes_entry_status=$?

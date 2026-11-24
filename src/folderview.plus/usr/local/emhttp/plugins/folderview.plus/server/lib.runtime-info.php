@@ -120,7 +120,8 @@ function getDockerTemplateCachePath(): string {
                 $containerId = (string)($container['Id'] ?? '');
                 $rebuild = $rebuildById[$containerId] ?? null;
                 if ($manager === 'dockerman' && $rebuild !== true && fvplusDockerListUsesImageId($container)) {
-                    $details = preg_match('/^[a-f0-9]{64}$/D', $containerId) ? $dockerClient->getContainerDetails($containerId) : [];
+                    $details = preg_match('/^[a-f0-9]{64}$/D', $containerId)
+                        ? fvplusReadDockerHostValue(static fn() => $dockerClient->getContainerDetails($containerId)) : [];
                     $configuredImage = trim((string)($details['Config']['Image'] ?? ''));
                     $containerImage = $configuredImage === '' ? '' : DockerUtil::ensureImageTag($configuredImage);
                 }
@@ -203,7 +204,7 @@ function getDockerTemplateCachePath(): string {
             $allXmlTemplates = getDockerTemplateIndexCached($dockerTemplates);
 
             foreach ($cts as $key => &$ct) {
-                $ct['info'] = $dockerClient->getContainerDetails($ct['Id'] ?? null);
+                $ct['info'] = fvplusReadDockerHostValue(static fn() => $dockerClient->getContainerDetails($ct['Id'] ?? null));
                 if (empty($ct['info'])) { fv3_debug_log("Skipped container due to empty details: ID " . ($ct['Id'] ?? 'N/A')); continue; }
                 unset($ct['info']['Config']['Env']);
 
@@ -505,7 +506,7 @@ function getDockerTemplateCachePath(): string {
         $order = [];
         if ($type == "docker") {
             $dockerClient = new DockerClient();
-            $containersFromUnraid = $dockerClient->getDockerContainers();
+            $containersFromUnraid = fvplusReadDockerHostValue(static fn() => $dockerClient->getDockerContainers(), true);
             $prefs_file = "$user_prefs_path/dockerMan/userprefs.cfg";
 
             if (file_exists($prefs_file)) {

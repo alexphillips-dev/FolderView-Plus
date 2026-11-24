@@ -31,6 +31,13 @@ export const registerDockerFolderFeedbackCases = ({ test }) => {
             await page.evaluate(() => document.body.classList.add('fvplus-privacy-docker-runtime-mask-names'));
             await counts.focus(); await tip.waitFor();
             assert.equal((await tip.innerText()).includes('Direct members\n'), false);
+            await page.evaluate(() => {
+                window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+                window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+            });
+            assert.equal(await tip.count(), 0);
+            await counts.press('Enter');
+            await tip.waitFor();
             await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
             assert.equal(await tip.count(), 0);
         } finally { await host.close(); }

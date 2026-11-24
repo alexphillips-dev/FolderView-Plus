@@ -58,9 +58,15 @@ fvplus_json_try(function (): ?array {
     }
 
     if ($action === 'sync_docker_order') {
-        if (!fvplusRespondToDockerOrderSync('docker')) return null;
+        $sync = fvplusRespondToDockerOrderSync('docker');
+        if ($sync === null) return null;
         return [
-            'message' => 'Docker order sync completed.',
+            'syncOutcome' => $sync['syncOutcome'],
+            'message' => match ($sync['syncOutcome']) {
+                'synced' => 'Docker order sync completed.',
+                'unmanaged' => 'Unraid owns the start order.',
+                default => 'FolderView Plus configuration is busy. Please retry the action.'
+            },
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
         ];
     }

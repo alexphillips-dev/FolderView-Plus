@@ -168,7 +168,7 @@ test('read_info supports cached full/state payload retrieval', () => {
     assert.match(libPhp, /function readInfoState\s*\(/);
     assert.match(libPhp, /function readInfoCached\s*\(/);
     assert.match(readInfoPhp, /\$preferLiveUpdateStatus = \$mode === 'state'/);
-    assert.match(readInfoPhp, /if \(\$preferLiveUpdateStatus\) \{\s*echo json_encode\(readInfoState\(\$type,\s*true\)\);\s*return;\s*\}/);
+    assert.match(readInfoPhp, /\$info = \$preferLiveUpdateStatus \? readInfoState\(\$type,\s*true\) : readInfoCached\(/);
     assert.match(readInfoPhp, /readInfoCached\(\$type,\s*\$mode,\s*\$ttl,\s*\$forceRefresh\)/);
     assert.match(readInfoPhp, /\$_GET\['mode'\]|\$_REQUEST\['mode'\]/);
 });

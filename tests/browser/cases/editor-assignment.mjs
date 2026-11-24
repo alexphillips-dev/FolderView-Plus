@@ -20,6 +20,10 @@ export const registerEditorAssignmentCases = ({ test, baseUrl }) => {
             await page.route(orderRoute, async route => {
                 assert.equal(new URL(route.request().url()).searchParams.get('type'), type);
                 orderReads++;
+                if (type === 'docker' && orderReads === 1) {
+                    await route.fulfill({ status: 503, contentType: 'application/json', body: '{"ok":false,"error":"Synthetic order failure"}' });
+                    return;
+                }
                 await route.fulfill({ contentType: 'text/plain', body: '["folder-other","folder-active"]' });
             });
             try {
@@ -63,10 +67,17 @@ export const registerEditorAssignmentCases = ({ test, baseUrl }) => {
                 const detailsMatch = (selector, phrase) => page.waitForFunction(({ selector, phrase }) =>
                     document.querySelector(selector)?.lastElementChild.textContent.includes(phrase), { selector, phrase });
                 assert.equal(orderReads, 0);
+                if (type === 'docker') {
+                    await disclosure('overlap').locator('summary').click();
+                    await detailsMatch('tr[data-name="overlap"] details', 'Matches Outside <synthetic> · Matched by regex');
+                    assert.doesNotMatch(await disclosure('overlap').textContent(), /Assigned to/);
+                    await disclosure('overlap').locator('summary').click();
+                }
                 await disclosure('automatic').locator('summary').focus();
                 await page.keyboard.press('Enter');
                 await detailsMatch('tr[data-name="automatic"] details', 'Assigned to Fixture folder · Matched by regex');
-                assert.equal(orderReads, 1, 'real client parsed the text/plain saved order lazily');
+                const expectedOrderReads = type === 'docker' ? 2 : 1;
+                assert.equal(orderReads, expectedOrderReads, 'real client parsed the text/plain saved order lazily');
                 await disclosure('overlap').locator('summary').click();
                 await detailsMatch('tr[data-name="overlap"] details', 'Assigned to Outside <synthetic> · Matched by regex');
                 const overlap = await disclosure('overlap').textContent();
@@ -85,11 +96,11 @@ export const registerEditorAssignmentCases = ({ test, baseUrl }) => {
                 await page.evaluate(() => assignmentFixture.updateList());
                 assert.equal(await disclosure('candidate').getAttribute('open'), '');
                 await detailsMatch('tr[data-name="candidate"] details', 'No folder assignment');
-                assert.equal(orderReads, 1);
+                assert.equal(orderReads, expectedOrderReads);
                 assert.doesNotMatch(await page.locator('.fv-member-assignment-context').textContent(), /sensitive-fixture-value|fixture-migration/);
             } finally {
                 await page.unroute(orderRoute);
             }
         }
-    });
+    }, { allowedConsoleErrors: [/^console: Failed to load resource: the server responded with a status of 503\b/] });
 };

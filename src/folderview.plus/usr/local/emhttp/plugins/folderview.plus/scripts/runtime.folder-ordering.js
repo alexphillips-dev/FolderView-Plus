@@ -8,12 +8,12 @@
     root.FolderViewPlusRuntimeFolderOrderingModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     'use strict';
-
     /**
      * @typedef {object} OrderOptions
      * @property {string[]} [order]
      * @property {string[]} [completedFolderIds]
      * @property {string} [currentFolderId]
+     * @property {(entry: string) => boolean} [isFolderToken]
      */
 
     /** @param {*} value */
@@ -152,11 +152,11 @@
         };
     };
     /** @param {OrderOptions} [options] */
-    const buildCustomOrder = ({ order = [], completedFolderIds = [], currentFolderId = '' } = {}) => {
+    const buildCustomOrder = ({ order = [], completedFolderIds = [], currentFolderId = '', isFolderToken: matchesFolderToken = isFolderToken } = {}) => {
         const completed = new Set((completedFolderIds || []).map(normalizeFolderToken).filter(Boolean));
         const currentToken = normalizeFolderToken(currentFolderId);
         return (Array.isArray(order) ? order : []).filter((entry) => (
-            entry && (completed.has(String(entry)) || !(isFolderToken(entry) && String(entry) !== currentToken))
+            entry && (completed.has(String(entry)) || !(matchesFolderToken(entry) && String(entry) !== currentToken))
         ));
     };
     /** @param {OrderOptions} [options] */

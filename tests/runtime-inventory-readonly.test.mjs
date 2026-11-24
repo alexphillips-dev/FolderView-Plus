@@ -64,10 +64,25 @@ test('explicit managed sync uses fresh authority to remove stale records in Dock
         const result = runInventoryRepair({ type: 'docker', operation: 'sync', scenario });
         assert.equal(result.error, '');
         assert.equal(result.response.ok, true);
+        assert.equal(result.response.syncOutcome, 'synced');
         assert.equal(result.native, 'docker-present 7\ndocker-extra 19\n');
         assert.ok(result.calls.some(([call, count]) => call === 'docker-list' && count === 5));
         assert.ok(result.calls.every(([call]) => call !== 'docker-cached-list'));
     }
+});
+
+test('runtime responses stay valid JSON when the native Docker SDK writes a socket error', () => {
+    for (const operation of ['read', 'snapshot']) for (const mode of ['state', 'full']) {
+        const result = runInventoryRepair({ type: 'docker', operation, mode, scenario: 'socket-output' });
+        assert.equal(result.error, '', `${operation}/${mode}`);
+        assert.equal(result.responseStatus, 503);
+        assert.equal(result.response.ok, false);
+        assert.doesNotMatch(JSON.stringify(result.response), /synthetic-private-socket-detail/);
+    }
+    const details = runInventoryRepair({ type: 'docker', operation: 'snapshot', mode: 'full', scenario: 'detail-output' });
+    assert.equal(details.error, '');
+    assert.equal(details.responseStatus, 200);
+    assert.doesNotMatch(JSON.stringify(details.response), /synthetic-private-socket-detail/);
 });
 
 const explicitOrderRequests = ['sync', 'start-sync'];
@@ -80,6 +95,7 @@ const assertOrderSyncRefused = (result, code, label) => {
     assert.equal(result.native, result.nativeBefore, label);
     assert.equal(result.nativeMode, result.nativeModeBefore, label);
     assert.equal(result.response?.ok, false, label);
+    assert.equal(result.response?.syncOutcome, 'failed', label);
     assert.equal(result.response?.errorCode, code, label);
     assert.equal(result.responseStatus, code === 'docker_order_lock_unavailable' ? 503 : 409, label);
     assert.doesNotMatch(JSON.stringify(result.response), /fvplus-inventory-|docker-sync-order\.lock/);
@@ -95,6 +111,7 @@ for (const operation of explicitOrderRequests) {
         const result = explicitOrderFixture(operation, { syncLock: 'held' });
         assert.equal(result.error, '');
         assert.equal(result.response?.ok, true);
+        assert.equal(result.response?.syncOutcome, 'queued');
         assert.equal(result.responseStatus, 200);
         assert.equal(result.native, result.nativeBefore);
         assert.equal(result.nativeMode, result.nativeModeBefore);
@@ -106,6 +123,7 @@ for (const operation of explicitOrderRequests) {
             const result = explicitOrderFixture(operation, { folderPrimary });
             assert.equal(result.error, '');
             assert.equal(result.response?.ok, true);
+            assert.equal(result.response?.syncOutcome, 'synced');
             assert.equal(result.responseStatus, 200);
             assert.equal(result.native, 'docker-present 7\ndocker-extra 19\n');
         });
@@ -142,19 +160,21 @@ test('post-save synchronization declines unsafe order writes without throwing', 
     }
 });
 
-test('a skipped synchronization preserves native records and refuses an unavailable preview', () => {
-    for (const options of [
-        { plan: { mode: 'unmanaged' } },
-        { scenario: 'failed-list' },
-        { syncLock: 'held' }
+test('skipped synchronization reports its outcome without returning a misleading preview', () => {
+    for (const [options, outcome] of [
+        [{ plan: { mode: 'unmanaged' } }, 'unmanaged'],
+        [{ scenario: 'failed-list' }, 'failed'],
+        [{ syncLock: 'held' }, 'queued']
     ]) {
         const request = { ...options, folderPrimary: 'missing', folderLastGood: 'corrupt' };
         const sync = explicitOrderFixture('sync', request);
         const startSync = explicitOrderFixture('start-sync', request);
         assert.equal(sync.response?.ok, true);
         assert.equal(sync.responseStatus, 200);
-        assert.equal(startSync.response?.ok, false);
-        assert.equal(startSync.response?.errorCode, undefined);
+        assert.equal(sync.response?.syncOutcome, outcome);
+        assert.equal(startSync.response?.ok, outcome !== 'failed');
+        assert.equal(startSync.responseStatus, outcome === 'failed' ? 409 : 200);
+        assert.equal(startSync.response?.syncOutcome, outcome);
         assert.equal(startSync.response?.preview, undefined);
         for (const result of [sync, startSync]) {
             assert.equal(result.error, '');
@@ -164,15 +184,64 @@ test('a skipped synchronization preserves native records and refuses an unavaila
     }
 });
 
-test('explicit sync preserves native records when inventory cannot be verified or ownership is unmanaged', () => {
+test('Settings sync refuses unverifiable inventory even when its read-only preview would succeed', () => {
+    const options = { rejectVerifiedInventory: true };
+    const preview = explicitOrderFixture('preview', options);
+    assert.equal(preview.response?.ok, true);
+    assert.ok(Array.isArray(preview.response.preview.order));
+    const sync = explicitOrderFixture('start-sync', options);
+    assertOrderSyncRefused(sync, 'docker_order_inventory_unavailable', 'verified source rejected');
+    assert.equal(sync.response.preview, undefined);
+});
+
+test('Diagnostics distinguishes a queued order repair from a completed one', () => {
+    const sync = explicitOrderFixture('diagnostics-sync', { syncLock: 'held' });
+    assert.equal(sync.error, '');
+    assert.equal(sync.response?.ok, true);
+    assert.equal(sync.response?.syncOutcome, 'queued');
+    assert.equal(sync.response?.messageKey, 'common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891');
+    assert.equal(sync.native, sync.nativeBefore);
+});
+
+test('an autostart write failure preserves native order and reports a failed sync', () => {
+    const options = { failNativeWrite: true };
+    const explicit = explicitOrderFixture('start-sync', options);
+    assertOrderSyncRefused(explicit, 'docker_order_native_write_failed', 'native write failure');
+    const postSave = explicitOrderFixture('sync', options);
+    assert.equal(postSave.error, '');
+    assert.equal(postSave.responseStatus, 200);
+    assert.equal(postSave.response.ok, true);
+    assert.equal(postSave.response.syncOutcome, 'failed');
+    assert.equal(postSave.response.errorCode, 'docker_order_native_write_failed');
+    assert.equal(postSave.native, postSave.nativeBefore);
+    assert.equal(postSave.nativeMode, postSave.nativeModeBefore);
+});
+
+test('a guarded folder batch stays saved and reports unsynced native order after a write failure', () => {
+    const batch = explicitOrderFixture('batch', { failNativeWrite: true });
+    assert.equal(batch.error, '');
+    assert.equal(batch.responseStatus, 200);
+    assert.equal(batch.response?.ok, true);
+    const result = batch.response.result;
+    assert.equal(result.dockerOrderSynced, false);
+    assert.equal(result.createdIds.length, 1);
+    assert.equal(batch.folders[result.createdIds[0]].name, 'Persisted while native unavailable');
+    assert.equal(result.metadata.folderRevision, batch.metadata.folderRevision);
+    assert.equal(batch.native, batch.nativeBefore);
+});
+
+test('post-save sync preserves native records and returns its outcome for unusable inventory', () => {
     for (const scenario of ['failed-list', 'disabled', 'http-error', 'malformed-body', 'missing-body', 'malformed-list', 'duplicate']) {
         const result = runInventoryRepair({ type: 'docker', operation: 'sync', scenario });
         assert.equal(result.error, '');
         assert.equal(result.response.ok, true);
+        assert.equal(result.response.syncOutcome, 'failed', scenario);
+        assert.equal(result.response.errorCode, 'docker_order_inventory_unavailable', scenario);
         assert.equal(result.native, result.nativeBefore, scenario);
     }
     const result = runInventoryRepair({ type: 'docker', operation: 'sync', scenario: 'healthy', plan: { mode: 'unmanaged' } });
     assert.equal(result.error, '');
+    assert.equal(result.response.syncOutcome, 'unmanaged');
     assert.equal(result.native, result.nativeBefore);
     assert.deepEqual(result.calls, [], 'unmanaged sync must skip before runtime discovery');
 });
@@ -197,4 +266,6 @@ test('an independent native writer changing waits during sync planning is not ov
     assert.equal(result.error, '');
     assert.equal(result.hostWritten, 'docker-extra 88\ndocker-present 99\n');
     assert.equal(result.native, result.hostWritten);
+    assert.equal(result.response.syncOutcome, 'failed');
+    assert.equal(result.response.errorCode, 'docker_order_native_changed');
 });

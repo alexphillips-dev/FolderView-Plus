@@ -182,6 +182,34 @@ test('snapshot tokens are mode-independent and unchanged checks omit payloads', 
     assert.deepEqual(result.changed.revisions, { folder: 8, prefs: 9 });
 });
 
+test('numeric VM names stay keyed in snapshots and remain strings in native order', () => {
+    const php = [
+        "function ensureType(string $type): string { return $type; }",
+        "function withConfigMutationLock(callable $callback) { return $callback(); }",
+        "function readFolder(string $type): string { return '{}'; }",
+        "function readTypePrefs(string $type): array { return []; }",
+        "function readUserPrefs(string $type): string { return '[]'; }",
+        "function readConfigMetadata(string $type, bool $reconcile = true): array { return []; }",
+        "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { return $GLOBALS['fixtureVmInventory']; }",
+        requireRuntimeSnapshotLibPhp,
+        "$GLOBALS['fixtureVmInventory'] = ['0' => ['name' => '0', 'uuid' => 'fixture-zero', 'state' => 'running']];",
+        "$state = buildRuntimeSnapshot('vm', 'state');",
+        "$full = buildRuntimeSnapshot('vm', 'full');",
+        "$GLOBALS['fixtureVmInventory'] = [];",
+        "echo json_encode([$state, $full, buildRuntimeSnapshot('vm', 'state')]);"
+    ].join(' ');
+    const [state, full, empty] = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
+    const client = loadClientApi();
+    for (const snapshot of [state, full]) {
+        assert.deepEqual(snapshot.unraidOrder, ['0']);
+        assert.deepEqual(client.projectValue(client.parsePayload(snapshot), 'runtime'), {
+            '0': { name: '0', uuid: 'fixture-zero', state: 'running' }
+        });
+    }
+    assert.deepEqual(empty.runtime, []);
+    assert.deepEqual(empty.unraidOrder, []);
+});
+
 test('config snapshots return saved layout without touching host runtime discovery', () => {
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",

@@ -175,20 +175,20 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         readInfoPhp,
-        /\$preferLiveUpdateStatus = \$mode === 'state'[\s\S]*?if \(\$preferLiveUpdateStatus\) \{[\s\S]*?readInfoState\(\$type,\s*true\)/
+        /\$preferLiveUpdateStatus = \$mode === 'state'[\s\S]*?\$preferLiveUpdateStatus \? readInfoState\(\$type,\s*true\) : readInfoCached\(/
     );
 });
 
 test('lib.php coalesces docker order sync and uses lightweight state snapshots', () => {
     assert.match(libPhp, /function dockerSyncOrderLockPath\(\): string/);
     assert.match(libPhp, /function dockerSyncOrderPendingPath\(\): string/);
-    assert.match(libPhp, /function markDockerSyncOrderPending\(\): void/);
+    assert.match(libPhp, /function markDockerSyncOrderPending\(\): bool/);
     assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
     assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
-    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): \?string/);
+    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): array/);
     assert.match(libPhp, /\$infoByName = \$verifiedInventory \?\? readInfoState\('docker'\);/);
     assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB, \$wouldBlock\)/);
-    assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return null;/);
+    assert.match(libPhp, /markDockerSyncOrderPending\(\)[\s\S]*?return \['syncOutcome' => 'queued'\];/);
     assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
     assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
     assert.match(libPhp, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);

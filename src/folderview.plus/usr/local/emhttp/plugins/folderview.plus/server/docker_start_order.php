@@ -5,7 +5,7 @@ fvplus_json_try(function (): ?array {
     $action = strtolower(trim((string)($_REQUEST['action'] ?? 'preview')));
     if ($action === 'sync') {
         requireMutationRequestGuard();
-        if (!fvplusRespondToDockerOrderSync('docker')) return null;
+        return fvplusRespondToDockerOrderSync('docker');
     }
 
     $preview = dockerStartOrderPreview();

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "content-revision": "dcdda5da4000dfb84b0dd9fd7dfc908dd2539eaf738a7e81aef7c8dd37f7ddf7"
+        "content-revision": "97d73c2da234993cfa55b697feafb1ed7e080d5f1b41c0f25d94ab2951166399"
     },
+    "common.unassigned-group.title": "অনির্ধারিত আইটেম",
     "runtime.action.requests-result": "$1টি গৃহীত · $2টি ব্যর্থ",
     "runtime.action.user-script-failed": "User Scripts এই কাজটি চালু করতে পারেনি। প্লাগইন ও স্ক্রিপ্টটি উপলব্ধ আছে কি না যাচাই করুন।",
     "common.labels.optional": "ঐচ্ছিক",

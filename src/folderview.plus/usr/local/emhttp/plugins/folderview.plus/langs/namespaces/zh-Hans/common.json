@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "content-revision": "3ea1ca135bbcc5863a9720f5edaca3437ca8d1bd34e3644f67fa261ba389b422"
+        "content-revision": "1bd22f76569abf08ef5300ad344936234101f7f3f0dca64e7de97269aaab2d75"
     },
+    "common.unassigned-group.title": "未分组的项目",
     "runtime.action.requests-result": "已接受 $1 项 · 失败 $2 项",
     "runtime.action.user-script-failed": "User Scripts 无法启动此操作。请检查插件和脚本是否可用。",
     "common.labels.optional": "可选",

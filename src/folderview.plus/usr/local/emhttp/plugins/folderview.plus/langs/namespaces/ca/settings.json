@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "content-revision": "d77c8f784479c2f6ec512930033ef4c901731494d3d80aef0f22101010b913ad"
+        "content-revision": "16435b58653ef949b543475199c2bf278401dd30455d3cd20ea1a67a72bdbb4d"
     },
+    "settings.visibility.group-unassigned-items": "Agrupa els elements sense assignar",
+    "settings.visibility.group-unassigned-items-help": "També s’aplica al bloc corresponent del tauler.",
     "settings.theme.github-directory": "Trieu un directori CSS",
     "settings.rules.save-changes": "Desa els canvis",
     "settings.rules.regex-placeholder": "Patró d'expressió regular (p. ex., ^media-)",

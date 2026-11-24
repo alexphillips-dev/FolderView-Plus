@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { verifyVmUnassignedGroup } from './vm-unassigned-group.mjs';
 
 const repo = fileURLToPath(new URL('../..', import.meta.url));
 const root = process.argv[2];
@@ -111,6 +112,7 @@ try {
     console.log('PASS native Docker runtime preview reads only sanitized Compose and environment-name details on demand');
     await open('VMs');
     await waitText('#kvm_list tr.folder', 'Fixture Lab');
+    await verifyVmUnassignedGroup({ page, open, config, root });
     const vmSnapshot = url => url.pathname.endsWith('/runtime_snapshot.php')
         && url.searchParams.get('type') === 'vm' && url.searchParams.get('mode') === 'full';
     const release = Promise.withResolvers();
@@ -130,9 +132,20 @@ try {
     await page.unrouteAll({ behavior: 'wait' });
     console.log('PASS Plus folder projection in native Docker and VM pages and independent Dashboard tile startup');
 
+    const dockerPrefsPath = path.join(config, 'docker.prefs.json');
+    const dockerPrefs = JSON.parse(fs.readFileSync(dockerPrefsPath, 'utf8'));
+    fs.writeFileSync(dockerPrefsPath, JSON.stringify({ ...dockerPrefs, groupUnassignedItems: true }));
     await open('Docker');
     await waitText('#docker_list tr.folder', 'Fixture Media');
+    const unassignedGroup = page.locator('#docker_list tr[data-fv-unassigned-group] button');
+    await unassignedGroup.waitFor();
+    assert.equal(await unassignedGroup.getAttribute('aria-expanded'), 'false');
+    const groupedNames = await page.locator('#docker_list tr[data-fv-unassigned-item] .appname').allTextContents();
+    assert.deepEqual(groupedNames.map(value => value.trim()).sort(), ['app-d', 'tool-c']);
+    await unassignedGroup.click();
+    assert.equal(await unassignedGroup.getAttribute('aria-expanded'), 'true');
     assert.equal(fs.readFileSync(orderFile, 'utf8'), originalOrder);
+    assert.equal(fs.readFileSync(autostartFile, 'utf8'), emptyOrder);
     await page.locator('[data-fvplus-docker-menu="tools"]').click();
     await page.locator('[data-fvplus-docker-tool="save-native-order"]').click();
     const preview = page.locator('.fvplus-native-order-name');
@@ -155,7 +168,7 @@ try {
     await page.reload();
     await waitText('#docker_list tr.folder', 'Fixture Media');
     assert.equal(fs.readFileSync(orderFile, 'utf8'), savedOrder);
-    console.log('PASS Plus preview, native UserPrefs save, autostart, and reload');
+    console.log('PASS Docker catch-all and native UserPrefs preview, save, autostart, and reload');
 
     await page.goto('about:blank');
     fs.writeFileSync(bootManifest, manifest);

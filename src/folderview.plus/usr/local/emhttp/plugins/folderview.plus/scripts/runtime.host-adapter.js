@@ -39,7 +39,7 @@
             itemRowSelector: 'tr.sortable:not(.folder)',
             detailRowSelector: 'tr.sub, tr[data-fv-native-detail-row="1"]',
             itemNameSelectors: ['[data-name]', '.ct-name [data-name]', '.ct-name .appname', '.ct-name'],
-            allowedHooks: ['loadlist', 'listview', 'openDocker', 'eventControl', 'addDockerContainerContext']
+            allowedHooks: ['loadlist', 'listview', 'openDocker', 'eventControl', 'addDockerContainerContext', 'LockButton']
         }),
         vm: freezeContract({
             type: 'vm',
@@ -58,6 +58,7 @@
             itemNameSelectors: ['[data-name]', '.vm-name [data-name]', '.vm-name .appname', '.vm-name'],
             allowedHooks: [
                 'loadlist',
+                'LockButton',
                 'addVMContext',
                 'ajaxVMDispatch',
                 'ajaxVMDispatchconsole',

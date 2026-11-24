@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "content-revision": "5d1956e3a67244d7470cc4cbcf6a28db05aadd12aa6f08ce9e893b40885a3bff"
+        "content-revision": "2c663e2ac5dcfc404b3ec1dbc7dd9aac23dcc4932b9feb811eb9a3d6ce736524"
     },
+    "settings.visibility.group-unassigned-items": "Grupiraj nedodijeljene stavke",
+    "settings.visibility.group-unassigned-items-help": "Primjenjuje se i na odgovarajući panel na nadzornoj ploči.",
     "settings.theme.github-directory": "Odaberite CSS direktorij",
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",

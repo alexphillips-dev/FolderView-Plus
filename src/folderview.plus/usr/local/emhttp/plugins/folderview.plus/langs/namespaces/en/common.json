@@ -1,11 +1,12 @@
 {
+    "common.unassigned-group.title": "Unassigned items",
     "runtime.action.requests-result": "$1 accepted · $2 failed",
     "runtime.action.user-script-failed": "User Scripts could not launch this action. Check that the plugin and script are available.",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "content-revision": "2e09b16f5a1a3a06a9ca2936e8a23c1a40c3a7a6ae731baff92e032477a79816"
+        "content-revision": "ea3a1f63b974f39485900db0a12aecc211a89506482e8c47dc52983f762a12ba"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",

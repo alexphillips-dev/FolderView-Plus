@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "common",
-        "content-revision": "f9f8874de56cd2a9cd918674d1eaf05b9c86957d3efb5855ff49530ff35c9d72"
+        "content-revision": "2acc6650db540bc9b14c27287cab383985b36b53d8a78dfdfcbe50943845ad53"
     },
+    "common.unassigned-group.title": "Itens não atribuídos",
     "runtime.action.requests-result": "$1 aceites · $2 falharam",
     "runtime.action.user-script-failed": "O User Scripts não conseguiu iniciar esta ação. Verifique se o plugin e o script estão disponíveis.",
     "common.labels.optional": "Opcional",

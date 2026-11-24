@@ -236,10 +236,6 @@ tr.fv-folder-locked .folder-appname {
     pointer-events: none;
 }
 
-.fv-folder-focus-hidden {
-    display: none !important;
-}
-
 span.folder-state.fv-folder-state-started {
     color: var(--fvplus-folder-status-text, var(--fvplus-theme-foreground, var(--text, currentColor)));
 }

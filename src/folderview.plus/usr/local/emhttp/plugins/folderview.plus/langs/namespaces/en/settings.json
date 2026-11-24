@@ -1,10 +1,12 @@
 {
+    "settings.visibility.group-unassigned-items": "Group unassigned items",
+    "settings.visibility.group-unassigned-items-help": "Also applies to the matching Dashboard tile.",
     "settings.theme.github-directory": "Choose a CSS directory",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "content-revision": "8a152e9cff34fa1f1b61d101969aa1f74005e1c20c8ec1497de673086c7c2eb7"
+        "content-revision": "bf88a4ccbfc62e0692911b137c91e7be793093b410bc1851d057b5132bf51559"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",

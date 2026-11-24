@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "content-revision": "125364f6bd1c9be57239e6fa5b1627eb4002f23870246d9a399dc48afe6ab9b1"
+        "content-revision": "5dc0a6cf7c66c69b6faea088772a8b6c5f41c06204b77218eddb877315e33185"
     },
+    "common.unassigned-group.title": "Nepřiřazené položky",
     "runtime.action.requests-result": "Přijato $1 · Selhalo $2",
     "runtime.action.user-script-failed": "User Scripts nemohl spustit tuto akci. Ověřte, že jsou doplněk a skript dostupné.",
     "common.labels.optional": "Volitelné",

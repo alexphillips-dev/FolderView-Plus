@@ -389,6 +389,9 @@ if (vmBootstrapMissingModules.length > 0) {
     throw error;
 }
 const vmHostAdapter = runtimeHostAdapters?.getOrCreate?.('vm', { window, document }) || null;
+const vmUnassignedGroupModule = window.FolderViewPlusFoundationModules.unassignedGroup;
+const vmUnassignedGroup = vmUnassignedGroupModule?.createApi({ window, type: 'vm' });
+let vmUnassignedNames = new Set();
 const ensureVmHostPageStructure = () => {
     if (!vmHostAdapter || typeof vmHostAdapter.ensureStructure !== 'function') {
         throw new Error('VM host adapter unavailable');
@@ -1366,7 +1369,7 @@ const findVmRuntimeRowForDetailId = (detailId) => {
     return null;
 };
 
-const collectExistingVmDetailRowsForVmRow = (vmRow) => {
+const collectExistingVmDetailRowsForVmRow = (vmRow, includeNativeChildren = false) => {
     if (!(vmRow instanceof HTMLTableRowElement)) {
         return [];
     }
@@ -1376,15 +1379,27 @@ const collectExistingVmDetailRowsForVmRow = (vmRow) => {
     }
     const detailRows = [];
     let sibling = vmRow.nextElementSibling;
-    while (sibling instanceof HTMLTableRowElement && isVmNativeDetailRow(sibling)) {
-        const siblingDetailId = getVmNativeDetailRowId(sibling);
-        if (siblingDetailId !== detailId) {
-            break;
-        }
+    while (sibling instanceof HTMLTableRowElement && sibling.id === detailId
+        && (includeNativeChildren || isVmNativeDetailRow(sibling))) {
         detailRows.push(sibling);
         sibling = sibling.nextElementSibling;
     }
     return detailRows;
+};
+
+const renderVmUnassignedGroup = () => {
+    const tbody = vmHostAdapter.getPrimaryBody();
+    if (!vmUnassignedGroup || folderTypePrefs.groupUnassignedItems !== true || tbody?.id !== 'kvm_list'
+        || tbody.classList.contains('ui-sortable')) return;
+    const rows = Array.from(tbody.querySelectorAll(':scope > tr.sortable:not(.folder)')).filter(row => {
+        const name = String(row.querySelector('td.vm-name span.outer span.inner a')?.textContent || '').trim();
+        return vmUnassignedNames.has(name);
+    });
+    vmUnassignedGroup.render(tbody, rows, {
+        columnCount: rows[0]?.cells.length,
+        getRelatedRows: row => collectExistingVmDetailRowsForVmRow(row, true),
+        onToggle: () => scheduleVmZebraRefresh(0)
+    });
 };
 
 const withVmNativeDetailAdoptionSuspended = (callback) => {
@@ -1465,13 +1480,16 @@ const ensureVmNativeDetailRowObserver = () => {
         const detailRows = [];
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
-                if (isVmNativeDetailRow(node)) {
+                if (isVmNativeDetailRow(node) && !vmUnassignedGroup?.isMember(node)) {
                     detailRows.push(node);
                 }
             });
         });
         if (detailRows.length > 0) {
             adoptVmNativeDetailRows(detailRows);
+            if (detailRows.some(row => vmUnassignedGroup?.isMember(row.previousElementSibling))) {
+                renderVmUnassignedGroup();
+            }
         }
     }, { subtree: false });
     vmNativeDetailRowObserver = { disconnect };
@@ -1514,6 +1532,8 @@ let createFoldersQueued = false;
 const vmFolderRenderRecovery = window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage('vm', '#kvm_list', { deferred: vmDeferredPreviewController });
 
 const createFolders = async () => {
+    vmUnassignedGroup?.clear();
+    vmUnassignedNames.clear();
     vmDeferredPreviewController.flush();
     const vmRuntimeRoot = document.querySelector('#kvm_list, #vm_view');
     vmRuntimePerformanceTelemetry?.observe?.(vmRuntimeRoot);
@@ -1532,7 +1552,9 @@ const createFolders = async () => {
     markVmFatalBannerStep('VM runtime lifecycle hooks ready');
     persistVmExpandedStateFromDom();
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
-    const prom = await Promise.all(folderReq);
+    const currentRequests = folderReq;
+    const prom = await Promise.all(currentRequests);
+    if (currentRequests !== folderReq || vmRuntimePageDisposed) return;
     markVmFatalBannerStep('VM runtime request bundle resolved');
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -1578,6 +1600,9 @@ const createFolders = async () => {
         vmInfo: vmInfo
     }}));
     const folderMatchCache = buildVmFolderMatchCache(order, vmInfo, folders, folderTypePrefs);
+    if (folderTypePrefs.groupUnassignedItems === true) {
+        vmUnassignedNames = new Set(vmUnassignedGroupModule?.getNames(utils.getMembershipSnapshotFromCache(folderMatchCache)));
+    }
 
     // Draw the folders in the order
     for (let key = 0; key < order.length; key++) {
@@ -1675,6 +1700,7 @@ const createFolders = async () => {
     ensureVmNativeDetailInteractionHooks();
     ensureVmNativeDetailRowObserver();
     adoptVmNativeDetailRows(Array.from(document.querySelectorAll(`tbody#kvm_list > ${VM_NATIVE_DETAIL_ROW_SELECTOR}`)));
+    renderVmUnassignedGroup();
     refreshVmFolderQuickActionStates();
     applyVmFocusedFolderState();
     syncVmRuntimeExpandedStore();
@@ -3586,8 +3612,10 @@ const bindVmRuntimePreferenceSync = () => {
         applyRuntimePrefs(folderTypePrefs);
         if (previousPrefs && (
             previousPrefs.hideEmptyFolders !== folderTypePrefs.hideEmptyFolders
+            || previousPrefs.groupUnassignedItems !== folderTypePrefs.groupUnassignedItems
             || ['running', 'stopped'].some(key => previousPrefs.badges?.[key] !== folderTypePrefs.badges?.[key])
         )) {
+            if (folderTypePrefs.groupUnassignedItems !== true) vmUnassignedGroup?.clear({ resetExpansion: true });
             queueLoadlistRefresh();
         }
     });
@@ -3659,6 +3687,8 @@ markVmFatalBannerStep('VM request bundle primed');
 
 // Route the Unraid host lifecycle through the same adapter contract as Docker.
 vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
+    vmUnassignedGroup?.clear();
+    vmUnassignedNames.clear();
     loadedFolder = false;
     folderReq = buildVmFolderReq();
     if (typeof window.loadlist_original === 'function') {
@@ -3684,6 +3714,17 @@ vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
     onWrapped: () => markVmFatalBannerStep('VM loadlist hook wrapped'),
     onInvoke: () => recordVmFatalBannerAction('VM host loadlist invoked')
 });
+if (vmUnassignedGroup && typeof window.LockButton === 'function') {
+    // Native sorting submits current row order, so restore it before giving control to Unraid.
+    vmHostAdapter.wrapHook('LockButton', ({ invokeOriginal }) => {
+        if (folderTypePrefs.groupUnassignedItems !== true) return invokeOriginal();
+        vmUnassignedGroup.clear();
+        const result = invokeOriginal();
+        renderVmUnassignedGroup();
+        applyVmFocusedFolderState();
+        return result;
+    });
+}
 vmLifecycleApi.bind();
 markVmFatalBannerStep('VM lifecycle dispatch and context hooks ready');
 
@@ -3720,6 +3761,7 @@ function ensureVmQuickFinder() {
         window, document, type: 'vm', hostAdapter: vmHostAdapter,
         getFolders: () => globalFolders, getRuntime: () => vmRuntimeInfoByName,
         clearFocus: () => toggleVmFolderFocus(vmFocusedFolderId),
+        revealHidden: (item) => item.kind === 'item' && vmUnassignedGroup?.reveal(findVmRuntimeRowsByName(item.id).get(0)),
         expand: dropDownButton, edit: editFolder, focus: toggleVmFolderFocus
     });
     vmQuickFinderApi.mount();
@@ -3765,6 +3807,7 @@ window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('vm');
 
 window.addEventListener('pagehide', () => {
     vmRuntimePageDisposed = true;
+    vmUnassignedGroup?.clear();
     window.clearTimeout(vmFolderActionRefreshTimer);
     vmQuickFinderApi?.dispose();
     vmLiveRefreshController.dispose();

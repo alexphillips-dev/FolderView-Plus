@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "content-revision": "c924bb64d1c9e157f69e56becce76ba9963af05fce3592b0945e083c7c33a8bf"
+        "content-revision": "f6a47f4cffedc8083829ab5acc1b0373b3253e7bd3c1416e4f0e404786f2a26e"
     },
+    "common.unassigned-group.title": "Niet-toegewezen items",
     "runtime.action.requests-result": "$1 geaccepteerd · $2 mislukt",
     "runtime.action.user-script-failed": "User Scripts kon deze actie niet starten. Controleer of de plug-in en het script beschikbaar zijn.",
     "common.labels.optional": "Optioneel",

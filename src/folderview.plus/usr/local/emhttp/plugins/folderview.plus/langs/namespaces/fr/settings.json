@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "content-revision": "6797e4c00ef9508d623c25508610e79e29e8fa43a7322242710b1fa024219ff4"
+        "content-revision": "7609dc151e71e84172424973813ee26e3676ec1ebcec059c29914e5b997aa4de"
     },
+    "settings.visibility.group-unassigned-items": "Regrouper les éléments non affectés",
+    "settings.visibility.group-unassigned-items-help": "S’applique aussi à la tuile correspondante du tableau de bord.",
     "settings.theme.github-directory": "Choisir un répertoire CSS",
     "settings.rules.save-changes": "Enregistrer les modifications",
     "settings.rules.regex-placeholder": "Modèle Regex (par exemple ^media-)",

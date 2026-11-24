@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "content-revision": "398bac7535b2fc3845e611d4fd71cad2f79c5854ae9d3b73c5c5d1f7d72bcc65"
+        "content-revision": "8d7f85654a6942cbd4f40e03411bbb48ace3b7266088eadcf19bb74f14e12478"
     },
+    "settings.visibility.group-unassigned-items": "Grupper ikke-tilordnede elementer",
+    "settings.visibility.group-unassigned-items-help": "Gjelder også den tilsvarende flisen på dashbordet.",
     "settings.theme.github-directory": "Velg en CSS-mappe",
     "settings.rules.save-changes": "Lagre endringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",

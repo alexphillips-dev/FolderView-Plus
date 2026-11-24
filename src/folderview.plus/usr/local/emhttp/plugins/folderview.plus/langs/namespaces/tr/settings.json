@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "content-revision": "b11b1b9c290ddcc9d79a3d7f64b0b2b981a87bcc0de05eb1f83ebe128ac0d1eb"
+        "content-revision": "1a6d2167a6b7bf2a8cf2b0e3f93fd99a5e793bd6b73cad4871e840d7243fa90c"
     },
+    "settings.visibility.group-unassigned-items": "Atanmamış öğeleri grupla",
+    "settings.visibility.group-unassigned-items-help": "İlgili gösterge paneli kutucuğuna da uygulanır.",
     "settings.theme.github-directory": "Bir CSS dizini seçin",
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",

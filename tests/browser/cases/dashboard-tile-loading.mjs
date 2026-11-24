@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-const installDashboardLoadingFixture = async (page, baseUrl) => {
+export const installDashboardLoadingFixture = async (page, baseUrl, { nativeMarkup } = {}) => {
     const types = ['docker', 'vm'];
     const idFor = (type) => type === 'vm' ? 'vm_view' : 'docker_view';
     const nameFor = (type) => `fixture-${type}`;
@@ -19,7 +19,7 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
     )).join('');
     const nativeRows = types.map((type) => `<tr class="updated"><td><span class="outer ${type === 'vm' ? 'vms' : 'apps'} started"><span class="inner">${nameFor(type)}</span></span></td></tr>`);
     await page.route('**/webGui/include/DashboardApps.php', (route) => route.fulfill({
-        contentType: 'text/plain', body: nativeRows.join('\0')
+        contentType: 'text/plain', body: (nativeMarkup ? types.map(nativeMarkup) : nativeRows).join('\0')
     }));
     await page.route('**/graphql', (route) => route.fulfill({ json: { data: {} } }));
     const pending = { docker: [], vm: [] };
@@ -65,7 +65,7 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
             return widgets?.docker === 'pending' && widgets?.vm === 'pending';
         });
     };
-    const settle = (type, index, revision, failed = false) => {
+    const settle = (type, index, revision, failed = false, snapshot = {}) => {
         const folder = makeFolder(type, revision);
         const name = nameFor(type);
         const vm = { name, uuid: 'fixture-uuid', state: 'running', autostart: true };
@@ -78,7 +78,7 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
             ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type,
             folders: { [folder.id]: folder }, order: [`folder-${folder.id}`],
             runtime, unraidOrder: [name], prefs: { dashboard: { layout: 'fullwidth' } },
-            revisions: { folder: revision, prefs: revision }, metadata: { prefsRevision: revision }
+            revisions: { folder: revision, prefs: revision }, metadata: { prefsRevision: revision }, ...snapshot
         });
     };
     const widget = (type) => page.locator(`#${idFor(type)}`);

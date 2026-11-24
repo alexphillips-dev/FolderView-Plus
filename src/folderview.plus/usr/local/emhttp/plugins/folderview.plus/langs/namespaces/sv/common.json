@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "content-revision": "b61afff49d49dac4a7cf2e39ad524d3a780365cceb75fd691e23c9d2eff2c2d6"
+        "content-revision": "9454f03ae66ec5d0eb54bbe19e20d840d5428c6b52aabab2c5d498fac49ec72d"
     },
+    "common.unassigned-group.title": "Otilldelade objekt",
     "runtime.action.requests-result": "$1 godkända · $2 misslyckade",
     "runtime.action.user-script-failed": "User Scripts kunde inte starta den här åtgärden. Kontrollera att tillägget och skriptet är tillgängliga.",
     "common.labels.optional": "Valfritt",

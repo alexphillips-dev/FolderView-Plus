@@ -40,7 +40,7 @@ const hydrateFixture = async (page, baseUrl) => {
         const dashboardStorageWriter = window.FolderViewPlusFoundationModules.utilityFoundation.createBatchedStorageWriter(window.localStorage);
         const dashboardExpandedStateStore = window.FolderViewPlusDashboardStateStore.createStore({ window, writer: dashboardStorageWriter });
         const dashboardLiveRefreshController = { dispose() {} }, queuedLoadlistTimer = null, dashboardThemeReflowTimer = null, dashboardThemeReflowUnsubscribe = null;
-        const dashboardHostAdapterModule = null, runtimeHostAdapters = null, dashboardDockerProviderRegistry = null;
+        const dashboardHostAdapterModule = null, runtimeHostAdapters = null, dashboardDockerProviderRegistry = null, dashboardUnassignedGroups = {};
         ${pagehide}
         const globalFolders = { docker: {}, vms: {} };
         let layout = 'accordion';

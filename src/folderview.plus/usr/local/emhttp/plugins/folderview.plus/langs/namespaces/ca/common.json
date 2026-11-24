@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "content-revision": "2c785f96dfa3a162f050e2e5647b360c08a45744d59324a6e2a8ba1c6471e5f2"
+        "content-revision": "e40d09dc17110a1e60e963e08ae4ea0b74efc66100b1d1fe3e026bf9df0fa16f"
     },
+    "common.unassigned-group.title": "Elements sense assignar",
     "runtime.action.requests-result": "$1 acceptades · $2 fallides",
     "runtime.action.user-script-failed": "User Scripts no ha pogut iniciar aquesta acció. Comproveu que el connector i l’script estiguin disponibles.",
     "common.labels.optional": "Opcional",

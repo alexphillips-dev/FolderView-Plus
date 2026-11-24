@@ -257,6 +257,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <input id="docker-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
                         <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
                     </label>
+                    <label class="setting-toggle fv-setting-checkbox-row">
+                        <input id="docker-group-unassigned-items" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'groupUnassignedItems', this.checked)">
+                        <span class="fv-setting-copy"><strong data-i18n="settings.visibility.group-unassigned-items">Group unassigned items</strong><small data-i18n="settings.visibility.group-unassigned-items-help">Also applies to the matching Dashboard tile.</small></span>
+                    </label>
                     <label class="setting-toggle fv-setting-switch fv-page-title-enable">
                         <strong data-i18n="settings.page-title.label">Docker page title</strong>
                         <input id="docker-page-title-enabled" type="checkbox" aria-label="Show custom title" data-i18n="[aria-label]settings.page-title.enable" data-fv-title-field="enabled">
@@ -672,6 +676,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label class="setting-toggle fv-setting-checkbox-row">
                         <input id="vm-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)">
                         <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
+                    </label>
+                    <label class="setting-toggle fv-setting-checkbox-row">
+                        <input id="vm-group-unassigned-items" type="checkbox" data-fv-onchange="changeVisibilityPref('vm', 'groupUnassignedItems', this.checked)">
+                        <span class="fv-setting-copy"><strong data-i18n="settings.visibility.group-unassigned-items">Group unassigned items</strong><small data-i18n="settings.visibility.group-unassigned-items-help">Also applies to the matching Dashboard tile.</small></span>
                     </label>
                     <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
                 </div>

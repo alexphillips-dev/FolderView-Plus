@@ -3450,6 +3450,39 @@ const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPa
     utils.normalizePrefs(prefs || {}).pageViewMode
 );
 
+const dockerUnassignedModule = window.FolderViewPlusFoundationModules?.unassignedGroup;
+const dockerUnassignedGroup = dockerUnassignedModule?.createApi({ window, type: 'docker' });
+let dockerUnassignedMembership = null;
+let dockerUnassignedRows = null;
+const clearDockerUnassignedGroup = (options) => {
+    dockerUnassignedMembership = null;
+    dockerUnassignedRows = null;
+    dockerUnassignedGroup?.clear(options);
+};
+const renderDockerUnassignedGroup = (snapshot = dockerUnassignedMembership) => {
+    if (!dockerUnassignedGroup || folderTypePrefs?.groupUnassignedItems !== true || resolveDockerPageViewMode() !== 'folderview') {
+        clearDockerUnassignedGroup({ resetExpansion: folderTypePrefs?.groupUnassignedItems !== true });
+        return;
+    }
+    const tbody = document.getElementById('docker_list');
+    if (!snapshot || !tbody) return;
+    dockerUnassignedMembership = snapshot;
+    const index = dockerFolderGroupingModule.createNativeRowIndex({ document, containersInfo: dockerRuntimeInfoByName });
+    dockerUnassignedRows = new Set(dockerUnassignedModule.getNames(snapshot)
+        .map((name) => index.find(name))
+        .filter((row) => row?.parentElement === tbody && !readFolderOwnerFromRow(row)));
+    if ($(tbody).data('ui-sortable') || $(tbody).data('sortable')) {
+        // The host serializes actual DOM order during native sorting.
+        dockerUnassignedGroup.clear();
+        return;
+    }
+    const orderedRows = Array.from(tbody.children).filter((row) => dockerUnassignedRows.has(row));
+    dockerUnassignedGroup.render(tbody, orderedRows, {
+        columnCount: tbody.closest('table')?.tHead?.rows[0]?.cells.length,
+        onToggle: () => scheduleDockerRuntimeWidthReflow('unassigned-toggle', 0)
+    });
+};
+
 let dockerRuntimeActionBarApi = null;
 const applyDockerRuntimeToolbarFilterState = () => dockerRuntimeActionBarApi?.applyFilterState();
 const renderDockerRuntimeActionBar = (mode = resolveDockerPageViewMode()) => {
@@ -3558,6 +3591,7 @@ const normalizeDockerNativeHostOrder = (payload) => {
 };
 
 const restoreDockerNativeHostList = async (requestBundle = null) => {
+    clearDockerUnassignedGroup();
     const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
     if (!(tbody instanceof HTMLElement)) {
         return { restoredRows: 0, removedFolders: 0 };
@@ -3715,6 +3749,7 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
                         hideDockerRuntimeLoadingRow();
                     });
             } else if (mode === 'command') {
+                clearDockerUnassignedGroup();
                 unmountDockerIsolatedViews('command');
                 releaseWidthBootstrap();
                 markDockerFatalBannerStep('Docker command view active');
@@ -3778,6 +3813,9 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
         getScopedContainers: (id) => getScopedRuntimeContainersForFolder(id, true),
         readFolderIdFromRow,
         readFolderOwnerFromRow,
+        getUnassignedRows: () => dockerUnassignedRows,
+        isUnassignedHeader: (row) => dockerUnassignedGroup?.isHeader(row) === true,
+        setUnassignedExpanded: (expanded) => dockerUnassignedGroup?.setExpanded(expanded),
         getFolderAncestors,
         getFolderDescendants,
         applyFocusedFolderState: () => applyDockerFocusedFolderState(),
@@ -3793,6 +3831,11 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
         collapseFolderBranch,
         createFolder: () => createFolderBtn(),
         nativeOrder: {
+            collectCells: () => {
+                const tbody = document.getElementById('docker_list');
+                const rows = tbody && dockerUnassignedGroup?.getUngroupedRows(tbody);
+                return rows?.flatMap((row) => Array.from(row.querySelectorAll('td.ct-name')));
+            },
             // The request Unraid's Docker page sends after a drag; the UserPrefs.php hooks further down apply to it too.
             save: (data) => $.ajax({ type: 'POST', url: '/plugins/dynamix.docker.manager/include/UserPrefs.php', data, timeout: 15000 }),
             // stored=1 adds the raw entries of userprefs.cfg, so a save is checked against what Unraid stored.
@@ -4596,6 +4639,7 @@ const createFolders = async () => {
     const renderGeneration = Number(folderReq?.generation || dockerBootstrapGeneration || 0);
     const isCurrent = () => !dockerRuntimePageDisposed && renderGeneration === dockerBootstrapGeneration;
     if (!isCurrent()) return false;
+    clearDockerUnassignedGroup();
     dockerDeferredPreviewController.flush();
     dockerAdvancedPreviewContextBindersByName.clear();
     const dockerRuntimeRoot = document.querySelector('#docker_list, #docker_view');
@@ -4723,7 +4767,8 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
-    getDockerRuntimeInfoApi().setMembershipSnapshot(utils.getMembershipSnapshotFromCache(folderMatchCache));
+    const membershipSnapshot = utils.getMembershipSnapshotFromCache(folderMatchCache);
+    getDockerRuntimeInfoApi().setMembershipSnapshot(membershipSnapshot);
     dockerRuntimePerformanceTelemetry?.end?.('renderPreparation');
     dockerRuntimePerformanceTelemetry?.begin?.('folderRows');
     // Draw the folders in the order
@@ -4848,6 +4893,7 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
+    renderDockerUnassignedGroup(membershipSnapshot);
     applyDockerFocusedFolderState();
     dockerHiddenFoldersApi.applyVisibility();
     applyDockerRuntimeToolbarFilterState();
@@ -6887,6 +6933,7 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     if (dockerNativeBusyPollInFlight) {
         appendDockerRequestBundleTrace('listview', { nativeBusyActive: true, reloadSource: 'unraid-native-busy-poll' });
         dockerNativeBusyPollInFlight = false;
+        clearDockerUnassignedGroup();
         if (typeof window.listview_original === 'function') invokeOriginal();
         return;
     }
@@ -6923,6 +6970,16 @@ getDockerHostGuardsApi()?.wrapHostHook?.('listview', ({ invokeOriginal }) => {
     missingMessage: 'Docker host listview hook was unavailable during bootstrap.',
     missingDetails: ['window.listview was not a function when FolderView Plus initialized.']
 });
+if (typeof window.LockButton === 'function') {
+    dockerHostAdapter?.wrapHook('LockButton', ({ invokeOriginal }) => {
+        if (folderTypePrefs?.groupUnassignedItems !== true || resolveDockerPageViewMode() !== 'folderview') return invokeOriginal();
+        dockerUnassignedGroup?.clear();
+        const result = invokeOriginal();
+        renderDockerUnassignedGroup();
+        applyDockerRuntimeToolbarFilterState();
+        return result;
+    });
+}
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-loadlist');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
@@ -6938,6 +6995,7 @@ getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
         if (typeof window.loadlist_original === 'function') invokeOriginal();
         return;
     }
+    clearDockerUnassignedGroup();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
@@ -7587,9 +7645,13 @@ const bindDockerRuntimePreferenceSync = () => {
         const previousPrefs = lastAppliedRuntimePrefs;
         const nextPrefs = dockerHiddenFoldersApi.reconcilePrefs(applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs)));
         folderTypePrefs = nextPrefs;
+        if (nextPrefs.groupUnassignedItems !== true || resolveDockerPageViewMode(nextPrefs) !== 'folderview') {
+            clearDockerUnassignedGroup({ resetExpansion: nextPrefs.groupUnassignedItems !== true });
+        }
         applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
         if (previousPrefs && (
             previousPrefs.hideEmptyFolders !== nextPrefs.hideEmptyFolders
+            || previousPrefs.groupUnassignedItems !== nextPrefs.groupUnassignedItems
             || previousPrefs.pageViewMode !== nextPrefs.pageViewMode
             || ['running', 'stopped', 'updates'].some(key => previousPrefs.badges?.[key] !== nextPrefs.badges?.[key])
         )) {
@@ -7746,6 +7808,10 @@ function ensureDockerQuickFinder() {
             revealHidden: (item) => {
                 const ids = [...item.ancestors, ...(item.kind === 'folder' ? [item.id] : [])];
                 if (ids.some((id) => folderTypePrefs?.hiddenFolderIds?.includes(id))) dockerHiddenFoldersApi.setReveal(true);
+                if (item.kind === 'item' && dockerUnassignedRows) {
+                    const row = getDockerRuntimeInfoApi().getDockerNativeRowIndex()?.find(item.name);
+                    dockerUnassignedGroup?.reveal(row);
+                }
             },
             expand: (id) => dropDownButton(id),
             edit: (id) => editFolder(id),
@@ -7824,6 +7890,7 @@ window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('docker');
 
 window.addEventListener('pagehide', () => {
     dockerRuntimePageDisposed = true;
+    clearDockerUnassignedGroup();
     dockerBootstrapGeneration += 1;
     dockerRuntimeRefreshGeneration += 1;
     getDockerRuntimeReconcileApi()?.disposeLifecycleRefreshes?.();

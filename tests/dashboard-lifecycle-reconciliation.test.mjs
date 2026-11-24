@@ -40,6 +40,7 @@ test('Dashboard pagehide commits both pending expansion maps before releasing ho
     vm.runInNewContext(dashboardSource.slice(start, end), {
         window: { addEventListener: (name, callback, options) => hooks.push({ name, callback, options }), removeEventListener: (name, callback) => { assert.equal(name,'pagehide'); assert.equal(callback,hooks[0].callback); events.push('removed'); } },
         dashboardStorageWriter: writer, queuedLoadlistTimer: null, dashboardThemeReflowTimer: null, dashboardThemeReflowUnsubscribe: () => events.push('theme-unsubscribe'), clearTimeout,
+        dashboardUnassignedGroups: { docker: { clear: () => events.push('docker-unassigned') }, vm: { clear: () => events.push('vm-unassigned') } },
         dashboardLiveRefreshController: { dispose() {
             assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
             assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.vm)), { vmParent: true, vmChild: true });
@@ -49,7 +50,7 @@ test('Dashboard pagehide commits both pending expansion maps before releasing ho
     assert.equal(hooks.length, 1); assert.equal(hooks[0].name, 'pagehide');
     hooks[0].callback({persisted:true}); assert.deepEqual(events, []);
     assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
-    hooks[0].callback({persisted:false}); assert.deepEqual(events, ['dispose','theme-unsubscribe','removed']);
+    hooks[0].callback({persisted:false}); assert.deepEqual(events, ['docker-unassigned','vm-unassigned','dispose','theme-unsubscribe','removed']);
 });
 
 const flushPromises = async () => {

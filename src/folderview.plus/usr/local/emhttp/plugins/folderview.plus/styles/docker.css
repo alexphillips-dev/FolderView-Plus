@@ -570,10 +570,6 @@ tr.fv-folder-locked .folder-appname {
     pointer-events: none;
 }
 
-.fv-folder-focus-hidden {
-    display: none !important;
-}
-
 #docker_list > tr.fv-folder-user-hidden {
     display: none !important;
 }

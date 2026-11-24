@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "content-revision": "45aedd312c29e8c963c412385e11063c2e5e501bf3efce2c75564f952e5ba200"
+        "content-revision": "ad1cefbcfd35bb6128a668d778d2dec529615ddbf190f19b6b0ab2073ac05a0b"
     },
+    "settings.visibility.group-unassigned-items": "تجميع العناصر غير المعيّنة",
+    "settings.visibility.group-unassigned-items-help": "ينطبق أيضًا على القسم المقابل في لوحة المعلومات.",
     "settings.theme.github-directory": "اختر دليل CSS",
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",

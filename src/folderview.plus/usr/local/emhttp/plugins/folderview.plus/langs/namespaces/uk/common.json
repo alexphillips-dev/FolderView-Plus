@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "content-revision": "28415eb18e7f815e587f4ff977f8e7b7710b3fd00ab571af5230ffe0a4fb68e9"
+        "content-revision": "6e57ac52ef6fd17f816987f9e8a359533a231eb20fd6d088ccbc09b138da14a8"
     },
+    "common.unassigned-group.title": "Непризначені елементи",
     "runtime.action.requests-result": "Прийнято: $1 · Помилок: $2",
     "runtime.action.user-script-failed": "User Scripts не вдалося запустити цю дію. Перевірте, чи доступні плагін і скрипт.",
     "common.labels.optional": "Необов'язково",

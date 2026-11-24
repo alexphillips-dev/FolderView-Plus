@@ -167,6 +167,67 @@ echo json_encode($result);`);
     });
 });
 
+test('unassigned grouping saves a narrow preference patch and refreshes only the selected type', () => {
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^\r\n]+\);\s*/, '');
+    assert.notEqual(endpoint, prefsEndpoint, 'load the shipped endpoint using the isolated source directory');
+    for (const [type, enabled] of [['docker', true], ['vm', false]]) {
+        const result = runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+require_once ${phpQuote(libPath)};
+require_once ${phpQuote(path.join(pluginRoot, 'server/lib.runtime-snapshot.php'))};
+$type = ${phpQuote(type)};
+$otherType = $type === 'docker' ? 'vm' : 'docker';
+$group = ${enabled ? 'true' : 'false'};
+$seed = ['hideEmptyFolders' => true, 'dashboard' => ['layout' => 'accordion']];
+if (!$group) $seed['groupUnassignedItems'] = true;
+writeTypePrefs($type, $seed);
+writeTypePrefs($otherType, ['groupUnassignedItems' => !$group]);
+$snapshot = static fn($type) => buildRuntimeConfigSnapshotFromConfig($type, readRuntimeSnapshotConfig($type));
+$before = $snapshot($type);
+$otherBefore = $snapshot($otherType);
+$_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_SERVER['HTTP_HOST'] = 'localhost';
+$_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+$_SERVER['HTTP_X_FV_REQUEST'] = '1';
+$_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+$_POST = [
+    'type' => $type, 'expectedRevision' => (string)$before['revisions']['prefs'],
+    'prefs' => json_encode(['groupUnassignedItems' => $group]),
+    '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']
+];
+ob_start();
+eval(${phpQuote(endpoint)});
+$response = json_decode(ob_get_clean(), true);
+releaseConfigMutationLock();
+$after = $snapshot($type);
+$otherAfter = $snapshot($otherType);
+$environment = normalizeEnvironmentSnapshotPayload(['types' => [
+    $type => ['prefs' => $after['prefs']], $otherType => ['prefs' => $otherAfter['prefs']]
+]]);
+$malformedRejected = false;
+try { fvplus_assert_prefs_payload_shape(['groupUnassignedItems' => ['bad' => true]]); }
+catch (RuntimeException $error) { $malformedRejected = true; }
+echo json_encode(compact('before', 'after', 'otherBefore', 'otherAfter', 'response', 'environment', 'malformedRejected'));`);
+        const { before, after, otherBefore, otherAfter, response, environment, malformedRejected } = result;
+        assert.equal(response.ok, true, JSON.stringify(response));
+        assert.equal(response.prefs.groupUnassignedItems, enabled);
+        assert.equal(before.prefs.groupUnassignedItems, !enabled);
+        assert.equal(utils.normalizePrefs(after.prefs).groupUnassignedItems, enabled);
+        assert.equal(after.prefs.hideEmptyFolders, true);
+        assert.equal(after.prefs.dashboard.layout, 'accordion');
+        assert.equal(after.revisions.folder, before.revisions.folder);
+        assert.equal(after.revisions.prefs, before.revisions.prefs + 1);
+        assert.notEqual(after.snapshotToken, before.snapshotToken);
+        assert.equal(otherAfter.snapshotToken, otherBefore.snapshotToken);
+        assert.equal(environment.types[type].prefs.groupUnassignedItems, enabled);
+        assert.equal(malformedRejected, true);
+    }
+    assert.equal(utils.normalizePrefs({}).groupUnassignedItems, false);
+    assert.equal(utils.normalizePrefs({ groupUnassignedItems: 'true' }).groupUnassignedItems, false);
+});
+
 test('server enables stopped badges once on upgrade and preserves later opt-outs through saves and reloads', () => {
     const cases = [{}, { badges: {} }, { badges: { running: false } }, { badges: { stopped: false } },
         { badges: { updates: false } }, { badges: { running: false, stopped: false, updates: false } }]

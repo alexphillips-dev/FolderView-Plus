@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "content-revision": "a833974a504a4b963c1b6884655b32989f758b0bff2ffd9cea50216982e2d3da"
+        "content-revision": "7c5c0957c880305750ac445f77412ab5968940b8eeac503e430f110aaf6f7cf5"
     },
+    "settings.visibility.group-unassigned-items": "將未分組的項目集中顯示",
+    "settings.visibility.group-unassigned-items-help": "也會套用至儀表板上對應的區塊。",
     "settings.theme.github-directory": "選擇 CSS 目錄",
     "settings.rules.save-changes": "儲存變更",
     "settings.rules.regex-placeholder": "正規表示式模式（例如 ^media-）",

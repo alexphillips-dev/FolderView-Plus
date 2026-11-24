@@ -21,7 +21,7 @@ const viewSettings = require(path.join(pluginRoot, 'scripts/folderviewplus.view-
 
 const expectedPreferenceKeys = {
     changePageTitlePref: ['bold', 'color', 'enabled', 'font', 'italic', 'size', 'strikethrough', 'text', 'underline'],
-    changeVisibilityPref: ['appColumnWidth', 'hideEmptyFolders'],
+    changeVisibilityPref: ['appColumnWidth', 'groupUnassignedItems', 'hideEmptyFolders'],
     changeStatusPref: ['attentionAccent', 'displayMode', 'mode', 'trendEnabled', 'warnStoppedPercent'],
     changeBadgePref: ['running', 'stopped', 'updates'],
     changeRuntimePref: ['lazyPreviewEnabled', 'lazyPreviewThreshold', 'liveRefreshEnabled', 'liveRefreshSeconds', 'pageViewMode', 'performanceProfile', 'themeCompatibilityMode'],

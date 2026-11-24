@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "content-revision": "fd0aa7fc047583bc09260fe28281c56f4f0a07c153cd5c713b999a0203e517e6"
+        "content-revision": "dcc6b50f6076b41875dc56eda553fbba3bf960936e9326f02e1f464719df133b"
     },
+    "common.unassigned-group.title": "미할당 항목",
     "runtime.action.requests-result": "$1개 수락 · $2개 실패",
     "runtime.action.user-script-failed": "User Scripts에서 이 작업을 시작하지 못했습니다. 플러그인과 스크립트를 사용할 수 있는지 확인하세요.",
     "common.labels.optional": "선택 사항",

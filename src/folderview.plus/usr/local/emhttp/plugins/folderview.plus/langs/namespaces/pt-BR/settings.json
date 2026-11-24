@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "settings",
-        "content-revision": "d6bdc3507fc3698f1f04ea0bcc7efa632f0803fc835640ce2b7e65f7ea9ddbe7"
+        "content-revision": "7d7c7a6d4f05c8a1958ed2ae2c6d48c1669fac195dc09408c4609027afbbb16a"
     },
+    "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
+    "settings.visibility.group-unassigned-items-help": "Também se aplica ao cartão correspondente no painel.",
     "settings.theme.github-directory": "Escolha um diretório de CSS",
     "settings.rules.save-changes": "Salvar alterações",
     "settings.rules.regex-placeholder": "Padrão Regex (por exemplo, ^media-)",

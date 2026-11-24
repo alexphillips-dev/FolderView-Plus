@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "content-revision": "2a13366c801a319061cc894a96ba225b9a3cb11952ec3b118f9c3a016d4f2689"
+        "content-revision": "d1981588586b7cce341b131b58464b92ef1eda7fd352756dc446d75f7cd60530"
     },
+    "common.unassigned-group.title": "عناصر غير معيّنة",
     "runtime.action.requests-result": "تم قبول $1 · فشل $2",
     "runtime.action.user-script-failed": "تعذر على User Scripts تشغيل هذا الإجراء. تحقق من توفر الإضافة والبرنامج النصي.",
     "common.labels.optional": "اختياري",

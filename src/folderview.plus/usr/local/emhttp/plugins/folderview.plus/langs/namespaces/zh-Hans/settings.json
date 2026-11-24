@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "content-revision": "556b571a235687a022294e91ef3a853bbbfb37e3599e79cf66756a49e5413d62"
+        "content-revision": "09f759f42071c322ab4f6a8883e2f536e11711facc5478605f9cf9203d02be73"
     },
+    "settings.visibility.group-unassigned-items": "归类未分组的项目",
+    "settings.visibility.group-unassigned-items-help": "也适用于仪表板上对应的区块。",
     "settings.theme.github-directory": "选择 CSS 目录",
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",

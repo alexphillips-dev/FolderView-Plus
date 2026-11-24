@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
+const sharedRuntimeCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 test('vm runtime includes docker-parity quick state actions and branch-aware folder actions', () => {
     assert.match(vmJs, /const createVmContextMenuQuickStripAdapter =/);
@@ -32,7 +33,7 @@ test('vm runtime context menu keeps focus/pin/lock and clone actions in vm folde
 
 test('vm runtime adopts native detail rows for folder members and later host detail inserts', () => {
     assert.match(vmJs, /const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr\[id\^="name-"\]:not\(\[child-id\]\)';/);
-    assert.match(vmJs, /const collectExistingVmDetailRowsForVmRow = \(vmRow\) => \{/);
+    assert.match(vmJs, /const collectExistingVmDetailRowsForVmRow = \(vmRow, includeNativeChildren = false\) => \{/);
     assert.match(vmJs, /const ensureVmNativeDetailRowObserver = \(\) => \{[\s\S]*const disconnect = vmHostAdapter\.observeRows/);
     assert.match(vmJs, /const ensureVmNativeDetailInteractionHooks = \(\) => \{/);
     assert.match(vmJs, /const placeVmNativeDetailRowForOwner = \(detailRow,\s*vmRow\) => \{/);
@@ -44,7 +45,7 @@ test('vm css includes parity selectors for quick action row and folder quick sta
     assert.match(vmCss, /tr\.fv-folder-focused td\.vm-name\.folder-name/);
     assert.match(vmCss, /tr\.fv-folder-pinned td\.vm-name\.folder-name/);
     assert.match(vmCss, /tr\.fv-folder-locked \.mover/);
-    assert.match(vmCss, /\.fv-folder-focus-hidden/);
+    assert.match(sharedRuntimeCss, /\.fv-folder-focus-hidden,[\s\S]*?display: none !important/);
     assert.match(vmCss, /\.fvplus-vm-context-menu > li\.fvplus-vm-quick-item/);
     assert.match(vmCss, /\.fvplus-vm-context-menu > li\.fvplus-vm-quick-clear/);
 });

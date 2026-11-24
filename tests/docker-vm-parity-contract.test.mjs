@@ -12,6 +12,7 @@ const dockerRuntimeSources = `${dockerJs}\n${dockerColumnControllerJs}`;
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
+const sharedRuntimeCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 const parityContracts = [
     {
@@ -97,8 +98,7 @@ test('docker/vm css parity contracts include quick-state visuals and quick-strip
     assert.match(dockerCss, /tr\.fv-folder-focused td\.ct-name\.folder-name/);
     assert.match(vmCss, /tr\.fv-folder-focused td\.vm-name\.folder-name/);
 
-    assert.match(dockerCss, /\.fv-folder-focus-hidden/);
-    assert.match(vmCss, /\.fv-folder-focus-hidden/);
+    assert.match(sharedRuntimeCss, /\.fv-folder-focus-hidden,[\s\S]*?display: none !important/);
 
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item/);
     assert.match(vmCss, /\.fvplus-vm-context-menu > li\.fvplus-vm-quick-item/);

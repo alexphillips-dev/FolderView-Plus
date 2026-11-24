@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "content-revision": "d02aaf67056ac2dd234b39055c55a513d737ceeb80f6273530522ea5ffe23a0d"
+        "content-revision": "f537fb518e2a926da8a1c0845160d28c21d9d8adb00ab75d1a3f5f9ea71274f2"
     },
+    "settings.visibility.group-unassigned-items": "Raggruppa gli elementi non assegnati",
+    "settings.visibility.group-unassigned-items-help": "Si applica anche al riquadro corrispondente della dashboard.",
     "settings.theme.github-directory": "Scegli una directory CSS",
     "settings.rules.save-changes": "Salva modifiche",
     "settings.rules.regex-placeholder": "Modello regex (ad esempio ^media-)",

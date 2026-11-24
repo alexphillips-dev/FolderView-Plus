@@ -14,6 +14,7 @@
         "../tests/browser/cases/foundation.mjs",
         "../tests/browser/cases/docker.mjs",
         "../tests/browser/cases/dashboard-tile-loading.mjs",
+        "../tests/browser/cases/dashboard-unassigned-group.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -33,6 +34,8 @@
         "../tests/browser/cases/editor-member-roundtrip.mjs",
         "../tests/browser/cases/editor-assignment.mjs",
         "../tests/browser/cases/runtime-preview-summary.mjs",
+        "../tests/browser/cases/unassigned-group.mjs",
+        "../tests/browser/cases/docker-unassigned.mjs",
         "../tests/browser/cases/editor-action-roundtrip.mjs",
         "../tests/browser/cases/runtime-preview-color-security.mjs"
       ]
@@ -47,6 +50,9 @@
     {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed"},
     {"file": "tests/browser/cases/editor-assignment.mjs", "limit": 120, "owner": "Folder editor saved and draft assignment explanations for Docker and VM"},
     {"file": "tests/browser/cases/runtime-preview-summary.mjs", "limit": 290, "owner": "Lazy privacy-safe Docker and Dashboard Advanced Preview runtime details"},
+    {"file": "tests/browser/cases/unassigned-group.mjs", "limit": 110, "owner": "Native row identity, detail rows, keyboard expansion, and reversible order"},
+    {"file": "tests/browser/cases/docker-unassigned.mjs", "limit": 150, "owner": "Docker unassigned membership, toolbar filters, and native ordering"},
+    {"file": "tests/browser/cases/dashboard-unassigned-group.mjs", "limit": 170, "owner": "Independent Dashboard grouping and refresh-safe native identities"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
     { "file": "tests/browser/helpers/settings-icons.mjs", "limit": 70, "owner": "native Font Awesome glyph and SVG optical alignment checks" },
@@ -194,6 +200,7 @@
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-tile-loading.mjs",
+        "tests/browser/cases/dashboard-unassigned-group.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
@@ -209,6 +216,8 @@
         "tests/browser/cases/editor-member-roundtrip.mjs",
         "tests/browser/cases/editor-assignment.mjs",
         "tests/browser/cases/runtime-preview-summary.mjs",
+        "tests/browser/cases/unassigned-group.mjs",
+        "tests/browser/cases/docker-unassigned.mjs",
         "tests/browser/cases/settings-startup-repair.mjs",
         "tests/browser/cases/localization-workspaces.mjs",
         "tests/browser/cases/settings-search-unicode.mjs",
@@ -325,10 +334,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 173,
-      "assertionCount": 2285,
-      "pageEvaluateCount": 785,
-      "orderedTitleSha256": "e29fe6988d292b569ab7eac85b36f39149f7fd10f0acbbfb19489981854f407c"
+      "testCount": 177,
+      "assertionCount": 2350,
+      "pageEvaluateCount": 802,
+      "orderedTitleSha256": "5d3e8d7002cbcb8ff556cdea3c0da5a26932e49e2ce006ce22b83b6a7dc3001c"
     }
   }
 }

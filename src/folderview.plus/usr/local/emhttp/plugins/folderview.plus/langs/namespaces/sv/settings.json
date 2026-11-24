@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "content-revision": "8e3c4e0d687d26de3d211b779d3825f0da12591a90434b9101dd3d3e2b4c9fbc"
+        "content-revision": "401e3fa33950982e917e920d4381a6497b070be13d7e1f824797a9e8f835f6ad"
     },
+    "settings.visibility.group-unassigned-items": "Gruppera otilldelade objekt",
+    "settings.visibility.group-unassigned-items-help": "Gäller även motsvarande ruta på instrumentpanelen.",
     "settings.theme.github-directory": "Välj en CSS-katalog",
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",

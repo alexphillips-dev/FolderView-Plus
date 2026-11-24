@@ -65,6 +65,8 @@
             ? hiddenFolders.svgIcon
             : ((name, options = {}) => `<i class="fa ${name === 'eye-off' ? 'fa-eye-slash' : 'fa-eye'} ${escapeHtml(options.className || '')}" aria-hidden="true"></i>`);
         const nativeOrder = deps.nativeOrder || {};
+        const getUnassignedRows = deps.getUnassignedRows || (() => null);
+        const isUnassignedHeader = deps.isUnassignedHeader || (() => false);
         const translate = typeof deps.translate === 'function'
             ? deps.translate
             : ((key, fallback = '', ...params) => win?.FolderViewPlusI18n?.t?.(key, fallback, ...params)
@@ -93,6 +95,8 @@
         const isUnassignedContainerRow = (row) => {
             if (!isHtmlElement(row) || readFolderIdFromRow(row) || readFolderOwnerFromRow(row)) return false;
             if (row.classList?.contains('fv-runtime-loading-row')) return false;
+            const verifiedRows = getUnassignedRows();
+            if (verifiedRows) return verifiedRows.has(row);
             return !!row.querySelector?.('.ct-name, .appname, [data-name]');
         };
 
@@ -182,7 +186,7 @@
                     const ownerId = readFolderOwnerFromRow(row);
                     let visible = false;
                     if (folderFilterMode === 'unassigned') {
-                        visible = isUnassignedContainerRow(row);
+                        visible = isUnassignedHeader(row) || isUnassignedContainerRow(row);
                     } else if (folderId) {
                         visible = visibleFolders.has(folderId);
                     } else if (ownerId) {
@@ -430,6 +434,7 @@
             folderFilterMode = folderFilterMode === normalized ? 'all' : normalized;
             if (folderFilterMode !== 'all' && getFocusedFolderId()) clearFocusedFolder();
             applyFilterState();
+            if (folderFilterMode === 'unassigned') deps.setUnassignedExpanded?.(true);
             sync();
         };
 
@@ -486,7 +491,7 @@
 
         // Unraid's Docker page stores one flat order through its own UserPrefs.php when a row is dragged.
         // The save below sends that same request with the rows as this page shows them.
-        const collectNativeOrder = () => Array.from(doc?.querySelectorAll?.('#docker_list td.ct-name') || []).map((cell) => {
+        const collectNativeOrder = () => Array.from(nativeOrder.collectCells?.() ?? doc?.querySelectorAll?.('#docker_list td.ct-name') ?? []).map((cell) => {
             const row = cell.closest?.('tr') || null;
             const folderId = String(readFolderIdFromRow(row) || '');
             return {
@@ -748,6 +753,7 @@
             if (action === 'expand-all' || action === 'collapse-all') {
                 const branchAction = action === 'expand-all' ? expandFolderBranch : collapseFolderBranch;
                 getRootFolderIds().forEach((id) => branchAction(id));
+                deps.setUnassignedExpanded?.(action === 'expand-all');
                 applyFilterState();
                 sync();
             }

@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "content-revision": "61f3c0fa110473ac18c9ebe80884826714ae99a89b893ee0f1e195a44c3eee9e"
+        "content-revision": "2c2ed193e730242a29d5fb400b6f028a3270303d63ad02c3fefb0e4ddba07295"
     },
+    "settings.visibility.group-unassigned-items": "Групувати непризначені елементи",
+    "settings.visibility.group-unassigned-items-help": "Також застосовується до відповідної плитки на панелі.",
     "settings.theme.github-directory": "Виберіть каталог CSS",
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",

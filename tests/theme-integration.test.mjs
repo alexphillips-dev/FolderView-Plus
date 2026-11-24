@@ -243,7 +243,7 @@ for(const surface of ['settings','dashboard']) test(`${surface} production liste
     const prefix=surface==='settings'?'settings':'dashboard';
     const context={window:f.win,document:f.doc,applySettingsThemeAwareReflow:()=>{},
         queueSettingsThemeAwareReflow:reason=>changes.push(reason),queueDashboardThemeReflow:reason=>changes.push(reason),
-        clearTimeout:f.win.clearTimeout,queuedLoadlistTimer:null,dashboardStorageWriter:null,
+        clearTimeout:f.win.clearTimeout,queuedLoadlistTimer:null,dashboardStorageWriter:null,dashboardUnassignedGroups:{},
         dashboardLiveRefreshController:{dispose(){}},dashboardHostAdapterModule:null,runtimeHostAdapters:null,dashboardDockerProviderRegistry:null};
     const scope=`let ${prefix}ThemeReflowBound=false, ${prefix}ThemeReflowUnsubscribe=null, ${prefix}ThemeReflowTimer=null;\n`;
     let cleanup='';

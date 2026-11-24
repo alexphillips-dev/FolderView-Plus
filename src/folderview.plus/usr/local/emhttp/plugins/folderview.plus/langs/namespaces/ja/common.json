@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "content-revision": "944f5df3479d8afe877a96da5712aa7b5d45dbb69d7dbdfbadecc64bb85135ea"
+        "content-revision": "ad8d97208e884f35a9c652e1cf13edb95533d264aa65193fbdd744bc87e5b84b"
     },
+    "common.unassigned-group.title": "未割り当ての項目",
     "runtime.action.requests-result": "受付 $1 件 · 失敗 $2 件",
     "runtime.action.user-script-failed": "User Scripts でこの操作を開始できませんでした。プラグインとスクリプトが利用できるか確認してください。",
     "common.labels.optional": "任意",

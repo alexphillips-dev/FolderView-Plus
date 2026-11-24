@@ -6612,6 +6612,7 @@ const renderHealthControls = (type) => {
 const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
+    $(`#${type}-group-unassigned-items`).prop('checked', prefs.groupUnassignedItems);
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
         : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
@@ -9013,16 +9014,8 @@ const changeVisibilityPref = async (type, key, value) => {
     if (!change) {
         return;
     }
-    const patch = {};
-    if (key === 'hideEmptyFolders') {
-        patch.hideEmptyFolders = change.value;
-    } else if (key === 'appColumnWidth') {
-        patch.appColumnWidth = change.value;
-    } else {
-        return;
-    }
     try {
-        await updatePrefsPartial(resolvedType, patch, {
+        await updatePrefsPartial(resolvedType, { [change.storageKey]: change.value }, {
             render: () => {
                 renderVisibilityControls(resolvedType);
                 scheduleTableRender(resolvedType);

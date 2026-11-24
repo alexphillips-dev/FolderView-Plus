@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "content-revision": "1f83b7c63fc1a0c6f4bd277097e61cade4c35a98f2a2f2b0262f4df4da2a9c7a"
+        "content-revision": "d5a32b5d5cf87384097bf37d46a5d05c142ceeba40b3a6d7201ef33dc6a8927b"
     },
+    "common.unassigned-group.title": "Atanmamış öğeler",
     "runtime.action.requests-result": "$1 kabul edildi · $2 başarısız",
     "runtime.action.user-script-failed": "User Scripts bu işlemi başlatamadı. Eklentinin ve betiğin kullanılabilir olduğunu kontrol edin.",
     "common.labels.optional": "İsteğe Bağlı",

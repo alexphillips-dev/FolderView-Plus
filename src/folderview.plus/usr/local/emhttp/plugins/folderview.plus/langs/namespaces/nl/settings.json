@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "content-revision": "3de49f29e4042623d8f880ca3772b07a39b651094d8ea3151b3aa27e0faad92c"
+        "content-revision": "95467c1a77488207a82ba373dd3b9a20e65afb2f47c0cde224c68c29861e9f0a"
     },
+    "settings.visibility.group-unassigned-items": "Niet-toegewezen items groeperen",
+    "settings.visibility.group-unassigned-items-help": "Geldt ook voor de bijbehorende tegel op het dashboard.",
     "settings.theme.github-directory": "Kies een CSS-map",
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",

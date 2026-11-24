@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "content-revision": "eee0494db45d50a4567ae2a9654dabc194f159961bedf7bf08c1ed1af9a700b3"
+        "content-revision": "29fdb02c90acdb4deed5775de1db5d9fbc52641c8f4342d0a98a45a943dab9ab"
     },
+    "settings.visibility.group-unassigned-items": "미할당 항목 그룹화",
+    "settings.visibility.group-unassigned-items-help": "대시보드의 해당 타일에도 적용됩니다.",
     "settings.theme.github-directory": "CSS 디렉터리 선택",
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",

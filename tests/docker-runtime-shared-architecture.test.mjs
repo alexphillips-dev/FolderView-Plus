@@ -141,7 +141,7 @@ test('docker layout geometry is extracted behind a focused executable module', (
 test('docker runtime uses the shared host adapter as its Unraid integration boundary', () => {
     assert.match(runtimeHostAdapterJs, /const CONTRACTS = Object\.freeze\(\{/);
     assert.match(runtimeHostAdapterJs, /type: 'docker'/);
-    assert.match(runtimeHostAdapterJs, /allowedHooks: \['loadlist', 'listview', 'openDocker', 'eventControl', 'addDockerContainerContext'\]/);
+    assert.match(runtimeHostAdapterJs, /allowedHooks: \['loadlist', 'listview', 'openDocker', 'eventControl', 'addDockerContainerContext', 'LockButton'\]/);
     assert.match(dockerJs, /const runtimeHostAdapters = window\.FolderViewPlusRuntimeHostAdapters \|\| null;/);
     assert.match(dockerJs, /const dockerHostAdapter = runtimeHostAdapters\?\.getOrCreate\?\.\('docker'/);
     assert.match(dockerJs, /adapter:\s*dockerHostAdapter/);

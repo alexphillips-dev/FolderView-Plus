@@ -19,9 +19,9 @@ const plain = value => JSON.parse(JSON.stringify(value));
 for (const type of ['docker', 'vm']) {
     for (const newerCoordinator of [false, true]) {
         test(`${type} stale full save preserves other-page edits ${newerCoordinator ? 'after broadcast' : 'after conflict'}`, async () => {
-            const original = { backupSchedule: { retention: 25, enabled: false }, pinnedFolderIds: ['first'],
+            const original = { backupSchedule: { retention: 25, enabled: false }, pinnedFolderIds: ['first'], groupUnassignedItems: false,
                 dashboard: { layout: 'classic', privacyMode: false }, autoRules: [{ id: 'old' }], _metadata: { prefsRevision: 1 } };
-            let server = store.mergePatch(original, { backupSchedule: { enabled: true }, pinnedFolderIds: ['second'],
+            let server = store.mergePatch(original, { backupSchedule: { enabled: true }, pinnedFolderIds: ['second'], groupUnassignedItems: true,
                 dashboard: { layout: 'compactmatrix', privacyMode: true }, autoRules: [{ id: 'new' }] });
             server._metadata = { prefsRevision: 2 };
             const writes = [];
@@ -47,6 +47,7 @@ for (const type of ['docker', 'vm']) {
             for (const patch of writes) assert.deepEqual(patch, { backupSchedule: { retention: 12 } });
             assert.equal(saved.backupSchedule.enabled, true);
             assert.equal(saved.backupSchedule.retention, 12);
+            assert.equal(saved.groupUnassignedItems, true);
             assert.deepEqual(saved.pinnedFolderIds, ['second']);
             assert.deepEqual(saved.autoRules, [{ id: 'new' }]);
             assert.equal(saved.dashboard.privacyMode, true);

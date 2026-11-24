@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "content-revision": "fd9b49fcd84c0b82c72d9be3a468f535fc0cb26225b53f5fa64667927d463d7a"
+        "content-revision": "9b1a89d15b2d94cfc65af111d6654d00a7595af8fb0b834e7192542fdf7e8806"
     },
+    "settings.visibility.group-unassigned-items": "Nicht zugeordnete Elemente gruppieren",
+    "settings.visibility.group-unassigned-items-help": "Gilt auch für die zugehörige Dashboard-Kachel.",
     "settings.theme.github-directory": "CSS-Verzeichnis auswählen",
     "settings.rules.save-changes": "Änderungen speichern",
     "settings.rules.regex-placeholder": "Regex-Muster (z. B. ^media-)",

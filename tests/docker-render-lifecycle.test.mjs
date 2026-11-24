@@ -15,6 +15,7 @@ function renderFixture() {
     const record = name => () => effects.push(name);
     const context = vm.createContext({
         dockerRuntimePageDisposed: false, dockerBootstrapGeneration: 1,
+        clearDockerUnassignedGroup: record('clear-unassigned'),
         dockerDeferredPreviewController: { flush: record('flush') },
         dockerAdvancedPreviewContextBindersByName: { clear: record('clear') },
         document: { querySelector: () => null },
@@ -63,6 +64,7 @@ test('current Docker render rejection still reports and releases loading UI', as
     const result = fixture.context.render();
     fixture.reject(new Error('Fixture current failure'));
     await assert.rejects(result, /Fixture current failure/);
+    assert.ok(fixture.effects.includes('clear-unassigned'));
     assert.ok(fixture.effects.includes('fatal'));
     assert.ok(fixture.effects.includes('hide-overlay'));
     assert.equal(fixture.context.dockerHostLoadOwnsLoadingUi, false);

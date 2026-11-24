@@ -54,10 +54,12 @@ test('Docker and VM adapters expose one shared immutable host contract', () => {
         'listview',
         'openDocker',
         'eventControl',
-        'addDockerContainerContext'
+        'addDockerContainerContext',
+        'LockButton'
     ]);
     assert.deepEqual(hostAdapters.CONTRACTS.vm.allowedHooks, [
         'loadlist',
+        'LockButton',
         'addVMContext',
         'ajaxVMDispatch',
         'ajaxVMDispatchconsole',

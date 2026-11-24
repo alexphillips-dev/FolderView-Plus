@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "content-revision": "c4a457d14515703b231c985f557f3f62602fe1171de1e1cbb5d1974516113957"
+        "content-revision": "d22abaa15250ede4b203378f8ec6695d36f34fd781abe2466d95576466382063"
     },
+    "settings.visibility.group-unassigned-items": "Группировать неназначенные элементы",
+    "settings.visibility.group-unassigned-items-help": "Применяется и к соответствующей плитке панели управления.",
     "settings.theme.github-directory": "Выберите каталог CSS",
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",

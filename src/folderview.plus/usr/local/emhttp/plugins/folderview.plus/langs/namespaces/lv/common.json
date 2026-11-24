@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "content-revision": "42e592511e31b6f1b26818be6280a2cd4afaf0f2b1f81a7fd7724278dc7efc51"
+        "content-revision": "479660e844d0d11ee495c71e6efff36a93a1cfc98ac07ef137f3ead63f2b4aac"
     },
+    "common.unassigned-group.title": "Nepiešķirtie vienumi",
     "runtime.action.requests-result": "Pieņemti: $1 · Neizdevās: $2",
     "runtime.action.user-script-failed": "User Scripts nevarēja sākt šo darbību. Pārbaudiet, vai spraudnis un skripts ir pieejami.",
     "common.labels.optional": "Pēc izvēles",

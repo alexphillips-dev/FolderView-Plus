@@ -5,10 +5,11 @@
     "visibility": {
       "handler": "changeVisibilityPref",
       "path": "",
-      "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/vm.js"],
+      "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/vm.js", "scripts/dashboard.js"],
       "settings": {
         "appColumnWidth": { "types": ["docker", "vm"], "kind": "enum", "default": "standard", "values": ["compact", "standard", "wide"], "liveApply": true },
-        "hideEmptyFolders": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true }
+        "hideEmptyFolders": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true },
+        "groupUnassignedItems": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true }
       }
     },
     "status": {

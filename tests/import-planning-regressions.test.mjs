@@ -106,6 +106,7 @@ test('resolved entries keep unchanged writes and skip behavior while private pla
 test('backup preference labels reuse loaded translated UI labels and keep future fields visible', () => {
     const localeRoot = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/namespaces');
     const labels = {
+        groupUnassignedItems: ['settings.visibility.group-unassigned-items', true],
         hiddenFolderIds: ['legacy.surface.88ee90bc2e344724', ['hidden']],
         expandedFolderState: ['legacy.surface.0447fe78ffb9f4b1', { root: true }],
         setupWizardCompleted: ['wizard.title', true], settingsMode: ['settings.mode.title', 'advanced'],

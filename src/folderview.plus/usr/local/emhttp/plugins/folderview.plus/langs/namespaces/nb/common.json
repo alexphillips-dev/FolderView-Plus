@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "content-revision": "1bea525bcc48e911c711a2cddc0de057064c2706ee65509957ba2b8a21a0bb83"
+        "content-revision": "30923f39f2f3d7b4d7e3c226f4dcb8e6f7503505eeda434a59a06f626ae05b48"
     },
+    "common.unassigned-group.title": "Ikke-tilordnede elementer",
     "runtime.action.requests-result": "$1 godtatt · $2 mislyktes",
     "runtime.action.user-script-failed": "User Scripts kunne ikke starte denne handlingen. Kontroller at programtillegget og skriptet er tilgjengelige.",
     "common.labels.optional": "Valgfritt",

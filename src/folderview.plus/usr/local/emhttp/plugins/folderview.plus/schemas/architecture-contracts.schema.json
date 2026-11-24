@@ -121,6 +121,7 @@
       "scripts/folderviewplus.fatal-banner.js": { "limit": 1412, "target": 500, "history": [1412] },
       "scripts/docker.runtime.actions.js": { "limit": 1157, "target": 600, "history": [1157] },
       "scripts/runtime.preview-summary.js": { "limit": 215, "target": 190, "history": [215] },
+      "scripts/runtime.unassigned-group.js": { "limit": 135, "target": 115, "history": [135] },
       "scripts/docker.runtime.providers.js": { "limit": 1140, "target": 600, "history": [1140] },
       "scripts/dashboard.layout-quickrail.js": { "limit": 1134, "target": 600, "history": [1134] },
       "scripts/dashboard.capture-feedback.js": { "limit": 70, "target": 60, "history": [70] },
@@ -940,6 +941,18 @@
     }
   ],
   "moduleContracts": [
+    {
+      "file": "scripts/runtime.unassigned-group.js",
+      "owner": "unassigned-native-row-projection",
+      "consumers": ["docker", "vm", "dashboard"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.rules-engine.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "unassignedGroup",
+      "loader": "commonjs",
+      "exports": ["createApi", "getNames"]
+    },
     {
       "file": "scripts/runtime.preview-summary.js",
       "owner": "docker-runtime-preview-panel",

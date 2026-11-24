@@ -22,6 +22,52 @@ body[data-fv-theme-class="light"] {
     --fvplus-runtime-menu-muted: rgba(85, 100, 118, 0.86);
 }
 
+.fv-folder-focus-hidden,
+[data-fv-unassigned-collapsed] {
+    display: none !important;
+}
+
+div[data-fv-unassigned-group] {
+    display: block;
+    inline-size: 100%;
+    clear: both;
+}
+
+.fv-unassigned-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5em;
+    min-block-size: 2em;
+    padding: .25em .5em;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fv-unassigned-toggle::before {
+    content: '';
+    inline-size: .42em;
+    block-size: .42em;
+    border-inline-end: .12em solid currentColor;
+    border-block-end: .12em solid currentColor;
+    transform: rotate(-45deg);
+}
+
+.fv-unassigned-toggle:dir(rtl)::before {
+    transform: rotate(135deg);
+}
+
+.fv-unassigned-toggle[aria-expanded="true"]::before {
+    transform: rotate(45deg);
+}
+
+.fv-unassigned-count {
+    font-variant-numeric: tabular-nums;
+}
+
 .fv-runtime-preview-summary {
     border-block-start: 1px solid currentColor;
     padding-block-start: .5rem;

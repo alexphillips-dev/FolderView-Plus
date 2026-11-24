@@ -780,6 +780,35 @@ const getDashboardNativeRowSelectorForType = (type) => (
 const getDashboardNativeRowName = ($row) => String(
     $row?.find('span.inner').contents().first().text() || ''
 ).trim();
+const dashboardUnassignedGroupModule = window.FolderViewPlusFoundationModules?.unassignedGroup;
+const dashboardUnassignedGroups = Object.fromEntries(['docker', 'vm'].map((type) => [
+    type, dashboardUnassignedGroupModule?.createApi({ window, type })
+]));
+const dashboardUnassignedMembersByType = { docker: new Map(), vm: new Map() };
+const normalizeDashboardUnassignedId = (type, value) => {
+    const id = String(value ?? '').trim().toLowerCase();
+    return type === 'vm' ? id.replace(/^vm-/, '') : id.replace(/^sha256:/, '').slice(0, 12);
+};
+const renderDashboardUnassignedGroup = (type, widget, members, { restoreFocus = false } = {}) => {
+    const group = dashboardUnassignedGroups[type];
+    if (!group) return;
+    if (folderTypePrefs[type]?.groupUnassignedItems !== true) {
+        group.clear({ resetExpansion: true });
+        return;
+    }
+    if (!widget || isDashboardLegacyLayoutForType(type)) return;
+    const host = widget.querySelector(':scope > tr.updated > td');
+    const selector = getDashboardNativeRowSelectorForType(type);
+    const unassignedDashboardRows = group.getUngroupedRows(host).filter((row) => {
+        if (!row.matches(selector)) return false;
+        const rowId = normalizeDashboardUnassignedId(type, row.querySelector(':scope > span.hand[id]')?.id);
+        return rowId !== '' && members.get(getDashboardNativeRowName($(row))) === rowId;
+    });
+    group.render(host, unassignedDashboardRows, { onToggle: () => scheduleDashboardLayoutApplyForType(type) });
+    if (restoreFocus) {
+        Array.from(host?.children || []).find(node => group.isHeader(node))?.querySelector('button')?.focus({ preventScroll: true });
+    }
+};
 const stripDashboardFolderizedStateFromRow = ($row) => {
     if (!$row || !$row.length) {
         return;
@@ -822,6 +851,7 @@ const restoreDashboardNativeRowsForType = async (type, isCurrent) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const orderSnapshot = await readDashboardNativeOrderSnapshotForType(resolvedType);
     if (!isCurrent()) return;
+    dashboardUnassignedGroups[resolvedType]?.clear();
     const $container = resolveDashboardWidgetInlineHostForType(resolvedType).first();
     if (!$container.length) {
         return;
@@ -1420,6 +1450,7 @@ const renderDashboardDockerFolders = (prom) => {
         globalFolders.docker = foldersDone;
         dashboardFolderRenderCompleteByType.docker = true;
         scheduleDashboardLayoutApplyForType('docker');
+        return utils.getMembershipSnapshotFromCache(dockerFullMatchCache);
         }
 };
 
@@ -1588,6 +1619,7 @@ const renderDashboardVmFolders = (prom) => {
         globalFolders.vms = foldersDone;
         dashboardFolderRenderCompleteByType.vm = true;
         scheduleDashboardLayoutApplyForType('vm');
+        return utils.getMembershipSnapshotFromCache(vmFullMatchCache);
         }
 };
 
@@ -1597,21 +1629,37 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
     const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
         && requests === folderReq[type] && widget?.isConnected;
     if (!requests.length || !isActive()) return false;
+    const unassignedGroup = dashboardUnassignedGroups[type];
+    const previousUnassignedMembers = dashboardUnassignedMembersByType[type];
+    renderDashboardUnassignedGroup(type, widget, previousUnassignedMembers);
     dashboardFolderRenderCompleteByType[type] = false;
     showDashboardRuntimeLoadingRow(type);
     let rendering = false;
+    let restoreUnassignedFocus = false;
     try {
         const prom = await Promise.all(requests);
         if (!isActive()) return false;
+        restoreUnassignedFocus = unassignedGroup?.isHeader(document.activeElement?.parentElement) === true;
+        unassignedGroup?.clear();
         dashboardFolderRenderRecovery[type].begin();
         rendering = true;
         const render = type === 'vm' ? renderDashboardVmFolders : renderDashboardDockerFolders;
-        render(prom);
+        const membership = render(prom);
+        if (unassignedGroup) {
+            const members = new Map(dashboardUnassignedGroupModule.getNames(membership).map((name) => [
+                name, normalizeDashboardUnassignedId(type, membership.factsByName[name]?.id)
+            ]));
+            renderDashboardUnassignedGroup(type, widget, members, { restoreFocus: restoreUnassignedFocus });
+            dashboardUnassignedMembersByType[type] = members;
+        }
         applyDashboardRuntimePrefs();
         return true;
     } catch (error) {
         if (!isActive()) return false;
         dashboardFolderRenderCompleteByType[type] = false;
+        if (rendering) {
+            renderDashboardUnassignedGroup(type, widget, previousUnassignedMembers, { restoreFocus: restoreUnassignedFocus });
+        }
         showDashboardRuntimeFailedRow(type);
         throw error;
     } finally {
@@ -2860,8 +2908,14 @@ const bindDashboardPreferenceSync = () => {
         if (snapshot.hydrated === true) {
             dashboardPrefsHydratedByType[type] = true;
         }
+        const groupWasEnabled = folderTypePrefs[type]?.groupUnassignedItems === true;
         folderTypePrefs[type] = utils.normalizePrefs(snapshot.prefs);
         applyDashboardRuntimePrefs();
+        const groupEnabled = folderTypePrefs[type].groupUnassignedItems === true;
+        if (groupWasEnabled !== groupEnabled && (!groupEnabled || dashboardFolderRenderCompleteByType[type])) {
+            const widget = document.querySelector(dashboardTypeMeta(type).tbodySelector);
+            renderDashboardUnassignedGroup(type, widget, dashboardUnassignedMembersByType[type]);
+        }
     });
 };
 bindDashboardPreferenceSync();
@@ -2975,6 +3029,7 @@ window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('dashboard');
 window.addEventListener('pagehide', function releaseDashboardPage(event) {
     dashboardStorageWriter?.flush?.();
     if (event?.persisted) return;
+    Object.values(dashboardUnassignedGroups).forEach(group => group?.clear());
     dashboardLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dashboardThemeReflowTimer);

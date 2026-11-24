@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "content-revision": "ca8116ac7d27813949243ce91b5bd8673f2189d5d6f89c78d43779a39588f764"
+        "content-revision": "83089a1159ea77eb29d98ae24679f1dc46b142b43b0a09828fbdba8a4f826a18"
     },
+    "common.unassigned-group.title": "未分組的項目",
     "runtime.action.requests-result": "已接受 $1 項 · 失敗 $2 項",
     "runtime.action.user-script-failed": "User Scripts 無法啟動此動作。請確認外掛程式和指令碼可用。",
     "common.labels.optional": "可選",

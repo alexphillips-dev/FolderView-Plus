@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "content-revision": "45bf61678c977f9c027503c721e892d18f0bbbc35cb2f088c6fa83d2f9955026"
+        "content-revision": "d460098033e312c72d4fcec225c3163a60e8d3a9113288f3f0ecd2b244622874"
     },
+    "settings.visibility.group-unassigned-items": "Grupează elementele nealocate",
+    "settings.visibility.group-unassigned-items-help": "Se aplică și panoului corespunzător din tabloul de bord.",
     "settings.theme.github-directory": "Alegeți un director CSS",
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",

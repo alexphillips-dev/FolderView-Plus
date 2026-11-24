@@ -469,6 +469,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/runtime.preview-summary.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/runtime.unassigned-group.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.help.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"

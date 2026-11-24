@@ -348,6 +348,7 @@
             hiddenFolderIds,
             expandedFolderState,
             hideEmptyFolders,
+            groupUnassignedItems: incoming.groupUnassignedItems === true,
             appColumnWidth,
             setupWizardCompleted,
             settingsMode,

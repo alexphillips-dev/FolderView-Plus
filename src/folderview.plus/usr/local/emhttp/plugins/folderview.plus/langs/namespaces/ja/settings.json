@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "content-revision": "4f10106a90ea303c40586021d2ce4b42e743343c238e7f572064c447549ec64a"
+        "content-revision": "0ce286b732e4f585e01de277a1b71835ee527174044e36303c5929e36b46d2e9"
     },
+    "settings.visibility.group-unassigned-items": "未割り当ての項目をまとめる",
+    "settings.visibility.group-unassigned-items-help": "ダッシュボードの対応するタイルにも適用されます。",
     "settings.theme.github-directory": "CSS ディレクトリを選択",
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",

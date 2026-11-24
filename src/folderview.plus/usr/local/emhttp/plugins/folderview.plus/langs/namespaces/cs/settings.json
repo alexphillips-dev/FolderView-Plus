@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "content-revision": "d13946f06b605efb4d602a8eed17d0cd18b4a11b3717df5bf80e46e3c3fccc77"
+        "content-revision": "cbb2580d22cca1d7fc4ef0c7badb49553cfafc946f453c088ee350b9cb450f4e"
     },
+    "settings.visibility.group-unassigned-items": "Seskupit nepřiřazené položky",
+    "settings.visibility.group-unassigned-items-help": "Platí také pro příslušný panel na řídicím panelu.",
     "settings.theme.github-directory": "Vyberte adresář CSS",
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",

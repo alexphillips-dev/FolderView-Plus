@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "content-revision": "073779e98b7ebbe3e4f9f1920873ee24d8c7ef53fb4e00f74914c38403f73f4e"
+        "content-revision": "1ff0e5d9ba0144fef8e746c5d4934126eb43d2b3c59dcd645a22729aa91fd485"
     },
+    "common.unassigned-group.title": "Nieprzypisane elementy",
     "runtime.action.requests-result": "Przyjęto: $1 · Niepowodzenia: $2",
     "runtime.action.user-script-failed": "User Scripts nie mógł uruchomić tej akcji. Sprawdź, czy wtyczka i skrypt są dostępne.",
     "common.labels.optional": "Opcjonalne",

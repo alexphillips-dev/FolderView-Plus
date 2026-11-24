@@ -228,6 +228,7 @@ test('Docker named actions preserve independent outcomes and refresh after a par
 
 test('Docker named actions suppress duplicate clicks, allow independent actions and retries, and stop UI work on pagehide', async () => {
     const pending = [], refreshes = [], dialogs = [], spinner = [];
+    let groupCleared = false;
     const $ = () => ({ show: () => spinner.push('show'), hide: () => spinner.push('hide') });
     $.i18n = () => 'Execution error';
     $.ajax = ({ data }) => {
@@ -247,6 +248,7 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
         },
         getFolderRuntimeContainers: folder => folder.containers,
         dockerRuntimePageDisposed: false,
+        clearDockerUnassignedGroup: () => { groupCleared = true; },
         dockerRuntimeRefreshGeneration: 0,
         dockerBootstrapGeneration: 0,
         dockerSafeUiActionRunner: createActionRunner(window),
@@ -302,6 +304,7 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
 
     const lateAction = run('first', 0);
     pagehide();
+    assert.equal(groupCleared, true);
     pending[4].resolve({ error: 'Fixture host refusal' });
     assert.equal((await lateAction).ok, true);
     await run('second', 0);
@@ -313,6 +316,7 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
 
 const createVmActionFixture = () => {
     const pending = [], timers = new Map(), summaries = [], dialogs = [], refreshes = [];
+    let groupCleared = false;
     let timerId = 0;
     const $ = () => ({ show() {}, hide() {}, removeClass() { return this; }, addClass() { return this; } });
     $.i18n = () => 'Execution error';
@@ -337,6 +341,7 @@ const createVmActionFixture = () => {
         document: { body: { classList: { contains: () => false } } },
         globalFolders: folders,
         vmRuntimePageDisposed: false,
+        vmUnassignedGroup: { clear: () => { groupCleared = true; } },
         vmSafeUiActionRunner: createActionRunner(window),
         runVmGuardedAction: (_key, fn) => fn(),
         ensureVmFolderUnlocked: () => true,
@@ -361,7 +366,7 @@ const createVmActionFixture = () => {
     });
     const run = vm.runInContext(vmActionSource + '\nactionFolder', context);
     const pagehide = bindPagehide(vmJs, context);
-    return { run, pagehide, folders, timers, pending, summaries, refreshes, dialogs };
+    return { run, pagehide, folders, timers, pending, summaries, refreshes, dialogs, isGroupCleared: () => groupCleared };
 };
 
 test('VM folder action completion updates the rerendered folder and skips one removed in flight', async () => {
@@ -386,7 +391,7 @@ test('VM folder action completion updates the rerendered folder and skips one re
 });
 
 test('VM pagehide cancels the scheduled fallback and drops a late native response', async () => {
-    const { run, pagehide, timers, pending, summaries, refreshes, dialogs } = createVmActionFixture();
+    const { run, pagehide, timers, pending, summaries, refreshes, dialogs, isGroupCleared } = createVmActionFixture();
     const action = run('fixture', 'domain-resume');
     pending[0].resolve({ error: 'Fixture host refusal' });
     assert.equal((await action).ok, true);
@@ -399,6 +404,7 @@ test('VM pagehide cancels the scheduled fallback and drops a late native respons
 
     const lateAction = run('fixture', 'domain-resume');
     pagehide();
+    assert.equal(isGroupCleared(), true);
     assert.equal(timers.size, 0);
     // Simulate a callback already taken from the timer queue when pagehide ran.
     callback();

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "content-revision": "12aae6e99197c16961571cb00af4ffdc47961b70c97e6352f94b2970823f7851"
+        "content-revision": "ef6edf39b053686189b272b462ed7d860745626a60d303568c1f8e47cec8bf64"
     },
+    "common.unassigned-group.title": "Nedodijeljene stavke",
     "runtime.action.requests-result": "Prihvaćeno $1 · Neuspjelo $2",
     "runtime.action.user-script-failed": "User Scripts nije mogao pokrenuti ovu radnju. Provjerite jesu li dodatak i skripta dostupni.",
     "common.labels.optional": "Neobavezno",

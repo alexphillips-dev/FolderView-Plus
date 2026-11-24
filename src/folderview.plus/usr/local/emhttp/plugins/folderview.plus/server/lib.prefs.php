@@ -12,6 +12,7 @@
             'hiddenFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
+            'groupUnassignedItems' => false,
             'appColumnWidth' => 'standard',
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
@@ -481,6 +482,7 @@
         $normalized['hiddenFolderIds'] = normalizeStringIdList($prefs['hiddenFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
+        $normalized['groupUnassignedItems'] = ($prefs['groupUnassignedItems'] ?? false) === true;
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');

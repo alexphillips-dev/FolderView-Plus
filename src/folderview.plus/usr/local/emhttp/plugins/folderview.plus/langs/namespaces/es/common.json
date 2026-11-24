@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "content-revision": "a44a5fb4b25986f1bf6280f3436a85c0b9f414b5548088e5e138fdd7bbce67c1"
+        "content-revision": "18b1e36fc78e852c601bb07cd00265b1c1dadc073c35048ec8bab3058258667d"
     },
+    "common.unassigned-group.title": "Elementos sin asignar",
     "runtime.action.requests-result": "$1 aceptadas · $2 fallidas",
     "runtime.action.user-script-failed": "User Scripts no pudo iniciar esta acción. Comprueba que el complemento y el script estén disponibles.",
     "common.labels.optional": "Opcional",

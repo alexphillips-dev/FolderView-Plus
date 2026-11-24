@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.03">
-<!ENTITY md5 "38e82d258e6c2d45065ccfbe74e1c306">
-<!ENTITY sha256 "608218f964deed3d46ebcf94f88646f744973652e9cfda141567d4e11853f731">
+<!ENTITY version "2026.11.24.04">
+<!ENTITY md5 "451d618bde7fc7f8f564a514d2eea9e8">
+<!ENTITY sha256 "d630216d8b4ef40ba75fba1f34954e37bd67c2e8eb5ebffd93467ba3fcca5572">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.04
+- Feature: Enable Group unassigned items under Filters and view settings for Docker or VMs. The option adds a collapsible group to the corresponding runtime page and Dashboard tile.
+- Reliability: Keep assigned items out of the group even when their folders are hidden, and preserve native row controls, saved order, and Docker startup settings.
+
 
 ###2026.11.24.03
 - Feature: See why a Docker container or VM belongs to a folder, which folder takes priority when several match, and how unsaved edits affect assignments.

@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "content-revision": "4e9abf5aa4802b64c0e42497d837a5272941797bb32021429ab2da1017fa3b44"
+        "content-revision": "52e9357f756c95ba37feb581ad43e5d31e4fffc2511f6f964b3c01c49942f112"
     },
+    "settings.visibility.group-unassigned-items": "অনির্ধারিত আইটেম একত্র করুন",
+    "settings.visibility.group-unassigned-items-help": "ড্যাশবোর্ডের সংশ্লিষ্ট টাইলেও প্রযোজ্য।",
     "settings.theme.github-directory": "একটি CSS ডিরেক্টরি বেছে নিন",
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",

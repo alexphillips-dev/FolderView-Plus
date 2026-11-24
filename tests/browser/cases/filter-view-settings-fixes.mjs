@@ -37,6 +37,36 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 };
 
 export const registerFilterViewSettingsFixes = ({ test }) => {
+    test('Filters and view settings persist unassigned grouping independently for Docker and VMs', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        const toggle = type => page.locator(`#${type}-group-unassigned-items`);
+        const save = async (type, enabled) => {
+            const sent = page.waitForRequest(request => request.url().includes('/server/prefs.php') && request.method() === 'POST');
+            await toggle(type).setChecked(enabled);
+            const payload = new URLSearchParams((await sent).postData());
+            assert.equal(payload.get('type'), type);
+            assert.deepEqual(JSON.parse(payload.get('prefs')), { groupUnassignedItems: enabled });
+            await waitFor(page, () => host.prefs(type).groupUnassignedItems === enabled, 'grouping toggle persisted');
+        };
+        try {
+            await openSettings(page, host);
+            for (const type of ['docker', 'vm']) {
+                assert.equal(await toggle(type).isChecked(), false);
+                assert.equal(await page.locator(`#${type}-view-settings .fv-settings-card-layout label:has(#${type}-hide-empty-folders) + label #${type}-group-unassigned-items`).count(), 1);
+            }
+            await save('docker', true);
+            assert.equal(host.prefs('vm').groupUnassignedItems, false);
+            await openSettings(page, host);
+            assert.equal(await toggle('docker').isChecked(), true);
+            assert.equal(await toggle('vm').isChecked(), false);
+            await save('vm', true);
+            await save('docker', false);
+            await openSettings(page, host);
+            assert.equal(await toggle('docker').isChecked(), false);
+            assert.equal(await toggle('vm').isChecked(), true);
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true });
+
     test('Filters and view settings clear defaults, replace smaller profiles and announce exact no-op counts', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         host.folders['fixture-folder-0'].settings = { preview: 4, preview_rows: 3 };

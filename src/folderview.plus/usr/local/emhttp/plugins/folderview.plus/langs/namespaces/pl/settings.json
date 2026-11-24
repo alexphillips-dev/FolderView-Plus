@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "content-revision": "9dc84c393106cf3321dc7ea089badfbb94672dc3232a829ee343356d83113ee8"
+        "content-revision": "8be0ffe88946d5b5a83462bbf3ce07c6b554cce3ffb25f5d2189928d681cd5ae"
     },
+    "settings.visibility.group-unassigned-items": "Grupuj nieprzypisane elementy",
+    "settings.visibility.group-unassigned-items-help": "Dotyczy także odpowiedniego kafelka na pulpicie.",
     "settings.theme.github-directory": "Wybierz katalog CSS",
     "settings.rules.save-changes": "Zapisz zmiany",
     "settings.rules.regex-placeholder": "Wzorzec wyrażenia regularnego (np. ^media-)",

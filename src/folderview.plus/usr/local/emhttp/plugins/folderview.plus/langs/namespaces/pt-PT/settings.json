@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "settings",
-        "content-revision": "77071e9a9f2b669ce5af5b73b737f9508fd881e1e6cd90f2f4c7b855d33295ce"
+        "content-revision": "1f565ff5d2ea7d303617ff85cf6488d404a7707e12f78afaa6b9bd4714c2f254"
     },
+    "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
+    "settings.visibility.group-unassigned-items-help": "Também se aplica ao mosaico correspondente no painel.",
     "settings.theme.github-directory": "Escolha um diretório de CSS",
     "settings.rules.save-changes": "Guardar alterações",
     "settings.rules.regex-placeholder": "Padrão Regex (por exemplo, ^media-)",

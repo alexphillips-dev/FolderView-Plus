@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "content-revision": "cf6faa7db598682c34feb576609e2ccdf8f2121ab61869b75aef1c9fc12a2341"
+        "content-revision": "094ed24f3ca7f7213cac31e80a97712f261b43fd96dc58160e51d14cc8982ce2"
     },
+    "common.unassigned-group.title": "Éléments non affectés",
     "runtime.action.requests-result": "$1 acceptées · $2 en échec",
     "runtime.action.user-script-failed": "User Scripts n’a pas pu lancer cette action. Vérifiez que l’extension et le script sont disponibles.",
     "common.labels.optional": "Optionnel",

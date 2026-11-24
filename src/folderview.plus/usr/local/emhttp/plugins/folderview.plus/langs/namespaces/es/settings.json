@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "content-revision": "d04a53b0d1fd576e73335eb5e17cb9204786963e941112f89c430a339b4ea400"
+        "content-revision": "028d214c4a23cd613876a46ca803087954b72ab756616828d52d7a87a8c05d6d"
     },
+    "settings.visibility.group-unassigned-items": "Agrupar elementos sin asignar",
+    "settings.visibility.group-unassigned-items-help": "También se aplica al panel correspondiente del tablero.",
     "settings.theme.github-directory": "Elige un directorio CSS",
     "settings.rules.save-changes": "Guardar cambios",
     "settings.rules.regex-placeholder": "Patrón de expresiones regulares (por ejemplo, ^media-)",

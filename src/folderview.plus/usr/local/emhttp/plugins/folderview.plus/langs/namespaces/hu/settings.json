@@ -3,8 +3,10 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "content-revision": "8e6ca1110352f9de8cd81e256a61853e73c13a26f8a0baf043c87bac88e3a753"
+        "content-revision": "9d23061f279965f6fc2aa45b4ba8657330a1f2722988b017518cedbc4cb9a689"
     },
+    "settings.visibility.group-unassigned-items": "Hozzá nem rendelt elemek csoportosítása",
+    "settings.visibility.group-unassigned-items-help": "Az irányítópult megfelelő csempéjére is érvényes.",
     "settings.theme.github-directory": "Válasszon CSS-könyvtárat",
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",

@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "content-revision": "ae1569408682fb28d74dacf36e011bf9446a67a0321541830345cf2cdb906b92"
+        "content-revision": "163e355bd01defb21ba41973ac2db8d02d8e4d806112eb76215a36e6fcf3029d"
     },
+    "common.unassigned-group.title": "Неназначенные элементы",
     "runtime.action.requests-result": "Принято: $1 · Ошибок: $2",
     "runtime.action.user-script-failed": "User Scripts не удалось запустить это действие. Проверьте, доступны ли плагин и скрипт.",
     "common.labels.optional": "Необязательно",

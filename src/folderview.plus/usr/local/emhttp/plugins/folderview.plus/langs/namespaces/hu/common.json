@@ -3,8 +3,9 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "content-revision": "0d2b8b85d0d945be4091393593cbc932b4c76d7ad778527aebf21e0348e9894d"
+        "content-revision": "fa20bff4a9c56485ed2960aa4c949971caa9e28c8485084de049456687e01051"
     },
+    "common.unassigned-group.title": "Hozzá nem rendelt elemek",
     "runtime.action.requests-result": "Elfogadva: $1 · Sikertelen: $2",
     "runtime.action.user-script-failed": "A User Scripts nem tudta elindítani ezt a műveletet. Ellenőrizze, hogy a bővítmény és a szkript elérhető-e.",
     "common.labels.optional": "Választható",

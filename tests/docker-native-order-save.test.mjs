@@ -441,6 +441,15 @@ test('the stored order is read from userprefs.cfg as Unraid writes it, without s
         fs.writeFileSync(file, content, options);
         return readStored(file);
     };
+    const writtenSnapshot = () => {
+        const file = fs.openSync(prefs, 'r');
+        try {
+            const stat = fs.fstatSync(file);
+            return { contents: fs.readFileSync(file, 'utf8'), mtime: stat.mtimeMs };
+        } finally {
+            fs.closeSync(file);
+        }
+    };
     try {
         assert.deepEqual(readStored(), { status: 'missing', entries: [] });
 
@@ -453,11 +462,9 @@ test('the stored order is read from userprefs.cfg as Unraid writes it, without s
             foreach ($names as $name) if ($name) $save[] = $index[$i++]."=\\"".$name."\\""; else $i++;
             file_put_contents($user_prefs, implode("\\n",$save)."\\n");
             echo 'null';`);
-        const written = fs.readFileSync(prefs, 'utf8');
-        const mtime = fs.statSync(prefs).mtimeMs;
+        const written = writtenSnapshot();
         assert.deepEqual(readStored(), { status: 'ok', entries: sentNames.map((name, index) => ({ index: String(index), name })) });
-        assert.equal(fs.readFileSync(prefs, 'utf8'), written, 'reading leaves the file as it was');
-        assert.equal(fs.statSync(prefs).mtimeMs, mtime);
+        assert.deepEqual(writtenSnapshot(), written, 'reading preserves the file contents and modification time');
 
         // Stored order is returned as is: no name sort, no containers added.
         const unsorted = readFixture('unsorted.cfg', '0="example-zeta"\n1="example-alpha"\n');

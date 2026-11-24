@@ -7,6 +7,17 @@ const {normalizeBuilderRule, describeCondition, reorderRules} = require(plugin +
 const {ruleMatchesItem} = require(plugin + 'folderviewplus.utils-rules.js');
 const draft = (kind, pattern, type = 'docker') => normalizeBuilderRule({type, folderId:'folder', effect:'include', kind, pattern});
 
+test('editing a converted rule keeps its exact legacy regex until the predicate changes', () => {
+    const editingRule = { kind: 'name_regex', pattern: ' ^..$ ', regexMode: 'legacy' };
+    const description = describeCondition(editingRule);
+    assert.equal(description.regex, true);
+    assert.equal(description.value, editingRule.pattern);
+    const input = { type: 'vm', folderId: 'folder', kind: 'name_regex', pattern: description.value, editingRule };
+    assert.equal(normalizeBuilderRule(input).regexMode, 'legacy');
+    assert.equal(normalizeBuilderRule(input).pattern, editingRule.pattern);
+    assert.equal(normalizeBuilderRule({ ...input, pattern: '^..$' }).regexMode, undefined);
+});
+
 test('literal operators use the assignment matcher for every supported field and VM names', () => {
     const literal = 'app.[x]+$\\';
     for (const type of ['docker', 'vm']) for (const field of type === 'docker' ? ['name', 'image', 'compose_project'] : ['name']) {

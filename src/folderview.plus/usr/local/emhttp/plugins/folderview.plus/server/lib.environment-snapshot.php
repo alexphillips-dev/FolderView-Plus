@@ -14,7 +14,10 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
         foreach (FVPLUS_ALLOWED_TYPES as $type) {
             $entry = is_array($typesIncoming[$type] ?? null) ? $typesIncoming[$type] : [];
             $folders = normalizeFolderMapPayload(is_array($entry['folders'] ?? null) ? $entry['folders'] : []);
-            $prefs = normalizeTypePrefs(is_array($entry['prefs'] ?? null) ? $entry['prefs'] : []);
+            $prefs = reconcileManualOrderPrefs(
+                normalizeTypePrefs(is_array($entry['prefs'] ?? null) ? $entry['prefs'] : []),
+                $folders
+            );
             $normalizedTypes[$type] = [
                 'folders' => $folders,
                 'prefs' => $prefs

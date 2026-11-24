@@ -40,7 +40,11 @@ namespace {
         public function getDockerJSON($url, $method = 'GET', &$code = null, $callback = null, $unchunk = false) {
             $request = $GLOBALS['inventory_request']; $scenario = $request['scenario'];
             $GLOBALS['inventory_calls'][] = ['docker-list', func_num_args(), $unchunk];
-            if ($scenario === 'socket-output') { echo 'synthetic-private-socket-detail'; return []; }
+            if ($scenario === 'socket-output' || ($scenario === 'late-socket-output' &&
+                count(array_filter($GLOBALS['inventory_calls'], static fn($call) => $call[0] === 'docker-list')) === 2)) {
+                echo 'synthetic-private-socket-detail';
+                return [];
+            }
             $code = in_array($scenario, ['failed-list', 'disabled'], true) ? null : ($scenario === 'http-error' ? 'Error code 500' : true);
             $items = $GLOBALS['inventory_docker'];
             if (in_array($scenario, ['failed-list', 'disabled', 'http-error'], true)) $items = [];

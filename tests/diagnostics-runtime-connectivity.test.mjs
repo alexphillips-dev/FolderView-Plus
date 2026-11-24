@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const diagnosticsPath = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
+const server = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
 const phpQuote = (value) => `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
 test('read-only runtime probe distinguishes connected, disabled, failed, and unknown managers', () => {
@@ -18,13 +18,25 @@ const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
 const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 80;
 const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 7;
 class DockerClient {
-    public function getDockerJSON($path) { return getenv('DOCKER_FAIL') ? false : []; }
+    public function getDockerJSON($path, $method, &$status, $read, $unchunk) {
+        if (getenv('DOCKER_FAIL')) {
+            echo 'synthetic private socket detail';
+            return [];
+        }
+        $status = true;
+        $read('[]');
+        return [];
+    }
 }
 class Libvirt {
-    public function connect() { return !getenv('VM_FAIL'); }
-    public function get_domains() { return []; }
+    public function get_domains() { return false; }
 }
-require_once ${phpQuote(diagnosticsPath)};
+function libvirt_connect($uri, $readonly) { return !getenv('VM_FAIL'); }
+function libvirt_list_domains($connection) { return []; }
+require_once ${phpQuote(path.join(server, 'lib.api-contract.php'))};
+require_once ${phpQuote(path.join(server, 'lib.docker-runtime.php'))};
+require_once ${phpQuote(path.join(server, 'lib.runtime-inventory.php'))};
+require_once ${phpQuote(path.join(server, 'lib.diagnostics.php'))};
 echo json_encode(diagnosticsRuntimeConnectivity(['docker' => $argv[1], 'vm' => $argv[2]]));
 `, 'utf8');
     const probe = (dockerSetting, vmSetting, failures = {}) => {

@@ -53,12 +53,12 @@ const toBashPath = (value) => {
 const readArchiveWithTar = (args) => process.platform === 'win32'
     ? execFileSync('wsl.exe', ['--exec', 'tar', ...args], { cwd: repoRoot, encoding: 'utf8' })
     : execFileSync('tar', args, { cwd: repoRoot, encoding: 'utf8' });
-const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
+const installerInvocation = (pluginDir, configDir, cacheDir, checksum, inputArchive) => {
     const environment = {
         FVPLUS_PLUGIN_DIR: toBashPath(pluginDir),
         FVPLUS_CONFIG_DIR: toBashPath(configDir),
         FVPLUS_ICON_PACK_CACHE_BASE: toBashPath(cacheDir),
-        FVPLUS_ICON_PACK_ARCHIVE: toBashPath(archivePath)
+        FVPLUS_ICON_PACK_ARCHIVE: toBashPath(inputArchive)
     };
     const script = toBashPath(installerPath);
     if (process.platform === 'win32') {
@@ -82,13 +82,13 @@ const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
         env: { ...process.env, ...environment }
     };
 };
-const runInstaller = (pluginDir, configDir, cacheDir, checksum, useSpawn = false) => {
+const runInstaller = (pluginDir, configDir, cacheDir, checksum, { returnResult = false, inputArchive = archivePath } = {}) => {
     const pluginScriptsDir = path.join(pluginDir, 'scripts');
     fs.mkdirSync(pluginScriptsDir, { recursive: true });
     fs.copyFileSync(archivePreflightPath, path.join(pluginScriptsDir, 'archive_preflight.sh'));
-    const invocation = installerInvocation(pluginDir, configDir, cacheDir, checksum);
+    const invocation = installerInvocation(pluginDir, configDir, cacheDir, checksum, inputArchive);
     const options = { cwd: repoRoot, encoding: 'utf8', timeout: 120000, env: invocation.env };
-    return useSpawn
+    return returnResult
         ? spawnSync(invocation.command, invocation.args, options)
         : execFileSync(invocation.command, invocation.args, options);
 };
@@ -248,10 +248,46 @@ test('installer rejects a bad checksum before creating an active cache', () => {
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
-        const result = runInstaller(pluginDir, configDir, cacheDir, '0'.repeat(64), true);
+        const result = runInstaller(pluginDir, configDir, cacheDir, '0'.repeat(64), { returnResult: true });
         assert.notEqual(result.status, 0);
         assert.match(result.stderr, /checksum verification failed/);
         assert.equal(fs.existsSync(path.join(cacheDir, `icons-${version}`)), false);
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+});
+
+test('installer recovers missing and changed cache files from the verified pack', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-icon-cache-repair-'));
+    const pluginDir = path.join(tempDir, 'plugin');
+    const configDir = path.join(tempDir, 'config');
+    const cacheDir = path.join(tempDir, 'cache');
+    const fixtureDir = path.join(tempDir, 'fixture');
+    const fixtureIcons = path.join(fixtureDir, 'third-party-icons');
+    const inputArchive = path.join(tempDir, 'fixture.txz');
+    const cachedIcons = path.join(cacheDir, `icons-${version}`, 'third-party-icons');
+    const firstIcon = path.join(cachedIcons, 'first.svg');
+    const secondIcon = path.join(cachedIcons, 'second.svg');
+    try {
+        fs.mkdirSync(fixtureIcons, { recursive: true });
+        fs.mkdirSync(configDir);
+        fs.writeFileSync(path.join(fixtureDir, 'asset-pack.json'), JSON.stringify({ version, fileCount: 2 }, null, 2));
+        fs.writeFileSync(path.join(fixtureIcons, 'first.svg'), '<svg>first</svg>');
+        fs.writeFileSync(path.join(fixtureIcons, 'second.svg'), '<svg>second</svg>');
+        readArchiveWithTar(['-cJf', toBashPath(inputArchive), '-C', toBashPath(fixtureDir), 'asset-pack.json', 'third-party-icons']);
+        const checksum = crypto.createHash('sha256').update(fs.readFileSync(inputArchive)).digest('hex');
+        const install = () => runInstaller(pluginDir, configDir, cacheDir, checksum, { inputArchive });
+
+        assert.match(install(), /2 icons; activated/);
+        fs.unlinkSync(firstIcon);
+        assert.match(install(), /2 icons; activated/);
+        assert.equal(fs.readFileSync(firstIcon, 'utf8'), '<svg>first</svg>');
+
+        fs.writeFileSync(secondIcon, '<svg>broken</svg>');
+        assert.match(install(), /2 icons; activated/);
+        assert.equal(fs.readFileSync(secondIcon, 'utf8'), '<svg>second</svg>');
+        assert.match(install(), /2 icons; reused/);
+        assertSymbolicLink(path.join(pluginDir, 'images', 'third-party-icons'));
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -282,7 +318,7 @@ for (const linkedNode of ['cache', 'version', 'marker', 'manifest', 'icons']) {
             } else {
                 fs.symlinkSync(targetPath, linkedPath);
             }
-            const result = runInstaller(pluginDir, configDir, cacheDir, checksum, true);
+            const result = runInstaller(pluginDir, configDir, cacheDir, checksum, { returnResult: true });
             assert.notEqual(result.status, 0, result.stdout + result.stderr);
             assert.match(result.stderr, linkedNode === 'cache' ? /cache root must not be a symbolic link/ : /checksum verification failed/);
             assert.equal(fs.existsSync(path.join(pluginDir, 'icon-asset-pack.json')), false);

@@ -17,11 +17,11 @@
             $ready = false;
             try {
                 if ($type === 'docker' && class_exists('DockerClient')) {
-                    $client = new DockerClient();
-                    $ready = is_array($client->getDockerJSON('/containers/json?all=1'));
+                    fvplusReadRuntimeEntityList('docker', new DockerClient(), true);
+                    $ready = true;
                 } elseif ($type === 'vm' && class_exists('Libvirt')) {
-                    $client = new Libvirt();
-                    $ready = $client->connect() && is_array($client->get_domains());
+                    fvplusReadRuntimeEntityList('vm', new Libvirt(), true);
+                    $ready = true;
                 }
             } catch (Throwable $error) {
                 // Only a bounded state is included in diagnostics and support bundles.

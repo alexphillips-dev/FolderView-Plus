@@ -15,6 +15,7 @@
         "../tests/browser/cases/docker.mjs",
         "../tests/browser/cases/dashboard-tile-loading.mjs",
         "../tests/browser/cases/dashboard-unassigned-group.mjs",
+        "../tests/browser/cases/runtime-native-identity.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -53,6 +54,8 @@
     {"file": "tests/browser/cases/unassigned-group.mjs", "limit": 110, "owner": "Native row identity, detail rows, keyboard expansion, and reversible order"},
     {"file": "tests/browser/cases/docker-unassigned.mjs", "limit": 150, "owner": "Docker unassigned membership, toolbar filters, and native ordering"},
     {"file": "tests/browser/cases/dashboard-unassigned-group.mjs", "limit": 170, "owner": "Independent Dashboard grouping and refresh-safe native identities"},
+    {"file": "tests/browser/cases/runtime-native-identity.mjs", "limit": 80, "owner": "Dashboard membership and VM native controls when runtime names or identities coincide"},
+    {"file": "tests/browser/helpers/dashboard-membership-host.mjs", "limit": 40, "owner": "Dashboard native row markup and membership snapshots"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
     { "file": "tests/browser/helpers/settings-icons.mjs", "limit": 70, "owner": "native Font Awesome glyph and SVG optical alignment checks" },
@@ -202,6 +205,7 @@
         "tests/browser/cases/docker.mjs",
         "tests/browser/cases/dashboard-tile-loading.mjs",
         "tests/browser/cases/dashboard-unassigned-group.mjs",
+        "tests/browser/cases/runtime-native-identity.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
@@ -331,15 +335,16 @@
         "tests/browser/helpers/docker-hierarchy-move-host.mjs",
         "tests/browser/helpers/docker-folder-menu-host.mjs",
         "tests/browser/helpers/dashboard-row-expansion.mjs",
+        "tests/browser/helpers/dashboard-membership-host.mjs",
         "tests/browser/helpers/icon-browser-host.mjs",
         "tests/browser/helpers/upload-card-layout.mjs",
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 182,
-      "assertionCount": 2378,
-      "pageEvaluateCount": 817,
-      "orderedTitleSha256": "068fb66da01fa7191a4d6ffd72c3b22aadc18fe3bc2675f2501b0c16579a276d"
+      "testCount": 184,
+      "assertionCount": 2389,
+      "pageEvaluateCount": 820,
+      "orderedTitleSha256": "e55fd1f9c293a4013693f17e005896ee4f86fb407b8da8b64bd5738d8aad5b1d"
     }
   }
 }

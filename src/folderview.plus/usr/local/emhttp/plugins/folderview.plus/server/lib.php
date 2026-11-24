@@ -978,6 +978,9 @@
         if ($error instanceof FVPlusConfigConflictException) {
             return 409;
         }
+        if ($error instanceof FVPlusStorageException) {
+            return 503;
+        }
         if ($error instanceof FVPlusSecurityRequestException) {
             return max(400, min(599, (int)$error->getCode()));
         }
@@ -990,6 +993,9 @@
     function fvplus_get_api_error_message(Throwable $error): string {
         if (FVPLUS_VERBOSE_API_ERRORS || FV3_DEBUG_MODE) {
             return (string)$error->getMessage();
+        }
+        if ($error instanceof FVPlusStorageException && !($error instanceof FVPlusTransactionCaptureException)) {
+            return 'Request failed.';
         }
         if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
             return (string)$error->getMessage();

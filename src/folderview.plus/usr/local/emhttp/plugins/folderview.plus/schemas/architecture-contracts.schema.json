@@ -9,6 +9,7 @@
     "fileLineBudgets": {
       "server/lib.rules-apply.php": {"limit": 120, "target": 100, "history": [120]},
       "server/lib.rules-regex.php": {"limit": 84, "target": 84, "history": [84]},
+      "server/lib.rules-backreferences.php": {"limit": 45, "target": 45, "history": [45]},
       "server/rule_preview.php": {"limit": 20, "target": 15, "history": [20]},
       "scripts/runtime.folder-badges.js": { "limit": 23, "target": 23, "history": [23] },
       "scripts/folder.settings-menu.js": { "limit": 260, "target": 250, "history": [260] },
@@ -930,10 +931,20 @@
       "owner": "server-rule-regex-compatibility",
       "consumers": ["server-endpoints"],
       "stateModel": "pure",
-      "dependsOn": [],
+      "dependsOn": ["server/lib.rules-backreferences.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.rules-engine.php",
       "functionInventory": { "count": 3, "sha256": "334dcfb3406976e870f5f2dccfe36c55d47f8b775dc57ce1bc8279b96ab2b384" }
+    },
+    {
+      "file": "server/lib.rules-backreferences.php",
+      "owner": "server-rule-backreference-compatibility",
+      "consumers": ["server-endpoints"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.rules-regex.php",
+      "functionInventory": { "count": 2, "sha256": "1752407d9dc53f8c440766a20584df3cba651a76f8cf7bed127144914abf1f9f" }
     },
     {
       "file": "server/lib.rules-apply.php",

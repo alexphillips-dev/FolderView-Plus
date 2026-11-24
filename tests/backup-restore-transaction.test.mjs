@@ -95,6 +95,14 @@ $legacy = $type . '-legacy.json';
 writeJsonObjectAtomic(getBackupSnapshotPath($type, $legacy), $savedFolders);
 restoreBackupSnapshot($type, $legacy);
 $result['legacy'] = readRawFolderMap($type) === $savedFolders && readTypePrefs($type) === $currentPrefs;
+$indexedLegacy = $type . '-indexed.json';
+writeJsonObjectAtomic(getBackupSnapshotPath($type, $indexedLegacy), [
+    ['name' => 'Indexed', 'containers' => ['fixture-member' => ['metadata' => 'historical']]]
+]);
+restoreBackupSnapshot($type, $indexedLegacy);
+$indexedFolders = readRawFolderMap($type);
+$result['indexedLegacy'] = array_keys($indexedFolders) === [0]
+    && $indexedFolders[0]['containers'] === ['fixture-member'];
 seedFixture($type, [], $currentPrefs);
 $empty = createBackupSnapshot($type, 'before-import-empty');
 writeRawFolderMap($type, $savedFolders);
@@ -134,19 +142,30 @@ foreach (['folders', 'prefs', 'docker-order'] as $stage) {
     $result['failures'][$stage] = ['error' => $error, 'unchanged' => $before === captureFixture($type),
         'targetRetained' => is_file(getBackupSnapshotPath($type, $target['name']))];
 }
-foreach (['invalid-json', 'missing-folders', 'invalid-prefs', 'wrong-type'] as $kind) {
+foreach (['invalid-json', 'missing-folders', 'invalid-prefs', 'wrong-type', 'wrong-schema',
+    'invalid-folders', 'mixed-folders', 'invalid-membership'] as $kind) {
     seedFixture($type, $currentFolders, $currentPrefs);
     $name = $type . '-invalid.json';
     $payload = ['schemaVersion' => 1, 'type' => $type, 'folders' => $savedFolders, 'prefs' => $savedPrefs];
     if ($kind === 'missing-folders') unset($payload['folders']);
     if ($kind === 'invalid-prefs') $payload['prefs'] = 'invalid';
     if ($kind === 'wrong-type') $payload['type'] = $other;
+    if ($kind === 'wrong-schema') $payload['schemaVersion'] = 999;
+    if ($kind === 'invalid-folders') $payload['folders'] = ['corrupt'];
+    if ($kind === 'mixed-folders') $payload['folders']['invalid'] = 'corrupt';
+    if ($kind === 'invalid-membership') $payload['folders']['alpha']['containers'] = [['nested' => 'corrupt']];
     file_put_contents(getBackupSnapshotPath($type, $name), $kind === 'invalid-json' ? '{' : json_encode($payload));
     $before = captureFixture($type); $rejected = false;
     try { restoreBackupSnapshot($type, $name, ['createSafetyBackup' => true]); }
     catch (Throwable $failure) { $rejected = true; }
     $result['invalid'][$kind] = $rejected && $before === captureFixture($type) && count(listBackupSnapshots($type)) === 1;
 }
+$before = captureFixture($type);
+$rejected = false;
+try { restoreLatestBackupSnapshot($type); }
+catch (RuntimeException $failure) { $rejected = true; }
+$result['latestRejectsMalformed'] = $rejected && $before === captureFixture($type)
+    && listBackupSnapshots($type)[0]['count'] === null && count(listBackupSnapshots($type)) === 1;
 $result['otherUnchanged'] = $otherBefore === [readRawFolderMap($other), readTypePrefs($other), readConfigMetadata($other, false)];
 echo json_encode($result);
 `;
@@ -179,9 +198,11 @@ for (const type of ['docker', 'vm']) {
             }
         }
         assert.equal(result.legacy, true, 'folder-only legacy backup changed preferences');
+        assert.equal(result.indexedLegacy, true, 'legacy numeric IDs or associative membership were rejected');
         assert.equal(result.emptyUndo, true, 'explicit empty snapshot did not restore empty state');
         assert.equal(result.emptySafety, true, 'empty current state was not protected');
         assert.equal(result.latestSkipsEmpty, true, 'latest restore selected an empty snapshot');
+        assert.equal(result.latestRejectsMalformed, true, 'latest restore accepted malformed backup data');
         assert.equal(result.otherUnchanged, true, 'restore changed the other source');
         for (const [stage, failure] of Object.entries(result.failures)) {
             assert.match(failure.error, /Injected restore failure/, stage);

@@ -3321,10 +3321,10 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
             ? runtimeSnapshotApi.diffRuntimeRows('vm', vmRuntimeInfoByName, nextRuntimeInfo)
             : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
-        vmRuntimeInfoByName = nextRuntimeInfo; vmQuickFinderApi?.refresh();
-        lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
-        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
-        if (rowDiff.structuralChanged) {
+        // Native controls bind to the UUID when Unraid renders the row.
+        const identityChanged = rowDiff.changed.some(name => Object.hasOwn(vmRuntimeInfoByName, name)
+            && vmRuntimeInfoByName[name].uuid !== nextRuntimeInfo[name].uuid);
+        if (rowDiff.structuralChanged || identityChanged) {
             vmRuntimeStateStore.set({
                 rowReconciliation: {
                     mode: 'structural-fallback',
@@ -3334,9 +3334,12 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
                     capturedAt: new Date().toISOString()
                 }
             });
-            if (!preserveGroupedDom) queueLoadlistRefresh();
+            if (identityChanged || !preserveGroupedDom) queueLoadlistRefresh();
             return false;
         }
+        vmRuntimeInfoByName = nextRuntimeInfo; vmQuickFinderApi?.refresh();
+        lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
+        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
         if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
         return true;
     } catch (_error) {

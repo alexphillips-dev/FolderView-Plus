@@ -115,3 +115,50 @@ test('a stale GitHub scan cannot replace a newer reviewed source or be imported'
     await api.importGithub('owner/current');
     assert.deepEqual(imports, [{ action: 'import_github', source: source.input, commitSha: source.commitSha }]);
 });
+
+test('rapid profile selections write in order and subsequent edits address the displayed profile', async () => {
+    const requests = [];
+    const profiles = ['default', 'first', 'second'].map(id => ({ id, name: id }));
+    const document = { getElementById: () => null, querySelector: () => null };
+    const handlers = new Map();
+    const $ = () => ({ off: () => ({ on: (event, _selector, handler) => handlers.set(event, handler) }) });
+    const api = createApi({ document, $, apiPostJson: (_url, payload) => new Promise((resolve, reject) => {
+        requests.push({ payload, resolve, reject });
+    }) });
+    api.setWorkspace({ activeProfileId: 'default', profiles });
+    api.bindEvents();
+
+    const select = value => {
+        const target = { value };
+        handlers.get('change.fvthemeprofile')({ target });
+        assert.equal(target.value, api.getWorkspace().activeProfileId);
+    };
+    select('first');
+    select('second');
+    assert.deepEqual(requests.map(request => request.payload.profileId), ['first']);
+    requests[0].resolve({ workspace: { activeProfileId: 'first', profiles } });
+    await new Promise(setImmediate);
+    assert.deepEqual(requests.map(request => request.payload.profileId), ['first', 'second']);
+    requests[1].resolve({ workspace: { activeProfileId: 'second', profiles } });
+    await new Promise(setImmediate);
+
+    assert.equal(api.getWorkspace().activeProfileId, 'second');
+    api.previewPreset('blue');
+    const saving = api.saveCustomize();
+    assert.equal(requests[2].payload.profileId, 'second');
+    requests[2].resolve({});
+    await new Promise(setImmediate);
+    assert.equal(requests[3].payload.profileId, 'second');
+    assert.equal(JSON.parse(requests[3].payload.variables)['--fvplus-theme-accent'], '#3b82f6');
+    requests[3].resolve({ workspace: { activeProfileId: 'second', profiles } });
+    await saving;
+
+    select('first');
+    select('second');
+    requests[4].reject(new Error('Synthetic activation failure'));
+    await new Promise(setImmediate);
+    assert.equal(requests[5].payload.profileId, 'second');
+    requests[5].resolve({ workspace: { activeProfileId: 'second', profiles } });
+    await new Promise(setImmediate);
+    assert.equal(api.getWorkspace().activeProfileId, 'second');
+});

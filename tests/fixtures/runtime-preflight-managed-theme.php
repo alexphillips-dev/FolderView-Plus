@@ -15,7 +15,15 @@ function fvplus_get_host_dependency_status(): array {
     return array_fill_keys(['helpers', 'validation', 'docker', 'libvirt'], ['loaded' => true]);
 }
 class DockerClient {
-    public function getDockerJSON(string $path): array { return []; }
+    public function getDockerJSON($path, $method, &$status, $read, $unchunk): array {
+        if (getenv('FVPLUS_TEST_RUNTIME_PREFLIGHT_SOCKET_FAILURE')) {
+            echo 'synthetic private socket detail';
+            return [];
+        }
+        $status = true;
+        $read('[]');
+        return [];
+    }
 }
 class DockerUpdate {}
 class DockerTemplates {}
@@ -25,6 +33,9 @@ class Libvirt {
 }
 
 require "$server/lib.runtime-info.php";
+require "$server/lib.api-contract.php";
+require "$server/lib.docker-runtime.php";
+require "$server/lib.runtime-inventory.php";
 require "$server/lib.theme-workspace.php";
 require "$server/lib.preflight.php";
 

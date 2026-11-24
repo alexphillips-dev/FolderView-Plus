@@ -98,7 +98,7 @@
         if (type !== 'docker' && rule.kind !== 'name_regex') throw new Error('unsupported-rule-type');
         if (['name_regex', 'image_regex', 'compose_project_regex'].includes(rule.kind)) {
             if (String(rule.pattern || '') === '') throw new Error('empty-regex');
-            const regex = new RegExp(String(rule.pattern), 'u');
+            const regex = new RegExp(String(rule.pattern), rule.kind === 'name_regex' && rule.regexMode === 'legacy' ? '' : 'u');
             return (name, infos) => regex.test(rule.kind === 'name_regex' ? name : rule.kind === 'image_regex' ? getDockerImage(infos, name) : getComposeProject(infos, name));
         }
         const key = String(rule.labelKey || ''), expected = String(rule.labelValue ?? '');
@@ -174,7 +174,8 @@
         const orderedNames = unique(restrictNames && names.length ? names : [...names, ...Object.keys(info)]).filter(name => own(info, name));
         const ruleList = (Array.isArray(rules) ? rules : []).filter(isPlainObject).map(rule => ({
             id: String(rule.id || ''), enabled: rule.enabled !== false, folderId: String(rule.folderId || ''), effect: rule.effect === 'exclude' ? 'exclude' : 'include',
-            kind: String(rule.kind || 'name_regex'), pattern: String(rule.pattern || ''), labelKey: String(rule.labelKey || ''), labelValue: String(rule.labelValue ?? '')
+            kind: String(rule.kind || 'name_regex'), pattern: String(rule.pattern || ''), labelKey: String(rule.labelKey || ''), labelValue: String(rule.labelValue ?? ''),
+            ...(rule.regexMode === 'legacy' ? { regexMode: 'legacy' } : {})
         }));
         return { type: type === 'vm' ? 'vm' : 'docker', folders: folderMap, rules: ruleList, infoByName: info, names: orderedNames, validateTargets, restrictNames,
             ruleTargetIds: Array.isArray(ruleTargetIds) ? [...ruleTargetIds] : Object.keys(folderMap),

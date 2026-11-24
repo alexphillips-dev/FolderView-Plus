@@ -57,6 +57,14 @@ const normalizePrefs = (prefs = {}) => ({
     _metadata: { prefsRevision: 0, ...(prefs._metadata || {}) }
 });
 
+const outboxRecord = (sourceId, expectedRevision, patch) => JSON.stringify({
+    schemaVersion: 2,
+    sourceId,
+    updatedAt: '2026-07-15T12:00:00.000Z',
+    patch,
+    operation: { patch, expectedRevision, mutationId: `${sourceId}-1` }
+});
+
 test('preference coordinator applies immediately, coalesces rapid patches, and serializes writes', async () => {
     const api = loadModule();
     const writes = [];
@@ -137,13 +145,7 @@ test('preference coordinator preserves newer edits made during an in-flight requ
 test('preference coordinator restores a durable outbox after reload', async () => {
     const api = loadModule();
     const storage = createStorage({
-        'fvplus.prefs.outbox.v1.docker': JSON.stringify({
-            schemaVersion: 1,
-            type: 'docker',
-            sourceId: 'closed-tab',
-            updatedAt: '2026-07-15T12:00:00.000Z',
-            patch: { dashboard: { ports: false } }
-        })
+        'fvplus.prefs.outbox.v1.docker': outboxRecord('closed-tab', 7, { dashboard: { ports: false } })
     });
     const writes = [];
     const coordinator = api.createPreferenceSaveCoordinator({
@@ -154,8 +156,8 @@ test('preference coordinator restores a durable outbox after reload', async () =
             prefs: { dashboard: { names: true, ports: true } },
             metadata: { prefsRevision: 7 }
         }),
-        writePrefs: async (_type, patch) => {
-            writes.push(patch);
+        writePrefs: async (_type, patch, context) => {
+            writes.push({ patch, context });
             return {
                 ok: true,
                 prefs: api.mergePatch({ dashboard: { names: true, ports: true } }, patch),
@@ -168,19 +170,14 @@ test('preference coordinator restores a durable outbox after reload', async () =
     assert.equal(hydrated.dashboard.ports, false);
     await wait(20);
     assert.equal(writes.length, 1);
+    assert.deepEqual(structuredClone(writes[0].context), { expectedRevision: 7, clientMutationId: 'closed-tab-1' });
     assert.equal(storage.getItem('fvplus.prefs.outbox.v1.docker'), null);
 });
 
 test('preference coordinator replays a restored outbox after raw runtime reconciliation', async () => {
     const api = loadModule();
     const storage = createStorage({
-        'fvplus.prefs.outbox.v1.docker': JSON.stringify({
-            schemaVersion: 1,
-            type: 'docker',
-            sourceId: 'settings-page',
-            updatedAt: '2026-07-15T12:00:00.000Z',
-            patch: { dashboard: { privacyMaskNames: false } }
-        })
+        'fvplus.prefs.outbox.v1.docker': outboxRecord('settings-page', 9, { dashboard: { privacyMaskNames: false } })
     });
     const writes = [];
     const coordinator = api.createPreferenceSaveCoordinator({
@@ -448,10 +445,9 @@ test('a replay acknowledgement cannot clear a newer edit owned by the originatin
 
 test('a rejected recovered owner does not erase another owner or a new local save', async () => {
     const api = loadModule();
-    const outbox = (sourceId, patch) => JSON.stringify({ schemaVersion: 1, sourceId, patch });
     const storage = createStorage({
-        'fvplus.prefs.outbox.v1.vm': outbox('legacy', { autoRules: [{ folderId: 'synthetic-missing' }] }),
-        'fvplus.prefs.outbox.v1.vm.foreign.1': outbox('foreign', { dashboard: { names: false } })
+        'fvplus.prefs.outbox.v1.vm': outboxRecord('first-owner', 1, { autoRules: [{ folderId: 'synthetic-missing' }] }),
+        'fvplus.prefs.outbox.v1.vm.foreign.1': outboxRecord('foreign', 1, { dashboard: { names: false } })
     });
     const writes = [];
     let serverPrefs = normalizePrefs({ _metadata: { prefsRevision: 1 } });
@@ -474,6 +470,181 @@ test('a rejected recovered owner does not erase another owner or a new local sav
     ]);
     assert.equal(serverPrefs.dashboard.names, false);
     assert.equal(serverPrefs.groupUnassignedItems, true);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('an outbox replay cannot overwrite newer preferences after a lost acknowledgement', async () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const writes = [];
+    let stored = normalizePrefs({ sortMode: 'created', _metadata: { prefsRevision: 1 } });
+    const write = (_type, patch, context) => {
+        writes.push(structuredClone(context));
+        if (context.expectedRevision !== stored._metadata.prefsRevision) {
+            throw Object.assign(new Error('Refresh before saving again.'), { status: 409 });
+        }
+        stored = normalizePrefs(api.mergePatch(stored, patch));
+        stored._metadata.prefsRevision = context.expectedRevision + 1;
+        return { prefs: stored };
+    };
+    let completeFirst;
+    const committed = new Promise(resolve => { completeFirst = resolve; });
+    const common = { window: {}, normalizePrefs, debounceMs: 0, fetchPrefs: async () => stored };
+    const first = api.createPreferenceSaveCoordinator({
+        ...common, sourceId: 'first', storage,
+        writePrefs: (...args) => {
+            write(...args);
+            completeFirst();
+            return new Promise(() => {});
+        }
+    });
+    first.reconcile('vm', stored);
+    void first.save('vm', { sortMode: 'alpha' });
+    await committed;
+    const later = api.createPreferenceSaveCoordinator({ ...common, storage: createStorage(), sourceId: 'later', writePrefs: write });
+    await later.hydrateFromServer('vm');
+    await later.save('vm', { sortMode: 'manual' });
+    const reopened = api.createPreferenceSaveCoordinator({ ...common, storage, sourceId: 'reopened', writePrefs: write });
+    const hydrated = await reopened.hydrateFromServer('vm');
+    assert.equal(hydrated.sortMode, 'manual');
+    await assert.rejects(reopened.flush('vm'), /Refresh before saving/);
+    assert.deepEqual(writes, [
+        { expectedRevision: 1, clientMutationId: 'first-1' },
+        { expectedRevision: 2, clientMutationId: 'later-1' },
+        { expectedRevision: 1, clientMutationId: 'first-1' }
+    ]);
+    assert.equal(stored.sortMode, 'manual');
+    assert.equal(stored._metadata.prefsRevision, 3);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('legacy outbox records without a base revision cannot change current preferences', async () => {
+    const api = loadModule();
+    for (const suffix of ['', '.legacy.1']) {
+        const notices = [];
+        const storage = createStorage({
+            [`fvplus.prefs.outbox.v1.vm${suffix}`]: JSON.stringify({
+                schemaVersion: 1, sourceId: 'legacy', patch: { sortMode: 'alpha' }
+            })
+        });
+        const coordinator = api.createPreferenceSaveCoordinator({
+            window: { FolderViewPlusUI: { alert: notice => notices.push(notice) } }, storage, normalizePrefs, debounceMs: 0,
+            writePrefs: () => assert.fail('unversioned outbox reached the server')
+        });
+        const confirmed = normalizePrefs({ sortMode: 'manual', _metadata: { prefsRevision: 3 } });
+        assert.equal(coordinator.reconcile('vm', confirmed).sortMode, 'manual');
+        await assert.rejects(coordinator.flush('vm'), /Review and save your changes again/);
+        assert.equal(coordinator.getSnapshot('vm').status, 'failed');
+        assert.equal(coordinator.getSnapshot('vm').recoveryConflict, true);
+        assert.deepEqual(storage.snapshot(), {});
+        assert.equal(notices.length, 1);
+        assert.match(notices[0].message, /Review and save your changes again/);
+    }
+});
+
+test('a lost preference reply preserves a newer queued edit across consecutive reloads', async () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const writes = [];
+    let stored = normalizePrefs({ sortMode: 'created', _metadata: { prefsRevision: 1 } });
+    let receipt = null;
+    const commit = (_type, patch, context) => {
+        const request = structuredClone({ patch, context });
+        writes.push(request);
+        if (context.expectedRevision === stored._metadata.prefsRevision) {
+            stored = normalizePrefs(api.mergePatch(stored, patch));
+            stored._metadata.prefsRevision = context.expectedRevision + 1;
+            receipt = request;
+        } else {
+            assert.deepEqual(request, receipt);
+            assert.equal(context.expectedRevision + 1, stored._metadata.prefsRevision);
+        }
+        return { prefs: stored };
+    };
+    let predecessorCommitted;
+    const firstCommit = new Promise(resolve => { predecessorCommitted = resolve; });
+    const common = { storage, window: {}, normalizePrefs, debounceMs: 0, fetchPrefs: async () => stored };
+    const origin = api.createPreferenceSaveCoordinator({
+        ...common, sourceId: 'origin',
+        writePrefs: (...args) => { commit(...args); predecessorCommitted(); return new Promise(() => {}); }
+    });
+    origin.reconcile('vm', stored);
+    void origin.save('vm', { sortMode: 'alpha' });
+    await firstCommit;
+    void origin.save('vm', { groupUnassignedItems: true });
+    let successorRecovered;
+    const successorPending = new Promise(resolve => { successorRecovered = resolve; });
+    const interrupted = api.createPreferenceSaveCoordinator({
+        ...common, sourceId: 'interrupted',
+        writePrefs: (...args) => {
+            if (args[1].groupUnassignedItems) {
+                successorRecovered();
+                return new Promise(() => {});
+            }
+            return commit(...args);
+        }
+    });
+    await interrupted.hydrateFromServer('vm');
+    await successorPending;
+    const persisted = JSON.parse(Object.values(storage.snapshot())[0]);
+    assert.deepEqual(persisted.operation.patch, { groupUnassignedItems: true });
+    assert.equal(persisted.operation.expectedRevision, 2);
+    assert.equal(persisted.operation.mutationId, 'origin-2');
+    const reopened = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'reopened', writePrefs: commit });
+    await reopened.hydrateFromServer('vm');
+    await reopened.flush('vm');
+    assert.deepEqual(writes[0], writes[1]);
+    assert.deepEqual(writes[2].context, { expectedRevision: 2, clientMutationId: 'origin-2' });
+    assert.equal(stored.groupUnassignedItems, true);
+    assert.equal(stored._metadata.prefsRevision, 3);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('adopting a newer broadcast invalidates an outdated foreign optimistic patch', () => {
+    const api = loadModule();
+    const storage = createStorage();
+    const handlers = new Map();
+    class TestChannel {
+        addEventListener(name, listener) { handlers.set(name, listener); }
+    }
+    const coordinator = api.createPreferenceSaveCoordinator({
+        storage, normalizePrefs, sourceId: 'observer', BroadcastChannel: TestChannel,
+        window: { addEventListener: (name, listener) => handlers.set(name, listener) }
+    });
+    coordinator.reconcile('vm', normalizePrefs({ sortMode: 'created', _metadata: { prefsRevision: 1 } }));
+    const key = 'fvplus.prefs.outbox.v1.vm.foreign.1';
+    const raw = outboxRecord('foreign', 1, { sortMode: 'alpha' });
+    storage.setItem(key, raw);
+    handlers.get('storage')({ key, newValue: raw });
+    assert.equal(coordinator.getOptimisticPrefs('vm').sortMode, 'alpha');
+    handlers.get('message')({ data: { action: 'committed', sourceId: 'newer', type: 'vm',
+        prefs: normalizePrefs({ sortMode: 'manual', _metadata: { prefsRevision: 2 } }) } });
+    assert.equal(coordinator.getOptimisticPrefs('vm').sortMode, 'manual');
+});
+
+test('a temporary storage failure retains its exact preference operation and retries it', async () => {
+    const api = loadModule();
+    const writes = [];
+    const storage = createStorage();
+    const coordinator = api.createPreferenceSaveCoordinator({
+        window: {}, sourceId: 'retry', storage, normalizePrefs, debounceMs: 0, retryDelayMs: 250,
+        writePrefs: async (_type, patch, context) => {
+            writes.push(structuredClone({ patch, context }));
+            if (writes.length === 1) throw Object.assign(new Error('Request failed.'), { status: 503 });
+            return { prefs: normalizePrefs({ ...patch, _metadata: { prefsRevision: 2 } }) };
+        }
+    });
+    coordinator.reconcile('vm', normalizePrefs({ groupUnassignedItems: false, _metadata: { prefsRevision: 1 } }));
+    await assert.rejects(coordinator.save('vm', { groupUnassignedItems: true }), /Request failed/);
+    assert.equal(coordinator.getSnapshot('vm').status, 'sync-pending');
+    assert.equal(coordinator.getOptimisticPrefs('vm').groupUnassignedItems, true);
+    const retained = JSON.parse(Object.values(storage.snapshot())[0]);
+    assert.deepEqual(retained.operation.patch, { groupUnassignedItems: true });
+    assert.equal(retained.operation.expectedRevision, 1);
+    assert.equal(retained.operation.mutationId, 'retry-1');
+    await coordinator.flush('vm');
+    assert.deepEqual(writes[1], writes[0]);
+    assert.equal(coordinator.getOptimisticPrefs('vm').groupUnassignedItems, true);
     assert.deepEqual(storage.snapshot(), {});
 });
 

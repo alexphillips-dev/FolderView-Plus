@@ -69,9 +69,10 @@ function fvplusValidateRuleChanges(string $type, array $current, array $next): v
         $index = array_search($comparison, $remaining, true);
         if ($index !== false) { unset($remaining[$index]); continue; }
         if (!is_array($rule) || !in_array($rule['effect'] ?? 'include', FVPLUS_RULE_EFFECTS, true)) throw new RuntimeException('Correct invalid rules before saving.');
-        foreach (['id', 'folderId', 'effect', 'kind', 'pattern', 'labelKey', 'labelValue', 'source'] as $key) {
+        foreach (['id', 'folderId', 'effect', 'kind', 'pattern', 'labelKey', 'labelValue', 'source', 'regexMode'] as $key) {
             if (array_key_exists($key, $rule) && !is_string($rule[$key])) throw new RuntimeException('Correct invalid rules before saving.');
         }
+        if (array_key_exists('regexMode', $rule) && !fvplusRuleUsesLegacyRegex($rule)) throw new RuntimeException('Correct invalid rules before saving.');
         if (!is_string($rule['id'] ?? null) || trim($rule['id']) === '' || (array_key_exists('enabled', $rule) && !is_bool($rule['enabled']))) throw new RuntimeException('Correct invalid rules before saving.');
         $sameId = array_filter($next, static fn($entry): bool => is_array($entry) && ($entry['id'] ?? null) === $rule['id']);
         if (count($sameId) > 1) throw new RuntimeException('Correct invalid rules before saving.');

@@ -303,14 +303,16 @@ test('remote publish guard validates raw manifest, archive, and checksum after p
     assert.match(remotePublishGuard, /mkdir -p "\$\{TMP_BASE_DIR\}"/);
     assert.match(remotePublishGuard, /TMP_DIR="\$\(mktemp -d "\$\{TMP_BASE_DIR\}\/remote-publish\.XXXXXX"\)"/);
     assert.match(remotePublishGuard, /expand_manifest_url/);
-    assert.match(remotePublishGuard, /plugin manifest/);
-    assert.match(remotePublishGuard, /archive checksum/);
     assert.match(remotePublishGuard, /curl -fsSL/);
-    assert.match(remotePublishGuard, /REMOTE_ARCHIVE_SHA256/);
-    assert.match(remotePublishGuard, /published archive bytes stale or mismatched/);
-    assert.match(remotePublishGuard, /Remote manifest version mismatch/);
-    assert.match(remotePublishGuard, /Remote checksum mismatch/);
-    assert.match(remotePublishGuard, /remote raw manifest, downloaded archive bytes, and checksum match/);
+    const command = process.platform === 'win32' ? 'wsl.exe' : 'bash';
+    const prefix = process.platform === 'win32' ? ['--exec', 'bash'] : [];
+    const output = execFileSync(command, [...prefix, 'tests/fixtures/remote-publish-guard.sh'], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        timeout: 30000
+    });
+    assert.match(output, /dev publication fixture passed/);
+    assert.match(output, /main publication fixture passed/);
 });
 
 test('dev pushes that change shipped plugin files must bump the manifest version', () => {

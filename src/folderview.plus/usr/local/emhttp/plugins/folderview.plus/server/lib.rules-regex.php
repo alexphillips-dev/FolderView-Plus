@@ -1,6 +1,6 @@
 <?php
-// JavaScript legacy expressions use UTF-16 code units. Shift units at and
-// above D800 past the surrogate gap while preserving character-class order.
+require_once __DIR__ . '/lib.rules-backreferences.php';
+// Shift legacy UTF-16 units past the surrogate gap while preserving character-class order.
 function fvplusLegacyRegexCodeUnits(string $value): string {
     return preg_replace_callback('/[\x{e000}-\x{10ffff}]/u', static function (array $match): string {
         $byte = unpack('C*', $match[0]);
@@ -15,6 +15,7 @@ function fvplusLegacyRegexCodeUnits(string $value): string {
 }
 
 function serverRuleRegex(string $pattern, bool $unicode = true): string {
+    if ($unicode) $pattern = fvplusTranslateRuleBackreferences($pattern);
     $whitespace = '\x{9}-\x{d}\x{20}\x{a0}\x{1680}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}\x{feff}';
     $nonWhitespace = '\x{0}-\x{8}\x{e}-\x{1f}\x{21}-\x{9f}\x{a1}-\x{167f}\x{1681}-\x{1fff}'
         . '\x{200b}-\x{2027}\x{202a}-\x{202e}\x{2030}-\x{205e}\x{2060}-\x{2fff}\x{3001}-\x{fefe}\x{ff00}-\x{10ffff}';
@@ -77,7 +78,6 @@ function serverRuleRegex(string $pattern, bool $unicode = true): string {
     // Unicode shorthand classes. JavaScript \w, \d and \b use ASCII.
     return '~(*UTF)' . $translated . '~D';
 }
-
 function serverRegexMatches(string $pattern, string $input): bool {
     return $pattern !== '' && @preg_match(serverRuleRegex($pattern), $input) === 1;
 }

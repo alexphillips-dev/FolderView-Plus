@@ -8,6 +8,7 @@ const root = '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/sc
 const require = createRequire(import.meta.url);
 const recovery = require(root + 'runtime.folder-render-recovery.js');
 const state = require(root + 'folder.runtime.state-observers.js');
+const { isDashboardFolderToken } = require(root + 'dashboard.folder-match-cache.js').createApi();
 const read = (file) => fs.readFileSync(new URL(root + file, import.meta.url), 'utf8');
 const createRecovery = () => recovery.create({
     window: { MutationObserver: class { observe() {} disconnect() {} takeRecords() { return []; } } },
@@ -31,7 +32,7 @@ for (const [file, type, suffix, index] of [
         const folders = { broken: { name: 'Private folder', status: { expanded: true } }, healthy: { name: 'Healthy' } };
         const broken = folders.broken;
         const context = {
-            folders, foldersDone: {}, order: ['folder-broken', 'folder-healthy'], folderRegex: /^folder-/,
+            folders, foldersDone: {}, order: ['folder-broken', 'folder-healthy'], folderRegex: /^folder-/, isDashboardFolderToken,
             captureDebug: false,
             containersInfo: {}, vmInfo: {}, newOnes: [], folderMatchCache: {}, folderDepthById: {},
             dockerChildrenByParent: {}, vmChildrenByParent: {}, dockerFullMatchCache: {}, dockerMatchCache: {},
@@ -48,6 +49,7 @@ for (const [file, type, suffix, index] of [
         assert.deepEqual(attempts, ['broken', 'healthy']);
         assert.deepEqual(Object.keys(context.foldersDone), ['healthy']);
         assert.deepEqual(context.order, ['folder-healthy']);
+
         assert.equal(broken.status.expanded, true);
         assert.deepEqual(controller.snapshot(), { failedFolderCount: 1, recoveredFolderCount: 1 });
         assert.doesNotMatch(JSON.stringify(controller.snapshot()), /Private|broken|failure detail/);
@@ -66,6 +68,13 @@ for (const [file, type, suffix, index] of [
         assert.deepEqual(attempts, ['broken', 'healthy']);
         assert.deepEqual(Object.keys(context.foldersDone), ['healthy']);
         assert.deepEqual(context.order, ['folder-healthy']);
+
+        if (file === 'dashboard.js') {
+            controller.begin();
+            context.order = ['folder-broken'];
+            vm.runInNewContext(`createFolder${suffix}({ status: { expanded: true } }, 'broken', 0, order, { 'folder-broken': {} });`, context);
+            assert.deepEqual(context.order, ['folder-broken'], 'A failed folder render preserves the live name that matches its token');
+        }
     });
 }
 

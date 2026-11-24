@@ -63,6 +63,7 @@ function legacyRegexMigrationLockPath(string $type): string {
                     && (string)($rule['effect'] ?? 'include') === 'include'
                     && (string)($rule['kind'] ?? 'name_regex') === 'name_regex'
                     && (string)($rule['pattern'] ?? '') === $legacyPattern
+                    && fvplusRuleUsesLegacyRegex($rule)
                 ) {
                     $existingRule = $rule;
                     break;
@@ -78,6 +79,7 @@ function legacyRegexMigrationLockPath(string $type): string {
                     'effect' => 'include',
                     'kind' => 'name_regex',
                     'pattern' => $legacyPattern,
+                    'regexMode' => 'legacy',
                     'labelKey' => '',
                     'labelValue' => ''
                 ];

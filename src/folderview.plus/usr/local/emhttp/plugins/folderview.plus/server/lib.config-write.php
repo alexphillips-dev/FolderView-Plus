@@ -1,7 +1,7 @@
 <?php
-class FVPlusConfigWriteRollbackException extends RuntimeException {}
+class FVPlusConfigWriteRollbackException extends FVPlusStorageException {}
 
-function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata): array {
+function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata, string $prefsMutationReceipt = ''): array {
     $safeType = ensureType($type);
     if (!in_array($kind, ['folder', 'prefs'], true)) {
         throw new RuntimeException('Unsupported configuration metadata kind.');
@@ -10,7 +10,6 @@ function commitConfigMetadataWrite(string $type, string $kind, string $targetPat
     $revisionKey = $kind . 'Revision';
     $updatedKey = $kind . 'UpdatedAt';
     $hashKey = $kind . 'Sha256';
-    $metadata = normalizeConfigMetadata($metadata, $safeType);
     $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
     $metadata[$updatedKey] = $now;
     $metadata[$hashKey] = configMetadataHashFromPath($targetPath);
@@ -18,13 +17,14 @@ function commitConfigMetadataWrite(string $type, string $kind, string $targetPat
     $metadata['lastTraceId'] = getRequestTraceId();
     $metadata['lastTransactionId'] = getRequestTransactionId();
     $metadata['lastMutationAt'] = $now;
+    if ($kind === 'prefs') $metadata['prefsMutationReceipt'] = $prefsMutationReceipt;
     $metadata = normalizeConfigMetadata($metadata, $safeType);
     writeJsonObjectAtomic(getConfigMetadataPath($safeType), $metadata);
     return $metadata;
 }
 
-function fvplusWriteConfigPayload(string $type, string $kind, string $path, array $payload): void {
-    withConfigMutationLock(static function () use ($type, $kind, $path, $payload): void {
+function fvplusWriteConfigPayload(string $type, string $kind, string $path, array $payload, string $prefsMutationReceipt = ''): void {
+    withConfigMutationLock(static function () use ($type, $kind, $path, $payload, $prefsMutationReceipt): void {
         $metadataPath = getConfigMetadataPath($type);
         $before = array_map('fvplusTransactionCaptureFile', [$path, $metadataPath]);
         $payloadCommitted = false;
@@ -33,7 +33,7 @@ function fvplusWriteConfigPayload(string $type, string $kind, string $path, arra
             $metadata = readConfigMetadata($type, true, false);
             writeJsonObjectAtomic($path, $payload);
             $payloadCommitted = true;
-            $metadata = commitConfigMetadataWrite($type, $kind, $path, $metadata);
+            $metadata = commitConfigMetadataWrite($type, $kind, $path, $metadata, $prefsMutationReceipt);
         } catch (Throwable $error) {
             if (!$payloadCommitted) throw $error;
             $failureSnapshot = getDurableStorageRuntimeSnapshot();

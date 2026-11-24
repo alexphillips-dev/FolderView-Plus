@@ -1,4 +1,7 @@
 <?php
+class FVPlusStorageException extends RuntimeException {}
+class FVPlusTransactionCaptureException extends FVPlusStorageException {}
+
 function readJsonObjectFile(string $path): ?array {
         if (!file_exists($path)) {
             return null;
@@ -21,7 +24,7 @@ function readJsonObjectFile(string $path): ?array {
         }
         $handle = @fopen(getConfigMutationLockPath(), 'c+');
         if (!is_resource($handle)) {
-            throw new RuntimeException('Unable to open the configuration mutation lock.');
+            throw new FVPlusStorageException('Unable to open the configuration mutation lock.');
         }
         $startedAt = microtime(true);
         $locked = false;
@@ -34,7 +37,7 @@ function readJsonObjectFile(string $path): ?array {
         }
         if (!$locked) {
             @fclose($handle);
-            throw new RuntimeException('FolderView Plus configuration is busy. Please retry the action.');
+            throw new FVPlusStorageException('FolderView Plus configuration is busy. Please retry the action.');
         }
         $GLOBALS['fvplus_config_mutation_lock_handle'] = $handle;
         register_shutdown_function(static function (): void {
@@ -105,7 +108,7 @@ function readJsonObjectFile(string $path): ?array {
 
     function fvplusStorageThrowInjectedFailure(string $stage, string $path): void {
         if (fvplusStorageFailureInjected($stage)) {
-            throw new RuntimeException("Injected durable storage failure at '$stage' for '" . basename($path) . "'.");
+            throw new FVPlusStorageException("Injected durable storage failure at '$stage' for '" . basename($path) . "'.");
         }
     }
 
@@ -154,11 +157,11 @@ function readJsonObjectFile(string $path): ?array {
             $parent = dirname($path);
             fvplusStorageThrowInjectedFailure('parent-create', $path);
             if (!is_dir($parent) && !@mkdir($parent, 0770, true) && !is_dir($parent)) {
-                throw new RuntimeException("Failed to create durable storage directory for '$path'.");
+                throw new FVPlusStorageException("Failed to create durable storage directory for '$path'.");
             }
             fvplusStorageThrowInjectedFailure('read-only', $path);
             if (!is_writable($parent)) {
-                throw new RuntimeException("Durable storage directory is read-only for '$path'.");
+                throw new FVPlusStorageException("Durable storage directory is read-only for '$path'.");
             }
 
             $existingMode = is_file($path) ? ((int)@fileperms($path) & 0777) : 0;
@@ -172,10 +175,10 @@ function readJsonObjectFile(string $path): ?array {
             @chmod($tmpPath, 0600);
             $handle = @fopen($tmpPath, 'c+b');
             if (!is_resource($handle)) {
-                throw new RuntimeException("Failed to open temp durable payload for '$path'.");
+                throw new FVPlusStorageException("Failed to open temp durable payload for '$path'.");
             }
             if (!@flock($handle, LOCK_EX) || !@ftruncate($handle, 0) || @rewind($handle) === false) {
-                throw new RuntimeException("Failed to prepare temp durable payload for '$path'.");
+                throw new FVPlusStorageException("Failed to prepare temp durable payload for '$path'.");
             }
             fvplusStorageThrowInjectedFailure('temp-write', $path);
 
@@ -184,25 +187,25 @@ function readJsonObjectFile(string $path): ?array {
             if (fvplusStorageFailureInjected('interrupted-write')) {
                 $partialLength = max(1, (int)floor(max(1, $length) / 2));
                 @fwrite($handle, substr($contents, 0, $partialLength));
-                throw new RuntimeException("Injected interrupted durable write for '" . basename($path) . "'.");
+                throw new FVPlusStorageException("Injected interrupted durable write for '" . basename($path) . "'.");
             }
             while ($written < $length) {
                 $chunk = @fwrite($handle, substr($contents, $written));
                 if ($chunk === false || $chunk <= 0) {
-                    throw new RuntimeException("Failed to complete temp durable payload for '$path' (storage may be full).");
+                    throw new FVPlusStorageException("Failed to complete temp durable payload for '$path' (storage may be full).");
                 }
                 $written += $chunk;
                 if (fvplusStorageFailureInjected('disk-full') && $written < $length) {
-                    throw new RuntimeException("Injected full-disk durable write failure for '" . basename($path) . "'.");
+                    throw new FVPlusStorageException("Injected full-disk durable write failure for '" . basename($path) . "'.");
                 }
             }
             if (fvplusStorageFailureInjected('disk-full')) {
-                throw new RuntimeException("Injected full-disk durable write failure for '" . basename($path) . "'.");
+                throw new FVPlusStorageException("Injected full-disk durable write failure for '" . basename($path) . "'.");
             }
             fvplusStorageThrowInjectedFailure('file-flush', $path);
             $fileFlushed = fvplusFlushFileHandleBestEffort($handle);
             if (!$fileFlushed) {
-                throw new RuntimeException("Failed to flush temp durable payload for '$path'.");
+                throw new FVPlusStorageException("Failed to flush temp durable payload for '$path'.");
             }
             @flock($handle, LOCK_UN);
             @fclose($handle);
@@ -210,7 +213,7 @@ function readJsonObjectFile(string $path): ?array {
 
             fvplusStorageThrowInjectedFailure('rename', $path);
             if (!@rename($tmpPath, $path)) {
-                throw new RuntimeException("Failed to atomically replace durable payload for '$path'.");
+                throw new FVPlusStorageException("Failed to atomically replace durable payload for '$path'.");
             }
             $tmpPath = '';
             @chmod($path, $mode);
@@ -342,7 +345,7 @@ function readJsonObjectFile(string $path): ?array {
         if ($updatedAt === '') {
             $updatedAt = (string)$defaults['updatedAt'];
         }
-        return [
+        $normalized = [
             'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
             'type' => $safeType,
             'createdAt' => $createdAt,
@@ -359,6 +362,11 @@ function readJsonObjectFile(string $path): ?array {
             'lastTransactionId' => normalizeRequestTransactionId((string)($incoming['lastTransactionId'] ?? '')),
             'lastMutationAt' => normalizeIsoTimestamp($incoming['lastMutationAt'] ?? '')
         ];
+        $receipt = $incoming['prefsMutationReceipt'] ?? '';
+        if (is_string($receipt) && preg_match('/^[a-f0-9]{64}$/D', $receipt)) {
+            $normalized['prefsMutationReceipt'] = $receipt;
+        }
+        return $normalized;
     }
 
     function writeConfigMetadata(string $type, array $metadata): array {
@@ -402,6 +410,7 @@ function readJsonObjectFile(string $path): ?array {
                     if ($storedHash !== $actualHash) {
                         $metadata[$hashKey] = $actualHash;
                         $metadata[$updatedKey] = configMetadataTimestampFromPath($targetPath);
+                        if ($kind === 'prefs') unset($metadata['prefsMutationReceipt']);
                         $changed = true;
                     }
                 }

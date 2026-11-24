@@ -42,7 +42,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 61);
+    assert.equal(architecture.serverModuleContracts.length, 62);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -84,6 +84,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['dockerPageHasFolderSort', 'composeDockerSavedOrder', 'orderFolderBranchIds',
             'buildDockerPageOrderModel', 'fvplusRespondToDockerOrderSync']) additions.add(name);
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
+        for (const name of ['fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
         for (const name of ['fvplusTypeTransactionPaths', 'diagnosticsSupportBundleEventLabel',
             'diagnosticsSupportBundleRedactMissingIcons', 'fvplusCustomIconNameFromReference',
@@ -137,7 +138,8 @@ test('requiring the compatibility facade publishes representative functions from
         'normalizeEnvironmentSnapshotPayload', 'scanThemeWorkspaceGithub', 'getTypeBackupSchedule',
         'createBackupSnapshot', 'bulkAssignItemsToFolders', 'syncContainerOrder', 'updateFolder',
         'fvplusCustomIconDirPath', 'readInfo', 'diagnosticsHashShort', 'diagnosticsBuildIntegrityChecks',
-        'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot', 'truncateUtf8String'
+        'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot', 'truncateUtf8String',
+        'fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences'
     ];
     const body = `require_once ${phpString(path.join(serverRoot, 'lib.php'))}; echo json_encode(array_map('function_exists', ${JSON.stringify(functions)}));`;
     try {

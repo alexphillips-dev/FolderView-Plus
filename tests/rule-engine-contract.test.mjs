@@ -90,6 +90,33 @@ test('browser and server share ordered predicate, Unicode and target contracts',
     assert.equal(server.at(-4).blockedBy.id, 'fixture-rule', 'exclude remains global when its old target disappears');
 });
 
+test('managed backreferences behave the same in browser membership, PHP preview, and startup order', () => {
+    const folders = { media: { name: 'Media' } };
+    const names = ['backup', 'archive-backuparchive-', 'archive-backup', 'other'];
+    const info = Object.fromEntries(names.map(name => [name, {}]));
+    for (const pattern of ['^(archive-)?backup\\1$', '^(?<prefix>archive-)?backup\\k<prefix>$']) {
+        const rules = [rule({ pattern })];
+        const expected = names.slice(0, 2);
+        const browser = utils.buildMembershipSnapshot({ type: 'docker', folders, rules, infoByName: info, names });
+        assert.deepEqual(browser.byFolder.media.liveMembers, expected);
+        const testInput = { type: 'docker', folders, rules, info };
+        assert.equal(runPhp({ ...testInput, operation: 'validate', current: [], next: rules }), true);
+        const preview = runPhp({ ...testInput, operation: 'preview-apply' });
+        assert.deepEqual(preview.preview.rows.filter(row => row.result === 'assigned').map(row => row.item), expected);
+        const startup = runPhp({ ...testInput, operation: 'startup' });
+        assert.deepEqual(startup.members['folder-media'].toSorted(), expected.toSorted());
+    }
+    const pattern = '^\\1(b)$';
+    const cases = ['b', 'bb'].map(name => ({ type: 'docker', name, folders, info, rules: [rule({ pattern })] }));
+    assert.deepEqual(runPhp({ cases }).map(result => result.assignedRule?.id), ['fixture-rule', undefined]);
+    const fixedLookbehind = ['(?<=(a)\\1)b(archive-)?\\2$', '(?<=(?<prefix>a)\\k<prefix>)b(archive-)?\\2$'];
+    const lookbehindCases = fixedLookbehind.flatMap(pattern => ['aab', 'aabarchive-archive-', 'xb'].map(name => ({
+        type: 'docker', name, folders, info, rules: [rule({ pattern })]
+    })));
+    assert.deepEqual(runPhp({ cases: lookbehindCases }).map(result => result.assignedRule?.id),
+        lookbehindCases.map(entry => utils.getAutoRuleDecision({ ...entry, infoByName: info }).assignedRule?.id));
+});
+
 test('browser and PHP keep legacy VM membership and diagnostics regex matching in sync', () => {
     const names = ['aéb', 'fixture/x', '😀', 'é', '\uE000', 'space fixture', 'with\uFEFFbom'];
     const types = { type: 'vm', rules: [] };

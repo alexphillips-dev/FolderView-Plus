@@ -63,8 +63,11 @@ export const mountFilterViewVmHost = async (page, host) => {
     });
     const langs = fs.readFileSync(path.join(plugin, 'langs/script.php'), 'utf8');
     const langScripts = [...langs.matchAll(/<script[^>]*src="[^"\n]*?fvplus_asset\('([^']+)'\)[^"\n]*"[^>]*><\/script>/g)].map(m => script(m[1])).join('');
-    const rows = host.names.map((name, index) => `<tr class="sortable" id="fixture-vm-${index}"><td class="vm-name"><span class="outer"><span class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span></td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox"></td></tr>`).join('');
-    const native = `<table id="kvm_table"><thead><tr><th>Name</th><th>OS</th><th>CPU</th><th>RAM</th><th>Autostart</th></tr></thead><tbody id="kvm_list">${rows}</tbody></table>`;
+    const buildRows = () => host.names.map(name => {
+        const { uuid } = host.runtime.vm[name];
+        return `<tr class="sortable" id="${uuid}"><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span></td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>`;
+    }).join('');
+    const native = `<table id="kvm_table"><thead><tr><th>Name</th><th>OS</th><th>CPU</th><th>RAM</th><th>Autostart</th></tr></thead><tbody id="kvm_list">${buildRows()}</tbody></table>`;
     const config = { requestedLocale: 'en', resolvedLocale: 'en', direction: 'ltr', namespaces: ['common', 'legacy-surface', 'vm', 'diagnostics'], assets: [
         { locale: 'en', namespace: 'legacy', url: prefix + 'langs/en.json' },
         ...['common', 'legacy-surface', 'diagnostics'].map(namespace => ({ locale: 'en', namespace, url: prefix + `langs/namespaces/en/${namespace}.json` }))
@@ -75,17 +78,16 @@ export const mountFilterViewVmHost = async (page, host) => {
         + ['runtime.image-fallbacks', 'folderviewplus.csp-events', 'folderviewplus.safe-dom'].map(file => script(prefix + 'scripts/' + file + '.js')).join('') + body + '</body></html>';
     await page.route('**/audit-vm', route => route.fulfill({ contentType: 'text/html', body: html }));
     const hostSource = fs.readFileSync('tests/browser/fixtures/production-performance-host.js', 'utf8')
-        .replace('window.loadlist = () => window.listview();', `const nativeRows = document.getElementById('kvm_list').innerHTML;
-window.fixtureNativeRefreshCount = 0;
+        .replace('window.loadlist = () => window.listview();', `window.fixtureNativeRefreshCount = 0;
 window.loadlist = () => {
     window.fixtureNativeRefreshCount++;
-    return window.jQuery.get('/plugins/dynamix.vm.manager/include/VMMachines.php').done(() => {
+    return window.jQuery.get('/plugins/dynamix.vm.manager/include/VMMachines.php').done(nativeRows => {
         document.getElementById('kvm_list').innerHTML = nativeRows;
     });
 };`)
         + '\ndocument.addEventListener("DOMContentLoaded", () => window.loadlist());';
     await page.route('**/fixture-host.js*', route => route.fulfill({ contentType: 'text/javascript', body: hostSource }));
-    await page.route('**/plugins/dynamix.vm.manager/include/VMMachines.php*', route => route.fulfill({ contentType: 'text/html', body: rows }));
+    await page.route('**/plugins/dynamix.vm.manager/include/VMMachines.php*', route => route.fulfill({ contentType: 'text/html', body: buildRows() }));
     await page.route('**/favicon.ico', route => route.fulfill({ status: 204 }));
     await page.route('**/server/read.php?**', route => route.fulfill({ json: host.folders }));
     await page.route('**/server/read_info.php?**', route => route.fulfill({ json: host.runtime.vm }));

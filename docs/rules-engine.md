@@ -14,9 +14,11 @@ rule decides automatic inclusion or exclusion. An include targeting a missing
 folder is skipped and reported; an exclude remains global when its old target is
 missing. Invalid predicates are reported by compilation.
 
-Automatic regex rules use Unicode code-point matching. JavaScript uses Unicode
+New automatic regex rules use Unicode code-point matching. JavaScript uses Unicode
 mode; PHP translates JavaScript Unicode escapes and evaluates UTF-8. A pattern
 such as `^..$` therefore counts two code points, rather than two UTF-16 code units.
+Converting a legacy folder regex keeps its existing UTF-16 interpretation in the
+saved rule. Editing the predicate switches it to the current rule syntax.
 Literal label contains/starts-with operators use Unicode simple case folding and
 escape regex punctuation.
 

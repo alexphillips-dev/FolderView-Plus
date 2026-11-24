@@ -28,7 +28,6 @@ if ($cliSource !== null) {
     );
 }
 verifyInstallFixture(is_string($source), 'Could not read plugin manifest.');
-$previous = '2026.01.01.01';
 $candidate = '2026.01.01.02';
 $pluginName = 'folderview.plus';
 $scriptSource = __DIR__ . '/../../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts';
@@ -44,17 +43,23 @@ foreach (['1.0.0', '2.0.0'] as $iconVersion) {
     $iconArchives[$iconVersion] = $iconArchive;
 }
 $cases = $cliSource === null
-    ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-unknown']
+    ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-damaged-report', 'hook-legacy-damaged-report',
+        'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-reinstall-success', 'hook-unknown']
     : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-corrupt',
-        'install-icon', 'install-scheduler', 'install-report', 'install-fresh-report', 'update-success', 'install-success'];
+        'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
+        'update-success', 'install-success', 'install-reinstall-success'];
 $check = [];
 
 foreach ($cases as $case) {
+    $reinstall = str_contains($case, '-reinstall-');
+    $previous = $reinstall ? $candidate : '2026.01.01.01';
+    $previousIcon = $reinstall ? '2.0.0' : '1.0.0';
     $dir = "$root/$case";
     $boot = "$dir/boot";
     $config = "$boot/$pluginName";
     $runtime = "$dir/emhttp/plugins/$pluginName";
-    foreach ([$config, "$runtime/scripts", "$dir/emhttp/webGui/include", "$dir/emhttp/webGui/scripts", "$dir/bin", "$dir/cron.d", "$dir/running", "$dir/downloads", "$dir/manual"] as $folder) {
+    $packages = str_contains($case, '-legacy-') ? "$dir/legacy-packages" : "$dir/packages";
+    foreach ([$config, "$runtime/scripts", "$dir/emhttp/webGui/include", "$dir/emhttp/webGui/scripts", "$dir/bin", "$dir/cron.d", "$dir/running", "$dir/downloads", "$dir/manual", $packages] as $folder) {
         mkdir($folder, 0770, true);
     }
     $rewrite = [
@@ -65,6 +70,8 @@ foreach ($cases as $case) {
         '/etc/cron.d' => "$dir/cron.d",
         '/etc/rc.d/rc.crond' => "$dir/bin/crond",
         '/etc/unraid-version' => "$dir/unraid-version",
+        '/var/lib/pkgtools/packages' => "$dir/packages",
+        '/var/log/packages' => "$dir/legacy-packages",
         '/var/log/plugins' => "$dir/running",
         '/tmp/plugins' => "$dir/downloads",
         '/tmp/inline' => "$dir/inline",
@@ -86,7 +93,7 @@ foreach ($cases as $case) {
         }
         return strtr($text, $rewrite);
     };
-    $oldManifest = $manifest($previous, '1.0.0');
+    $oldManifest = $manifest($previous, $previousIcon);
     $newManifest = $manifest($candidate, '2.0.0');
     $bootManifest = "$boot/$pluginName.plg";
     $runningLink = "$dir/running/$pluginName.plg";
@@ -97,7 +104,10 @@ foreach ($cases as $case) {
         symlink($bootManifest, $runningLink);
         file_put_contents("$config/version", "$previous\n");
         file_put_contents("$dir/core-installed", "$config/$pluginName-$previous.txz\n");
-        file_put_contents("$runtime/FolderViewPlus.page", "$config/$pluginName-$previous.txz\n");
+        file_put_contents("$packages/$pluginName-$previous", "PACKAGE NAME: $pluginName-$previous\n");
+        if (!$reinstall && !str_contains($case, '-damaged-')) {
+            file_put_contents("$runtime/FolderViewPlus.page", "$config/$pluginName-$previous.txz\n");
+        }
     } elseif ($case === 'hook-unknown') {
         file_put_contents($bootManifest, '<PLUGIN/>');
     }
@@ -135,11 +145,15 @@ foreach ($cases as $case) {
         "$dir/bin/crond" => 'exit 0',
         "$dir/bin/wget" => 'printf "offline fixture attempted a download\n" >&2; exit 4',
         "$dir/bin/upgradepkg" => 'archive="${@: -1}"
+if [ "$(cat "$FVPLUS_FIXTURE_CORE" 2>/dev/null)" = "$archive" ] && [[ " $* " != *" --reinstall "* ]]; then exit 0; fi
+package="${archive##*/}"
+rm -f -- "$FVPLUS_FIXTURE_PACKAGES"/folderview.plus-*
+printf "PACKAGE NAME: %s\n" "${package%.txz}" > "$FVPLUS_FIXTURE_PACKAGES/${package%.txz}"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
 if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
         "$dir/bin/removepkg" => '[ "$1" = folderview.plus-2026.01.01.02 ] || exit 28
-rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"',
+rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_PACKAGES/$1"',
         "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" == *-version && "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
     [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ]; then exit 25; fi
 exec /bin/mv "$@"'
@@ -147,11 +161,12 @@ exec /bin/mv "$@"'
         file_put_contents($file, "#!/bin/bash\n$body\n");
         chmod($file, 0700);
     }
-    $run = static function (array $command) use ($dir, $case, $runtime): array {
+    $run = static function (array $command) use ($dir, $case, $runtime, $packages): array {
         $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, $dir, [
             'PATH' => "$dir/bin:/usr/bin:/bin",
             'DOCUMENT_ROOT' => "$dir/emhttp",
             'FVPLUS_FIXTURE_CORE' => "$dir/core-installed",
+            'FVPLUS_FIXTURE_PACKAGES' => $packages,
             'FVPLUS_FIXTURE_RUNTIME' => $runtime,
             'FVPLUS_FIXTURE_CASE' => $case
         ]);
@@ -162,7 +177,7 @@ exec /bin/mv "$@"'
     };
 
     if (!$fresh) {
-        [$oldIconStatus, $oldIconOutput] = $run(['/bin/bash', "$runtime/scripts/install_icon_asset_pack.sh", '1.0.0', hash_file('sha256', $iconArchives['1.0.0'])]);
+        [$oldIconStatus, $oldIconOutput] = $run(['/bin/bash', "$runtime/scripts/install_icon_asset_pack.sh", $previousIcon, hash_file('sha256', $iconArchives[$previousIcon])]);
         verifyInstallFixture($oldIconStatus === 0, "$case could not activate its previous icon pack: $oldIconOutput");
     }
 
@@ -182,7 +197,7 @@ exec /bin/mv "$@"'
     verifyInstallFixture(($status !== 0) === $failed, "$case returned $status: $output");
     verifyInstallFixture(file_get_contents("$config/docker.json") === '{"previous":"Docker"}', "$case changed Docker configuration.");
     verifyInstallFixture(file_get_contents("$config/vm.json") === '{"previous":"VM"}', "$case changed VM configuration.");
-    verifyInstallFixture(is_file("$config/$pluginName-$previous.txz") && is_file("$config/$pluginName-icons-1.0.0.txz"), "$case removed registered boot files.");
+    verifyInstallFixture(is_file("$config/$pluginName-$previous.txz") && is_file("$config/$pluginName-icons-$previousIcon.txz"), "$case removed registered boot files.");
     verifyInstallFixture(is_file("$config/$pluginName-$candidate.txz") && is_file("$config/$pluginName-icons-2.0.0.txz"), "$case removed incoming boot files.");
     if ($fresh && $failed) {
         verifyInstallFixture(!file_exists("$config/version") && !file_exists("$dir/core-installed")
@@ -190,10 +205,11 @@ exec /bin/mv "$@"'
             && !file_exists("$runtime/icon-asset-pack.json") && !file_exists($cronFile), "$case left the failed first installation active.");
     } else {
         $activeCoreVersion = $failed ? $previous : $candidate;
-        $activeIconVersion = $failed ? '1.0.0' : '2.0.0';
+        $activeIconVersion = $failed ? $previousIcon : '2.0.0';
         verifyInstallFixture(trim(file_get_contents("$config/version")) === $activeCoreVersion, "$case wrote the wrong version.");
         verifyInstallFixture(trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$activeCoreVersion.txz"
             && trim(file_get_contents("$runtime/FolderViewPlus.page")) === "$config/$pluginName-$activeCoreVersion.txz", "$case left the wrong core package active.");
+        verifyInstallFixture(is_file("$packages/$pluginName-$activeCoreVersion"), "$case left the wrong package record active.");
         $link = "$runtime/images/third-party-icons";
         verifyInstallFixture(is_link($link) && str_contains(readlink($link), "/icons-$activeIconVersion/")
             && str_contains(file_get_contents("$link/fixture.svg"), "<title>$activeIconVersion</title>")
@@ -230,6 +246,7 @@ exec /bin/mv "$@"'
         unlink($runningLink);
         unlink("$dir/core-installed");
         unlink("$runtime/FolderViewPlus.page");
+        unlink("$packages/$pluginName-$activeCoreVersion");
         if (str_ends_with($case, '-version')) {
             verifyInstallFixture(str_contains($output, 'restored the previous installation state'), "$case did not report recovery.");
         }

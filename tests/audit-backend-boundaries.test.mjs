@@ -4,8 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { createRequire } from 'node:module';
 
 const server = process.env.FVPLUS_BOUNDARY_SERVER || path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
+const require = createRequire(import.meta.url);
+const utils = require(path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js'));
 const fixture = process.env.FVPLUS_BOUNDARY_FIXTURE || path.resolve('tests/fixtures/backend-boundaries.php');
 const run = request => {
     const base = fs.realpathSync(os.tmpdir());
@@ -46,6 +49,22 @@ test('guarded supported legacy conversions preserve membership and meaningful wh
         assert.deepEqual(result.afterMembers, result.beforeMembers);
         assert.deepEqual(result.issues, []);
     }
+});
+
+test('guarded legacy conversion keeps UTF-16 matching in stored PHP and browser rules', () => {
+    const names = ['😀', 'ab', 'b', 'aab'];
+    const result = run({ operation: 'convert', pattern: '^..$', names });
+    assert.equal(result.response.ok, true);
+    assert.equal(result.legacy, '');
+    assert.equal(result.rules[0].regexMode, 'legacy');
+    assert.deepEqual(result.beforeMembers, ['😀', 'ab']);
+    assert.deepEqual(result.afterMembers, result.beforeMembers);
+    const opts = { type: 'vm', infoByName: Object.fromEntries(names.map(name => [name, {}])), names };
+    const before = utils.buildMembershipSnapshot({ ...opts, folders: { fixture: { regex: '^..$' } } });
+    const after = utils.buildMembershipSnapshot({ ...opts, folders: { fixture: {} },
+        rules: utils.normalizePrefs({ autoRules: result.rules }).autoRules });
+    assert.deepEqual(after.byFolder.fixture.liveMembers, before.byFolder.fixture.liveMembers);
+    assert.deepEqual(after.primaryOwnerByName, before.primaryOwnerByName);
 });
 
 test('public support bundle sanitizes persisted nested icon/history data and retains full mode', () => {

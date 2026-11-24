@@ -64,16 +64,69 @@ test('copies, new folders and incomplete baselines never take the unchanged shor
     }
 });
 
-test('save and post-save failures retain the editor and record only numeric and boolean outcomes', async () => {
-    for (const phase of ['save', 'sync']) {
-        const f = fixture({ computeFormSnapshot: () => 'changed',
-            ...(phase === 'save' ? { securePost: async () => { throw Error('rejected'); } }
-                : { flushPostSaveTypeSync: async () => { throw Error('rejected'); } }) });
-        await f.run();
+test('failed persistence retains the editor and allows another attempt', async () => {
+    let saves = 0;
+    const f = fixture({ computeFormSnapshot: () => 'changed', securePost: async () => {
+        if (++saves === 1) throw Error('rejected');
+        return { metadata: { folderRevision: 5 } };
+    } });
+    await f.run();
+    assert.equal(f.context.location.href, '/Docker/Folder?id=fixture');
+    assert.equal(f.errors[0], 'rejected');
+    assert.equal(f.records[0].ok, false);
+    assert.ok(Object.values(f.records[0]).every(value => typeof value === 'number' || typeof value === 'boolean'));
+    await f.run();
+    assert.equal(f.context.location.href, '/Docker');
+    assert.equal(f.records[1].ok, true);
+});
+
+test('new folder and copy submits share a single save while a create is pending or committed', async () => {
+    for (const copy of [false, true]) {
+        let creates = 0;
+        const save = deferred();
+        const f = fixture({
+            ...(copy ? {} : { folderId: '', activeFolderEditorFolderId: '' }),
+            securePost: (url) => {
+                assert.match(url, /create\.php$/);
+                creates++;
+                return save.promise;
+            }
+        });
+        const pending = f.run(copy);
+        await f.run(!copy);
+        assert.equal(creates, 1);
+        save.resolve({});
+        await pending;
+        await f.run(copy);
+        assert.equal(creates, 1);
+    }
+});
+
+test('sync failure after a create shows a warning and retries only the order sync', async () => {
+    for (const retry of [false, true]) {
+        let syncAttempts = 0;
+        const warnings = [];
+        const f = fixture({
+            folderId: '', activeFolderEditorFolderId: '',
+            window: { swal: (message, respond) => warnings.push({ message, respond }) },
+            flushPostSaveTypeSync: async () => {
+                if (++syncAttempts === 1) throw Error('synthetic order sync failure');
+            }
+        });
+        const saving = f.run();
+        await new Promise(setImmediate);
+        assert.equal(warnings[0].message.type, 'warning');
+        assert.equal(warnings[0].message.title, 'Docker start order sync failed');
         assert.equal(f.context.location.href, '/Docker/Folder?id=fixture');
-        assert.equal(f.errors[0], 'rejected');
-        assert.equal(f.records[0].ok, false);
-        assert.ok(Object.values(f.records[0]).every(value => typeof value === 'number' || typeof value === 'boolean'));
+        await f.run(true);
+        warnings[0].respond(retry);
+        await saving;
+        await f.run();
+        assert.equal(f.calls.filter(call => call.url).length, 1);
+        assert.equal(syncAttempts, retry ? 2 : 1);
+        assert.equal(f.context.location.href, '/Docker');
+        assert.equal(f.records[0].ok, true);
+        assert.equal(f.records[0].syncFailed, !retry);
     }
 });
 

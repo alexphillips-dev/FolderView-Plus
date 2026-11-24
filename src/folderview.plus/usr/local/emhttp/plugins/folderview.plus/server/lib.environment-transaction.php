@@ -62,7 +62,6 @@ function fvplusEnvironmentWriteTarget(array $normalized, array $options): array 
         writeRawFolderMap($type, $folders);
         fvplusEnvironmentTransactionStage($options, $type . '-folders');
         writeTypePrefs($type, $prefs);
-        syncManualOrderWithFolders($type, $folders);
         fvplusEnvironmentTransactionStage($options, $type . '-prefs');
         $counts[$type] = count($folders);
     }

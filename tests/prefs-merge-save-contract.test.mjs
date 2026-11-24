@@ -68,14 +68,14 @@ echo json_encode([
 ], JSON_UNESCAPED_SLASHES);
 `;
 
-const runHarness = (source = buildHarness()) => {
+const runHarness = (source = buildHarness(), run = invoke => invoke()) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-prefs-save-'));
     const harnessPath = path.join(tempDir, 'prefs-save.php');
     const documentRoot = path.join(tempDir, 'document-root');
     fs.mkdirSync(documentRoot, { recursive: true });
     fs.writeFileSync(harnessPath, source, 'utf8');
     try {
-        return JSON.parse(execFileSync('php', [harnessPath], {
+        return run((...args) => JSON.parse(execFileSync('php', [harnessPath, ...args], {
             cwd: repoRoot,
             encoding: 'utf8',
             timeout: 120000,
@@ -85,7 +85,7 @@ const runHarness = (source = buildHarness()) => {
                 FVPLUS_TEST_SOURCE_DIR: path.join(tempDir, 'runtime'),
                 FVPLUS_TEST_DOCUMENT_ROOT: documentRoot
             }
-        }));
+        })));
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -298,4 +298,73 @@ test('preference endpoint exposes revision-safe merge and mutation diagnostics',
     assert.doesNotMatch(prefsEndpoint, /createBackupSnapshot\(|createCoalescedPrefsBackupSnapshot\(/);
     assert.match(prefsEndpoint, /'backupRequired'/);
     assert.match(prefsEndpoint, /'backupCoalesced'/);
+});
+
+test('guarded preferences publish only complete order and classify temporary storage failures as retryable', () => {
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
+    runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+require_once ${phpQuote(libPath)};
+$result = [];
+if (($argv[1] ?? '') === 'init') {
+    writeRawFolderMap('vm', ['a' => ['name' => 'A'], 'b' => ['name' => 'B']]);
+    writeTypePrefs('vm', defaultTypePrefs());
+} else {
+$_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_SERVER['HTTP_HOST'] = 'localhost';
+$_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+$_SERVER['HTTP_X_FV_REQUEST'] = '1';
+$_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+$_POST = $_REQUEST = ['type' => 'vm', 'expectedRevision' => $argv[2], 'prefs' => $argv[3],
+    'clientMutationId' => $argv[4], '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
+$injection = <<<'FAULT'
+namespace PrefsFixture;
+function writeTypePrefs(string $type, array $prefs, string $receipt) {
+    putenv('FVPLUS_STORAGE_FAILURE_INJECTION=1');
+    putenv('FVPLUS_STORAGE_FAILURE_STAGE=rename');
+    try { return \\writeTypePrefs($type, $prefs, $receipt); }
+    finally {
+        putenv('FVPLUS_STORAGE_FAILURE_INJECTION');
+        putenv('FVPLUS_STORAGE_FAILURE_STAGE');
+    }
+}
+FAULT;
+ob_start();
+eval((($argv[1] ?? '') === 'fault' ? $injection . "\n" : '') . ${phpQuote(endpoint)});
+$result = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true),
+    'lastStorageTarget' => getDurableStorageRuntimeSnapshot()['target'] ?? ''];
+}
+echo json_encode($result + ['prefs' => readTypePrefs('vm'),
+    'revision' => readConfigMetadata('vm', false)['prefsRevision']]);
+`, invoke => {
+        const initial = invoke('init');
+        const submit = (stage, revision, patch, mutationId) => invoke(stage, String(revision), JSON.stringify(patch), mutationId);
+        const order = submit('write', initial.revision, { sortMode: 'manual', manualOrder: ['b'] }, 'fixture-order');
+        assert.equal(order.status, 200);
+        assert.deepEqual(order.prefs.manualOrder, ['b', 'a']);
+        assert.equal(order.revision, initial.revision + 1);
+        const exactOrderReplay = submit('write', initial.revision, { sortMode: 'manual', manualOrder: ['b'] }, 'fixture-order');
+        assert.equal(exactOrderReplay.status, 200);
+        assert.equal(exactOrderReplay.body.configChanged, false);
+        assert.equal(exactOrderReplay.revision, order.revision);
+        assert.equal(Object.hasOwn(exactOrderReplay.body.metadata, 'prefsMutationReceipt'), false);
+        const changedOrderReplay = submit('write', initial.revision, { sortMode: 'manual', manualOrder: ['a'] }, 'fixture-order');
+        assert.equal(changedOrderReplay.status, 409);
+        const patch = { groupUnassignedItems: true };
+        const failure = submit('fault', order.revision, patch, 'fixture-grouping');
+        assert.equal(failure.status, 503);
+        assert.equal(failure.body.ok, false);
+        assert.equal(failure.lastStorageTarget, 'vm.prefs.json');
+        assert.equal(failure.prefs.groupUnassignedItems, false);
+        assert.equal(failure.revision, order.revision);
+        const retry = submit('write', order.revision, patch, 'fixture-grouping');
+        assert.equal(retry.status, 200);
+        assert.equal(retry.prefs.groupUnassignedItems, true);
+        const staleOrderReplay = submit('write', initial.revision, { sortMode: 'manual', manualOrder: ['b'] }, 'fixture-order');
+        assert.equal(staleOrderReplay.status, 409);
+        const validation = submit('write', retry.revision, { groupUnassignedItems: ['bogus'] }, 'fixture-invalid');
+        assert.equal(validation.status, 400);
+    });
 });

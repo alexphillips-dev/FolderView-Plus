@@ -9,7 +9,8 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const recordSubmitDiagnostics = (win, storageKey, details) => {
         try {
-            const lastSubmit = { checkedAt: new Date().toISOString(), ok: details.ok === true, unchanged: details.unchanged === true };
+            const lastSubmit = { checkedAt: new Date().toISOString(), ok: details.ok === true,
+                unchanged: details.unchanged === true, ...(details.syncFailed === true ? { syncFailed: true } : {}) };
             for (const key of ['preparationMs', 'requestMs', 'syncMs', 'durationMs', 'bootstrapMs', 'guardMs', 'saveMs']) {
                 if (typeof details[key] === 'number' && Number.isFinite(details[key])) {
                     lastSubmit[key] = Math.max(0, Math.min(600000, Math.round(details[key])));
@@ -32,13 +33,35 @@
             flushPostSaveTypeSync, extractAjaxErrorMessage } = deps;
         const recordDiagnostics = deps.recordDiagnostics
             || (details => recordSubmitDiagnostics(win, deps.storageKey, details));
+        let submission = 'idle';
         const leave = (destination = win.location.pathname.split('/').slice(0, -1).join('/')) => {
             deps.setSuppressUnloadPrompt(true);
             win.location.href = destination;
         };
+        const syncSavedFolder = async (options) => {
+            for (;;) {
+                try {
+                    await flushPostSaveTypeSync(options);
+                    return true;
+                } catch (error) {
+                    const title = surfaceT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed');
+                    const message = extractAjaxErrorMessage(error, title);
+                    if (typeof win.swal !== 'function') {
+                        win.alert(`${title}: ${win.FolderViewPlusI18n?.message?.(message) || message}`);
+                        return false;
+                    }
+                    const retry = await new Promise((resolve) => win.swal({
+                        title, text: message, type: 'warning', showCancelButton: true,
+                        confirmButtonText: surfaceT('diagnostics.actions.retry', 'Retry'),
+                        cancelButtonText: surfaceT('common.close', 'Close')
+                    }, resolve));
+                    if (!retry) return false;
+                }
+            }
+        };
         return async (e, saveAsCopy = false) => {
             const startedAt = Date.now();
-            if (!validateForm()) return false;
+            if (submission !== 'idle' || !validateForm()) return false;
             const { activeFolderEditorFolderId, folderId, allFoldersById, editingFolderDefaults,
                 initialSnapshot, folderEditorExpectedFolderRevision, type } = deps.getState();
             const folder = buildFolderPayloadFromForm(e);
@@ -58,48 +81,51 @@
                 leave();
                 return false;
             }
-            let phaseStartedAt = Date.now();
-            let phase = 'request';
+            submission = 'saving';
+            const requestStartedAt = Date.now();
             try {
-                if (editingFolderDefaults) {
-                    await deps.saveDefaults(folder);
-                    timings.requestMs = Date.now() - phaseStartedAt;
-                    recordDiagnostics({ ...timings, unchanged: false, ok: true, durationMs: Date.now() - startedAt });
-                    leave('/Settings/FolderViewPlus');
-                    return false;
-                } else if (folderId && !saveAsCopy) {
-                    const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
-                        type, content: JSON.stringify(folder), id: folderId,
-                        expectedRevision: folderEditorExpectedFolderRevision
-                    });
-                    const savedRevision = Number.parseInt(String(saveResponse?.metadata?.folderRevision ?? ''), 10);
-                    if (Number.isFinite(savedRevision) && savedRevision >= 0) deps.setExpectedRevision(savedRevision);
-                    for (const key of ['bootstrapMs', 'guardMs', 'saveMs']) {
-                        const value = saveResponse?.timings?.[key];
-                        if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
-                            timings[key] = Math.min(600000, Math.round(value));
+                try {
+                    if (editingFolderDefaults) {
+                        await deps.saveDefaults(folder);
+                    } else if (folderId && !saveAsCopy) {
+                        const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
+                            type, content: JSON.stringify(folder), id: folderId,
+                            expectedRevision: folderEditorExpectedFolderRevision
+                        });
+                        const savedRevision = Number.parseInt(String(saveResponse?.metadata?.folderRevision ?? ''), 10);
+                        if (Number.isFinite(savedRevision) && savedRevision >= 0) deps.setExpectedRevision(savedRevision);
+                        for (const key of ['bootstrapMs', 'guardMs', 'saveMs']) {
+                            const value = saveResponse?.timings?.[key];
+                            if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+                                timings[key] = Math.min(600000, Math.round(value));
+                            }
                         }
+                    } else {
+                        await securePost('/plugins/folderview.plus/server/create.php', { type, content: JSON.stringify(folder) });
+                        submission = 'created';
                     }
-                } else {
-                    await securePost('/plugins/folderview.plus/server/create.php', { type, content: JSON.stringify(folder) });
+                } catch (error) {
+                    timings.requestMs = Date.now() - requestStartedAt;
+                    recordDiagnostics({ ...timings, unchanged: false, ok: false, durationMs: Date.now() - startedAt });
+                    const message = extractAjaxErrorMessage(error, 'folder save');
+                    if (typeof win.swal === 'function') win.swal({ title: 'Save failed', text: message, type: 'error' });
+                    else win.alert(win.FolderViewPlusI18n?.message?.(message) || message);
+                    return false;
                 }
-                timings.requestMs = Date.now() - phaseStartedAt;
-                phase = 'sync';
-                phaseStartedAt = Date.now();
-                await flushPostSaveTypeSync({ force: saveAsCopy || !currentFolderId,
-                    folder, folderId: currentFolderId, previousFolder });
-                timings.syncMs = Date.now() - phaseStartedAt;
-                recordDiagnostics({ ...timings, unchanged: false, ok: true, durationMs: Date.now() - startedAt });
-            } catch (error) {
-                timings[phase === 'sync' ? 'syncMs' : 'requestMs'] = Date.now() - phaseStartedAt;
-                recordDiagnostics({ ...timings, unchanged: false, ok: false, durationMs: Date.now() - startedAt });
-                const message = extractAjaxErrorMessage(error, 'folder save');
-                if (typeof win.swal === 'function') win.swal({ title: 'Save failed', text: message, type: 'error' });
-                else win.alert(win.FolderViewPlusI18n?.message?.(message) || message);
+                timings.requestMs = Date.now() - requestStartedAt;
+                let syncFailed = false;
+                if (!editingFolderDefaults) {
+                    const syncStartedAt = Date.now();
+                    syncFailed = !await syncSavedFolder({ force: saveAsCopy || !currentFolderId,
+                        folder, folderId: currentFolderId, previousFolder });
+                    timings.syncMs = Date.now() - syncStartedAt;
+                }
+                recordDiagnostics({ ...timings, unchanged: false, ok: true, syncFailed, durationMs: Date.now() - startedAt });
+                leave(editingFolderDefaults ? '/Settings/FolderViewPlus' : undefined);
                 return false;
+            } finally {
+                if (submission === 'saving') submission = 'idle';
             }
-            leave();
-            return false;
         };
     };
     return Object.freeze({ createSubmitHandler, recordSubmitDiagnostics });

@@ -35,7 +35,7 @@ test('self-heal JSON helpers exist and are used in folder/prefs readers', () => 
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
     assert.match(libPrefsPhp, /function readTypePrefs\(string \$type\): array[\s\S]*readJsonObjectFile\(getLastGoodJsonPath\(\$path\)\)[\s\S]*writeTypePrefs\(\$type, \$lastGood\)[\s\S]*migrateLegacyTypeDataIfNeeded/);
     assert.match(libPhp, /function writeRawFolderMap\(string \$type, array \$folders\): void[\s\S]*fvplusWriteConfigPayload\(\$type, 'folder', getFolderFilePath\(\$type\), normalizeFolderMapPayload\(\$folders\)\)/);
-    assert.match(libPrefsPhp, /function writeTypePrefs\(string \$type, array \$prefs\): array[\s\S]*fvplusWriteConfigPayload\(\$type, 'prefs', getTypePrefsPath\(\$type\), \$normalized\)/);
+    assert.match(libPrefsPhp, /function writeTypePrefs\(string \$type, array \$prefs, string \$mutationReceipt = ''\): array[\s\S]*fvplusWriteConfigPayload\(\$type, 'prefs', getTypePrefsPath\(\$type\), \$normalized, \$mutationReceipt\)/);
 });
 
 test('legacy migrations keep normalized folder payloads and last-good snapshots', () => {

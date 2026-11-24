@@ -345,7 +345,6 @@ if (!dashboardFolderMatchCacheModule || typeof dashboardFolderMatchCacheModule.c
 }
 const dashboardFolderMatchCacheApi = dashboardFolderMatchCacheModule.createApi({
     utils,
-    folderRegex: /^folder-/,
     getFolderLabelValue
 });
 const dashboardRuntimeSurfaceApi = dashboardRuntimeSurfaceModule.createApi({
@@ -360,6 +359,7 @@ const {
     filterDashboardToRootFolders,
     buildFolderChildrenIndex,
     aggregateRootMatchCache,
+    isDashboardFolderToken,
     reorderFolderSlotsInBaseOrder,
     parseJsonPayloadSafe,
     buildDockerStateSignature,
@@ -1301,7 +1301,7 @@ const renderDashboardDockerFolders = (prom) => {
         recordDashboardLayoutHydration('docker', folderTypePrefs.docker);
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
-        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker, 'docker');
+        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker, 'docker', containersInfo);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
         if (isDashboardLegacyLayoutForType('docker')) {
@@ -1316,7 +1316,7 @@ const renderDashboardDockerFolders = (prom) => {
         // Insert the folder in the unraid folder into the order shifted by the unlisted containers
         for (let index = 0; index < unraidOrder.length; index++) {
             const element = unraidOrder[index];
-            if((folderRegex.test(element) && folders[element.slice(7)])) {
+            if (isDashboardFolderToken(element, containersInfo) && folders[element.slice(7)]) {
                 order.splice(index+newOnes.length, 0, element);
             }
         }
@@ -1366,8 +1366,8 @@ const renderDashboardDockerFolders = (prom) => {
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
             const container = order[key];
-            if (container && folderRegex.test(container)) {
-                let id = container.replace(folderRegex, '');
+            if (isDashboardFolderToken(container, containersInfo)) {
+                const id = container.slice(7);
                 if (folders[id]) {
                     const hasChildren = Array.isArray(dockerChildrenByParent[id]) && dockerChildrenByParent[id].length > 0;
                     const rootCacheEntry = hasChildren
@@ -1398,7 +1398,8 @@ const renderDashboardDockerFolders = (prom) => {
         const remainingDockerFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs.docker)).reverse();
         for (const [id, value] of remainingDockerFolders) {
             // Add the folder on top of the array
-            order.unshift(`folder-${id}`);
+            const token = `folder-${id}`;
+            if (isDashboardFolderToken(token, containersInfo)) order.unshift(token);
             const hasChildren = Array.isArray(dockerChildrenByParent[id]) && dockerChildrenByParent[id].length > 0;
             const rootCacheEntry = hasChildren
                 ? (dockerFullMatchCache[id] || null)
@@ -1471,7 +1472,7 @@ const renderDashboardVmFolders = (prom) => {
         recordDashboardLayoutHydration('vm', folderTypePrefs.vm);
         const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
         folders = vmRootFolders;
-        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
+        unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm, 'vm', vmInfo);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);
         if (isDashboardLegacyLayoutForType('vm')) {
@@ -1486,7 +1487,7 @@ const renderDashboardVmFolders = (prom) => {
         // Insert the folder in the unraid folder into the order shifted by the unlisted containers
         for (let index = 0; index < unraidOrder.length; index++) {
             const element = unraidOrder[index];
-            if((folderRegex.test(element) && folders[element.slice(7)])) {
+            if (isDashboardFolderToken(element, vmInfo) && folders[element.slice(7)]) {
                 order.splice(index+newOnes.length, 0, element);
             }
         }
@@ -1536,8 +1537,8 @@ const renderDashboardVmFolders = (prom) => {
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
             const container = order[key];
-            if (container && folderRegex.test(container)) {
-                let id = container.replace(folderRegex, '');
+            if (isDashboardFolderToken(container, vmInfo)) {
+                const id = container.slice(7);
                 if (folders[id]) {
                     const hasChildren = Array.isArray(vmChildrenByParent[id]) && vmChildrenByParent[id].length > 0;
                     const rootCacheEntry = hasChildren
@@ -1568,7 +1569,8 @@ const renderDashboardVmFolders = (prom) => {
         const remainingVmFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs.vm)).reverse();
         for (const [id, value] of remainingVmFolders) {
             // Add the folder on top of the array
-            order.unshift(`folder-${id}`);
+            const token = `folder-${id}`;
+            if (isDashboardFolderToken(token, vmInfo)) order.unshift(token);
             const hasChildren = Array.isArray(vmChildrenByParent[id]) && vmChildrenByParent[id].length > 0;
             const rootCacheEntry = hasChildren
                 ? (vmFullMatchCache[id] || null)
@@ -1672,7 +1674,7 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
 
 // Render one folder transactionally and return the number of earlier order entries moved.
 // The recovery controller restores native rows if rendering fails.
-const createFolderDocker = (...args) => dashboardFolderRenderRecovery.docker.render(args[0], args[1], args[3], () => renderFolderDocker(...args));
+const createFolderDocker = (...args) => dashboardFolderRenderRecovery.docker.render(args[0], args[1], args[3], () => renderFolderDocker(...args), isDashboardFolderToken(`folder-${args[1]}`, args[4]));
 
 const renderFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-creation', {detail: {
@@ -1777,7 +1779,8 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order,
         completedFolderIds: foldersDone,
-        currentFolderId: id
+        currentFolderId: id,
+        isFolderToken: (entry) => isDashboardFolderToken(entry, containersInfo)
     });
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
@@ -1952,7 +1955,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
 
 // Render one folder transactionally and return the number of earlier order entries moved.
 // The recovery controller restores native rows if rendering fails.
-const createFolderVM = (...args) => dashboardFolderRenderRecovery.vm.render(args[0], args[1], args[3], () => renderFolderVM(...args));
+const createFolderVM = (...args) => dashboardFolderRenderRecovery.vm.render(args[0], args[1], args[3], () => renderFolderVM(...args), isDashboardFolderToken(`folder-${args[1]}`, args[4]));
 
 const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
@@ -2046,7 +2049,8 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order,
         completedFolderIds: foldersDone,
-        currentFolderId: id
+        currentFolderId: id,
+        isFolderToken: (entry) => isDashboardFolderToken(entry, vmInfo)
     });
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
@@ -2327,7 +2331,6 @@ window.expandFolderVM = expandFolderVM;
 
 // Global variables
 let globalFolders = {};
-const folderRegex = /^folder-/;
 let folderTypePrefs = {
     docker: utils.normalizePrefs({}),
     vm: utils.normalizePrefs({})

@@ -11,6 +11,7 @@ CACHE_BASE="${FVPLUS_ICON_PACK_CACHE_BASE:-/tmp/folderview.plus-assets}"
 ICON_PACK_ARCHIVE="${FVPLUS_ICON_PACK_ARCHIVE:-${CONFIG_DIR}/folderview.plus-icons-${ICON_PACK_VERSION}.txz}"
 ICON_PACK_CACHE_ROOT="${CACHE_BASE}/icons-${ICON_PACK_VERSION}"
 ICON_PACK_MARKER="${ICON_PACK_CACHE_ROOT}/.folderview-plus-asset-pack"
+ICON_PACK_TREE_RECORD=".folderview-plus-asset-pack-tree.sha256"
 ICON_PACK_EXPECTED_MARKER="${ICON_PACK_VERSION}:${ICON_PACK_SHA256}"
 ICON_PACK_STATUS_FILE="${FVPLUS_ICON_PACK_STATUS_FILE:-}"
 ICON_PACK_INSTALL_STATE="reused"
@@ -69,6 +70,17 @@ safe_remove_cache_tree() {
     rm -rf -- "${target}"
 }
 
+icon_pack_tree_digest() (
+    cd "$1" || return 1
+    local unsupported_path
+    unsupported_path="$(find third-party-icons -xdev \( ! -type f ! -type d \) -print -quit)" || return 1
+    [ -z "${unsupported_path}" ] || return 1
+    {
+        printf '%s\0' asset-pack.json
+        find third-party-icons -xdev -type f -print0
+    } | LC_ALL=C sort -z | xargs -0 sha256sum --text | sha256sum | awk '{print $1}'
+)
+
 case "${ICON_PACK_VERSION}" in
     ''|*[!0-9.]*) fail "FolderView Plus icon asset-pack version is invalid." ;;
 esac
@@ -83,10 +95,13 @@ fi
 ICON_PACK_READY=0
 if [ ! -L "${ICON_PACK_CACHE_ROOT}" ] \
     && [ ! -L "${ICON_PACK_MARKER}" ] && [ -f "${ICON_PACK_MARKER}" ] \
+    && [ ! -L "${ICON_PACK_CACHE_ROOT}/${ICON_PACK_TREE_RECORD}" ] && [ -f "${ICON_PACK_CACHE_ROOT}/${ICON_PACK_TREE_RECORD}" ] \
     && [ ! -L "${ICON_PACK_CACHE_ROOT}/asset-pack.json" ] && [ -f "${ICON_PACK_CACHE_ROOT}/asset-pack.json" ] \
     && [ ! -L "${ICON_PACK_CACHE_ROOT}/third-party-icons" ] && [ -d "${ICON_PACK_CACHE_ROOT}/third-party-icons" ]; then
     ICON_PACK_CURRENT_MARKER="$(cat "${ICON_PACK_MARKER}" 2>/dev/null || true)"
-    if [ "${ICON_PACK_CURRENT_MARKER}" = "${ICON_PACK_EXPECTED_MARKER}" ]; then
+    if [ "${ICON_PACK_CURRENT_MARKER}" = "${ICON_PACK_EXPECTED_MARKER}" ] \
+        && ICON_PACK_CURRENT_DIGEST="$(icon_pack_tree_digest "${ICON_PACK_CACHE_ROOT}")" \
+        && [ "${ICON_PACK_CURRENT_DIGEST}" = "$(cat "${ICON_PACK_CACHE_ROOT}/${ICON_PACK_TREE_RECORD}")" ]; then
         ICON_PACK_READY=1
     fi
 fi
@@ -129,6 +144,10 @@ if [ "${ICON_PACK_READY}" -ne 1 ]; then
     if [ -z "${ICON_PACK_FILE_COUNT}" ] || [ "${ICON_PACK_FILE_COUNT}" -eq 0 ]; then
         safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset pack contains no icons."
+    fi
+    if ! icon_pack_tree_digest "${ICON_PACK_STAGE}" > "${ICON_PACK_STAGE}/${ICON_PACK_TREE_RECORD}"; then
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
+        fail "FolderView Plus icon asset-pack cache contents could not be verified."
     fi
 
     find "${ICON_PACK_STAGE}" -type d -exec chmod 0755 {} +

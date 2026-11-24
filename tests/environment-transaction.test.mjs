@@ -172,6 +172,14 @@ const runHarness = () => {
             ]);
         } catch (RuntimeException $error) { $externalFailureMessage = $error->getMessage(); }
         $afterExternalFailure = exportEnvironmentSnapshotPayload();
+        $older = $afterExternalFailure;
+        $older['types']['vm']['prefs']['sortMode'] = 'manual';
+        $older['types']['vm']['prefs']['manualOrder'] = ['second', 'deleted'];
+        $older['types']['vm']['prefs']['hiddenFolderIds'] = ['lab', 'deleted'];
+        $decodedOlder = decodeEnvironmentSnapshotPayloadString(json_encode($older, JSON_THROW_ON_ERROR));
+        $olderPreview = previewEnvironmentSnapshotPayload($decodedOlder, 'older.json');
+        $olderImported = importEnvironmentSnapshotPayload($decodedOlder, 'older.json');
+        $olderPrefs = readTypePrefs('vm');
         echo json_encode([
             'failureMessage' => $failureMessage,
             'failureRestored' => $beforeFailure['types'] === $afterFailure['types'] && $beforeFailure['themeWorkspace'] === $afterFailure['themeWorkspace'],
@@ -188,7 +196,10 @@ const runHarness = () => {
             'nativeAfterIncluded' => $nativeAfterIncluded,
             'externalFailureMessage' => $externalFailureMessage,
             'externalFailureRestored' => $beforeExternalFailure['types'] === $afterExternalFailure['types'] && $beforeExternalFailure['themeWorkspace'] === $afterExternalFailure['themeWorkspace'],
-            'externalNativeRestored' => $nativeBeforeFailure === file_get_contents(${phpString(nativePath)})
+            'externalNativeRestored' => $nativeBeforeFailure === file_get_contents(${phpString(nativePath)}),
+            'olderVerified' => $olderImported['verified'] && $olderPreview['summary'] === $olderImported['summary'],
+            'olderManualOrder' => $olderPrefs['manualOrder'],
+            'olderHidden' => $olderPrefs['hiddenFolderIds']
         ], JSON_UNESCAPED_SLASHES);
     `;
     try {
@@ -215,6 +226,9 @@ test('environment transaction restores every prior component after a mid-apply f
     assert.match(result.failureMessage, /Injected transaction failure.*restored/i);
     assert.equal(result.failureRestored, true);
     assert.equal(result.success.verified, true);
+    assert.equal(result.olderVerified, true);
+    assert.deepEqual(result.olderManualOrder, ['second', 'lab']);
+    assert.deepEqual(result.olderHidden, ['lab']);
     assert.deepEqual(Object.keys(result.successFolders.docker), ['new-docker']);
     assert.deepEqual(Object.keys(result.successFolders.vm), ['new-vm']);
     assert.match(result.syncFailureMessage, /Injected Docker sync failure.*restored/i);

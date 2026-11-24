@@ -11,14 +11,14 @@ function fvplusTransactionCaptureFile(string $path): array {
         }
         $entries = @scandir(dirname($ancestor));
         if (!is_array($entries) || in_array(basename($ancestor), $entries, true)) {
-            throw new RuntimeException('Transaction capture failed: unable to read file.');
+            throw new \FVPlusTransactionCaptureException('Transaction capture failed: unable to read file.');
         }
     } elseif (($stat['mode'] & 0170000) !== 0100000) {
-        throw new RuntimeException('Transaction capture failed: file is not a regular file.');
+        throw new \FVPlusTransactionCaptureException('Transaction capture failed: file is not a regular file.');
     }
     $content = $stat === false ? '' : @file_get_contents($path);
     if ($content === false || ($stat !== false && strlen($content) !== $stat['size'])) {
-        throw new RuntimeException('Transaction capture failed: unable to read file.');
+        throw new \FVPlusTransactionCaptureException('Transaction capture failed: unable to read file.');
     }
     return ['path' => $path, 'exists' => $stat !== false, 'content' => $content,
         'mode' => $stat === false ? null : ($stat['mode'] & 0777)];

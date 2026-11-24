@@ -181,19 +181,7 @@
                 );
             } elseif (!array_filter($issues, static fn(array $issue): bool => ($issue['severity'] ?? '') === 'fatal')) {
                 try {
-                    $dockerClient = new DockerClient();
-                    $probe = $dockerClient->getDockerJSON("/containers/json?all=1");
-                    if (!is_array($probe)) {
-                        appendRuntimePreflightIssue(
-                            $issues,
-                            'fatal',
-                            $codePrefix . '-ENV-004',
-                            'Docker API probe failed',
-                            'FolderView Plus could not read Docker container data from the host runtime.',
-                            ['DockerClient::getDockerJSON("/containers/json?all=1") did not return an array.'],
-                            'docker-api-unavailable'
-                        );
-                    }
+                    fvplusReadRuntimeEntityList('docker', new DockerClient(), true);
                 } catch (Throwable $error) {
                     appendRuntimePreflightIssue(
                         $issues,
@@ -201,7 +189,7 @@
                         $codePrefix . '-ENV-004',
                         'Docker API probe failed',
                         'FolderView Plus could not contact the Docker runtime on this page load.',
-                        [trim((string)$error->getMessage()) ?: 'DockerClient probe threw an unknown error.'],
+                        [],
                         'docker-api-unavailable'
                     );
                 }

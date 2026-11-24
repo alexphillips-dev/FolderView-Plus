@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.05">
-<!ENTITY md5 "1f48310621019f0d0737a53720c43ddd">
-<!ENTITY sha256 "10993352148413d55f3b1af07d1709f912712c6ddd6c91194149e99585d68e77">
+<!ENTITY version "2026.11.24.06">
+<!ENTITY md5 "6cb905aebe6d71e4dab477567231792a">
+<!ENTITY sha256 "1e0675f4c34ff0073e80bceffc2d703f7acafe414ee1331cc60fff56f6753935">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.06
+- Reliability: Validate backup contents before restoring folders and use the same manual order for environment preview, apply, and verification.
+- Reliability: Keep retryable settings edits queued, commit manual sorting in one write, and prevent older browser saves from overwriting newer changes.
+- Fix: Keep Appearance edits attached to the selected profile and prevent repeated folder submissions or a failed Docker order sync from creating duplicates.
+- Fix: Preserve legacy regex matching during conversion and align managed backreferences across runtime membership, rule previews, and Docker startup order.
+- Fix: Refresh native VM controls when a replacement VM has the same name, group real Dashboard names that begin with `folder-`, and report Docker and VM connectivity accurately.
+- Reliability: Repair damaged installations during reinstall, restore the registered package after a failed update, and verify cached icons and both published downloads.
+
 
 ###2026.11.24.05
 - Reliability: Recover saved preferences before initializing defaults, roll back rejected folder changes, and keep imports and exports tied to a consistent saved configuration.
@@ -10228,6 +10237,17 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 fi
             }
 
+            previous_package_is_active() {
+                local package_record
+                [ ! -f "&plugdir;/FolderViewPlus.page" ] || return 0
+                for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
+                    if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        return 0
+                    fi
+                done
+                return 1
+            }
+
             install_failure() {
                 local exit_code=$? restored=1
                 trap - EXIT
@@ -10275,7 +10295,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             }
             trap install_failure EXIT
 
-            if [ -f "&plugdir;/FolderViewPlus.page" ]; then
+            if previous_package_is_active; then
                 previous_version=""
                 if [ -r "${registered_manifest}" ]; then
                     previous_version="$(read_manifest_value version)"
@@ -10308,7 +10328,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_stage="core package installation"
             archive_matches "${candidate_archive}" "&sha256;" || exit 1
             core_attempted=1
-            upgradepkg --install-new "${candidate_archive}"
+            upgradepkg --install-new --reinstall "${candidate_archive}"
             install_stage="configuration"
             mkdir -p "${config_dir}/styles" "${config_dir}/scripts"
             install_stage="obsolete runtime cleanup"

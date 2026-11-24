@@ -5,9 +5,12 @@ fvplus_json_try(function (): array {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
         return withConfigMutationLock(static function () use ($type): array {
+            $prefs = readTypePrefs($type);
+            $metadata = readConfigMetadata($type, true);
+            unset($metadata['prefsMutationReceipt']);
             return [
-                'prefs' => readTypePrefs($type),
-                'metadata' => readConfigMetadata($type, true)
+                'prefs' => $prefs,
+                'metadata' => $metadata
             ];
         });
     }
@@ -27,31 +30,44 @@ fvplus_json_try(function (): array {
         $decoded = $incoming;
     }
     fvplus_assert_prefs_payload_shape($decoded);
-    assertExpectedConfigRevision($type, 'prefs', $_POST['expectedRevision'] ?? '');
+    $expectedRevision = (string)($_POST['expectedRevision'] ?? '');
     $clientMutationId = trim((string)($_POST['clientMutationId'] ?? ''));
     if ($clientMutationId !== '' && !preg_match('/^[a-zA-Z0-9._:-]{1,96}$/', $clientMutationId)) {
         throw new RuntimeException('Invalid client mutation id.');
+    }
+    $token = getConfiguredRequestToken();
+    $receipt = $clientMutationId !== '' && ctype_digit($expectedRevision) && $token !== ''
+        ? hash_hmac('sha256', json_encode([$type, $clientMutationId, (int)$expectedRevision, $decoded], JSON_THROW_ON_ERROR), $token)
+        : '';
+    try {
+        assertExpectedConfigRevision($type, 'prefs', $expectedRevision);
+    } catch (FVPlusConfigConflictException $error) {
+        $committed = readConfigMetadata($type, false);
+        if ($receipt === '' || (int)$expectedRevision + 1 !== $committed['prefsRevision']
+            || !hash_equals($committed['prefsMutationReceipt'] ?? '', $receipt)) {
+            throw $error;
+        }
+        // A lost response can be acknowledged while this operation is still the latest preference write.
+        $decoded = [];
     }
 
     $current = readTypePrefs($type);
     $merged = mergeTypePrefsPatch($current, $decoded);
     fvplusValidateRuleChanges($type, $current['autoRules'] ?? [], $merged['autoRules'] ?? []);
     $next = normalizeTypePrefs($merged);
-    $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
-    $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
-    $configChanged = $currentJson !== $nextJson;
-    $saved = $configChanged ? writeTypePrefs($type, $next) : normalizeTypePrefs($current);
-    $orderPrefsChanged = $configChanged && (
-        (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
-        || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
-        || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
-        || normalizeStringIdList($current['hiddenFolderIds'] ?? []) !== normalizeStringIdList($saved['hiddenFolderIds'] ?? [])
+    $orderPrefsChanged = (
+        $current['sortMode'] !== $next['sortMode']
+        || $current['manualOrder'] !== $next['manualOrder']
+        || $current['pinnedFolderIds'] !== $next['pinnedFolderIds']
+        || $current['hiddenFolderIds'] !== $next['hiddenFolderIds']
     );
     if ($orderPrefsChanged) {
-        syncManualOrderWithFolders($type, readRawFolderMap($type));
-        $saved = readTypePrefs($type);
+        $next = reconcileManualOrderPrefs($next, readRawFolderMap($type));
     }
+    $configChanged = jsonObjectsDiffer($current, $next);
+    $saved = $configChanged ? writeTypePrefs($type, $next, $receipt) : $current;
     $metadata = readConfigMetadata($type, false);
+    unset($metadata['prefsMutationReceipt']);
     $dockerOrderChanged = $type === 'docker' && (
         $current['autoRules'] !== $saved['autoRules'] ||
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')

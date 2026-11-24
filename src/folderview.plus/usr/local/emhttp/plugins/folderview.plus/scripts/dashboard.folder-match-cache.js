@@ -141,15 +141,20 @@
             return output;
         };
 
-        const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, type = 'vm') => {
+        const isDashboardFolderToken = (entry, infoByName) => typeof entry === 'string' && folderRegex.test(entry)
+            && !Object.hasOwn(infoByName || {}, entry);
+
+        const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, type, infoByName) => {
             if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.reorderFolderSlotsInBaseOrder !== 'function') {
                 throw new Error('FolderView Plus runtime folder ordering is unavailable.');
             }
-            return runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
+            const foldersWithSlots = Object.fromEntries(Object.entries(folders || {}).filter(([id]) =>
+                isDashboardFolderToken(`folder-${id}`, infoByName)));
+            return runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, foldersWithSlots, prefs, {
                 orderFolders: getPrefsOrderedFolderMap,
                 folderTokenPrefix: 'folder-',
-                isFolderToken: (entry) => folderRegex.test(entry)
-                    && (type !== 'docker' || Object.prototype.hasOwnProperty.call(folders || {}, entry.slice(7)))
+                isFolderToken: (entry) => isDashboardFolderToken(entry, infoByName)
+                    && (type !== 'docker' || Object.hasOwn(foldersWithSlots, entry.slice(7)))
             });
         };
 
@@ -226,13 +231,13 @@
         const buildDashboardDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => utils.buildFolderMatchCache({
             type: 'docker', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: containersInfo || {},
             names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(containersInfo || {}, name)) : [],
-            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => isDashboardFolderToken(name, containersInfo) && Object.hasOwn(folders || {}, name.slice(7))).map(name => name.slice(7))
         });
 
         const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => utils.buildFolderMatchCache({
             type: 'vm', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: vmInfo || {},
             names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(vmInfo || {}, name)) : [],
-            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+            displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => isDashboardFolderToken(name, vmInfo) && Object.hasOwn(folders || {}, name.slice(7))).map(name => name.slice(7))
         });
 
         return Object.freeze({
@@ -244,6 +249,7 @@
             buildFolderDescendantsByRoot,
             mergeUniqueNames,
             aggregateRootMatchCache,
+            isDashboardFolderToken,
             reorderFolderSlotsInBaseOrder,
             parseJsonPayloadSafe,
             normalizeDockerStateToken,

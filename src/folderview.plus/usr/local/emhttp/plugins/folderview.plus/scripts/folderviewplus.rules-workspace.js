@@ -8,7 +8,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     'use strict';
     const escapeLiteral = value => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const normalizeBuilderRule = ({ type, folderId, effect, kind, pattern, labelKey, labelValue }) => {
+    const normalizeBuilderRule = ({ type, folderId, effect, kind, pattern, labelKey, labelValue, editingRule }) => {
         const rule = { id: '', enabled: true, folderId: String(folderId || '').trim(), effect: effect === 'exclude' ? 'exclude' : 'include',
             kind: 'name_regex', pattern: '', labelKey: '', labelValue: '' };
         const simple = String(kind || '').match(/^(name|image|compose_project)_(contains|starts_with|ends_with|exact|equals)$/);
@@ -24,7 +24,12 @@
             rule.labelValue = String(labelValue || '').trim();
         } else {
             rule.kind = type === 'docker' && ['image_regex', 'compose_project_regex'].includes(kind) ? kind : 'name_regex';
-            rule.pattern = String(pattern || '').trim();
+            rule.pattern = String(pattern || '');
+            if (rule.kind === 'name_regex' && editingRule?.regexMode === 'legacy' && rule.pattern === editingRule.pattern) {
+                rule.regexMode = 'legacy';
+            } else {
+                rule.pattern = rule.pattern.trim();
+            }
         }
         return rule;
     };
@@ -37,7 +42,7 @@
         const start = pattern.startsWith('^'), end = pattern.endsWith('$') && trailingSlashes % 2 === 0;
         const body = pattern.slice(start ? 1 : 0, end ? -1 : undefined);
         const literal = body.replace(/\\([.*+?^${}()|[\]\\])/g, '$1');
-        const regex = !literal || escapeLiteral(literal) !== body;
+        const regex = rule.regexMode === 'legacy' || !literal || escapeLiteral(literal) !== body;
         return { field, operator: start && end ? 'exact' : (start ? 'starts_with' : (end ? 'ends_with' : 'contains')),
             value: regex ? pattern : literal, labelKey: '', regex };
     };

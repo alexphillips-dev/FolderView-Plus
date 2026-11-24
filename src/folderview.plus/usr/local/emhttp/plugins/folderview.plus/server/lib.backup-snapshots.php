@@ -45,17 +45,13 @@ function getBackupSnapshotPath(string $type, string $name): string {
             || strpos($normalized, 'rollback') !== false;
     }
 
-    function getBackupPayloadFolderCount($decoded): ?int {
-        if (!is_array($decoded)) {
+    function getBackupPayloadFolderCount(array $decoded, string $type): ?int {
+        try {
+            return count(normalizeImportedFoldersPayload($decoded, $type));
+        } catch (RuntimeException $error) {
+            // Keep malformed backups visible for inspection and deletion.
             return null;
         }
-        if (isset($decoded['folders']) && is_array($decoded['folders'])) {
-            return count($decoded['folders']);
-        }
-        if (!array_key_exists('schemaVersion', $decoded) && !array_key_exists('type', $decoded) && !array_key_exists('prefs', $decoded)) {
-            return count($decoded);
-        }
-        return null;
     }
 
     function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true): array {
@@ -197,7 +193,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
             $transactionId = '';
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
-                $count = getBackupPayloadFolderCount($decoded);
+                $count = getBackupPayloadFolderCount($decoded, $type);
                 $traceId = normalizeRequestTraceId((string)($decoded['traceId'] ?? ''));
                 $transactionId = normalizeRequestTransactionId((string)($decoded['transactionId'] ?? ''));
             }
@@ -237,14 +233,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (!is_array($decoded)) {
             throw new RuntimeException('Backup payload is not valid JSON.');
         }
-        validateBackupPayloadType($decoded, $type);
-        $folders = normalizeImportedFoldersPayload($decoded);
-        if (!is_array($folders)) {
-            $folders = [];
-        }
-        if (array_key_exists('prefs', $decoded) && !is_array($decoded['prefs'])) {
-            throw new RuntimeException('Invalid prefs payload: expected JSON object.');
-        }
+        $folders = normalizeImportedFoldersPayload($decoded, $type);
         $prefs = is_array($decoded['prefs'] ?? null) ? normalizeTypePrefs($decoded['prefs']) : null;
 
         return [
@@ -322,21 +311,44 @@ function getBackupSnapshotPath(string $type, string $name): string {
         ];
     }
 
-    function normalizeImportedFoldersPayload($decoded): array {
-        if (!is_array($decoded)) {
+    function normalizeImportedFoldersPayload(array $decoded, string $type): array {
+        validateBackupPayloadType($decoded, $type);
+        $folders = $decoded['folders'] ?? $decoded;
+        if (!is_array($folders) || (!isset($decoded['folders']) && (array_key_exists('folders', $decoded)
+            || array_key_exists('schemaVersion', $decoded) || array_key_exists('prefs', $decoded)))) {
             throw new RuntimeException('Backup payload is not a JSON object.');
         }
-        if (array_key_exists('folders', $decoded) && is_array($decoded['folders'])) {
-            return $decoded['folders'];
+        if (array_key_exists('prefs', $decoded) && !is_array($decoded['prefs'])) {
+            throw new RuntimeException('Invalid prefs payload: expected JSON object.');
         }
-        if (array_key_exists('folders', $decoded) || array_key_exists('schemaVersion', $decoded) || array_key_exists('prefs', $decoded)) {
-            throw new RuntimeException('Backup payload is not a JSON object.');
+        $ids = [];
+        foreach ($folders as $id => $folder) {
+            $safeId = normalizeFolderIdValue($id);
+            if ($safeId === '' || isset($ids[$safeId]) || !is_array($folder)) {
+                throw new RuntimeException('Backup contains invalid folder data.');
+            }
+            foreach (['containers', 'hiddenPreviewMembers', 'hidden_preview'] as $key) {
+                if (!isset($folder[$key])) continue;
+                $members = $folder[$key];
+                // Historical name-keyed maps use their keys even when their values are objects.
+                if (!is_array($members) || (array_is_list($members)
+                    && array_filter($members, static fn($member): bool => !is_scalar($member) && $member !== null))) {
+                    throw new RuntimeException('Backup contains invalid folder membership data.');
+                }
+            }
+            $ids[$safeId] = true;
         }
-        return $decoded;
+        return $folders;
     }
 
     function validateBackupPayloadType(array $decoded, string $type): void {
         $type = ensureType($type);
+        if (array_key_exists('schemaVersion', $decoded) && $decoded['schemaVersion'] !== FVPLUS_EXPORT_SCHEMA_VERSION) {
+            throw new RuntimeException('Backup schema version is unsupported.');
+        }
+        if (isset($decoded['type']) && !is_string($decoded['type'])) {
+            throw new RuntimeException('Backup payload has an invalid type.');
+        }
         $declaredRaw = strtolower(trim((string)($decoded['type'] ?? '')));
         if ($declaredRaw !== '' && !in_array($declaredRaw, FVPLUS_ALLOWED_TYPES, true)) {
             throw new RuntimeException('Backup payload has an invalid type.');

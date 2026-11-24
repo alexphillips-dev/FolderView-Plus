@@ -83,6 +83,13 @@ test('runtime responses stay valid JSON when the native Docker SDK writes a sock
     assert.equal(details.error, '');
     assert.equal(details.responseStatus, 200);
     assert.doesNotMatch(JSON.stringify(details.response), /synthetic-private-socket-detail/);
+    const diagnostics = runInventoryRepair({ type: 'docker', operation: 'diagnostics', scenario: 'late-socket-output' });
+    assert.equal(diagnostics.error, '');
+    assert.equal(diagnostics.responseStatus, 200);
+    assert.equal(diagnostics.response.ok, true);
+    assert.doesNotMatch(JSON.stringify(diagnostics.response), /synthetic-private-socket-detail/);
+    const connectivity = diagnostics.response.diagnostics.summary.cards.find(card => card.key === 'runtime_connectivity');
+    assert.notEqual(connectivity.states.docker, 'ready');
 });
 
 const explicitOrderRequests = ['sync', 'start-sync'];

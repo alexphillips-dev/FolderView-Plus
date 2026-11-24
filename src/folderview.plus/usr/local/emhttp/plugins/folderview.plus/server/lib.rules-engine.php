@@ -37,7 +37,9 @@ require_once __DIR__ . '/lib.rules-regex.php';
     function autoRuleMatchesItem(array $rule, string $name, array $infoByName, string $type, ?string $compiledRegex = null): bool {
         $kind = (string)($rule['kind'] ?? 'name_regex');
         if ($kind === 'name_regex') {
-            return $compiledRegex === null ? serverRegexMatches((string)($rule['pattern'] ?? ''), $name) : @preg_match($compiledRegex, $name) === 1;
+            $legacy = fvplusRuleUsesLegacyRegex($rule);
+            $regex = $compiledRegex ?? serverRuleRegex((string)($rule['pattern'] ?? ''), !$legacy);
+            return ($rule['pattern'] ?? '') !== '' && @preg_match($regex, $legacy ? fvplusLegacyRegexCodeUnits($name) : $name) === 1;
         }
         if ($type !== 'docker') {
             return false;
@@ -133,7 +135,7 @@ require_once __DIR__ . '/lib.rules-regex.php';
             $regex = null; $valid = in_array($kind, FVPLUS_RULE_KINDS, true) && ($type === 'docker' || $kind === 'name_regex');
             if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
                 $pattern = (string)($rule['pattern'] ?? '');
-                $regex = serverRuleRegex($pattern);
+                $regex = serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule));
                 // PCRE-only constructs have no matching browser rule meaning.
                 $valid = $valid && $pattern !== '' && @preg_match($regex, '') !== false
                     && fvplusRulePatternIsPortable($pattern);

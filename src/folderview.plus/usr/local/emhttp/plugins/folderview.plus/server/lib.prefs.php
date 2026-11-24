@@ -516,6 +516,9 @@
                 'labelValue' => (string)($rule['labelValue'] ?? '')
             ];
             if (($rule['source'] ?? '') === 'folderview3') $normalizedRules[count($normalizedRules) - 1]['source'] = 'folderview3';
+            if ($kind === 'name_regex' && ($rule['regexMode'] ?? '') === 'legacy') {
+                $normalizedRules[count($normalizedRules) - 1]['regexMode'] = 'legacy';
+            }
         }
         $normalized['autoRules'] = $normalizedRules;
         $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
@@ -705,9 +708,9 @@
         });
     }
 
-    function writeTypePrefs(string $type, array $prefs): array {
+    function writeTypePrefs(string $type, array $prefs, string $mutationReceipt = ''): array {
         $type = ensureType($type);
         $normalized = normalizeTypePrefs($prefs);
-        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized);
+        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized, $mutationReceipt);
         return $normalized;
     }

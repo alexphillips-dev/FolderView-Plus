@@ -1439,10 +1439,14 @@ const isInputInvalidForUi = (input) => {
             return true;
         }
     }
-    if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && document.getElementById(input.id.replace('-pattern', '-regex'))?.checked && String(input.value || '').trim()) {
+    if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && document.getElementById(input.id.replace('-pattern', '-regex'))?.checked) {
+        const type = input.id.split('-')[0];
+        const kind = document.getElementById(input.id.replace('-pattern', '-kind'))?.value;
+        const { pattern, regexMode } = normalizeRuleBuilderRuleInput({ type, kind, pattern: input.value });
+        if (!pattern) return false;
         try {
             // eslint-disable-next-line no-new
-            new RegExp(String(input.value || '').trim(), 'u');
+            new RegExp(pattern, regexMode === 'legacy' ? '' : 'u');
         } catch (_error) {
             return true;
         }
@@ -6848,7 +6852,11 @@ const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_pr
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
 const RULE_SIMPLE_KINDS = Object.freeze(['name', 'image', 'compose_project'].flatMap(field => ['contains', 'starts_with', 'ends_with', 'exact', 'equals'].map(operator => `${field}_${operator}`)));
 
-const normalizeRuleBuilderRuleInput = (input) => rulesWorkspaceModule.normalizeBuilderRule(input);
+const normalizeRuleBuilderRuleInput = (input) => {
+    const editingId = String($('#' + input.type + '-rule-editing').val() || '');
+    const editingRule = (prefsByType[input.type]?.autoRules || []).find(rule => rule.id === editingId);
+    return rulesWorkspaceModule.normalizeBuilderRule({ ...input, editingRule });
+};
 const getRulesWorkspaceApi = (() => {
     let api = null;
     return () => api ||= rulesWorkspaceModule.createApi({
@@ -6884,7 +6892,7 @@ const getAutoRuleProblems = (type, rule) => {
     const folderId = String(rule?.folderId || '').trim();
     const folders = getFolderMap(type);
     const kind = String(rule?.kind || 'name_regex').trim().toLowerCase();
-    const pattern = String(rule?.pattern || '').trim();
+    const pattern = rule?.regexMode === 'legacy' ? String(rule.pattern || '') : String(rule?.pattern || '').trim();
     const labelKey = String(rule?.labelKey || '').trim();
     const labelValue = String(rule?.labelValue || '').trim();
 
@@ -6897,7 +6905,7 @@ const getAutoRuleProblems = (type, rule) => {
         } else {
             try {
                 // eslint-disable-next-line no-new
-                new RegExp(pattern, 'u');
+                new RegExp(pattern, rule?.regexMode === 'legacy' ? '' : 'u');
             } catch (_error) {
                 issues.push('Invalid regex');
             }
@@ -9456,7 +9464,7 @@ const addAutoRule = async (type) => {
     const folderId = String($(`#${type}-rule-folder`).val() || '');
     const effect = String($(`#${type}-rule-effect`).val() || 'include');
     const kind = String($(`#${type}-rule-kind`).val() || 'name_regex');
-    const pattern = String($(`#${type}-rule-pattern`).val() || '').trim();
+    const pattern = String($(`#${type}-rule-pattern`).val() || '');
     const labelKey = String($(`#${type}-rule-label-key`).val() || '').trim();
     const labelValue = String($(`#${type}-rule-label-value`).val() || '').trim();
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
@@ -9494,7 +9502,7 @@ const addAutoRule = async (type) => {
             return;
         }
         try {
-            new RegExp(normalizedRule.pattern, 'u');
+            new RegExp(normalizedRule.pattern, normalizedRule.regexMode === 'legacy' ? '' : 'u');
         } catch (error) {
             swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
             return;

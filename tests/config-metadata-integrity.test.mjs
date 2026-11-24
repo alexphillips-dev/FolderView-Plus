@@ -38,6 +38,7 @@ const pluginRoot = path.join(
 );
 const libPath = path.join(pluginRoot, 'server/lib.php');
 const prefsEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/prefs.php'), 'utf8');
+const prefsEndpointBody = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
 const readEndpoint = fs.readFileSync(path.join(pluginRoot, 'server/read.php'), 'utf8');
 const folderEditor = fs.readFileSync(path.join(pluginRoot, 'scripts/folder.js'), 'utf8');
 const folderEditorRules = fs.readFileSync(path.join(pluginRoot, 'scripts/folder.editor.rules.js'), 'utf8');
@@ -68,7 +69,7 @@ $afterFolderWrite = readConfigMetadata('docker', true);
 
 $prefs = defaultTypePrefs();
 $prefs['sortMode'] = 'manual';
-writeTypePrefs('docker', $prefs);
+writeTypePrefs('docker', $prefs, str_repeat('f', 64));
 $afterPrefsWrite = readConfigMetadata('docker', true);
 
 $originalFolderRevision = (int)$afterPrefsWrite['folderRevision'];
@@ -101,6 +102,15 @@ $metadataPath = getConfigMetadataPath('docker');
 file_put_contents($metadataPath, '{broken');
 $afterRecovery = readConfigMetadata('docker', true);
 $storedFolders = json_decode(file_get_contents($folderPath), true);
+$_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+$_SERVER['REQUEST_METHOD'] = 'GET';
+$_GET['type'] = 'docker';
+ob_start();
+eval(${phpSingleQuote(prefsEndpointBody)});
+$publicPrefs = json_decode(ob_get_clean(), true);
+$prefs['hideEmptyFolders'] = true;
+file_put_contents(getTypePrefsPath('docker'), json_encode($prefs, JSON_UNESCAPED_SLASHES));
+$afterExternalPrefs = readConfigMetadata('docker', true);
 
 echo json_encode([
     'afterFolderWrite' => $afterFolderWrite,
@@ -108,6 +118,8 @@ echo json_encode([
     'afterSecondFolderWrite' => $afterSecondFolderWrite,
     'afterExternalEdit' => $afterExternalEdit,
     'afterRecovery' => $afterRecovery,
+    'publicPrefs' => $publicPrefs,
+    'afterExternalPrefs' => $afterExternalPrefs,
     'staleSaveRejected' => $staleSaveRejected,
     'storedFolders' => $storedFolders,
     'metadataPrimaryValid' => is_array(json_decode(file_get_contents($metadataPath), true)),
@@ -155,6 +167,7 @@ test('configuration metadata revisions track writes, reject stale saves, and rec
     assert.equal(result.afterPrefsWrite.folderRevision, 1);
     assert.equal(result.afterPrefsWrite.prefsRevision, 1);
     assert.match(result.afterPrefsWrite.prefsSha256, /^[a-f0-9]{64}$/);
+    assert.match(result.afterPrefsWrite.prefsMutationReceipt, /^[a-f0-9]{64}$/);
 
     assert.equal(result.afterSecondFolderWrite.folderRevision, 2);
     assert.equal(result.staleSaveRejected, true);
@@ -164,6 +177,12 @@ test('configuration metadata revisions track writes, reject stale saves, and rec
 
     assert.equal(result.afterRecovery.folderRevision, 3);
     assert.equal(result.afterRecovery.folderSha256, result.afterExternalEdit.folderSha256);
+    assert.equal(result.publicPrefs.ok, true);
+    assert.equal(result.publicPrefs.metadata.prefsRevision, result.afterRecovery.prefsRevision);
+    assert.equal(result.publicPrefs.metadata.folderRevision, result.afterRecovery.folderRevision);
+    assert.equal(Object.hasOwn(result.publicPrefs.metadata, 'prefsMutationReceipt'), false);
+    assert.equal(result.afterExternalPrefs.prefsRevision, result.afterRecovery.prefsRevision + 1);
+    assert.equal(Object.hasOwn(result.afterExternalPrefs, 'prefsMutationReceipt'), false);
     assert.equal(result.metadataPrimaryValid, true);
     assert.equal(result.metadataLastGoodExists, true);
     assert.deepEqual(Object.keys(result.storedFolders), ['one']);
@@ -172,9 +191,8 @@ test('configuration metadata revisions track writes, reject stale saves, and rec
 });
 
 test('API and editor contracts expose revisions without breaking the legacy folder response', () => {
-    assert.match(prefsEndpoint, /'metadata'\s*=>\s*readConfigMetadata\(\$type, true\)/);
-    assert.match(prefsEndpoint, /assertExpectedConfigRevision\(\$type, 'prefs', \$_POST\['expectedRevision'\] \?\? ''\)/);
-    assert.match(prefsEndpoint, /syncManualOrderWithFolders[\s\S]*\$saved = readTypePrefs\(\$type\);[\s\S]*\$metadata = readConfigMetadata\(\$type, false\);/);
+    assert.match(prefsEndpoint, /\$expectedRevision = \(string\)\(\$_POST\['expectedRevision'\] \?\? ''\)/);
+    assert.match(prefsEndpoint, /assertExpectedConfigRevision\(\$type, 'prefs', \$expectedRevision\)/);
     assert.match(readEndpoint, /\$_GET\['includeMetadata'\]/);
     assert.match(readEndpoint, /header\('X-FV-Folder-Revision: '/);
     assert.match(folderEditor, /folderEditorExpectedFolderRevision/);

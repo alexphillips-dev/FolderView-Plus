@@ -10,7 +10,7 @@ const server = path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/fol
 const fixture = path.join(root, 'tests/fixtures/runtime-preflight-managed-theme.php');
 const generatedMarker = '/* FolderView Plus generated Theme Workspace asset. Do not edit manually. */\n';
 
-const runPreflight = (t, files) => {
+const runPreflight = (t, files, socketFailure = false) => {
     const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-managed-preflight-'));
     t.after(() => fs.rmSync(fixtureRoot, { recursive: true, force: true }));
     for (const [relative, contents] of Object.entries(files)) {
@@ -19,11 +19,21 @@ const runPreflight = (t, files) => {
         fs.writeFileSync(file, contents);
     }
     return JSON.parse(execFileSync('php', [fixture, fixtureRoot, server], {
-        encoding: 'utf8', timeout: 15000
+        encoding: 'utf8', timeout: 15000,
+        env: { ...process.env, FVPLUS_TEST_RUNTIME_PREFLIGHT_SOCKET_FAILURE: socketFailure ? '1' : '' }
     }));
 };
 
 const overrideIssue = (result, type) => result[type].preflight.issues.find(issue => issue.category === 'custom-overrides');
+
+test('Docker preflight suppresses native socket details and reports a fatal issue', t => {
+    const result = runPreflight(t, {}, true);
+    assert.equal(result.docker.preflight.issues.length, 1);
+    assert.equal(result.docker.preflight.issues[0].category, 'docker-api-unavailable');
+    assert.equal(result.docker.preflight.issues[0].severity, 'fatal');
+    assert.doesNotMatch(JSON.stringify(result), /synthetic private socket detail/);
+    assert.deepEqual(result.vm.preflight.issues, []);
+});
 
 test('generated Docker and VM Theme Workspace assets do not degrade an otherwise healthy preflight', t => {
     const result = runPreflight(t, {

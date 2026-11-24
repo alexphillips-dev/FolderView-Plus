@@ -55,6 +55,45 @@ test('unchanged workspace still adopts fresh server state and propagates read fa
     await assert.rejects(failing.readWorkspace(), /synthetic/);
 });
 
+test('checking for managed theme updates retains edits and preset undo while publishing the checked theme', async () => {
+    const requests = [];
+    const api = createApi({ apiPostJson: (_url, payload) => new Promise(resolve => requests.push({ payload, resolve })) });
+    const profile = { id: 'default', name: 'Default', layers: { global: { variables: { '--fvplus-theme-accent': '#123456' } } } };
+    const saved = { activeProfileId: profile.id, profiles: [profile], themes: [{ id: 'fixture', name: 'Fixture' }] };
+    api.setWorkspace(saved);
+    api.previewPreset('blue');
+    const check = api.checkUpdates();
+    api.previewPreset('green');
+    assert.equal(requests[0].payload.action, 'check_updates');
+    requests[0].resolve({ workspace: { ...saved, themes: [{ ...saved.themes[0], updateAvailable: true }], lastCheckedAt: '2030-01-02' } });
+    await check;
+    assert.equal(api.getWorkspace().themes[0].updateAvailable, true);
+    assert.equal(api.getWorkspace().lastCheckedAt, '2030-01-02');
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#22c55e');
+    api.undoPreset();
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#123456');
+});
+
+test('a refresh retains an existing draft and a stale check cannot replace newer workspace state', async () => {
+    const reads = [], checks = [];
+    const api = createApi({
+        apiGetJson: () => new Promise(resolve => reads.push(resolve)),
+        apiPostJson: () => new Promise(resolve => checks.push(resolve))
+    });
+    api.previewPreset('orange');
+    const refresh = api.readWorkspace();
+    reads[0]({ workspace: { lastCheckedAt: '2030-01-02' } });
+    await refresh;
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#f97316');
+    const staleCheck = api.checkUpdates();
+    api.setWorkspace({ lastCheckedAt: '2030-01-04' });
+    api.previewPreset('green');
+    checks[0]({ workspace: { lastCheckedAt: '2030-01-03' } });
+    assert.equal(await staleCheck, null);
+    assert.equal(api.getWorkspace().lastCheckedAt, '2030-01-04');
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#22c55e');
+});
+
 test('a stale GitHub scan cannot replace a newer reviewed source or be imported', async () => {
     const scans = [];
     const imports = [];

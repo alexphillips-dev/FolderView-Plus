@@ -16,6 +16,7 @@ const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCr
 }) || null;
 const vmLifecycleModule = window.FolderViewPlusVmRuntimeLifecycle || null;
 let vmLifecycleApi = null, vmQuickFinderApi = null;
+let vmRuntimePageDisposed = false;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -1567,31 +1568,6 @@ const createFolders = async () => {
         }
     }
 
-    // debug mode, download the debug json file
-    if(folderDebugMode) {
-        const debugData = JSON.stringify({
-            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
-            folders,
-            unraidOrder,
-            originalOrder: await pluginRequestClient.getJson('/plugins/folderview.plus/server/read_unraid_order.php', {
-                data: { type: 'vm' }
-            }),
-            newOnes,
-            order,
-            vmInfo
-        });
-        const blob = new Blob([debugData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const element = document.createElement('a');
-        element.href = url;
-        element.download = 'debug-VM.json';
-        element.style.display = 'none';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-        URL.revokeObjectURL(url);
-        vmDebugLog('Order:', [...order]);
-    }
 
     vmFolderRenderRecovery.begin();
     let foldersDone = {};
@@ -1707,7 +1683,6 @@ const createFolders = async () => {
     scheduleVmRuntimeWidthReflow('create-folders', 0);
     applyVmZebra();
 
-    folderDebugMode  = false;
     vmFolderRenderRecovery.finish();
     markVmFatalBannerStep('VM folders rendered');
     setVmFatalBannerPhase('ready');
@@ -1981,9 +1956,6 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
                 });
             }
 
-            if(folderDebugMode) {
-                vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
-            }
             
             if (!hiddenPreviewSet.has(container)) {
             const $previewMember = addPreview(id, ct.autostart);
@@ -2446,14 +2418,28 @@ const resolveVmFolderAction = (action, state) => {
     }
 };
 
+let vmFolderActionRefreshTimer = null;
+const activeVmFolderActions = new Set();
+const setVmFolderActionProgress = (key, active) => {
+    const wasBusy = activeVmFolderActions.size > 0;
+    if (active) activeVmFolderActions.add(key);
+    else activeVmFolderActions.delete(key);
+    if (vmRuntimePageDisposed) return;
+    const current = activeVmFolderActions.values().next().value || '';
+    vmRuntimeStateStore.set({ inFlightAction: current });
+    if (!wasBusy && current) $('div.spinner.fixed').show('slow');
+    else if (wasBusy && !current) $('div.spinner.fixed').hide('slow');
+};
+
 const settleVmFolderActions = async (requests, source) => {
-    if (!requests.length) return;
+    if (vmRuntimePageDisposed || !requests.length) return;
     const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
     const results = await nativeActions.settleNativeActionRequests(requests, ({ action, uuid }) => {
         if (!uuid) throw new Error();
         return $.ajax({ url: '/plugins/dynamix.vm.manager/include/VMajax.php', type: 'POST',
             data: { action, uuid }, dataType: 'json', timeout: 30000 });
     });
+    if (vmRuntimePageDisposed) return;
     nativeActions.showNativeActionFailures(results, {
         escapeHtml,
         privacy: document.body.classList.contains('fvplus-privacy-vm-runtime')
@@ -2462,18 +2448,22 @@ const settleVmFolderActions = async (requests, source) => {
     if (accepted.length && typeof vmLifecycleApi?.run === 'function') {
         await vmLifecycleApi.run(accepted, { source });
     }
-    if (!accepted.length || accepted.length < results.length || typeof vmLifecycleApi?.run !== 'function') {
+    if (!vmRuntimePageDisposed && (!accepted.length || accepted.length < results.length || typeof vmLifecycleApi?.run !== 'function')) {
         await refreshVmRuntimeStateInPlace();
-        window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
+        if (vmRuntimePageDisposed) return;
+        window.clearTimeout(vmFolderActionRefreshTimer);
+        vmFolderActionRefreshTimer = window.setTimeout(() => {
+            vmFolderActionRefreshTimer = null;
+            if (!vmRuntimePageDisposed) void refreshVmRuntimeStateInPlace();
+        }, 650);
     }
 };
 
 const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
-    return vmSafeUiActionRunner.run(`vm-folder-action:${id}:${action}:${includeDescendants ? 'branch' : 'direct'}`, async () => {
+    const key = `vm-folder-action:${id}:${action}:${includeDescendants ? 'branch' : 'direct'}`;
+    return vmSafeUiActionRunner.run(key, async () => {
         await runVmGuardedAction('vm-folder-action', async () => {
-            if (!ensureVmFolderUnlocked(id, 'Folder action')) return;
-            const folder = globalFolders[id];
-            if (!folder) return;
+            if (vmRuntimePageDisposed || !ensureVmFolderUnlocked(id, 'Folder action') || !globalFolders[id]) return;
 
             const entries = Object.entries(getScopedVmRuntimeContainersForFolder(id, includeDescendants));
             const originalAction = String(action || '').trim();
@@ -2483,15 +2473,14 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
             });
             if (!requests.length) return;
 
-            vmRuntimeStateStore.set({ inFlightAction: `action:${id}:${originalAction}` });
+            setVmFolderActionProgress(key, true);
             $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
-            $('div.spinner.fixed').show('slow');
             try {
                 await settleVmFolderActions(requests, 'folder-action');
             } finally {
-                updateVmFolderRuntimeSummary(id, folder);
-                vmRuntimeStateStore.set({ inFlightAction: '' });
-                $('div.spinner.fixed').hide('slow');
+                setVmFolderActionProgress(key, false);
+                const currentFolder = globalFolders[id];
+                if (!vmRuntimePageDisposed && currentFolder) updateVmFolderRuntimeSummary(id, currentFolder);
             }
         }, {
             userMessage: $.i18n('exec-error')
@@ -2505,18 +2494,17 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
  * @param {number} action 
  */
 const folderCustomAction = async (id, action) => {
-    return vmSafeUiActionRunner.run(`vm-custom-action:${id}:${action}`, async () => {
+    const key = `vm-custom-action:${id}:${action}`;
+    return vmSafeUiActionRunner.run(key, async () => {
         await runVmGuardedAction('vm-custom-action', async () => {
-            if (!ensureVmFolderUnlocked(id, 'Custom action')) return;
+            if (vmRuntimePageDisposed || !ensureVmFolderUnlocked(id, 'Custom action')) return;
             const folder = globalFolders[id];
             const act = folder?.actions?.[action];
             if (!act) return;
 
             const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
             if (!nativeActions.validateFolderAction(act)) return;
-            const spinner = $('div.spinner.fixed');
-            spinner.show('slow');
-            vmRuntimeStateStore.set({ inFlightAction: `custom:${id}:${action}` });
+            setVmFolderActionProgress(key, true);
             try {
                 if (act.type === 1) {
                     await nativeActions.runUserScript(act, { openBox });
@@ -2539,8 +2527,7 @@ const folderCustomAction = async (id, action) => {
                 });
                 await settleVmFolderActions(requests, 'custom-folder-action');
             } finally {
-                vmRuntimeStateStore.set({ inFlightAction: '' });
-                spinner.hide('slow');
+                setVmFolderActionProgress(key, false);
             }
         });
     });
@@ -3030,8 +3017,6 @@ let loadedFolder = false;
 let globalFolders = {};
 let lastAppliedRuntimePrefs = null;
 const folderRegex = /^folder-/;
-let folderDebugMode  = false;
-let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
 let vmRuntimeInfoByName = {};
@@ -3063,7 +3048,7 @@ const resolveVmStrictPerformanceProfile = (prefs, folders, vmInfo) => {
 };
 
 const queueLoadlistRefresh = () => {
-    if (queuedLoadlistTimer) {
+    if (vmRuntimePageDisposed || queuedLoadlistTimer) {
         return;
     }
     const now = Date.now();
@@ -3285,6 +3270,7 @@ const syncVmRuntimeRows = (changedNames) => {
 };
 
 const refreshVmRuntimeStateInPlace = async (options = {}) => {
+    if (vmRuntimePageDisposed) return false;
     const preserveGroupedDom = options?.preserveGroupedDom === true;
     vmRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     try {
@@ -3292,6 +3278,7 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         const payload = await pluginRequestClient.getJson(useSnapshot
             ? runtimeSnapshotApi.buildUrl('vm', 'state', { forceRefresh: true })
             : '/plugins/folderview.plus/server/read_info.php?type=vm&mode=state&nocache=1', { cache: false });
+        if (vmRuntimePageDisposed) return false;
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !vmRuntimeSnapshotConfigMatches(snapshot))) {
@@ -3343,6 +3330,7 @@ vmLifecycleApi = vmLifecycleModule.createApi({
     },
     queueNativeRefresh: () => queueLoadlistRefresh(),
     shouldTrackRequest: () => !String(vmRuntimeStateStore.get('inFlightAction', '') || '').trim(),
+    isPageCurrent: () => !vmRuntimePageDisposed,
     delaysMs: [0, 500, 1250, 2500]
 });
 window.getVmLifecycleDiagnosticsSnapshot = () => vmLifecycleApi?.getSnapshot?.() || null;
@@ -3773,22 +3761,11 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     }
 });
 
-// activate debug mode
-addEventListener("keydown", (e) => {
-    if (e.isComposing || e.key.length !== 1) { // letter X FOR TESTING
-        return;
-    }
-    folderDebugModeWindow.push(e.key);
-    if(folderDebugModeWindow.length > 5) {
-        folderDebugModeWindow.shift();
-    }
-    if(folderDebugModeWindow.join('').toLowerCase() === "debug") {
-        folderDebugMode = true;
-        loadlist();
-    }
-});
+window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('vm');
 
 window.addEventListener('pagehide', () => {
+    vmRuntimePageDisposed = true;
+    window.clearTimeout(vmFolderActionRefreshTimer);
     vmQuickFinderApi?.dispose();
     vmLiveRefreshController.dispose();
     clearTimeout(queuedLoadlistTimer);

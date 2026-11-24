@@ -72,38 +72,64 @@ export const registerBackupMobileReportCases = ({ test, baseUrl }) => {
     });
 
     test('binary backup errors retain HTTP and guard details without download or mutation replay', async ({ page }) => {
-        let calls = 0, mode = 'missing';
+        let calls = 0, nonceCalls = 0, mode = 'missing';
+        const replies = {
+            missing: { status: 400, body: JSON.stringify({ error: 'Backup file not found.' }) },
+            guard: { status: 403, body: JSON.stringify({ error: 'Mutation nonce is expired, invalid, or already used.', requestFailure: { source: 'folderview-plus', reasonCode: 'nonce-stale' } }) },
+            malformed: { status: 500, body: '{invalid' },
+            loginPage: { status: 200, contentType: 'text/html', body: '<!doctype html><form method="post" action="/login"><input type="password" value="fixture-private-login"></form>' },
+            malformedAttachment: { status: 200, headers: { 'content-disposition': 'attachment; filename="fixture-private-backup.json"' }, body: '{"name":"fixture-private-backup' }
+        };
         const downloads = [];
         page.on('download', download => downloads.push(download));
-        await page.route('**/plugins/folderview.plus/server/security.php', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true, nonce: 'b'.repeat(64) }) }));
+        await page.route('**/plugins/folderview.plus/server/security.php', route => {
+            nonceCalls++;
+            return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true, nonce: 'b'.repeat(64) }) });
+        });
         await page.route('**/plugins/folderview.plus/server/backup.php', async route => {
             calls++;
-            const response = mode === 'guard'
-                ? { status: 403, body: JSON.stringify({ error: 'Mutation nonce is expired, invalid, or already used.', requestFailure: { source: 'folderview-plus', reasonCode: 'nonce-stale' } }) }
-                : mode === 'malformed' ? { status: 500, body: '{invalid' }
-                    : { status: 400, body: JSON.stringify({ error: 'Backup file not found.' }) };
-            await route.fulfill({ contentType: 'application/json', ...response });
+            const request = route.request();
+            const headers = request.headers();
+            const body = new URLSearchParams(request.postData());
+            assert.deepEqual([request.method(), headers['x-fv-request'], headers['x-fv-nonce'], headers['x-csrf-token'], body.get('action')],
+                ['POST', '1', 'b'.repeat(64), 'synthetic-unraid-token', 'download_post']);
+            assert.equal(body.get('_fv_transaction'), headers['x-fv-transaction']);
+            await route.fulfill({ contentType: 'application/json', ...replies[mode] });
         });
         await loadDownload(page, baseUrl);
-        for (const next of ['missing', 'guard', 'malformed']) {
+        await page.evaluate(() => {
+            window.downloadObjectURLs = 0;
+            const createObjectURL = URL.createObjectURL.bind(URL);
+            URL.createObjectURL = blob => { window.downloadObjectURLs++; return createObjectURL(blob); };
+        });
+        for (const next of Object.keys(replies)) {
             mode = next;
             await page.evaluate(() => window.fixtureDownloadBackup('docker', 'synthetic.json'));
         }
-        const errors = await page.evaluate(() => window.downloadErrors);
+        const { errors, diagnostics, failures, activity, objectURLs } = await page.evaluate(() => ({
+            errors: window.downloadErrors,
+            diagnostics: window.FolderViewPlusRequest.diagnostics(),
+            failures: window.FolderViewPlusRequest.failureDiagnostics(),
+            activity: window.downloadActivity,
+            objectURLs: window.downloadObjectURLs
+        }));
         assert.match(errors[0].message, /Backup file not found/);
-        assert.equal(errors[0].status, 400);
-        assert.equal(errors[1].status, 403);
+        assert.deepEqual(errors.map(error => error.status), [400, 403, 500, 200, 200]);
         assert.equal(errors[1].reason, 'nonce-stale');
-        assert.equal(errors[2].status, 500);
-        assert.equal(calls, 3, 'failed downloads must not replay secured POST requests');
-        assert.equal(downloads.length, 0);
+        assert.equal(errors[3].reason, 'authentication-required');
+        assert.match(errors[3].message, /Refresh the webGUI and sign in again/);
+        assert.equal(errors[4].reason, 'unexpected-response');
+        assert.deepEqual(diagnostics.map(({ outcome, attempts }) => [outcome, attempts]), Array(5).fill(['error', 1]));
+        assert.doesNotMatch(JSON.stringify({ errors, diagnostics, failures }), /fixture-private/);
+        assert.deepEqual([calls, nonceCalls], [5, 5], 'failed downloads must not replay secured POST requests');
+        assert.deepEqual([downloads.length, activity.length, objectURLs], [0, 0, 0]);
         const aborted = await page.evaluate(async () => {
             const controller = new AbortController(); controller.abort();
             try { await window.FolderViewPlusRequest.postBlob('/plugins/folderview.plus/server/backup.php', {}, { signal: controller.signal }); }
             catch (error) { return error.reasonCode; }
         });
         assert.equal(aborted, 'aborted');
-        assert.equal(calls, 3);
+        assert.deepEqual([calls, nonceCalls], [5, 5]);
     }, { allowedConsoleErrors: [/Failed to load resource:.*(?:400|403|500)/, /the server responded with a status of (?:400|403|500)/] });
 
     test('Diagnostics toolbar labels fit every locale with host typography at phone and desktop widths', async ({ page }) => {

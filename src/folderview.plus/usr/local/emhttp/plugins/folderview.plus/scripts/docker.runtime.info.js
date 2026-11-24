@@ -99,7 +99,7 @@
             return labels;
         };
 
-        const readDockerHostRowUpdatedState = (name) => {
+        const readDockerHostRowUpdateEvidence = (name) => {
             const safeName = String(name || '').trim();
             if (!safeName || !doc) {
                 return null;
@@ -124,6 +124,7 @@
                 return String(fallback || '').trim().toLowerCase();
             };
             const hasToken = (...tokens) => tokens.some((token) => token && normalizedText.includes(String(token).trim().toLowerCase()));
+            if (updateCell.querySelector('.fa-recycle')) return 'rebuild';
             if (updateCell.querySelector('.fa-flash')) {
                 return false;
             }
@@ -137,6 +138,11 @@
                 return true;
             }
             return null;
+        };
+
+        const readDockerHostRowUpdatedState = (name) => {
+            const evidence = readDockerHostRowUpdateEvidence(name);
+            return typeof evidence === 'boolean' ? evidence : null;
         };
 
         const getDockerHostRowContainerName = (value) => {
@@ -174,7 +180,8 @@
 
         const applyDockerRuntimeEntryUpdatedState = (name, updated) => {
             const safeName = resolveHostIdentity(String(name || '').trim()) || String(name || '').trim();
-            if (!safeName || typeof updated !== 'boolean') {
+            const rebuild = updated === 'rebuild';
+            if (!safeName || (!rebuild && typeof updated !== 'boolean')) {
                 return false;
             }
             const runtimeInfoMap = getDockerRuntimeInfoMap();
@@ -193,13 +200,20 @@
                 return false;
             }
             const nextManager = previousManager || 'dockerman';
-            if (previousEntry && previousState.Updated === updated && previousManager === nextManager) {
+            if (previousEntry.isRebuildReady === true && !rebuild && previousEntry.isRebuildReadyFromHost !== true) return false;
+            const updateStatus = rebuild ? null : updated;
+            const nextRebuild = rebuild || (previousEntry.isRebuildReadyFromHost === true ? false : previousEntry.isRebuildReady);
+            const rebuildFromHost = rebuild;
+            if (previousState.Updated === updateStatus && previousManager === nextManager
+                && nextRebuild === previousEntry.isRebuildReady && rebuildFromHost === previousEntry.isRebuildReadyFromHost) {
                 return false;
             }
             const nextRuntimeInfoMap = {
                 ...runtimeInfoMap,
                 [safeName]: {
                     ...(previousEntry && typeof previousEntry === 'object' ? previousEntry : {}),
+                    isRebuildReady: nextRebuild,
+                    isRebuildReadyFromHost: rebuildFromHost,
                     info: {
                         ...((previousEntry?.info && typeof previousEntry.info === 'object') ? previousEntry.info : {}),
                         Name: safeName,
@@ -209,7 +223,7 @@
                         State: {
                             ...previousState,
                             manager: nextManager,
-                            Updated: updated
+                            Updated: updateStatus
                         }
                     },
                     Labels: (previousEntry?.Labels && typeof previousEntry.Labels === 'object') ? previousEntry.Labels : {},
@@ -222,7 +236,9 @@
             const windowEntry = getDockerWindowRuntimeEntry(safeName);
             if (windowEntry?.info?.State && typeof windowEntry.info.State === 'object') {
                 windowEntry.info.State.manager = String(windowEntry.info.State.manager || nextManager).trim() || nextManager;
-                windowEntry.info.State.Updated = updated;
+                windowEntry.info.State.Updated = updateStatus;
+                windowEntry.isRebuildReady = nextRebuild;
+                windowEntry.isRebuildReadyFromHost = rebuildFromHost;
             }
             return true;
         };
@@ -244,8 +260,8 @@
                     .filter((entry) => entry !== '');
             let changed = false;
             targetNames.forEach((entry) => {
-                const updated = readDockerHostRowUpdatedState(entry);
-                if (typeof updated !== 'boolean') {
+                const updated = readDockerHostRowUpdateEvidence(entry);
+                if (updated === null) {
                     return;
                 }
                 changed = applyDockerRuntimeEntryUpdatedState(entry, updated) || changed;
@@ -367,7 +383,10 @@
                 const previousState = previous?.info?.State || {}, state = source.info.State || {};
                 const carry = {};
                 for (const key of ['Updated', 'manager']) if (!Object.prototype.hasOwnProperty.call(state, key) && Object.prototype.hasOwnProperty.call(previousState, key)) carry[key] = previousState[key];
-                return { ...source, info: { ...source.info, Name: safeName || source.info.Name, State: { ...carry, ...state } } };
+                const rebuild = typeof source.isRebuildReady === 'boolean' ? source.isRebuildReady
+                    : (source.isRebuildReady === null ? null : previous?.isRebuildReady);
+                return { ...source, isRebuildReady: rebuild,
+                    info: { ...source.info, Name: safeName || source.info.Name, State: { ...carry, ...state, ...(rebuild === true ? { Updated: null } : {}) } } };
             }
             const labels = buildDockerRuntimeInfoFallbackLabels(source, previous);
             const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
@@ -376,16 +395,18 @@
             const sourceInfo = source?.info && typeof source.info === 'object' ? source.info : {};
             const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
             const stateKind = String(source.state || '').trim().toLowerCase();
-            const running = source.running === true || stateKind === 'running';
             const paused = source.paused === true || stateKind === 'paused';
+            const running = paused || source.running === true || stateKind === 'running';
             const manager = String(source.manager || previousState.manager || '').trim();
             const labelWebUi = String(labels['net.unraid.docker.webui'] || '').trim();
             const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
             const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
             const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
             const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended()
-                ? readDockerHostRowUpdatedState(safeName)
+                ? readDockerHostRowUpdateEvidence(safeName)
                 : null;
+            const rebuild = source.isRebuildReady === true || hostUpdated === 'rebuild' ? true
+                : (typeof source.isRebuildReady === 'boolean' ? source.isRebuildReady : null);
             const sourceUpdated = typeof sourceState.Updated === 'boolean'
                 ? sourceState.Updated
                 : (typeof source.Updated === 'boolean' ? source.Updated : null);
@@ -404,12 +425,14 @@
                 || source.webuiHydrationPending === true;
             const preservePreviousUpdated = typeof previousState.Updated === 'boolean'
                 && !(manager === 'dockerman' && isHostUpdateSyncSuspended());
-            const resolvedUpdated = typeof sourceUpdated === 'boolean'
+            const resolvedUpdated = rebuild === true ? null : typeof sourceUpdated === 'boolean'
                 ? sourceUpdated
                 : (typeof hostUpdated === 'boolean'
                     ? hostUpdated
                     : (preservePreviousUpdated ? previousState.Updated : null));
             const nextEntry = previous ? { ...previous } : {};
+            nextEntry.isRebuildReady = rebuild;
+            nextEntry.isRebuildReadyFromHost = hostUpdated === 'rebuild';
             nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
             nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
             nextEntry.Labels = labels;
@@ -553,17 +576,18 @@
             const source = (sourceMeta && typeof sourceMeta === 'object' && !Array.isArray(sourceMeta)) ? sourceMeta : {};
             const runtime = getDockerRuntimeContainerInfo(key);
             const runtimeState = runtime?.info?.State || {};
+            const rebuild = typeof runtime?.isRebuildReady === 'boolean' ? runtime.isRebuildReady : source.isRebuildReady === true;
             const runtimeManager = String(runtimeState.manager || '').trim();
             const hasRuntimeState = typeof runtimeState.Running === 'boolean';
             const hasRuntimePause = typeof runtimeState.Paused === 'boolean';
             const hostUpdated = runtimeManager === 'dockerman' && !isHostUpdateSyncSuspended()
                 ? readDockerHostRowUpdatedState(key)
                 : null;
-            const updateAvailable = typeof runtimeState.Updated === 'boolean'
+            const updateAvailable = !rebuild && (typeof runtimeState.Updated === 'boolean'
                 ? (runtimeState.Updated === false && runtimeManager === 'dockerman')
                 : (runtimeManager === 'dockerman'
                     ? (hostUpdated === false)
-                    : (source.update === true));
+                    : (source.update === true)));
             const webui = resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui);
             const webuiCapability = typeof runtimeState.WebUiCapability === 'boolean'
                 ? runtimeState.WebUiCapability
@@ -583,6 +607,8 @@
                 state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
                 autostart: typeof runtimeState.Autostart === 'boolean' ? runtimeState.Autostart === true : (source.autostart === true),
                 update: updateAvailable,
+                isRebuildReady: rebuild,
+                updated: rebuild ? null : (typeof runtimeState.Updated === 'boolean' ? runtimeState.Updated : hostUpdated),
                 managed: runtimeManager ? runtimeManager === 'dockerman' : (source.managed === true),
                 manager: runtimeManager || String(source.manager || '').trim()
             };

@@ -29,9 +29,9 @@ test('legacy labels and legacy config directories remain supported', () => {
 test('self-heal JSON helpers exist and are used in folder/prefs readers', () => {
     assert.match(libPhp, /function getLastGoodJsonPath\(string \$path\): string/);
     assert.match(libPhp, /function writeJsonObjectWithLastGood\(string \$path, array \$payload\): void/);
-    assert.match(libPhp, /function recoverJsonObjectFromLastGood\(string \$path\): \?array/);
+    assert.match(libPhp, /function recoverJsonObjectFromLastGood\(string \$path, \?callable \$verify = null\): \?array/);
     assert.match(libPhp, /function normalizeFolderMapPayload\(\$value\): array/);
-    assert.match(libPhp, /function readRawFolderMap\(string \$type\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path\)/);
+    assert.match(libPhp, /function readRawFolderMap\(string \$type, bool \$requireVerified = false\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path, \$verify\)/);
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
     assert.match(libPrefsPhp, /function readTypePrefs\(string \$type\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path\)/);
     assert.match(libPhp, /function writeRawFolderMap\(string \$type, array \$folders\): void[\s\S]*fvplusWriteConfigPayload\(\$type, 'folder', getFolderFilePath\(\$type\), normalizeFolderMapPayload\(\$folders\)\)/);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "docker",
-        "content-revision": "25aba717a61c959a9a1205b99fa41fbaad08760f15a80a65a0c4e2765c358b48"
+        "content-revision": "7601922d843d923bbf74903e282141234fd4f36cc081623d114f11c3c45402f7"
     },
     "docker.folder.move-reload": "Folder configuration changed. Refresh before moving the folder again.",
     "docker.actions.label": "FolderView actions",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "View logs",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI with GraphQL data",
     "docker.health.api-summary": "Docker API: updates: $1, ready to rebuild: $2, orphaned: $3, port conflicts: $4",
+    "docker.update.rebuild-ready": "Rebuild ready",
+    "docker.update.status-unavailable": "Update status unavailable",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Host list",
     "docker.views.command": "Command",

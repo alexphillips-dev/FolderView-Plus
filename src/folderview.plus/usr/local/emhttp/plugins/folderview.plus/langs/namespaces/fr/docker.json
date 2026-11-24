@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "docker",
-        "content-revision": "21673d80c1a618c20ae4954c13dafd1d069c6063f3d3b261e7ab1b8122138f7e"
+        "content-revision": "3849314e18e06f9598583fd38b574ee9b16528a0e56480d71409069facdbc1c9"
     },
     "docker.folder.move-reload": "La configuration du dossier a été modifiée. Actualisez avant de déplacer à nouveau le dossier.",
     "docker.actions.label": "Actions de la vue Dossier",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Afficher les journaux",
     "docker.provider.hybrid-label": "Ancienne interface graphique Web Unraid avec données GraphQL",
     "docker.health.api-summary": "API Docker : mises à jour : $1, prête à reconstruire : $2, orpheline : $3, conflits de ports : $4",
+    "docker.update.rebuild-ready": "Reconstruction prête",
+    "docker.update.status-unavailable": "Statut de mise à jour indisponible",
     "docker.views.folderview": "Vue Dossier",
     "docker.views.host": "Liste des hôtes",
     "docker.views.command": "Commande",

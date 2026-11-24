@@ -12,8 +12,42 @@
     });
     const ALL_CLASSES = Object.values(CATEGORY_CLASSES);
     const state = { docker: { enabled: false, prefs: {} }, vm: { enabled: false, prefs: {} } };
+    const tailscaleTitle = 'data-tstitle';
+    const tailscaleSelector = `.TS_tooltip[${tailscaleTitle}]`;
+    const maskedTitle = '•••';
+    const tailscaleOriginals = new Map();
     let observer = null;
     let scanQueued = false;
+
+    const setTailscaleTitle = (badge, title) => {
+        badge.setAttribute(tailscaleTitle, title);
+        if (!badge.isConnected || !badge.classList.contains('tooltipstered')) return;
+        const jq = window.jQuery || window.$;
+        try {
+            jq?.(badge)?.tooltipster?.('content', title);
+        } catch (_error) {
+            // Unraid can destroy the native instance while replacing its rows.
+        }
+    };
+
+    const syncTailscaleTitles = (enabled) => {
+        for (const [badge, original] of tailscaleOriginals) {
+            if (enabled && badge.isConnected && badge.matches(tailscaleSelector)) continue;
+            if (badge.getAttribute(tailscaleTitle) === maskedTitle) setTailscaleTitle(badge, original);
+            tailscaleOriginals.delete(badge);
+        }
+        if (!enabled) return;
+        for (const badge of document.querySelectorAll(tailscaleSelector)) {
+            const current = badge.getAttribute(tailscaleTitle);
+            if (current === maskedTitle) continue;
+            tailscaleOriginals.set(badge, current);
+            setTailscaleTitle(badge, maskedTitle);
+        }
+    };
+    const maskTailscaleTitles = () => syncTailscaleTitles(
+        state.docker.enabled && state.docker.prefs?.privacyMaskPublicIps !== false
+    );
+    const hasPrivacyEnabled = () => Object.values(state).some(snapshot => snapshot.enabled);
 
     const isPublicIpv4 = (value) => {
         const parts = String(value || '').split('.').map(Number);
@@ -56,7 +90,7 @@
     const scan = () => {
         scanQueued = false;
         document.querySelectorAll(`.${ALL_CLASSES.join(',.')}`).forEach((element) => element.classList.remove(...ALL_CLASSES));
-        if (!Object.values(state).some((snapshot) => snapshot.enabled)) return;
+        if (!hasPrivacyEnabled()) return;
         const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
             acceptNode(node) {
                 const parent = node.parentElement;
@@ -107,7 +141,8 @@
         if (!Object.prototype.hasOwnProperty.call(state, type)) return;
         state[type] = { enabled: enabled === true, prefs: prefs && typeof prefs === 'object' ? prefs : {} };
         syncBodyClasses();
-        if (Object.values(state).some((snapshot) => snapshot.enabled)) {
+        maskTailscaleTitles();
+        if (hasPrivacyEnabled()) {
             start();
         } else if (observer) {
             observer.disconnect();
@@ -117,10 +152,24 @@
 
     const start = () => {
         if (observer || !document.body || typeof MutationObserver !== 'function') return;
-        observer = new MutationObserver(queueScan);
-        observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['href'] });
+        observer = new MutationObserver(() => {
+            maskTailscaleTitles();
+            queueScan();
+        });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['href', tailscaleTitle] });
         queueScan();
     };
+
+    window.addEventListener?.('pagehide', () => {
+        observer?.disconnect();
+        observer = null;
+        syncTailscaleTitles(false);
+    });
+    window.addEventListener?.('pageshow', (event) => {
+        if (!event.persisted || !hasPrivacyEnabled()) return;
+        maskTailscaleTitles();
+        start();
+    });
 
     window.FolderViewPlusRuntimePrivacy = Object.freeze({ apply, scan: queueScan, categoriesForText, isPublicIpv4, isPublicIpv6 });
 })(window);

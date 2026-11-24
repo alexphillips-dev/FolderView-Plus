@@ -94,15 +94,12 @@ function dockerSyncOrderLockPath(): string {
     }
 
     function buildDockerStartOrderContext(?array $verifiedInventory = null): array {
-        global $configDir;
-
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
         $currentPrefs = file_exists($prefsFile) ? @parse_ini_file($prefsFile) : false;
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
 
-        $foldersFile = "$configDir/docker.json";
-        $folders = file_exists($foldersFile) ? normalizeFolderMapPayload(json_decode(file_get_contents($foldersFile), true)) : [];
+        $folders = readRawFolderMap('docker', true);
 
         $allContainerNames = [];
         if ($verifiedInventory === null) {
@@ -333,18 +330,21 @@ function dockerSyncOrderLockPath(): string {
         return buildDockerStartOrderPlan($context);
     }
 
-    function syncContainerOrderUnlocked(): void {
+    function syncContainerOrderUnlocked(): ?string {
         // Rewrites the autostart file to match the configured FolderView Plus start order.
         // Docker userprefs.cfg is owned by Unraid and is only read here.
         try {
             $context = buildDockerStartOrderContext(fvplusReadRepairInventory('docker'));
+        } catch (\UnexpectedValueException $error) {
+            fv3_debug_log('syncContainerOrder: Docker folders could not be verified');
+            return 'docker_order_folders_unavailable';
         } catch (Throwable $error) {
             // Sync is also a post-save hook: retain native records without rejecting committed configuration.
             fv3_debug_log('syncContainerOrder: skipped because inventory or context could not be verified');
-            return;
+            return null;
         }
         $plan = buildDockerStartOrderPlan($context);
-        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return; }
+        if (($plan['managed'] ?? true) !== true) { fv3_debug_log('syncContainerOrder: skipped because Docker start order is unmanaged'); return null; }
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $autoStartFile = (string)($context['autoStartFile'] ?? "/var/lib/docker/unraid-autostart");
         if (file_exists($autoStartFile)) {
@@ -366,7 +366,7 @@ function dockerSyncOrderLockPath(): string {
             $currentAutoStartContent = @file_get_contents($autoStartFile);
             if ($currentAutoStartContent !== ($context['autoStartContent'] ?? null)) {
                 fv3_debug_log('syncContainerOrder: native autostart changed during planning; skipped');
-                return;
+                return null;
             }
             if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
                 writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
@@ -375,26 +375,27 @@ function dockerSyncOrderLockPath(): string {
                 fv3_debug_log("syncContainerOrder: autostart file already up to date");
             }
         }
+        return null;
     }
 
-    function syncContainerOrder(string $type): void {
+    function syncContainerOrder(string $type): ?string {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
-        if ($type !== 'docker') { return; }
-        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return; }
+        if ($type !== 'docker') { return null; }
+        if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return null; }
 
         $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
         if (!is_resource($lockHandle)) {
-            fv3_debug_log('syncContainerOrder: unable to open lock file, falling back to unlocked run');
-            syncContainerOrderUnlocked();
-            return;
+            fv3_debug_log('syncContainerOrder: could not open the sync lock');
+            return 'docker_order_lock_unavailable';
         }
 
-        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+        if (!@flock($lockHandle, LOCK_EX | LOCK_NB, $wouldBlock)) {
+            @fclose($lockHandle);
+            if (!$wouldBlock) return 'docker_order_lock_unavailable';
             markDockerSyncOrderPending();
             fv3_debug_log('syncContainerOrder: coalesced while another sync is already running');
-            @fclose($lockHandle);
-            return;
+            return null;
         }
 
         try {
@@ -403,13 +404,22 @@ function dockerSyncOrderLockPath(): string {
                 $attempt++;
                 clearDockerSyncOrderPending();
                 $startedAt = microtime(true);
-                syncContainerOrderUnlocked();
+                $failure = syncContainerOrderUnlocked();
                 $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
                 $shouldRerun = hasDockerSyncOrderPending();
                 fv3_debug_log("syncContainerOrder: pass $attempt completed in {$durationMs}ms" . ($shouldRerun ? ' (pending rerun requested)' : ''));
             } while ($shouldRerun && $attempt < 3);
+            return $failure;
         } finally {
             @flock($lockHandle, LOCK_UN);
             @fclose($lockHandle);
         }
+    }
+
+    function fvplusRespondToDockerOrderSync(string $type): bool {
+        $failure = syncContainerOrder($type);
+        if ($failure === null) return true;
+        $status = $failure === 'docker_order_lock_unavailable' ? 503 : 409;
+        fvplus_json_error('Docker start order sync failed', $status, ['errorCode' => $failure]);
+        return false;
     }

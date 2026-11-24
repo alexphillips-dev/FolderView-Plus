@@ -232,3 +232,59 @@ test('new VM lifecycle generations cancel stale reconciliation tails', async () 
     assert.equal((await startPromise).settled, true);
     assert.equal(api.getSnapshot().staleGenerationCount, 1);
 });
+
+test('VM lifecycle ignores a response and native callback that arrive after page teardown', async () => {
+    const scheduled = [], writes = [];
+    const { promise, resolve } = Promise.withResolvers();
+    const request = { action: 'domain-start', uuid: 'vm-1' };
+    let pageCurrent = true;
+    let reads = 0;
+    const api = lifecycleModule.createApi({
+        window: { setTimeout: handler => scheduled.push({ handler }) },
+        delaysMs: [0, 5],
+        isPageCurrent: () => pageCurrent,
+        refreshRuntimeStateInPlace: () => { reads++; return promise; },
+        getRuntimeEntry: () => ({ state: 'running' }),
+        syncRuntimeState: () => writes.push('sync'),
+        queueNativeRefresh: () => writes.push('reload')
+    });
+    const action = api.run(request);
+    scheduled.shift().handler();
+    assert.equal(reads, 1);
+    assert.equal(api.enqueueNativeRequest(request), true);
+    const eventGroups = api.getSnapshot().eventGroups;
+
+    pageCurrent = false;
+    resolve(true);
+    assert.equal((await action).canceled, true);
+    assert.equal(await api.handleNativeCallback(), false);
+    assert.equal(api.enqueueNativeRequest(request), false);
+    assert.equal((await api.run(request)).canceled, true);
+    assert.deepEqual(api.getSnapshot().eventGroups, eventGroups);
+    assert.deepEqual(writes, []);
+    assert.equal(scheduled.length, 0);
+});
+
+test('VM lifecycle skips a scheduled retry or native fallback once its page is gone', async () => {
+    for (const delaysMs of [[0, 5], [0]]) {
+        const scheduled = [], fallback = [];
+        let pageCurrent = true;
+        let reads = 0;
+        const api = lifecycleModule.createApi({
+            window: { setTimeout: handler => scheduled.push({ handler }) },
+            delaysMs,
+            isPageCurrent: () => pageCurrent,
+            refreshRuntimeStateInPlace: async () => { reads++; return false; },
+            queueNativeRefresh: () => fallback.push(true)
+        });
+        const action = api.run({ action: 'domain-start', uuid: 'vm-1' });
+        scheduled.shift().handler();
+        await flushPromises();
+        assert.equal(scheduled.length, 1);
+        pageCurrent = false;
+        await drainTimers(scheduled);
+        assert.equal((await action).settled, false);
+        assert.equal(reads, 1);
+        assert.deepEqual(fallback, []);
+    }
+});

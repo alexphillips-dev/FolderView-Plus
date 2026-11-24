@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "docker",
-        "content-revision": "d70ef97bdc354eb7c0f72ea1d84032c217b212f1080a2f240694cf86f0e6cad3"
+        "content-revision": "17bb0f0412ec00044158f90998f06a605f0fc00a649b275dd68aca40a91aaff9"
     },
     "docker.folder.move-reload": "フォルダー構成が変更されました。フォルダーを再度移動する前に更新してください。",
     "docker.actions.label": "フォルダビューの操作",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "ログを表示する",
     "docker.provider.hybrid-label": "GraphQL データを使用したレガシー Unraid WebGUI",
     "docker.health.api-summary": "Docker API: 更新: $1、再構築の準備完了: $2、孤立: $3、ポートの競合: $4",
+    "docker.update.rebuild-ready": "再構築の準備完了",
+    "docker.update.status-unavailable": "更新ステータスが利用不可",
     "docker.views.folderview": "フォルダビュー",
     "docker.views.host": "ホストリスト",
     "docker.views.command": "コマンド",

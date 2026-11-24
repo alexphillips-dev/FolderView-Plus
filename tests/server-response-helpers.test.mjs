@@ -143,7 +143,7 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function normalizeDockerUpdatedStateValue\(\$value\): \?bool/);
     assert.match(libPhp, /function readDockerWebuiInfoCache\(\): array/);
     assert.match(libPhp, /function resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
-    assert.match(libPhp, /function resolveDockerUpdatedStateValue\(string \$containerName, string \$containerImage, array \$dockerWebuiInfo = \[\], \$dockerUpdate = null\): \?bool/);
+    assert.match(libPhp, /function resolveDockerUpdatedStateValue\(string \$containerName, string \$containerImage, array \$dockerWebuiInfo = \[\], \$dockerUpdate = null, bool \$preferLive = false\): \?bool/);
     assert.match(libPhp, /in_array\(\$normalized, \['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'\], true\)/);
     assert.match(libPhp, /in_array\(\$normalized, \['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'\], true\)/);
     assert.match(libPhp, /'composeProject'\s*=>\s*getComposeProjectValueFromLabels\(\$labels\)/);
@@ -155,7 +155,7 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /\$ct\['info'\]\['State'\]\['Updated'\]\s*=\s*\$ct\['info'\]\['State'\]\['manager'\]\s*===\s*'dockerman'[\s\S]*?resolveDockerUpdatedStateValue\(\$containerName, \$containerImage, \$dockerWebuiInfo, \$DockerUpdate\)[\s\S]*?: null;/
+        /\$ct\['info'\]\['State'\]\['Updated'\]\s*=\s*\$ct\['info'\]\['State'\]\['manager'\]\s*===\s*'dockerman' && \$ct\['isRebuildReady'\] !== true[\s\S]*?fvplusDockerRuntimeUpdated\(\$ct, \$containerName, \$containerImage, \$dockerWebuiInfo, \$DockerUpdate\)[\s\S]*?: null;/
     );
     assert.match(
         libPhp,
@@ -163,15 +163,15 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /\$cachedUpdated = resolveDockerCachedUpdatedStateValue\(\$containerName, \$dockerWebuiInfo\);[\s\S]*?if \(is_bool\(\$cachedUpdated\)\) \{[\s\S]*?return \$cachedUpdated;/
+        /\$cachedUpdated = resolveDockerCachedUpdatedStateValue\(\$containerName, \$dockerWebuiInfo\);[\s\S]*?if \(is_bool\(\$cachedUpdated\) && !\$preferLive\) \{[\s\S]*?return \$cachedUpdated;/
     );
     assert.match(
         libPhp,
-        /return normalizeDockerUpdatedStateValue\(\$dockerUpdate->getUpdateStatus\(\$containerImage\)\);/
+        /return normalizeDockerUpdatedStateValue\(\$dockerUpdate->getUpdateStatus\(\$containerImage\)\) \?\? \$cachedUpdated;/
     );
     assert.match(
         libPhp,
-        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false,\s*bool \$requireComplete = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*?resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)[\s\S]*?: null,/
+        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false,\s*bool \$requireComplete = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman' && \$rebuild !== true[\s\S]*?fvplusDockerRuntimeUpdated\(\$container, \$name, \$containerImage, \$dockerWebuiInfo, \$dockerUpdate, \$preferLiveUpdateStatus\)[\s\S]*?: null,/
     );
     assert.match(
         readInfoPhp,
@@ -185,10 +185,10 @@ test('lib.php coalesces docker order sync and uses lightweight state snapshots',
     assert.match(libPhp, /function markDockerSyncOrderPending\(\): void/);
     assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
     assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
-    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): void/);
+    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): \?string/);
     assert.match(libPhp, /\$infoByName = \$verifiedInventory \?\? readInfoState\('docker'\);/);
-    assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB\)/);
-    assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return;/);
+    assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB, \$wouldBlock\)/);
+    assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return null;/);
     assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
     assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
     assert.match(libPhp, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);

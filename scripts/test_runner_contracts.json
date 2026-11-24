@@ -113,7 +113,8 @@
     { "file": "tests/browser/cases/dashboard-expansion-memory.mjs", "limit": 70, "owner": "buffered Dashboard expansion, clear and pagehide memory" },
     { "file": "tests/browser/cases/settings-startup-repair.mjs", "limit": 65, "owner": "fixture startup localization and loading watchdog cases" },
     { "file": "tests/browser/cases/download-notice.mjs", "limit": 115, "owner": "fixture download notice states and localization" },
-    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs", "./folder-badges.mjs"] },
+    { "file": "tests/browser/cases/forum-reports.mjs", "limit": 60, "owner": "forum report regression fixtures", "requiredImports": ["./backup-mobile-report.mjs", "./dashboard-row-spacing.mjs", "./dashboard-row-expansion.mjs", "./folder-hover-effects.mjs", "./settings-hide-empty.mjs", "./docker-hide-empty.mjs", "./docker-hierarchy-move.mjs", "./docker-folder-menu-state.mjs", "./folder-badges.mjs"] },
+    { "file": "tests/browser/cases/backup-mobile-report.mjs", "limit": 170, "owner": "guarded backup downloads and localized diagnostics toolbar fit" },
     { "file": "tests/browser/cases/folder-hover-effects.mjs", "limit": 100, "owner": "folder accent stacking and hover animation rendering" },
     { "file": "tests/browser/cases/dashboard-row-spacing.mjs", "limit": 100, "owner": "mixed Dashboard folder and native tile row spacing" },
     { "file": "tests/browser/cases/dashboard-row-expansion.mjs", "limit": 100, "owner": "Dashboard expanded folder header positions" },
@@ -141,7 +142,8 @@
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
-    { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases" },
+    { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases", "requiredImports": ["./runtime-privacy-diagnostics.mjs"] },
+    { "file": "tests/browser/cases/runtime-privacy-diagnostics.mjs", "limit": 160, "owner": "runtime privacy categories, native Tailscale masking and sanitized legacy downloads" },
     { "file": "tests/browser/cases/runtime-quick-finder.mjs", "limit": 200, "owner": "Docker and VM Quick finder interaction and lifecycle cases" },
     { "file": "tests/browser/cases/runtime-quick-finder-controls.mjs", "limit": 130, "owner": "Quick finder field styling and production Docker shortcuts" },
     { "file": "tests/browser/cases/runtime-quick-finder-results.mjs", "limit": 60, "owner": "Quick finder reference layout, grouped results and native action menus" },
@@ -191,6 +193,7 @@
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
+        "tests/browser/cases/runtime-privacy-diagnostics.mjs",
         "tests/browser/cases/runtime-interactions.mjs",
         "tests/browser/cases/runtime-quick-finder.mjs",
         "tests/browser/cases/runtime-quick-finder-controls.mjs",
@@ -229,6 +232,7 @@
         "tests/browser/cases/import.mjs",
         "tests/browser/cases/folderview3-migration.mjs",
         "tests/browser/cases/folder-render-recovery.mjs",
+        "tests/browser/cases/backup-mobile-report.mjs",
         "tests/browser/cases/forum-reports.mjs",
         "tests/browser/cases/dashboard-row-spacing.mjs",
         "tests/browser/cases/dashboard-row-expansion.mjs",
@@ -315,10 +319,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 165,
-      "assertionCount": 2196,
-      "pageEvaluateCount": 748,
-      "orderedTitleSha256": "63a25bfe30554c2feedabb683d80b6079573457a2be957dd0f3ae736ad7f7306"
+      "testCount": 170,
+      "assertionCount": 2248,
+      "pageEvaluateCount": 774,
+      "orderedTitleSha256": "6c95731a38f55388b1ed5f822b43f3ef60aacb0bceeaa4613ab03d2825a4bd9f"
     }
   }
 }

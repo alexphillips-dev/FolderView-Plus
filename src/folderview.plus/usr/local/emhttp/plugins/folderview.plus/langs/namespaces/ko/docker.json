@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "docker",
-        "content-revision": "aaeaefa88b3a4ab335b0a3bb0915e433da9ce182540c0b4a399e8711f07ba2b0"
+        "content-revision": "0109aa77fa65affe3bdfb312f3ff778aa44cb5eb0949823e5bc0ce04032335cc"
     },
     "docker.folder.move-reload": "폴더 구성이 변경되었습니다. 폴더를 다시 이동하기 전에 새로 고침하세요.",
     "docker.actions.label": "폴더 보기 작업",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "로그 보기",
     "docker.provider.hybrid-label": "GraphQL 데이터가 포함된 레거시 Unraid WebGUI",
     "docker.health.api-summary": "Docker API: 업데이트: $1, 재구축 준비 완료: $2, 고아: $3, 포트 충돌: $4",
+    "docker.update.rebuild-ready": "재구축 준비 완료",
+    "docker.update.status-unavailable": "업데이트 상태를 사용할 수 없습니다.",
     "docker.views.folderview": "폴더 보기",
     "docker.views.host": "호스트 목록",
     "docker.views.command": "명령",

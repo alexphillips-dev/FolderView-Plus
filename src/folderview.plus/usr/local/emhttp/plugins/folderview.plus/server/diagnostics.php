@@ -1,7 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-fvplus_json_try(function (): array {
+fvplus_json_try(function (): ?array {
     $action = (string)($_REQUEST['action'] ?? 'report');
     $privacyMode = normalizeDiagnosticsPrivacyMode((string)($_REQUEST['privacy'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY));
     $mutatingActions = ['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_config_metadata', 'repair_paths', 'repair_missing_custom_icons', 'repair_orphaned_members', 'create_backup'];
@@ -58,7 +58,7 @@ fvplus_json_try(function (): array {
     }
 
     if ($action === 'sync_docker_order') {
-        syncContainerOrder('docker');
+        if (!fvplusRespondToDockerOrderSync('docker')) return null;
         return [
             'message' => 'Docker order sync completed.',
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)

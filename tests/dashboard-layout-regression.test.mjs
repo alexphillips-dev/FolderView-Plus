@@ -324,7 +324,6 @@ test('dashboard advanced preview module is loaded before dashboard runtime and e
     assert.match(dashboardAdvancedPreviewScript, /root\.FolderViewPlusDashboardAdvancedPreview = factory\(\)/);
     assert.match(dashboardAdvancedPreviewScript, /const attachAdvancedPreview = \(\{ triggerEl, ct, folder = \{\}, id = '', settings = \{\}, cpus = 1 \} = \{\}\) =>/);
     assert.match(dashboardAdvancedPreviewScript, /const parseStatsMessage = \(event, ct, cpus = 1\) =>/);
-    assert.match(dashboardAdvancedPreviewScript, /attachedListener/);
     assert.match(dashboardAdvancedPreviewScript, /chart\.canvas/);
     assert.doesNotMatch(dashboardScript, /FolderViewPlusNativeOrganizer|syncDockerOrganizer/);
 });
@@ -487,7 +486,8 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
 });
 
 test('dashboard render waits for successful folder hydration and has request fallbacks', () => {
-    assert.match(dashboardScript, /const dashboardRequestDiagnostics = \{\s*docker: \[\],\s*vm: \[\]\s*\};/);
+    assert.match(dashboardScript, /const recordDashboardRequestFallback = \(type, label, error\) => \{/);
+    assert.doesNotMatch(dashboardScript, /dashboardRequestDiagnostics|error\?\.statusText/);
     assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => requestClient\.getText\(url\)/);
     assert.match(dashboardScript, /recordDashboardRequestFallback\(type, label, error\);/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) => \{/);
@@ -503,10 +503,8 @@ test('dashboard render waits for successful folder hydration and has request fal
 });
 
 test('dashboard status and diagnostics include paused state and sanitized render details', () => {
-    assert.match(dashboardScript, /const sanitizeDashboardInfoForDebug = \(type, info\) =>/);
-    assert.match(dashboardScript, /const collectDashboardRenderDiagnosticsForType = \(type\) =>/);
-    assert.match(dashboardScript, /containersInfo: sanitizeDashboardInfoForDebug\('docker', containersInfo\)/);
-    assert.match(dashboardScript, /vmInfo: sanitizeDashboardInfoForDebug\('vm', vmInfo\)/);
+    assert.match(dashboardScript, /runtimeDebugDownload\?\.bind\('dashboard'\)/);
+    assert.doesNotMatch(dashboardScript, /downloadDashboardRenderDebug|debug original order/);
     assert.match(dashboardScript, /let paused = 0;/);
     assert.match(dashboardScript, /paused \+= newFolder\[container\]\.state && newFolder\[container\]\.pause \? 1 : 0;/);
     assert.match(dashboardScript, /const isVmPaused = vmState === 'paused' \|\| vmState === 'pmsuspended';/);

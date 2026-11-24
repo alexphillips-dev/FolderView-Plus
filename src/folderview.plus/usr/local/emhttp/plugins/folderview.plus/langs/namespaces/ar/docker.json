@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "docker",
-        "content-revision": "8979b8f19b0a8e8d90a3423b3a9d0dfbf2b107308adb6b88e7ff2276d7105d3e"
+        "content-revision": "f2330ce5cda06db625ef519fa9be2de22611f8beb44478256917119378e8f3d7"
     },
     "docker.folder.move-reload": "تم تغيير تكوين المجلد. قم بالتحديث قبل نقل المجلد مرة أخرى.",
     "docker.actions.label": "إجراءات عرض المجلد",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "عرض السجلات",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI مع بيانات GraphQL",
     "docker.health.api-summary": "Docker API: التحديثات: $1، جاهزة لإعادة البناء: $2، معزولة: $3، تعارضات المنافذ: $4",
+    "docker.update.rebuild-ready": "إعادة البناء جاهزة",
+    "docker.update.status-unavailable": "حالة التحديث غير متاحة",
     "docker.views.folderview": "عرض المجلد",
     "docker.views.host": "قائمة المضيفين",
     "docker.views.command": "القيادة",

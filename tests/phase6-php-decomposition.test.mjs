@@ -82,7 +82,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['fvplusThemeGithubManifest', 'fvplusThemeGithubFingerprint', 'fvplusThemeGithubValidFile',
             'fvplusThemeWorkspaceWriteGithubChange']) additions.add(name);
         for (const name of ['dockerPageHasFolderSort', 'composeDockerSavedOrder', 'orderFolderBranchIds',
-            'buildDockerPageOrderModel']) additions.add(name);
+            'buildDockerPageOrderModel', 'fvplusRespondToDockerOrderSync']) additions.add(name);
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
         for (const name of ['fvplusTypeTransactionPaths', 'diagnosticsSupportBundleEventLabel',

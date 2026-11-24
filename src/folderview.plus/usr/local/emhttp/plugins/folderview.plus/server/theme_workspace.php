@@ -1,4 +1,6 @@
 <?php
+define('FVPLUS_CONFIG_ONLY_BOOTSTRAP', true);
+define('FVPLUS_THEME_WORKSPACE_REQUEST', true);
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 fvplus_json_try(function (): array {
@@ -6,6 +8,10 @@ fvplus_json_try(function (): array {
     $mutatingActions = ['import_github', 'activate', 'deactivate', 'delete', 'save_customize', 'check_updates', 'update_theme', 'update_themes', 'create_profile', 'activate_profile', 'delete_profile', 'save_profile'];
     if (in_array($action, $mutatingActions, true)) {
         requireMutationRequestGuard();
+    }
+    if (in_array($action, ['import_github', 'check_updates', 'update_theme', 'update_themes'], true)) {
+        // Remote work commits through the workspace comparison under a fresh lock.
+        releaseConfigMutationLock();
     }
 
     if ($action === 'read') {

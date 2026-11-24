@@ -30,6 +30,7 @@ export const registerFolderBadgeCases = ({ test, baseUrl }) => {
                 assert.deepEqual(host.prefs().badges, badges);
                 await page.evaluate(() => window.fixtureDockerBadges.refresh());
                 assert.ok((await read()).every(row => (row.display !== 'none') === (row.kind === 'paused' || badges[row.kind])), 'refresh reads newly saved preferences before a page reload');
+                await page.waitForFunction(() => window.fixtureDockerBadges.refreshSettled());
                 await page.reload({ waitUntil: 'load' }); await wait();
                 const initial = await read();
                 for (const state of ['stopped', 'started', 'paused', 'started', 'stopped']) {
@@ -48,6 +49,7 @@ export const registerFolderBadgeCases = ({ test, baseUrl }) => {
                 assert.equal(await page.locator('tr.folder-id-branch i.folder-load-status').evaluate(node => getComputedStyle(node).display !== 'none'), badges.stopped);
             }
             assert.equal(JSON.stringify(host.folders), foldersBefore);
+            await page.waitForFunction(() => window.fixtureDockerBadges.refreshSettled());
         } finally {
             await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close();
         }

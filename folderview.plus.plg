@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.23.03">
-<!ENTITY md5 "d56358d7dcf8eff77e98dd15167ee4a8">
-<!ENTITY sha256 "d226794a36cef01d604d3c63cbbf72de7f530ecf8dc5ed1973d5c9b84bbdc35a">
+<!ENTITY version "2026.11.24.01">
+<!ENTITY md5 "9d403f3087b0c7ba2266c41a4b7b2c65">
+<!ENTITY sha256 "258f4ed9564069ba45b8a16bb7ccf73fcd1a4e3adfb43eddf9846983c2c64bc9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.01
+- Privacy: Limit legacy keyboard debug downloads to aggregate runtime information. Mask the native Tailscale tooltip while Docker privacy and public IP masking are enabled.
+- Reliability: Require the Docker autostart sync lock before changing native order. Recover folder membership from the last-good configuration and leave native records intact when the order cannot be verified.
+- Fix: Show paused Docker containers consistently across Docker and Dashboard. Keep rebuild-required, update-ready, and unknown states distinct.
+- Fix: Suppress duplicate Docker custom folder actions. Apply VM action results to the current folder and cancel pending refresh work when the page closes.
+- Fix: Keep the Dashboard’s host stats feed active until GraphQL delivers a valid sample for the current container. Restore the host feed when GraphQL stops delivering samples.
+- Reliability: Preserve unsaved Appearance edits during managed theme checks and updates. Keep profile previews read-only and serialize local workspace saves.
+- Diagnostics: Report malformed JSON reads and backup downloads as request failures. Preserve the original bytes of valid backup attachments.
+
 
 ###2026.11.23.03
 - Reliability: Keep the core and icon archives required by the registered Unraid manifest if a new install or update fails.

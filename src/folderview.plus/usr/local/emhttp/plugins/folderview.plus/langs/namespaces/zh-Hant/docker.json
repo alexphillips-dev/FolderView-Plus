@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "docker",
-        "content-revision": "211bf3d74f63c4d8849c62a028ca9a9ed12587c9d1c862321c897abc6769e201"
+        "content-revision": "aac53a1058433fc076ac2eed9a4dbe967b0617253be75b6d1771bbf89f8559af"
     },
     "docker.folder.move-reload": "資料夾設定已變更。請重新整理後再移動資料夾。",
     "docker.actions.label": "FolderView 操作",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "檢視日誌",
     "docker.provider.hybrid-label": "帶有 GraphQL 資料的舊版 Unraid WebGUI",
     "docker.health.api-summary": "Docker API：更新：$1，準備重建：$2，孤立：$3，連線埠衝突：$4",
+    "docker.update.rebuild-ready": "重建準備就緒",
+    "docker.update.status-unavailable": "更新狀態不可用",
     "docker.views.folderview": "資料夾檢視",
     "docker.views.host": "主機清單",
     "docker.views.command": "命令",

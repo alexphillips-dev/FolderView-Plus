@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-
 const installDashboardLoadingFixture = async (page, baseUrl) => {
     const types = ['docker', 'vm'];
     const idFor = (type) => type === 'vm' ? 'vm_view' : 'docker_view';
@@ -32,14 +31,10 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
             await route.fulfill({ json: reply });
             return;
         }
-        if (url.pathname.endsWith('/read.php')) {
-            await route.fulfill({ contentType: 'text/html', body: '<p>Fixture invalid folder reply</p>' });
-            return;
-        }
-        if (url.pathname.endsWith('/cpu.php')) {
-            await route.fulfill({ contentType: 'text/plain', body: '2' });
-            return;
-        }
+        if (url.pathname.endsWith('/read.php'))
+            return route.fulfill({ contentType: 'text/html', body: '<p>Fixture invalid folder reply</p>' });
+        if (url.pathname.endsWith('/cpu.php'))
+            return route.fulfill({ contentType: 'text/plain', body: '2' });
         await route.fulfill({ json: {} });
     });
     const fixtureUrl = `${baseUrl}/dashboard-widget-loading`;
@@ -73,9 +68,11 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
     const settle = (type, index, revision, failed = false) => {
         const folder = makeFolder(type, revision);
         const name = nameFor(type);
-        const runtime = type === 'vm'
-            ? { [name]: { name, uuid: 'fixture-uuid', state: 'running', autostart: true } }
-            : { [name]: { shortId: 'abc123def456', info: { Name: name, State: { Running: true, Paused: false, Autostart: true, manager: 'dockerman' } } } };
+        const vm = { name, uuid: 'fixture-uuid', state: 'running', autostart: true };
+        const docker = { id: 'abc123def456', manager: 'dockerman', autostart: true, Updated: false, ...(revision === 1
+            ? { state: 'stopped', running: false, paused: true, isRebuildReady: true }
+            : { state: 'running', running: true, paused: false, isRebuildReady: false }) };
+        const runtime = { [name]: type === 'vm' ? vm : docker };
         assert.equal(typeof pending[type][index], 'function');
         pending[type][index](failed ? { ok: false } : {
             ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type,
@@ -90,7 +87,6 @@ const installDashboardLoadingFixture = async (page, baseUrl) => {
     ), { type, state });
     return { load, settle, widget, waitForState };
 };
-
 const checkIndependentTile = async (page, baseUrl, readyType) => {
     const fixture = await installDashboardLoadingFixture(page, baseUrl);
     const sibling = readyType === 'docker' ? 'vm' : 'docker';
@@ -101,6 +97,10 @@ const checkIndependentTile = async (page, baseUrl, readyType) => {
     await fixture.waitForState(readyType, 'ready');
     const ready = fixture.widget(readyType);
     assert.equal(await ready.getByText(`${readyType} folder 1`, { exact: true }).isVisible(), true);
+    if (readyType === 'docker') {
+        assert.equal(await ready.locator('[data-fv-runtime-name="fixture-docker"]').getAttribute('data-fv-runtime-state'), 'paused');
+        assert.equal(await ready.locator('.folder-appname-docker.blue-text').count(), 0);
+    }
     await ready.and(page.locator('.fv-dashboard-layout-fullwidth')).waitFor();
     const toggle = ready.locator('[data-fv-dashboard-folder-toggle]').first();
     await toggle.focus();
@@ -113,7 +113,6 @@ const checkIndependentTile = async (page, baseUrl, readyType) => {
     assert.equal(await toggle.evaluate((node) => document.activeElement === node), true);
     assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
 };
-
 export const registerDashboardTileLoadingFixtureCases = ({ test, baseUrl }) => {
     test('Dashboard lifecycle renders docker full-width folders while the other tile is delayed', ({ page }) => checkIndependentTile(page, baseUrl, 'docker'));
     test('Dashboard lifecycle renders vm full-width folders while the other tile is delayed', ({ page }) => checkIndependentTile(page, baseUrl, 'vm'));
@@ -136,5 +135,6 @@ export const registerDashboardTileLoadingFixtureCases = ({ test, baseUrl }) => {
         assert.equal(await fixture.widget('vm').locator('.folder-showcase-outer').count(), 1);
         assert.equal(await fixture.widget('vm').getByText('vm folder 2', { exact: true }).isVisible(), true);
         assert.equal(await fixture.widget('vm').getByText('vm folder 1', { exact: true }).count(), 0);
+        assert.equal(await fixture.widget('docker').locator('.folder-appname-docker.blue-text').count(), 1);
     });
 };

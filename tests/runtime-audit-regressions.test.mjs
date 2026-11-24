@@ -250,12 +250,13 @@ test('Dashboard preview waits for its asset loader when Chart alone is already p
         length: 1, first() { return this; }, data() { return this; }, removeAttr() { return this; },
         tooltipster(value) { options = value; return this; }
     };
-    const tooltip = { length: 1, closest: () => ({ length: 0 }), find: () => ({ get: () => null }) };
+    const tooltip = { length: 1, get: () => null, closest: () => ({ length: 0 }), find: () => ({ get: () => null }) };
     const jq = () => trigger;
     jq.fn = { tooltipster() {} };
     const api = preview.createApi({
         $: jq, document: {},
         window: {
+            ...createTimers(),
             Chart() {},
             FolderViewPlusAssetLoader: { ensureChartStack() { requested++; return Promise.resolve(); } }
         }

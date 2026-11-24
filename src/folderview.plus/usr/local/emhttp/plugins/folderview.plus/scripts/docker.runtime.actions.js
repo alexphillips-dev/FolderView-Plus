@@ -565,7 +565,7 @@
             debugLog(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Folder data:`, { ...folder });
             const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
             const containersToUpdate = Object.entries(containersMap)
-                .filter(([, value]) => value.managed)
+                .filter(([, value]) => value.managed && value.isRebuildReady !== true)
                 .map((entry) => entry[0])
                 .join('*');
             if (!containersToUpdate) {
@@ -586,7 +586,7 @@
             debugLog(`[FV3_DEBUG] updateFolder (id: ${id}): Folder data:`, { ...folder });
             const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
             const containersToUpdate = Object.entries(containersMap)
-                .filter(([, value]) => value.managed && value.update)
+                .filter(([, value]) => value.managed && value.update && value.isRebuildReady !== true)
                 .map((entry) => entry[0])
                 .join('*');
             if (!containersToUpdate) {

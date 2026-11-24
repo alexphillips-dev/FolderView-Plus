@@ -51,7 +51,7 @@ test('docker runtime preserves hydrated update flags when normalizing partial ru
     assert.match(dockerRuntimeInfoJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /typeof source\.Updated === 'boolean' \? source\.Updated : null/);
     assert.match(dockerRuntimeInfoJs, /const preservePreviousUpdated = typeof previousState\.Updated === 'boolean'/);
-    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
+    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = rebuild === true \? null : typeof sourceUpdated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /typeof previousState\.Updated === 'boolean'/);
 });
 
@@ -66,8 +66,8 @@ test('docker runtime still falls back to the host row update cell when cached st
     assert.match(dockerRuntimeInfoJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerRuntimeInfoJs, /const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended\(\)[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
-    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*typeof hostUpdated === 'boolean'/);
+    assert.match(dockerRuntimeInfoJs, /const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended\(\)[\s\S]*readDockerHostRowUpdateEvidence\(safeName\)/);
+    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = rebuild === true \? null : typeof sourceUpdated === 'boolean'[\s\S]*typeof hostUpdated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /Updated:\s*resolvedUpdated/);
 });
 
@@ -330,12 +330,12 @@ test('docker bootstrap render preserves prior runtime update flags when partial 
 });
 
 test('folder update-column renderer is reused across initial and synced folder state', () => {
-    assert.match(dockerJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) =>/);
-    assert.match(dockerJs, /hierarchyApi\.renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);
+    assert.match(dockerJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) =>/);
+    assert.match(dockerJs, /hierarchyApi\.renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/);
     assert.match(dockerJs, /hierarchyApi && typeof hierarchyApi\.resolveFolderUpdateColumnState === 'function'/);
-    assert.match(dockerRuntimeHierarchyJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) =>/);
+    assert.match(dockerRuntimeHierarchyJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) =>/);
     assert.match(dockerRuntimeHierarchyJs, /const resolveFolderUpdateColumnState = \(managerTypes,\s*upToDate,\s*managed,\s*options = \{\}\) => \{/);
-    const helperUsages = dockerJs.match(/renderFolderUpdateColumn\(id,\s*(?:\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\)|\$updateColumn),\s*managerTypes,\s*upToDate,\s*managed\);/g) || [];
+    const helperUsages = dockerJs.match(/renderFolderUpdateColumn\(id,\s*(?:\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\)|\$updateColumn),\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/g) || [];
     assert.ok(helperUsages.length >= 2, 'expected shared folder update-column rendering in both initial and sync paths');
 });
 

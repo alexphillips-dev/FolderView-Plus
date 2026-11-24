@@ -45,19 +45,27 @@ export const registerPageTitleCases = ({ test }) => {
             await page.waitForFunction(() => document.body.getAttribute('data-fvplus-docker-page-view') && document.querySelector('#fvplus-docker-runtime-privacy-shell'));
             await page.waitForLoadState('networkidle');
         };
+        const waitSettings = async () => {
+            await page.waitForFunction(() => window.FolderViewPlusSettingsBootstrapState?.ready === true);
+            await page.evaluate(async () => {
+                await window.FolderViewPlusI18n.ready;
+                await window.FolderViewPlusSettingsRuntimeHydrationPromise;
+            });
+        };
         const positions = () => page.locator('#fixture-basic, #fixture-menu, #fvplus-docker-runtime-privacy-shell, .fv-quickfinder-trigger').evaluateAll(nodes => nodes.map(node => ({ id: node.id || node.className, left: node.getBoundingClientRect().left, width: node.getBoundingClientRect().width })));
         try {
             await page.goto(`${host.baseUrl}/docker`); await waitDocker();
             assert.equal(await page.locator('#fvplus-docker-page-title').count(), 0, 'default must leave Docker unchanged');
             const before = await positions();
             await page.goto(`${host.baseUrl}/settings`);
-            await page.waitForFunction(() => document.getElementById('docker-page-title-enabled') && !document.getElementById('fv-settings-root').classList.contains('fv-settings-bootstrap-pending'));
+            await waitSettings();
             await page.locator('#docker-view-settings').evaluate(node => { node.open = true; });
             const grid = page.locator('#docker-view-settings .fv-view-settings-grid');
             assert.equal(await grid.locator(':scope > .settings-mini-card').count(), 8);
             assert.equal(await grid.locator('.fv-settings-card-layout #docker-status-mode').count(), 0);
             assert.equal(await grid.locator('.fv-settings-card-badges #docker-status-mode').count(), 1);
-            assert.match(await grid.locator('.fv-settings-card-badges .fv-view-settings-card-title').textContent(), /Status & badges/);
+            await grid.locator('.fv-settings-card-badges .fv-view-settings-card-title')
+                .filter({ hasText: 'Status & badges' }).waitFor();
             assert.equal(await page.locator('#docker-page-title-fields').isHidden(), true);
             assert.equal(await page.locator('#docker-page-title-text').count(), 0, 'disabled title formatting is not mounted');
             await saved(() => page.locator('label').filter({ has: page.locator('#docker-page-title-enabled') }).click());
@@ -87,6 +95,7 @@ export const registerPageTitleCases = ({ test }) => {
             assert.ok(overflow, 'expanded title fields must fit within their card');
             await page.screenshot({ path: `tmp/page-title-settings-${Math.round((await page.viewportSize()).width)}.png`, fullPage: true });
             await page.reload();
+            await waitSettings();
             await page.waitForFunction(() => document.querySelector('#docker-page-title-text')?.value === 'Fixture containers');
             assert.equal(await page.locator('#docker-page-title-size').inputValue(), '48');
             assert.equal(await page.locator('#docker-page-title-underline').isChecked(), true);
@@ -108,6 +117,7 @@ export const registerPageTitleCases = ({ test }) => {
             await page.evaluate(() => { document.body.classList.remove('fvplus-privacy-docker-runtime-mask-names'); });
             await page.screenshot({ path: `tmp/page-title-docker-${Math.round((await page.viewportSize()).width)}.png`, fullPage: true });
             await page.goto(`${host.baseUrl}/settings`);
+            await waitSettings();
             await page.waitForFunction(() => document.querySelector('#docker-page-title-text')?.value === 'Fixture containers');
             await page.locator('#docker-view-settings').evaluate(node => { node.open = true; });
             await saved(() => page.locator('.fv-page-title-reset').click());

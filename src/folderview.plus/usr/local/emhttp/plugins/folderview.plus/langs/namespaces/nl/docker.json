@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "docker",
-        "content-revision": "ed3f15c254dffba96c3bf1443cc08f20eab197e8476ca845e2114b89290762c2"
+        "content-revision": "0926dd5ee43d2f4788e819ea075e5b85e44469f7ff0909a5728f651f928317e1"
     },
     "docker.folder.move-reload": "Mapconfiguratie gewijzigd. Vernieuw voordat u de map opnieuw verplaatst.",
     "docker.actions.label": "Mapweergave acties",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Bekijk logboeken",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI met GraphQL-gegevens",
     "docker.health.api-summary": "Docker API: updates: $1, klaar om opnieuw te bouwen: $2, zwevend: $3, poortconflicten: $4",
+    "docker.update.rebuild-ready": "Herbouw gereed",
+    "docker.update.status-unavailable": "Updatestatus niet beschikbaar",
     "docker.views.folderview": "Mapweergave",
     "docker.views.host": "Gastlijst",
     "docker.views.command": "Commando",

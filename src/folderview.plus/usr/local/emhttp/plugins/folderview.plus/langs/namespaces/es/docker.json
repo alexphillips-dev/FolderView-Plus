@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "docker",
-        "content-revision": "cee373c4c711673e5b56505c1eff92dab708271865d1b690f369468fb0e06769"
+        "content-revision": "fb3a21b5b34061ea271d96dd30d9a3fad50b8c8733a75e3bce770ff6f0e008d1"
     },
     "docker.folder.move-reload": "La configuración de la carpeta cambió. Actualice antes de mover la carpeta nuevamente.",
     "docker.actions.label": "Acciones de Vista de Carpeta",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Ver registros",
     "docker.provider.hybrid-label": "WebGUI heredada Unraid con datos GraphQL",
     "docker.health.api-summary": "API de Docker: actualizaciones: $1, lista para reconstruir: $2, huérfana: $3, conflictos de puerto: $4",
+    "docker.update.rebuild-ready": "Reconstrucción lista",
+    "docker.update.status-unavailable": "Estado de actualización no disponible",
     "docker.views.folderview": "Vista de Carpeta",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",

@@ -205,7 +205,7 @@ test('runtime refresh uses API-first reads and lightweight PHP fallback snapshot
     assert.match(dockerJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(vmJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dashboardJs, /renderFolders: renderDashboardWidget/);
-    assert.match(dashboardJs, /return createFolders\(type, \{ isCurrent, captureDebug \}\);/);
+    assert.match(dashboardJs, /const renderDashboardWidget = \(\{ type, isCurrent \}\) => createFolders\(type, \{ isCurrent \}\);/);
     assert.match(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}/s);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
@@ -223,7 +223,7 @@ test('runtime refresh uses API-first reads and lightweight PHP fallback snapshot
     assert.match(dockerJs, /function buildDockerFolderReq\(options = \{\}\) \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true \|\| isDockerHostUpdateSyncSuspended\(\);/);
     assert.match(dockerJs, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'prefsResponse'\]/);
     assert.match(dockerJs, /runtimeSnapshotApi\.projectRequest\([\s\S]*'runtime'/);
-    assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
+    assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(entry\.isRebuildReady === true \? 'rb' : \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\)\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(state\.Updated\);/);
     assert.match(dockerJs, /return `\$\{status\}:\$\{autostart\}:\$\{manager\}:\$\{updated\}:\$\{label\}`;/);
@@ -417,7 +417,7 @@ test('docker first paint keeps a lightweight loading shell and enriches state pa
     assert.match(libPhp, /\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);/);
     assert.match(libPhp, /resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
     assert.match(libPhp, /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false,\s*bool \$requireComplete = false\): array/);
-    assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)/);
+    assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman' && \$rebuild !== true[\s\S]*fvplusDockerRuntimeUpdated\(\$container, \$name, \$containerImage, \$dockerWebuiInfo, \$dockerUpdate, \$preferLiveUpdateStatus\)/);
     assert.match(libPhp, /'Labels'\s*=>\s*\$labels/);
     assert.match(libPhp, /'Image'\s*=>\s*trim\(\(string\)\(\$container\['Image'\] \?\? ''\)\)/);
     assert.match(libPhp, /'shortImageId'\s*=>\s*substr\(str_replace\('sha256:', '', \(string\)\(\$container\['ImageID'\] \?\? ''\)\), 0, 12\)/);

@@ -89,6 +89,7 @@ function getDockerTemplateCachePath(): string {
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
             $dockerWebuiInfo = readDockerWebuiInfoCache();
+            $rebuildById = fvplusDockerNamespaceRebuildStates($containers, $dockerClient, $requireComplete);
             $autoStartSet = [];
             foreach ($autoStartLines as $line) {
                 $trimmed = trim((string)$line);
@@ -110,11 +111,19 @@ function getDockerTemplateCachePath(): string {
                 $labels = is_array($container['Labels'] ?? null) ? $container['Labels'] : [];
                 $stateRaw = strtolower(trim((string)($container['State'] ?? '')));
                 $statusRaw = trim((string)($container['Status'] ?? ''));
-                $running = $stateRaw === 'running';
-                $paused = ($stateRaw === 'paused') || (stripos($statusRaw, 'paused') !== false);
+                $paused = $stateRaw === 'paused'
+                    || (($stateRaw === '' || $stateRaw === 'running') && preg_match('/^Up\b.*\(Paused\)/i', $statusRaw));
+                $running = $stateRaw === 'running' || $paused;
                 $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
                 $manager = getNormalizedDockerManagerFromLabels($labels);
                 $containerImage = DockerUtil::ensureImageTag(trim((string)($container['Image'] ?? '')));
+                $containerId = (string)($container['Id'] ?? '');
+                $rebuild = $rebuildById[$containerId] ?? null;
+                if ($manager === 'dockerman' && $rebuild !== true && fvplusDockerListUsesImageId($container)) {
+                    $details = preg_match('/^[a-f0-9]{64}$/D', $containerId) ? $dockerClient->getContainerDetails($containerId) : [];
+                    $configuredImage = trim((string)($details['Config']['Image'] ?? ''));
+                    $containerImage = $configuredImage === '' ? '' : DockerUtil::ensureImageTag($configuredImage);
+                }
                 $webuiMetadata = resolveDockerLightweightWebuiMetadata($labels, $manager);
 
                 $info[$name] = [
@@ -129,11 +138,10 @@ function getDockerTemplateCachePath(): string {
                     'paused' => $paused,
                     'status' => $statusRaw,
                     'autostart' => isset($autoStartSet[$name]),
-                    'Updated' => $manager === 'dockerman'
-                        ? ($preferLiveUpdateStatus
-                            ? resolveDockerUpdatedStateValue($name, $containerImage, $dockerWebuiInfo, $dockerUpdate)
-                            : resolveDockerCachedUpdatedStateValue($name, $dockerWebuiInfo))
+                    'Updated' => $manager === 'dockerman' && $rebuild !== true
+                        ? fvplusDockerRuntimeUpdated($container, $name, $containerImage, $dockerWebuiInfo, $dockerUpdate, $preferLiveUpdateStatus)
                         : null,
+                    'isRebuildReady' => $rebuild,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
                     'folderLabel' => getFolderLabelValueFromLabels($labels),
@@ -189,6 +197,7 @@ function getDockerTemplateCachePath(): string {
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
             $autoStart = array_map('var_split', $autoStartLines);
             $dockerWebuiInfo = readDockerWebuiInfoCache();
+            $rebuildById = fvplusDockerNamespaceRebuildStates($cts, $dockerClient);
 
             $allXmlTemplates = getDockerTemplateIndexCached($dockerTemplates);
 
@@ -210,11 +219,16 @@ function getDockerTemplateCachePath(): string {
                 fv3_debug_log("Processing Container: $containerName (ID: " . ($ct['Id'] ?? 'N/A') . ")");
 
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
-                $containerImage = DockerUtil::ensureImageTag((string)($ct['info']['Config']['Image'] ?? ''));
+                $configuredImage = trim((string)($ct['info']['Config']['Image'] ?? ''));
+                $containerImage = $configuredImage === '' ? '' : DockerUtil::ensureImageTag($configuredImage);
                 $ct['info']['Config']['Image'] = $containerImage;
                 $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($containerLabels);
-                $ct['info']['State']['Updated'] = $ct['info']['State']['manager'] === 'dockerman'
-                    ? resolveDockerUpdatedStateValue($containerName, $containerImage, $dockerWebuiInfo, $DockerUpdate)
+                $listMode = $ct['HostConfig']['NetworkMode'] ?? null;
+                $detailMode = $ct['info']['HostConfig']['NetworkMode'] ?? $listMode;
+                $ct['isRebuildReady'] = $detailMode === 'container:???' ? true
+                    : ($detailMode === $listMode ? ($rebuildById[$ct['Id'] ?? ''] ?? null) : null);
+                $ct['info']['State']['Updated'] = $ct['info']['State']['manager'] === 'dockerman' && $ct['isRebuildReady'] !== true
+                    ? fvplusDockerRuntimeUpdated($ct, $containerName, $containerImage, $dockerWebuiInfo, $DockerUpdate)
                     : null;
                 $ct['shortId'] = substr(str_replace('sha256:', '', (string)($ct['Id'] ?? '')), 0, 12);
                 $ct['shortImageId'] = substr(str_replace('sha256:', '', (string)($ct['ImageID'] ?? '')), 0, 12);

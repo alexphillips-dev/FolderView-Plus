@@ -59,6 +59,8 @@
         const previousState = asObject(info.State);
         const fields = asObject(capabilities.containerFields);
         const flags = stateFlags(container.state);
+        const rebuild = fields.isRebuildReady === true && typeof container.isRebuildReady === 'boolean'
+            ? container.isRebuildReady : source.isRebuildReady;
         const labels = fields.labels === true && container.labels && typeof container.labels === 'object'
             ? { ...container.labels }
             : { ...asObject(source.Labels || asObject(info.Config).Labels) };
@@ -69,7 +71,9 @@
             Status: String(container.status || previousState.Status || '').trim(),
             Autostart: container.autoStart === true
         };
-        if (fields.isUpdateAvailable === true && typeof container.isUpdateAvailable === 'boolean') {
+        if (rebuild === true) {
+            nextState.Updated = null;
+        } else if (fields.isUpdateAvailable === true && typeof container.isUpdateAvailable === 'boolean') {
             nextState.Updated = container.isUpdateAvailable !== true;
         }
         if (fields.webUiUrl === true && container.webUiUrl !== null) {
@@ -96,9 +100,8 @@
             next.icon = String(container.iconUrl || source.icon || '').trim();
         }
         if (fields.isOrphaned === true) next.isOrphaned = container.isOrphaned === true;
-        if (fields.isRebuildReady === true && typeof container.isRebuildReady === 'boolean') {
-            next.isRebuildReady = container.isRebuildReady;
-        }
+        if (typeof rebuild === 'boolean') next.isRebuildReady = rebuild;
+        if (fields.isRebuildReady === true && typeof container.isRebuildReady === 'boolean') next.isRebuildReadyFromHost = false;
         return next;
     };
     const runtimeStateSignature = (entry = {}) => {

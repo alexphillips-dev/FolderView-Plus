@@ -1646,21 +1646,38 @@
         return "$configDir/$type.json";
     }
 
-    function readRawFolderMap(string $type): array {
+    function readRawFolderMap(string $type, bool $requireVerified = false): array {
         $type = ensureType($type);
-        return withConfigMutationLock(static function () use ($type): array {
+        return withConfigMutationLock(static function () use ($type, $requireVerified): array {
             migrateLegacyTypeDataIfNeeded($type, 'folders');
             $path = getFolderFilePath($type);
-            if (!file_exists($path)) {
-                createFile($type);
-            }
             $decoded = readJsonObjectFile($path);
+            $verify = !$requireVerified ? null : static function (array $folders): bool {
+                $ids = [];
+                foreach ($folders as $id => $folder) {
+                    $id = normalizeFolderIdValue($id);
+                    if ($id === '' || isset($ids[$id]) || !is_array($folder)) return false;
+                    $ids[$id] = true;
+                    $members = $folder['containers'] ?? [];
+                    if (!is_array($members)) return false;
+                    if (array_is_list($members)) {
+                        foreach ($members as $member) {
+                            if (!is_string($member) && !is_int($member)) return false;
+                        }
+                    }
+                }
+                return true;
+            };
             $recoveredFromLastGood = false;
-            if (!is_array($decoded)) {
-                $decoded = recoverJsonObjectFromLastGood($path);
+            if (!is_array($decoded) || ($verify !== null && !$verify($decoded))) {
+                $decoded = recoverJsonObjectFromLastGood($path, $verify);
                 $recoveredFromLastGood = is_array($decoded);
             }
             if (!is_array($decoded)) {
+                if ($requireVerified) {
+                    throw new UnexpectedValueException('Docker start order sync failed');
+                }
+                if (!file_exists($path)) createFile($type);
                 $decoded = [];
             }
 
@@ -2462,15 +2479,15 @@
         return is_bool($cachedUpdated) ? $cachedUpdated : null;
     }
 
-    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null): ?bool {
+    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null, bool $preferLive = false): ?bool {
         $cachedUpdated = resolveDockerCachedUpdatedStateValue($containerName, $dockerWebuiInfo);
-        if (is_bool($cachedUpdated)) {
+        if (is_bool($cachedUpdated) && !$preferLive) {
             return $cachedUpdated;
         }
         if ($containerImage === '' || !($dockerUpdate instanceof DockerUpdate)) {
-            return null;
+            return $cachedUpdated;
         }
-        return normalizeDockerUpdatedStateValue($dockerUpdate->getUpdateStatus($containerImage));
+        return normalizeDockerUpdatedStateValue($dockerUpdate->getUpdateStatus($containerImage)) ?? $cachedUpdated;
     }
 
     require_once(__DIR__ . '/lib.rules-engine.php'); require_once(__DIR__ . '/lib.rules-apply.php');

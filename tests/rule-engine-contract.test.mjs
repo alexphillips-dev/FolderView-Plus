@@ -390,7 +390,10 @@ test('lightweight Docker and Dashboard metadata refreshes replace images and rem
     const next = api.normalizeDockerRuntimeInfoMap(raw, previous);
     assert.equal(next.item.image, 'repo/new');
     assert.deepEqual(next.item.Labels, {});
-    const normalize = loadFunction('dashboard.js', 'normalizeDashboardRuntimeInfoMap', 'getDashboardRuntimeStateMeta', {});
+    const { getRuntimeStateMeta } = require(path.join(plugin, 'scripts/dashboard.runtime-surface.js'));
+    const normalize = loadFunction('dashboard.js', 'normalizeDashboardRuntimeInfoMap', 'getDashboardRuntimeStateMeta', {
+        getDashboardRuntimeStateMeta: getRuntimeStateMeta
+    });
     const dashboard = normalize('docker', raw, previous);
     assert.equal(dashboard.item.image, 'repo/new');
     assert.equal(Object.keys(dashboard.item.Labels).length, 0);

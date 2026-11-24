@@ -960,6 +960,9 @@
                     actionRequiresAdvancedView: false
                 };
             }
+            if (entry?.isRebuildReady === true) {
+                return { manager: manager || 'dockerman', statusToken: 'rebuildReady', actionToken: 'other', actionRequiresAdvancedView: false };
+            }
             if (updateReady) {
                 return {
                     manager: manager || 'dockerman',
@@ -967,6 +970,9 @@
                     actionToken: 'applyUpdate',
                     actionRequiresAdvancedView: false
                 };
+            }
+            if (entry?.updated === null) {
+                return { manager: manager || 'dockerman', statusToken: 'unknown', actionToken: advanced ? 'forceUpdate' : 'other', actionRequiresAdvancedView: true };
             }
             return {
                 manager: manager || 'dockerman',
@@ -984,13 +990,22 @@
             if (state.statusToken === 'thirdParty') {
                 return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('third-party', 'third-party'))}</span>`;
             }
+            if (state.statusToken === 'rebuildReady') {
+                const label = win?.FolderViewPlusI18n?.t?.("docker.update.rebuild-ready", "Rebuild ready") || 'Rebuild ready';
+                return `<span class="orange-text folder-update-text"><i class="fa fa-recycle fa-fw"></i> ${escapeHtml(label)}</span>`;
+            }
+            const memberUpdateData = `data-fvplus-update-member="${escapeHtml(String(entry?.name || '').trim())}"`;
             const safeContainerName = escapeInlineJsSingleQuotedValue(String(entry?.name || '').trim());
             if (state.statusToken === 'updateReady') {
-                return `<span class="orange-text folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
+                return `<span class="orange-text folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" ${memberUpdateData} data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
             }
             const forceUpdateHtml = state.actionToken === 'forceUpdate'
-                ? `<br><a class="exec" data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
+                ? `<br><a class="exec" ${memberUpdateData} data-fv-onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
                 : '';
+            if (state.statusToken === 'unknown') {
+                const label = win?.FolderViewPlusI18n?.t?.("docker.update.status-unavailable", "Update status unavailable") || 'Update status unavailable';
+                return `<span class="folder-update-text"><i class="fa fa-unlink fa-fw"></i> ${escapeHtml(label)}</span>${forceUpdateHtml}`;
+            }
             return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span>${forceUpdateHtml}`;
         };
 

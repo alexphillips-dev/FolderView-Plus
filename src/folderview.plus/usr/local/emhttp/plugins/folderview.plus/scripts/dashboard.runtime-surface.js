@@ -26,8 +26,12 @@
             return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
         }
         const stateNode = entry?.info?.State || {};
-        const running = entry?.running === true || stateNode.Running === true;
-        const paused = running && (entry?.paused === true || stateNode.Paused === true);
+        const kind = String(entry?.state || '').trim().toLowerCase();
+        const pausedFlag = typeof stateNode.Paused === 'boolean'
+            ? stateNode.Paused : entry?.paused === true || kind === 'paused';
+        const running = typeof stateNode.Running === 'boolean'
+            ? stateNode.Running : entry?.running === true || kind === 'running' || pausedFlag;
+        const paused = running && pausedFlag;
         if (paused) return { state: 'paused', key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
         if (running) return { state: 'running', key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
         return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };

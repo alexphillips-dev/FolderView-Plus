@@ -1201,10 +1201,6 @@ const showDashboardRuntimeFailedRow = (type) => {
     row.find('[role="status"]').text(dashboardT('common.folder-render.title', 'Some folders could not be displayed.'));
     tbody.children('tr.updated').before(row);
 };
-const dashboardRequestDiagnostics = {
-    docker: [],
-    vm: []
-};
 const parseDashboardPayloadOr = (payload, fallback) => {
     try {
         const parsed = parseJsonPayloadSafe(payload);
@@ -1215,21 +1211,7 @@ const parseDashboardPayloadOr = (payload, fallback) => {
 };
 const recordDashboardRequestFallback = (type, label, error) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const list = dashboardRequestDiagnostics[resolvedType] || [];
-    const entry = {
-        at: new Date().toISOString(),
-        label: String(label || 'request'),
-        status: Number(error?.status || 0),
-        statusText: String(error?.statusText || error?.message || 'request failed').slice(0, 160)
-    };
-    list.push(entry);
-    if (list.length > 12) {
-        list.shift();
-    }
-    dashboardRequestDiagnostics[resolvedType] = list;
-    if (window.console && typeof window.console.warn === 'function') {
-        console.warn(`[FolderView Plus] Dashboard ${resolvedType} ${entry.label} failed; using fallback.`, error);
-    }
+    window.console?.warn?.(`[FolderView Plus] Dashboard ${resolvedType} ${label} failed.`, { status: Number(error?.status) || 0 });
 };
 const getDashboardRequestWithFallback = (type, label, url, fallback) => requestClient.getText(url)
     .then((data) => {
@@ -1266,101 +1248,16 @@ const normalizeDashboardFolderMap = (folders) => {
     });
     return source;
 };
-const sanitizeDashboardInfoForDebug = (type, info) => {
-    const source = info && typeof info === 'object' ? info : {};
-    const sanitized = {};
-    Object.entries(source).forEach(([name, value]) => {
-        if (type === 'vm') {
-            sanitized[name] = {
-                uuid: String(value?.uuid || '').slice(0, 12),
-                state: String(value?.state || ''),
-                autostart: value?.autostart === true
-            };
-            return;
-        }
-        const state = value?.info?.State || {};
-        sanitized[name] = {
-            shortId: String(value?.shortId || '').slice(0, 12),
-            manager: String(state.manager || ''),
-            running: state.Running === true,
-            paused: state.Paused === true,
-            updated: state.Updated !== false,
-            autostart: state.Autostart !== false
-        };
-    });
-    return sanitized;
-};
-const collectDashboardRenderDiagnosticsForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
-    const nameSelector = resolvedType === 'docker' ? '.folder-appname-docker' : '.folder-appname-vm';
-    return Array.from(document.querySelectorAll(`tbody#${tbodyId} .folder-showcase-outer`)).map((node) => {
-        const img = node.querySelector('img.folder-img-docker, img.folder-img-vm');
-        const rect = (node.getClientRects().length ? node : node.querySelector(':scope > span.outer') || node).getBoundingClientRect();
-        return {
-            id: String(node.getAttribute('data-fv-folder-id') || ''),
-            name: String(node.querySelector(nameSelector)?.textContent || '').trim(),
-            expanded: node.getAttribute('expanded') === 'true',
-            className: String(node.className || ''),
-            childCount: node.querySelectorAll('.folder-showcase > .folder-showcase-outer, .folder-storage > span.outer').length,
-            rect: {
-                width: Math.round(Number(rect.width) || 0),
-                height: Math.round(Number(rect.height) || 0)
-            },
-            icon: img ? {
-                src: String(img.getAttribute('src') || ''),
-                currentSrc: String(img.currentSrc || ''),
-                complete: img.complete === true,
-                naturalWidth: Number(img.naturalWidth || 0),
-                naturalHeight: Number(img.naturalHeight || 0)
-            } : null
-        };
-    });
-};
-const collectDashboardActivePluginAssets = () => Array.from(document.querySelectorAll('script[src], link[href]'))
-    .map((node) => String(node.getAttribute('src') || node.getAttribute('href') || ''))
-    .filter((url) => url.includes('/plugins/folderview.plus/'))
-    .slice(0, 80);
-const buildDashboardDebugPayload = async (type, details) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const originalOrderUrl = `/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`;
-    const originalOrder = parseDashboardPayloadOr(
-        await getDashboardRequestWithFallback(resolvedType, 'debug original order', originalOrderUrl, {}),
-        {}
-    );
-    return {
-        version: String((await requestClient.getText('/plugins/folderview.plus/server/version.php')) || '').trim(),
-        type: resolvedType,
-        requestFallbacks: dashboardRequestDiagnostics[resolvedType] || [],
-        pluginAssets: collectDashboardActivePluginAssets(),
-        render: collectDashboardRenderDiagnosticsForType(resolvedType),
-        originalOrder,
-        ...details
-    };
-};
-const downloadDashboardRenderDebug = async (type, details, isCurrent) => {
-    const data = await buildDashboardDebugPayload(type, JSON.parse(JSON.stringify(details)));
-    if (!isCurrent()) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
-    const element = document.createElement('a');
-    element.href = url;
-    element.download = `debug-DASHBOARD-${type === 'vm' ? 'VM' : 'DOCKER'}.json`;
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    element.remove();
-    URL.revokeObjectURL(url);
-};
 
 const dashboardFolderRenderRecovery = Object.fromEntries(['docker', 'vm'].map((type) => [type,
     window.FolderViewPlusFoundationModules.folderRenderRecovery.createForPage(type, type === 'docker' ? '#docker_view' : '#vm_view')
 ]));
 
-const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
+const renderDashboardDockerFolders = (prom) => {
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allDockerFolders = normalizeDashboardFolderMap(folders);
-        const containersInfo = parseDashboardPayloadOr(prom[2], {});
+        const containersInfo = normalizeDashboardRuntimeInfoMap('docker', parseDashboardPayloadOr(prom[2], {}));
         dashboardRuntimeInfoByType.docker = containersInfo;
         allDockerFolders = reconcileDashboardMemberIdentities('docker', allDockerFolders, containersInfo);
         const dockerTreeIndex = buildFolderChildrenIndex(allDockerFolders);
@@ -1393,17 +1290,6 @@ const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
             }
         }
 
-        // debug mode, download the debug json file
-        if (captureDebug) {
-            downloadDashboardRenderDebug('docker', {
-                folders,
-                unraidOrder,
-                newOnes,
-                order,
-                containersInfo: sanitizeDashboardInfoForDebug('docker', containersInfo)
-            }, isActive).catch(() => {});
-            dashboardDebugLog('Docker Order:', [...order]);
-        }
     
         let foldersDone = {};
 
@@ -1438,8 +1324,7 @@ const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
                     dockerFullMatchCache[childId] || null,
                     {
                         appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `#docker_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
-                        preserveWhenEmpty: childHasChildren,
-                        captureDebug
+                        preserveWhenEmpty: childHasChildren
                     }
                 );
                 if (!dashboardFolderRenderRecovery.docker.hasFailed(childId)) foldersDone[childId] = allDockerFolders[childId];
@@ -1465,7 +1350,7 @@ const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
                         containersInfo,
                         Object.keys(foldersDone),
                         rootCacheEntry,
-                        { preserveWhenEmpty: hasChildren, captureDebug }
+                        { preserveWhenEmpty: hasChildren }
                     );
                     if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) {
                         key -= newOnes.length;
@@ -1495,7 +1380,7 @@ const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
                 containersInfo,
                 Object.keys(foldersDone),
                 rootCacheEntry,
-                { preserveWhenEmpty: hasChildren, captureDebug }
+                { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
             if (!dashboardFolderRenderRecovery.docker.hasFailed(id)) foldersDone[id] = folders[id];
@@ -1537,7 +1422,7 @@ const renderDashboardDockerFolders = (prom, captureDebug, isActive) => {
         }
 };
 
-const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
+const renderDashboardVmFolders = (prom) => {
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allVmFolders = normalizeDashboardFolderMap(folders);
@@ -1574,17 +1459,6 @@ const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
             }
         }
 
-        // debug mode, download the debug json file
-        if (captureDebug) {
-            downloadDashboardRenderDebug('vm', {
-                folders,
-                unraidOrder,
-                newOnes,
-                order,
-                vmInfo: sanitizeDashboardInfoForDebug('vm', vmInfo)
-            }, isActive).catch(() => {});
-            dashboardDebugLog('VM Order:', [...order]);
-        }
     
         let foldersDone = {};
 
@@ -1619,8 +1493,7 @@ const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
                     vmFullMatchCache[childId] || null,
                     {
                         appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `#vm_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
-                        preserveWhenEmpty: childHasChildren,
-                        captureDebug
+                        preserveWhenEmpty: childHasChildren
                     }
                 );
                 if (!dashboardFolderRenderRecovery.vm.hasFailed(childId)) foldersDone[childId] = allVmFolders[childId];
@@ -1646,7 +1519,7 @@ const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
                         vmInfo,
                         Object.keys(foldersDone),
                         rootCacheEntry,
-                        { preserveWhenEmpty: hasChildren, captureDebug }
+                        { preserveWhenEmpty: hasChildren }
                     );
                     if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) {
                         key -= newOnes.length;
@@ -1676,7 +1549,7 @@ const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
                 vmInfo,
                 Object.keys(foldersDone),
                 rootCacheEntry,
-                { preserveWhenEmpty: hasChildren, captureDebug }
+                { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
             if (!dashboardFolderRenderRecovery.vm.hasFailed(id)) foldersDone[id] = folders[id];
@@ -1717,7 +1590,7 @@ const renderDashboardVmFolders = (prom, captureDebug, isActive) => {
         }
 };
 
-const createFolders = async (type, { isCurrent = () => true, captureDebug = false } = {}) => {
+const createFolders = async (type, { isCurrent = () => true } = {}) => {
     const requests = folderReq[type];
     const widget = document.querySelector(dashboardTypeMeta(type).tbodySelector);
     const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
@@ -1732,7 +1605,7 @@ const createFolders = async (type, { isCurrent = () => true, captureDebug = fals
         dashboardFolderRenderRecovery[type].begin();
         rendering = true;
         const render = type === 'vm' ? renderDashboardVmFolders : renderDashboardDockerFolders;
-        render(prom, captureDebug, isActive);
+        render(prom);
         applyDashboardRuntimePrefs();
         return true;
     } catch (error) {
@@ -1917,9 +1790,6 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
                 $containerEl.find('.blue-text').addClass('orange-text');
             }
 
-            if (options.captureDebug) {
-                dashboardDebugLog(`Docker ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
-            }
 
             // set the status of the folder
             upToDate = upToDate && !newFolder[container].update;
@@ -2177,9 +2047,6 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 'data-fv-runtime-state': getDashboardRuntimeStateMeta('vm', ct).state
             }).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
 
-            if (options.captureDebug) {
-                dashboardDebugLog(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
-            }
             
             // set the status of the folder
             const vmState = String(ct.state || '');
@@ -2412,8 +2279,6 @@ window.expandFolderVM = expandFolderVM;
 // Global variables
 let globalFolders = {};
 const folderRegex = /^folder-/;
-let folderDebugMode = false;
-let folderDebugModeWindow = [];
 let folderTypePrefs = {
     docker: utils.normalizePrefs({}),
     vm: utils.normalizePrefs({})
@@ -2589,7 +2454,8 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
         const priorState = priorInfo.State && typeof priorInfo.State === 'object' ? priorInfo.State : {};
         const sourceInfo = entry.info && typeof entry.info === 'object' ? entry.info : {};
         const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
-        const stateKind = String(entry.state || '').trim().toLowerCase();
+        const runtimeState = getDashboardRuntimeStateMeta('docker', entry);
+        const isRebuildReady = Object.hasOwn(entry, 'isRebuildReady') ? entry.isRebuildReady : prior.isRebuildReady;
         normalized[safeName] = {
             ...prior,
             ...entry,
@@ -2604,10 +2470,10 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
                 State: {
                     ...priorState,
                     ...sourceState,
-                    Running: entry.running === true || stateKind === 'running' || sourceState.Running === true,
-                    Paused: entry.paused === true || stateKind === 'paused' || sourceState.Paused === true,
+                    Running: runtimeState.active,
+                    Paused: runtimeState.paused,
                     Autostart: Object.prototype.hasOwnProperty.call(entry, 'autostart') ? entry.autostart === true : sourceState.Autostart === true,
-                    Updated: Object.prototype.hasOwnProperty.call(entry, 'Updated') ? entry.Updated : sourceState.Updated,
+                    Updated: isRebuildReady === true ? null : (Object.hasOwn(entry, 'Updated') ? entry.Updated : sourceState.Updated),
                     manager: String(entry.manager || sourceState.manager || priorState.manager || '').trim()
                 }
             }
@@ -3016,12 +2882,7 @@ const refreshDashboardDockerCpuCores = () => requestClient.getText('/plugins/fol
 
 refreshDashboardDockerCpuCores();
 
-const renderDashboardWidget = ({ type, isCurrent }) => {
-    const captureDebug = folderDebugMode;
-    // The adapter starts both widgets in the same turn.
-    if (captureDebug) queueMicrotask(() => { folderDebugMode = false; });
-    return createFolders(type, { isCurrent, captureDebug });
-};
+const renderDashboardWidget = ({ type, isCurrent }) => createFolders(type, { isCurrent });
 const hasDashboardWidget = (type) => $(dashboardTypeMeta(type).tbodySelector).length > 0;
 const prepareDashboardFolderRequestsForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -3109,20 +2970,7 @@ const dashboardDockerLifecycleApi = getDashboardDockerRuntimeReconcileApi();
 dashboardDockerLifecycleApi?.bindLifecycleEventControlPatch?.();
 dashboardDockerLifecycleApi?.bindDockerContainerContextStatePatch?.();
 
-// activate debug mode
-window.addEventListener("keydown", (e) => {
-    if (e.isComposing || e.key.length !== 1) { // letter X FOR TESTING
-        return;
-    }
-    folderDebugModeWindow.push(e.key);
-    if(folderDebugModeWindow.length > 5) {
-        folderDebugModeWindow.shift();
-    }
-    if(folderDebugModeWindow.join('').toLowerCase() === "debug") {
-        folderDebugMode = true;
-        loadlist();
-    }
-});
+window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('dashboard');
 window.addEventListener('pagehide', function releaseDashboardPage(event) {
     dashboardStorageWriter?.flush?.();
     if (event?.persisted) return;

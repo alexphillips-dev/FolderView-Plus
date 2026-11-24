@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "docker",
-        "content-revision": "eb96adfa789ce74006cb19bcbf423248a69940fb225de5206ef1744a8ee8c240"
+        "content-revision": "46aa60feb1ceafeb0b0f3cee3138c5ab3026d3f31212dd8753b041c50267abc7"
     },
     "docker.folder.move-reload": "La configuració de la carpeta ha canviat. Actualitzeu abans de tornar a moure la carpeta.",
     "docker.actions.label": "Accions de FolderView",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Veure registres",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI amb dades de GraphQL",
     "docker.health.api-summary": "API de Docker: actualitzacions: $1, llest per reconstruir: $2, orfe: $3, conflictes de ports: $4",
+    "docker.update.rebuild-ready": "Reconstrucció a punt",
+    "docker.update.status-unavailable": "Estat de l'actualització no disponible",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Llista d'amfitrions",
     "docker.views.command": "Comandament",

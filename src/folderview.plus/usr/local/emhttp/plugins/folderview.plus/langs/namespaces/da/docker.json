@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "docker",
-        "content-revision": "0f9e96b5ec72b76031722e2d9ae2ddcee1a6a0c79150b579d9c3b3ad8983a290"
+        "content-revision": "b038fa5fa7f4e1fe34d0024405b868fcd9251ed59adbed08ee58617f9b7feaca"
     },
     "docker.folder.move-reload": "Mappekonfiguration ændret. Opdater, før du flytter mappen igen.",
     "docker.actions.label": "FolderView-handlinger",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Se logfiler",
     "docker.provider.hybrid-label": "Ældre Unraid WebGUI med GraphQL-data",
     "docker.health.api-summary": "Docker API: opdateringer: $1, klar til genopbygning: $2, forældreløs: $3, portkonflikter: $4",
+    "docker.update.rebuild-ready": "Ombygning klar",
+    "docker.update.status-unavailable": "Opdateringsstatus er ikke tilgængelig",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Værtsliste",
     "docker.views.command": "Kommando",

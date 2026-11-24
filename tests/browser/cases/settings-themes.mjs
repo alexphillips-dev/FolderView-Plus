@@ -214,11 +214,22 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await page.waitForFunction(() => themeApi.getWorkspace().activeThemeId === '');
         await page.locator('[data-fv-onclick^="activateThemeWorkspaceTheme"]').click();
         await page.locator('.fv-theme-workspace-entry.is-active').waitFor();
+        await page.evaluate(() => {
+            themeApi.previewPreset('blue');
+            const field = document.getElementById('fv-theme-custom-css');
+            field.value = '.synthetic-draft { color: #123456; }';
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+        });
         await page.locator('[data-fv-onclick="checkThemeWorkspaceUpdates()"]').click();
         await page.waitForFunction(() => !document.getElementById('fv-theme-update-available').disabled);
         await page.waitForFunction(() => document.getElementById('fv-theme-workspace-status').textContent.includes('1 failed'));
+        assert.deepEqual(await page.evaluate(() => {
+            const { variables, customCss } = themeApi.getWorkspace();
+            return [variables['--fvplus-theme-accent'], customCss];
+        }), ['#3b82f6', '.synthetic-draft { color: #123456; }']);
         await page.locator('#fv-theme-update-available').click();
         await page.waitForFunction(() => document.getElementById('fv-theme-update-available').disabled);
+        assert.equal(await page.locator('#fv-theme-custom-css').inputValue(), '.synthetic-draft { color: #123456; }');
         await page.locator('[data-fv-onclick^="updateThemeWorkspaceTheme"]').click();
         await page.locator('[data-fv-onclick^="deleteThemeWorkspaceTheme"]').click();
         await page.waitForFunction(() => themeApi.getWorkspace().themes.length === 0);

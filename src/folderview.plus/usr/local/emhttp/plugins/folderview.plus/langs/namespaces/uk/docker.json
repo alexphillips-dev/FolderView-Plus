@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "docker",
-        "content-revision": "39a562e7659ee2ab72d557c67ef986d317b8f9cad8641c66f697023fd61bebc1"
+        "content-revision": "3fa85df1efe6d3a358ba104b403c9f4de472b2eba0f951a2feeaa19bd376f692"
     },
     "docker.folder.move-reload": "Змінено конфігурацію папки. Оновіть перед повторним переміщенням папки.",
     "docker.actions.label": "Дії FolderView",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Переглянути журнали",
     "docker.provider.hybrid-label": "Застарілий веб-інтерфейс Unraid із даними GraphQL",
     "docker.health.api-summary": "Docker API: оновлення: $1, готовий до перебудови: $2, втратив назву: $3, конфлікти портів: $4",
+    "docker.update.rebuild-ready": "Перезбирання доступне",
+    "docker.update.status-unavailable": "Статус оновлення недоступний",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Список хостів",
     "docker.views.command": "Команда",

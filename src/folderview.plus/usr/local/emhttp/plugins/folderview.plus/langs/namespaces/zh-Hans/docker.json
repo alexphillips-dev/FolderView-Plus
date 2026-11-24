@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "docker",
-        "content-revision": "c6a90d189bad876c70ad67d860d60f5dae6b25e7ea11a1af9bf8781c733e85ae"
+        "content-revision": "7e176584e1ffeb3f5141cec11759e84d990a3560a558423d9c6c6f5093fe28be"
     },
     "docker.folder.move-reload": "文件夹配置已更改。再次移动文件夹之前刷新。",
     "docker.actions.label": "FolderView 操作",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "查看日志",
     "docker.provider.hybrid-label": "带有 GraphQL 数据的旧版 Unraid WebGUI",
     "docker.health.api-summary": "Docker API：有更新 $1 个，可重建 $2 个，孤立 $3 个，端口冲突 $4 个",
+    "docker.update.rebuild-ready": "重建准备就绪",
+    "docker.update.status-unavailable": "更新状态不可用",
     "docker.views.folderview": "文件夹视图",
     "docker.views.host": "Unraid 原生列表",
     "docker.views.command": "命令",

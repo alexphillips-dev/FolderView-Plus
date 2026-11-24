@@ -12,6 +12,7 @@ export const createDockerBadgeHost = async (page, initialBadges = { running: fal
     assert.equal(source.split(end).length, 2, 'test hooks must stay inside the production Docker closure');
     const hook = `window.fixtureDockerBadges = {
         refresh: syncDockerVisibleFoldersFromRuntimeCache,
+        refreshSettled: () => queuedLoadlistTimer === null && !dockerHostLoadOwnsLoadingUi && $.active === 0,
         save: async badges => { await dockerPrefsCoordinator.save('docker', { badges }, { currentPrefs: folderTypePrefs, immediate: true }); },
         state: state => {
             Object.values(dockerRuntimeInfoByName).forEach(entry => {

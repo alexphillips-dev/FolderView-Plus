@@ -180,6 +180,7 @@
             paused,
             normalizeRuntimeBoolean(Object.prototype.hasOwnProperty.call(source, 'autostart') ? source.autostart : stateNode.Autostart),
             typeof updated === 'boolean' ? updated : null,
+            typeof source.isRebuildReady === 'boolean' ? source.isRebuildReady : null,
             String(source.manager || stateNode.manager || '').trim(),
             folderLabel
         ]);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "docker",
-        "content-revision": "faa7704200a6b4952c72dbe737cd2db5033a79f525c09ed83899ee3ec61c4128"
+        "content-revision": "677a20931ce8ee68a32e0415c93fd96839e0c92404116ff6f894412b4c00a330"
     },
     "docker.folder.move-reload": "Configurația folderului a fost schimbată. Actualizați înainte de a muta folderul din nou.",
     "docker.actions.label": "Acțiuni FolderView",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Vizualizați jurnalele",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI cu date GraphQL",
     "docker.health.api-summary": "API Docker: actualizări: $1, gata de reconstruit: $2, orfan: $3, conflicte de porturi: $4",
+    "docker.update.rebuild-ready": "Reconstruire gata",
+    "docker.update.status-unavailable": "Starea actualizării nu este disponibilă",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Lista gazdă",
     "docker.views.command": "Comandă",

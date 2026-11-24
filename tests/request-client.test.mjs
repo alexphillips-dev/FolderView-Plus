@@ -88,7 +88,7 @@ const loadRequestClient = ({ token = '', plan = [], noncePlan = [], metaToken = 
     const storage = new Map();
     const effectiveMetaToken = metaToken || token;
     const context = {
-        window: {},
+        window: { Blob },
         document: {
             querySelector: (selector) => {
                 if (selector === 'meta[name="fv-request-token"]' && effectiveMetaToken) {
@@ -109,6 +109,7 @@ const loadRequestClient = ({ token = '', plan = [], noncePlan = [], metaToken = 
         Promise,
         String,
         Number,
+        Blob,
         URL,
         URLSearchParams
     };
@@ -451,4 +452,153 @@ test('recognizable host login markup guides a reload while marked plugin output 
         assert.equal(api.diagnostics().at(-1).outcome, 'error');
         assert.doesNotMatch(JSON.stringify(api.failureDiagnostics()), /fixture-private/);
     }
+});
+
+const loginHtml = '<!doctype html><form method="post" action="/login"><input type="password" value="fixture-private-login"></form>';
+const privateFixture = /fixture-private/;
+
+const http200 = (data, headers = {}) => ({
+    type: 'success', data,
+    jqXHR: { status: 200, getResponseHeader: name => headers[name.toLowerCase()] || null }
+});
+
+const assertInvalidSuccessfulResponse = async ({ api, getAjaxCalls }, promise, {
+    endpoint, source, reason = 'unexpected-response', attempts = 1, requests = 1
+}) => {
+    let failure;
+    await assert.rejects(promise, error => {
+        failure = error;
+        assert.equal(error.status, 200);
+        assert.equal(error.httpStatus, 200);
+        assert.equal(error.phase, 'request');
+        assert.equal(error.failureSource, source);
+        assert.equal(error.reasonCode, reason);
+        assert.equal(error.attempts, attempts);
+        assert.equal(error.retryable, false);
+        assert.equal(error.responseBody, undefined);
+        assert.doesNotMatch(error.message, privateFixture);
+        if (reason === 'authentication-required') assert.match(error.message, /Refresh the webGUI and sign in again/);
+        return true;
+    });
+    const calls = getAjaxCalls();
+    assert.equal(calls.length, requests);
+    const output = api.diagnostics();
+    assert.equal(output.length, 1);
+    assert.equal(output[0].endpoint, endpoint);
+    assert.equal(output[0].outcome, 'error');
+    assert.equal(output[0].status, 200);
+    assert.equal(output[0].attempts, attempts);
+    assert.equal(output[0].reasonCode, reason);
+    for (const call of calls) {
+        assert.match(failure.traceId, /^fv-/);
+        assert.match(failure.transactionId, /^tx-/);
+        assert.equal(call.headers['X-FV-Trace'], failure.traceId);
+        assert.equal(call.headers['X-FV-Transaction'], failure.transactionId);
+    }
+    assert.equal(output[0].traceId, failure.traceId);
+    assert.equal(output[0].transactionId, failure.transactionId);
+    const failures = api.failureDiagnostics();
+    assert.equal(failures.length, 1);
+    assert.equal(failures[0].reasonCode, reason);
+    assert.doesNotMatch(JSON.stringify({ failure, output, failures }), privateFixture);
+};
+
+test('getJson records one sanitized failure for malformed, empty or login HTTP 200 without retrying the response', async () => {
+    const endpoint = '/plugins/folderview.plus/server/read.php';
+    for (const [step, source, reason] of [
+        [http200('{"value":"fixture-private-incomplete'), 'client'],
+        [http200('\uFEFF \t\n '), 'client'],
+        [http200(loginHtml, { 'content-type': 'text/html' }), 'unraid', 'authentication-required'],
+        [http200(loginHtml, { 'x-fv-api-contract': 'v1' }), 'folderview-plus']
+    ]) {
+        const client = loadRequestClient({ plan: [step, http200('{"ok":true}')] });
+        await assertInvalidSuccessfulResponse(client, client.api.getJson(`${endpoint}?name=fixture-private-read`, {
+            retries: 3, retryDelayMs: 1
+        }), { endpoint, source, reason });
+    }
+});
+
+test('getJson retries transport failures and logs the terminal parse failure with the original request IDs', async () => {
+    const endpoint = '/plugins/folderview.plus/server/read.php';
+    const client = loadRequestClient({ plan: [
+        { type: 'error', status: 503 }, http200('fixture-private-invalid-json'), http200('{"ok":true}')
+    ] });
+    await assertInvalidSuccessfulResponse(client, client.api.getJson(endpoint, { retries: 3, retryDelayMs: 1 }), {
+        endpoint, source: 'client', attempts: 2, requests: 2
+    });
+});
+
+test('getJson keeps JSON arrays and scalars, object request IDs, and BOM support while getText keeps its raw response', async () => {
+    const endpoint = '/plugins/folderview.plus/server/read.php';
+    const values = ['\uFEFF {"value":1}', '[1,"two",null]', 'false', '0', 'null', '"text"'];
+    const { api, getAjaxCalls } = loadRequestClient({ plan: [...values, loginHtml].map(value => http200(value)) });
+    const object = await api.getJson(endpoint);
+    assert.equal(object.value, 1);
+    assert.equal(object.traceId, getAjaxCalls()[0].headers['X-FV-Trace']);
+    assert.equal(object.transactionId, getAjaxCalls()[0].headers['X-FV-Transaction']);
+    for (const expected of [[1, 'two', null], false, 0, null, 'text']) assert.deepEqual(await api.getJson(endpoint), expected);
+    assert.equal(await api.getText(endpoint), loginHtml);
+    assert.equal(api.diagnostics().length, 7);
+    assert.ok(api.diagnostics().every(record => record.outcome === 'ok'));
+    assert.equal(api.failureDiagnostics().length, 0);
+});
+
+test('postBlob rejects empty or non-Blob results and unrequested HTML without replaying a guarded POST', async () => {
+    const endpoint = '/plugins/folderview.plus/server/backup.php';
+    for (const [data, source, reason] of [
+        [{ size: 10, type: 'application/json', text: async () => 'fixture-private-not-a-blob' }, 'client'],
+        [new Blob([]), 'client'],
+        [new Blob([loginHtml], { type: 'text/html' }), 'unraid', 'authentication-required'],
+        [new Blob(['<h1>fixture-private-proxy</h1>'], { type: 'text/html' }), 'client']
+    ]) {
+        const client = loadRequestClient({ token: 'fixture-private-token', plan: [http200(data)] });
+        await assertInvalidSuccessfulResponse(client, client.api.postBlob(`${endpoint}?name=fixture-private-backup`, {
+            action: 'download_post'
+        }), { endpoint, source, reason, requests: 2 });
+        const [nonce, call] = client.getAjaxCalls();
+        assert.equal(nonce.url, '/plugins/folderview.plus/server/security.php');
+        assert.equal(nonce.data.targetAction, 'download_post');
+        assert.equal(call.method, 'POST');
+        assert.equal(call.data._fv_nonce, 'a'.repeat(64));
+        assert.equal(call.data._fv_transaction, call.headers['X-FV-Transaction']);
+        assert.equal(call.xhrFields.responseType, 'blob');
+    }
+});
+
+test('postBlob requires an attached JSON payload when requested', async () => {
+    const endpoint = '/plugins/folderview.plus/server/backup.php';
+    const body = '{"schemaVersion":1,"name":"fixture-private-backup"}';
+    const attachment = 'attachment; filename="fixture-private-backup.json"';
+    for (const [type, disposition, data, marker] of [
+        ['application/json', '', body],
+        ['application/json', 'inline; filename="fixture-private-backup.json"', body],
+        ['text/plain', attachment, body],
+        ['application/json', attachment, '{"fixture-private-malformed"', 'v1']
+    ]) {
+        const response = http200(new Blob([data], { type }), {
+            'content-type': type, 'content-disposition': disposition, 'x-fv-api-contract': marker
+        });
+        const client = loadRequestClient({ token: 'fixture-private-token', plan: [response] });
+        await assertInvalidSuccessfulResponse(client, client.api.postBlob(endpoint, { action: 'download_post' }, {
+            expectJsonAttachment: true
+        }), { endpoint, source: marker ? 'folderview-plus' : 'client', requests: 2 });
+    }
+});
+
+test('postBlob accepts generic binary and returns original JSON attachment bytes', async () => {
+    const endpoint = '/plugins/folderview.plus/server/backup.php';
+    const generic = new Blob([Uint8Array.of(0, 255, 128, 1)], { type: 'application/octet-stream' });
+    const bytes = new TextEncoder().encode('\uFEFF{\n  "schemaVersion": 1,\n  "name": "Grüße"\n}\n');
+    const json = new Blob([bytes], { type: 'application/json' });
+    const { api } = loadRequestClient({ token: 'fixture-token', plan: [
+        http200(generic), http200(json, {
+            'content-type': 'application/json; charset=utf-8', 'content-disposition': 'Attachment; filename="fixture.json"'
+        })
+    ] });
+    assert.strictEqual(await api.postBlob(endpoint), generic);
+    const backup = await api.postBlob(endpoint, { action: 'download_post' }, { expectJsonAttachment: true });
+    assert.strictEqual(backup, json);
+    assert.deepEqual(new Uint8Array(await backup.arrayBuffer()), bytes);
+    assert.deepEqual(Array.from(api.diagnostics(), row => row.outcome), ['ok', 'ok']);
+    assert.equal(api.failureDiagnostics().length, 0);
 });

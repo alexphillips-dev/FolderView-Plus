@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "docker",
-        "content-revision": "e82aa20a8a8259335749afa148596711a741c60d5512de9d26e550fa53862bad"
+        "content-revision": "75661b05f178a3046798cc4bfd045519e4cb42e376abad9896c214c4b61d5683"
     },
     "docker.folder.move-reload": "Configuração da pasta alterada. Atualize antes de mover a pasta novamente.",
     "docker.actions.label": "Ações do FolderView",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Ver registros",
     "docker.provider.hybrid-label": "WebGUI Unraid legado com dados GraphQL",
     "docker.health.api-summary": "API Docker: atualizações: $1, pronto para reconstruir: $2, órfão: $3, conflitos de porta: $4",
+    "docker.update.rebuild-ready": "Reconstrução pronta",
+    "docker.update.status-unavailable": "Status da atualização indisponível",
     "docker.views.folderview": "Visualização de pasta",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",

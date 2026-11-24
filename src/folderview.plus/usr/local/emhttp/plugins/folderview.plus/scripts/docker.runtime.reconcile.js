@@ -262,7 +262,9 @@
                 if (runtimeState && typeof runtimeState.Running === 'boolean') {
                     args[3] = runtimeState.Running;
                     args[4] = runtimeState.Running && runtimeState.Paused === true;
-                    if (typeof runtimeState.Updated === 'boolean') {
+                    if (runtimeEntry?.isRebuildReady === true) {
+                        args[5] = 2;
+                    } else if (typeof runtimeState.Updated === 'boolean') {
                         args[5] = runtimeState.Updated === false ? 1 : 0;
                     }
                     if (typeof runtimeState.Autostart === 'boolean') {
@@ -547,6 +549,15 @@
         };
 
         const handleUpdateActionClickCapture = (event) => {
+            const member = event?.target instanceof Element
+                ? event.target.closest('[data-fvplus-update-member]')
+                : null;
+            const memberName = member?.getAttribute('data-fvplus-update-member');
+            if (memberName && getDockerRuntimeContainerInfo(memberName)?.isRebuildReady === true) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return;
+            }
             if (!shouldArmFromClick(event?.target)) {
                 return;
             }

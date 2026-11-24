@@ -285,21 +285,21 @@ test('docker incremental lifecycle sync refreshes initialized preview menus from
 });
 
 test('docker hydration refresh updates collapsed folder update columns from runtime cache', () => {
-    assert.match(dockerScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{/);
-    assert.match(dockerScript, /renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{/);
+    assert.match(dockerScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{/);
+    assert.match(dockerScript, /renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{/);
     assert.match(dockerRuntimeHierarchyScript, /const resolveFolderUpdateColumnState = \(managerTypes,\s*upToDate,\s*managed,\s*options = \{\}\) => \{/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*const state = resolveFolderUpdateColumnState\(managerTypes,\s*upToDate,\s*managed\);/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*updateFolder\('\$\{id\}'\);/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*forceUpdateFolder\('\$\{id\}'\);/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('update-ready'\)/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('up-to-date'\)/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*state\.showAdvanced \? ' fv-advanced-visible' : ''/);
-    assert.match(dockerScript, /const renderDockerFolder = \(folder,\s*id,\s*positionInMainOrder,\s*liveOrderArray,\s*containersInfo,\s*foldersDone,\s*matchCacheEntry = null,\s*depthLevel = 0\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\),\s*managerTypes,\s*upToDate,\s*managed\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*const state = resolveFolderUpdateColumnState\(managerTypes,\s*upToDate,\s*managed,\s*\{ needsRebuild \}\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*updateFolder\('\$\{id\}'\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*forceUpdateFolder\('\$\{id\}'\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*jq\.i18n\('update-ready'\)/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*jq\.i18n\('up-to-date'\)/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) => \{[\s\S]*state\.showAdvanced \? ' fv-advanced-visible' : ''/);
+    assert.match(dockerScript, /const renderDockerFolder = \(folder,\s*id,\s*positionInMainOrder,\s*liveOrderArray,\s*containersInfo,\s*foldersDone,\s*matchCacheEntry = null,\s*depthLevel = 0\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\),\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/);
     assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*hierarchyApi\.updateFolderRowStatusFromContainers\(id,\s*folder,\s*runtimeContainers\);/);
     assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*const \$updateColumn = \$folderRow\.find\('td\.updatecolumn'\);/);
     assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*if \(\$updateColumn\.length && folder\?\.settings\?\.update_column !== true\) \{/);
-    assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);
+    assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/);
 });
 
 test('docker runtime exposes and applies focus\/lock state guards', () => {

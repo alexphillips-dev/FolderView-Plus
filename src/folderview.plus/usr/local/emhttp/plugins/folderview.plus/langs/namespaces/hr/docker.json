@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "docker",
-        "content-revision": "db8e65849153278fe2a14864d25374ad439d93913762f2ac51f3efa82a192f10"
+        "content-revision": "14687def431b3bf63d53267cc3e4c84d5c1e39ba49b4225ecc517397872bde02"
     },
     "docker.folder.move-reload": "Konfiguracija mape promijenjena. Osvježite prije ponovnog premještanja mape.",
     "docker.actions.label": "FolderView radnje",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Pregledaj zapisnike",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI s GraphQL podacima",
     "docker.health.api-summary": "Docker API: ažuriranja: $1, spreman za ponovnu izgradnju: $2, napušteno: $3, sukobi priključaka: $4",
+    "docker.update.rebuild-ready": "Obnova spremna",
+    "docker.update.status-unavailable": "Status ažuriranja nije dostupan",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Popis domaćina",
     "docker.views.command": "Zapovjedi",

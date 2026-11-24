@@ -338,53 +338,50 @@ require_once __DIR__ . '/lib.theme-css.php';
     }
 
     function activateThemeWorkspaceTheme(string $themeId): array {
-        $workspace = readThemeWorkspace();
-        $safeThemeId = truncateUtf8String(trim($themeId), 64);
-        foreach ((array)($workspace['themes'] ?? []) as $theme) {
-            if (trim((string)($theme['id'] ?? '')) === $safeThemeId) {
-                $workspace['activeThemeId'] = $safeThemeId;
-                return writeThemeWorkspace($workspace);
+        return withConfigMutationLock(static function () use ($themeId): array {
+            $workspace = readThemeWorkspace(false);
+            $safeThemeId = truncateUtf8String(trim($themeId), 64);
+            if (!in_array($safeThemeId, array_column($workspace['themes'], 'id'), true)) {
+                throw new RuntimeException('Theme not found.');
             }
-        }
-        throw new RuntimeException('Theme not found.');
+            $workspace['activeThemeId'] = $safeThemeId;
+            return writeThemeWorkspace($workspace);
+        });
     }
 
     function deactivateThemeWorkspaceTheme(): array {
-        $workspace = readThemeWorkspace();
-        $workspace['activeThemeId'] = '';
-        return writeThemeWorkspace($workspace);
+        return withConfigMutationLock(static function (): array {
+            $workspace = readThemeWorkspace(false);
+            $workspace['activeThemeId'] = '';
+            return writeThemeWorkspace($workspace);
+        });
     }
 
     function deleteThemeWorkspaceTheme(string $themeId): array {
-        $workspace = readThemeWorkspace();
-        $safeThemeId = truncateUtf8String(trim($themeId), 64);
-        $themes = [];
-        $deleted = false;
-        foreach ((array)($workspace['themes'] ?? []) as $theme) {
-            if (trim((string)($theme['id'] ?? '')) === $safeThemeId) {
-                $deleted = true;
-                continue;
+        return withConfigMutationLock(static function () use ($themeId): array {
+            $workspace = readThemeWorkspace(false);
+            $safeThemeId = truncateUtf8String(trim($themeId), 64);
+            $themes = array_values(array_filter($workspace['themes'], static fn(array $theme): bool => $theme['id'] !== $safeThemeId));
+            if (count($themes) === count($workspace['themes'])) {
+                throw new RuntimeException('Theme not found.');
             }
-            $themes[] = $theme;
-        }
-        if (!$deleted) {
-            throw new RuntimeException('Theme not found.');
-        }
-        $workspace['themes'] = $themes;
-        if (trim((string)($workspace['activeThemeId'] ?? '')) === $safeThemeId) {
-            $workspace['activeThemeId'] = '';
-        }
-        return writeThemeWorkspace($workspace);
+            $workspace['themes'] = $themes;
+            if ($workspace['activeThemeId'] === $safeThemeId) {
+                $workspace['activeThemeId'] = '';
+            }
+            return writeThemeWorkspace($workspace);
+        });
     }
 
     function saveThemeWorkspaceCustomize($variables, string $customCss): array {
-        $workspace = readThemeWorkspace();
         $scan = fvplusThemeWorkspaceScanCss($customCss);
-        if (count((array)($scan['severe'] ?? [])) > 0) {
+        if ($scan['severe']) {
             throw new RuntimeException(implode(' ', (array)$scan['severe']));
         }
-        $workspace = fvplusThemeProfileUpdateLayer($workspace, (string)$workspace['activeProfileId'], 'global', $variables, $customCss);
-        return writeThemeWorkspace($workspace);
+        return withConfigMutationLock(static function () use ($variables, $customCss): array {
+            $workspace = readThemeWorkspace(false);
+            return writeThemeWorkspace(fvplusThemeProfileUpdateLayer($workspace, $workspace['activeProfileId'], 'global', $variables, $customCss));
+        });
     }
 
     function checkThemeWorkspaceUpdates(): array {

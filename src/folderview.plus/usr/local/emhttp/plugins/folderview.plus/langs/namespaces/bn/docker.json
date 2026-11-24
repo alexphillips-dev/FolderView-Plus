@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "docker",
-        "content-revision": "54f5a18e1806fde1edda7a7c222bd994c6961cb78fe82543dd3c04859a31206d"
+        "content-revision": "e080e521867b360ebe063faced31eeb04f73c412f56f92e511d373586a5e86e0"
     },
     "docker.folder.move-reload": "ফোল্ডার কনফিগারেশন পরিবর্তন করা হয়েছে. ফোল্ডারটি আবার সরানোর আগে রিফ্রেশ করুন।",
     "docker.actions.label": "ফোল্ডারভিউ অ্যাকশন",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "লগ দেখুন",
     "docker.provider.hybrid-label": "GraphQL ডেটা সহ লিগ্যাসি Unraid WebGUI",
     "docker.health.api-summary": "ডকার API: আপডেট: $1, পুনর্নির্মাণের জন্য প্রস্তুত: $2, অনাথ: $3, পোর্ট বিরোধ: $4",
+    "docker.update.rebuild-ready": "পুনর্নির্মাণ প্রস্তুত",
+    "docker.update.status-unavailable": "আপডেট স্থিতি অনুপলব্ধ",
     "docker.views.folderview": "ফোল্ডারভিউ",
     "docker.views.host": "হোস্ট তালিকা",
     "docker.views.command": "আদেশ",

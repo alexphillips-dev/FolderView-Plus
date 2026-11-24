@@ -290,6 +290,9 @@
                     showAdvanced
                 };
             }
+            if (options.needsRebuild === true) {
+                return { statusToken: 'rebuildReady', actionToken: 'other', actionRequiresAdvancedView: false, showAdvanced };
+            }
             return {
                 statusToken: 'upToDate',
                 actionToken: managed > 0 && showAdvanced ? 'forceUpdate' : 'upToDate',
@@ -298,30 +301,26 @@
             };
         };
 
-        const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed) => {
+        const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed, needsRebuild = false) => {
             if (!$updateColumn?.length || !jq) {
                 return;
             }
-
-            const state = resolveFolderUpdateColumnState(managerTypes, upToDate, managed);
+            const state = resolveFolderUpdateColumnState(managerTypes, upToDate, managed, { needsRebuild });
             $updateColumn.empty();
+            if (needsRebuild) {
+                $updateColumn.append(jq('<div class="orange-text folder-update-text"><i class="fa fa-recycle fa-fw"></i></div>')
+                    .append(jq('<span>').text(translate("docker.update.rebuild-ready", "Rebuild ready"))));
+                if (state.statusToken === 'rebuildReady') return;
+            }
 
-            if (state.statusToken === 'composeAndThirdParty') {
-                $updateColumn.append(
-                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span><br><span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
-                );
-                return;
-            }
-            if (state.statusToken === 'compose') {
-                $updateColumn.append(
-                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span>`)
-                );
-                return;
-            }
-            if (state.statusToken === 'thirdParty') {
-                $updateColumn.append(
-                    jq(`<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
-                );
+            const managerLabels = {
+                composeAndThirdParty: ['compose', 'third-party'],
+                compose: ['compose'],
+                thirdParty: ['third-party']
+            }[state.statusToken];
+            if (managerLabels) {
+                const html = managerLabels.map(key => `<span class="folder-update-text" data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-docker fa-fw"></i> ${jq.i18n(key)}</span>`);
+                $updateColumn.append(jq(html.join('<br>')));
                 return;
             }
             if (state.statusToken === 'updateReady') {
@@ -350,6 +349,7 @@
             }
             const containerEntries = Object.values(runtimeContainers || {});
             let upToDate = true;
+            let needsRebuild = false;
             let started = 0;
             let paused = 0;
             let stopped = 0;
@@ -362,11 +362,12 @@
                 const state = entry?.state === true;
                 const isPaused = entry?.pause === true;
                 const isManaged = entry?.managed === true;
-                const hasUpdate = entry?.update === true;
+                const hasUpdate = entry?.update === true && entry?.isRebuildReady !== true;
                 const manager = String(entry?.manager || '').trim();
                 const isAutostart = entry?.autostart === true;
 
                 upToDate = upToDate && !hasUpdate;
+                needsRebuild ||= isManaged && entry?.isRebuildReady === true;
                 if (state) {
                     if (isPaused) {
                         paused += 1;
@@ -412,11 +413,11 @@
             deps.applyFolderStatusBadgeVisibility?.($folderIcon);
 
             if ($updateColumn.length && folder?.settings?.update_column !== true) {
-                renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);
+                renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed, needsRebuild);
             }
 
             const expanded = folder?.status?.expanded === true;
-            folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
+            folder.status = { upToDate, needsRebuild, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
             win.FolderViewPlusDockerFolderFeedback?.getApi?.(win)?.decorateStatus(id, folder, runtimeContainers, folderHasChildren(id));
         };
 

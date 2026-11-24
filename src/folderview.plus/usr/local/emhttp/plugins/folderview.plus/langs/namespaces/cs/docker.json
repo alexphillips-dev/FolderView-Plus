@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "docker",
-        "content-revision": "dae3e1d41b751e683b0428752bd8e669a1a2bba3fee61c002cb7f1cc2637fe93"
+        "content-revision": "3f888960e4d579a21cd4a003316dbbd8cc3693269cd1823c39a9542068906cf8"
     },
     "docker.folder.move-reload": "Konfigurace složky se změnila. Před opětovným přesunem složky aktualizujte.",
     "docker.actions.label": "Akce FolderView",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Zobrazit protokoly",
     "docker.provider.hybrid-label": "Starší Unraid WebGUI s daty GraphQL",
     "docker.health.api-summary": "Docker API: aktualizace: $1, připraveno k opětovnému sestavení: $2, osiřelé: $3, konflikty portů: $4",
+    "docker.update.rebuild-ready": "Přestavba připravena",
+    "docker.update.status-unavailable": "Stav aktualizace není k dispozici",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Seznam hostitelů",
     "docker.views.command": "Příkaz",

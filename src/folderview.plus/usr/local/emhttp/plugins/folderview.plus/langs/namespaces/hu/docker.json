@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "docker",
-        "content-revision": "870aa5a0dcd3ec5a05c0d234d745e09393aff8fa8395e3259bb8d6f122fa719a"
+        "content-revision": "05a4555c63e8bdf53e1b3e8f8c7b11fbaa324e37c179c73d0b5f1f96ba5c05aa"
     },
     "docker.folder.move-reload": "A mappa konfigurációja megváltozott. Frissítsen, mielőtt újra áthelyezi a mappát.",
     "docker.actions.label": "FolderView műveletek",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Naplók megtekintése",
     "docker.provider.hybrid-label": "Legacy Unraid WebGUI GraphQL adatokkal",
     "docker.health.api-summary": "Docker API: frissítések: $1, újraépítésre kész: $2, árva: $3, portütközések: $4",
+    "docker.update.rebuild-ready": "Újjáépítés kész",
+    "docker.update.status-unavailable": "A frissítés állapota nem érhető el",
     "docker.views.folderview": "Mappanézet",
     "docker.views.host": "Gazdalista",
     "docker.views.command": "Parancs",

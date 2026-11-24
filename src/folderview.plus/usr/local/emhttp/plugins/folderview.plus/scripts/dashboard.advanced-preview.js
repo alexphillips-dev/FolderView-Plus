@@ -7,6 +7,9 @@
     root.FolderViewPlusDashboardAdvancedPreview = factory();
     root.FolderViewPlusDashboardAdvancedPreviewModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const GRAPHQL_STATS_TIMEOUT_MS = 5000;
+    const LEGACY_STATS_TARGET_CHECK_MS = 1000;
+
     const escapeHtmlFallback = (value) => String(value ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -26,32 +29,34 @@
     };
 
     const memToBytes = (value) => {
-        const raw = String(value || '').trim();
-        const match = raw.match(/^([0-9]*\.?[0-9]+)\s*([KMGTPE]?i?B?)?$/i);
+        const raw = String(value ?? '').trim();
+        const match = raw.match(/^([0-9]*\.?[0-9]+)\s*([KMGTPE](?:i?B)?|B)?$/i);
         if (!match) {
-            return 0;
+            return null;
         }
         const amount = Number(match[1]);
-        if (!Number.isFinite(amount)) {
-            return 0;
-        }
         const unit = String(match[2] || 'B').toUpperCase();
-        const multipliers = {
-            B: 1,
-            K: 1024,
-            KB: 1024,
-            KIB: 1024,
-            M: 1024 ** 2,
-            MB: 1024 ** 2,
-            MIB: 1024 ** 2,
-            G: 1024 ** 3,
-            GB: 1024 ** 3,
-            GIB: 1024 ** 3,
-            T: 1024 ** 4,
-            TB: 1024 ** 4,
-            TIB: 1024 ** 4
-        };
-        return amount * (multipliers[unit] || 1);
+        const bytes = amount * 1024 ** 'BKMGTPE'.indexOf(unit[0]);
+        return Number.isFinite(bytes) ? bytes : null;
+    };
+
+    const statsNumber = (value) => {
+        if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) {
+            return null;
+        }
+        const numeric = Number(value);
+        return Number.isFinite(numeric) && numeric >= 0 ? numeric : null;
+    };
+
+    const statsContainerId = (value) => String(value ?? '').split(':').pop()?.trim() || '';
+    const matchesStatsId = (value, ct) => {
+        const statsId = statsContainerId(value);
+        const shortId = statsContainerId(ct?.shortId);
+        const containerId = [ct?.id, ct?.info?.Id].map(statsContainerId).find((id) => (
+            id.length > shortId.length && id.startsWith(shortId)
+        ));
+        if (containerId && statsId.length > shortId.length) return statsId === containerId;
+        return shortId !== '' && statsId.startsWith(shortId);
     };
 
     const createApi = (deps = {}) => {
@@ -296,8 +301,9 @@
             const shortId = String(ct?.shortId || ct?.info?.Name || 'docker');
             const graphMode = clampGraphMode(settings.previewGraph);
             const duration = clampGraphTimeMs(settings.previewGraphTime);
-            const colorCpu = getComputedStyle(doc?.documentElement || doc?.body || {}).getPropertyValue('--folder-view3-graph-cpu') || '#2b8da3';
-            const colorMem = getComputedStyle(doc?.documentElement || doc?.body || {}).getPropertyValue('--folder-view3-graph-mem') || '#5d6db6';
+            const styles = win.getComputedStyle(doc?.documentElement || doc?.body || {});
+            const colorCpu = styles.getPropertyValue('--folder-view3-graph-cpu') || '#2b8da3';
+            const colorMem = styles.getPropertyValue('--folder-view3-graph-mem') || '#5d6db6';
             const options = {
                 scales: {
                     x: {
@@ -339,35 +345,38 @@
         };
 
         const parseStatsMessage = (event, ct, cpus = 1) => {
-            const shortId = String(ct?.shortId || '').trim();
-            const raw = typeof event?.data === 'string' ? event.data : String(event || '');
-            const line = raw.split('\n').find((entry) => shortId && entry.includes(shortId)) || '';
-            const parts = line.split(/\s+/).filter(Boolean);
-            if (parts.length < 3) {
-                return { cpu: 0, mem: 0 };
+            const raw = typeof event?.data === 'string' ? event.data : String(event ?? '');
+            for (const row of raw.split('\n')) {
+                const fields = row.includes(';') ? row.split(';') : row.trim().match(/^(\S+)\s+(\S+)\s+(.+)$/)?.slice(1);
+                if (!fields) continue;
+                const [id, cpuPercent, usage] = fields;
+                if (!matchesStatsId(id, ct)) continue;
+                const memUsage = (usage || '').trim();
+                const cpuRaw = statsNumber(cpuPercent?.replace(/%\s*$/, ''));
+                const [usedText, totalText] = memUsage.split('/');
+                const used = memToBytes(usedText);
+                const total = memToBytes(totalText);
+                if (cpuRaw === null || used === null || total === null) continue;
+                const mem = total > 0 ? (used / total) * 100 : 0;
+                if (!Number.isFinite(mem)) continue;
+                return { cpu: cpuRaw / Math.max(1, Number(cpus) || 1), mem, memUsage };
             }
-            const cpuRaw = Number(String(parts[1] || '0').replace('%', ''));
-            const cpu = Number.isFinite(cpuRaw) ? cpuRaw / Math.max(1, Number(cpus) || 1) : 0;
-            const memParts = String(parts[2] || '').split('/');
-            const used = memToBytes(memParts[0]);
-            const total = memToBytes(memParts[1]);
-            return {
-                cpu,
-                mem: total > 0 ? (used / total) * 100 : 0
-            };
+            return null;
         };
+
         const parseGraphqlStats = (payload, ct, cpus = 1) => {
             const stats = payload?.dockerContainerStats || payload?.data?.dockerContainerStats || null;
-            const shortId = String(ct?.shortId || ct?.info?.Id || '').trim();
-            const statsId = String(stats?.id || '').split(':').pop() || '';
-            if (!stats || !shortId || !(statsId === shortId || statsId.startsWith(shortId))) {
+            if (!stats || !matchesStatsId(stats.id, ct)) {
                 return null;
             }
-            const cpuRaw = Number(stats.cpuPercent);
-            const memRaw = Number(stats.memPercent);
+            const cpuRaw = statsNumber(stats.cpuPercent);
+            const memRaw = statsNumber(stats.memPercent);
+            if (cpuRaw === null || memRaw === null) {
+                return null;
+            }
             return {
-                cpu: Number.isFinite(cpuRaw) ? cpuRaw / Math.max(1, Number(cpus) || 1) : 0,
-                mem: Number.isFinite(memRaw) ? memRaw : 0,
+                cpu: cpuRaw / Math.max(1, Number(cpus) || 1),
+                mem: memRaw,
                 memUsage: String(stats.memUsage || '').trim(),
                 netIO: String(stats.netIO || '').trim(),
                 blockIO: String(stats.blockIO || '').trim()
@@ -383,21 +392,14 @@
                 return false;
             }
             const triggerMode = settings.previewTrigger === 'hover' && win?.FolderViewPlusTouchMode !== true ? 'hover' : 'click';
-            const CPU = [];
-            const MEM = [];
-            let charts = [];
-            let attachedListener = null;
-            let statsSubscription = null;
-            let tooltipObserver = null;
-            const pushStats = (next) => {
-                if (!next) return;
-                const now = Date.now();
-                CPU.push({ x: now, y: next.cpu });
-                MEM.push({ x: now, y: next.mem });
-                updateCharts(charts);
+            let activePreview = null;
+            const disposePreview = () => {
+                const preview = activePreview;
+                activePreview = null;
+                preview?.dispose();
             };
-            const graphListener = (event) => pushStats(parseStatsMessage(event, ct, cpus));
             win?.FolderViewPlusFoundationModules?.folderRenderRecovery?.registerCleanup(() => {
+                disposePreview();
                 if ($trigger.hasClass('tooltipstered')) $trigger.tooltipster('destroy');
                 $trigger.removeData('fvDashboardAdvancedPreviewAttached fvDashboardAdvancedPreviewBuilt');
             });
@@ -418,39 +420,118 @@
                     }
                 },
                 functionReady: function(_instance, helper) {
+                    disposePreview();
                     const tooltipDom = helper.tooltip && helper.tooltip.length ? helper.tooltip : jq(helper.tooltip);
-                    const bindLegacyStats = () => {
-                        if (
-                            attachedListener
-                            || !win?.dockerload
-                            || typeof win.dockerload.addEventListener !== 'function'
-                        ) {
-                            return;
+                    const CPU = [];
+                    const MEM = [];
+                    let charts = [];
+                    let legacyStatsTarget = null;
+                    let unbindLegacyStats = null;
+                    let legacyStatsTimer = null;
+                    let graphqlStatsTimer = null;
+                    let acceptGraphqlStats = true;
+                    let statsSubscription = null;
+                    let tooltipObserver = null;
+                    const shortId = String(ct?.shortId || ct?.info?.Id || ct?.info?.Name || 'docker');
+                    const preview = {
+                        tooltip: tooltipDom.get(0),
+                        dispose: () => {
+                            clearGraphqlTimer();
+                            stopLegacyStats();
+                            tooltipObserver?.disconnect();
+                            for (const chart of charts) {
+                                try {
+                                    chart.destroy();
+                                } catch (_error) {
+                                    // Ignore late chart cleanup failures.
+                                }
+                            }
+                            statsSubscription?.();
                         }
-                        win.dockerload.addEventListener('message', graphListener);
-                        attachedListener = 'sse';
                     };
-                    const handleGraphqlStats = (payload) => {
-                        const next = parseGraphqlStats(payload, ct, cpus);
-                        if (!next) return;
-                        pushStats(next);
-                        const cpuText = (globalThis.FolderViewPlusI18n?.formatNumber?.((Math.max(0, next.cpu)) / 100, { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }) || `${(Math.max(0, next.cpu)).toFixed(1)}%`);
-                        tooltipDom.find(`.cpu-${ct.shortId}`).text(cpuText);
-                        tooltipDom.find(`span#cpu-${ct.shortId}`).css(
+                    const isCurrent = () => activePreview === preview;
+                    const clearGraphqlTimer = () => {
+                        if (graphqlStatsTimer !== null) win.clearTimeout(graphqlStatsTimer);
+                        graphqlStatsTimer = null;
+                    };
+                    const renderStats = (next) => {
+                        if (!next || !isCurrent()) return;
+                        const now = Date.now();
+                        CPU.push({ x: now, y: next.cpu });
+                        MEM.push({ x: now, y: next.mem });
+                        updateCharts(charts);
+                        const cpu = Math.max(0, next.cpu);
+                        const cpuText = win?.FolderViewPlusI18n?.formatNumber?.(cpu / 100, {
+                            style: 'percent',
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }) || `${cpu.toFixed(1)}%`;
+                        tooltipDom.find(`.cpu-${shortId}`).text(cpuText);
+                        tooltipDom.find(`span#cpu-${shortId}`).css(
                             'width',
-                            `${Math.max(0, Math.min(100, next.cpu)).toFixed(1)}%`
+                            `${Math.min(100, cpu).toFixed(1)}%`
                         );
                         if (next.memUsage) {
-                            tooltipDom.find(`.mem-${ct.shortId}`).text(next.memUsage);
+                            tooltipDom.find(`.mem-${shortId}`).text(next.memUsage);
                         }
                     };
+                    const bindLegacyStats = () => {
+                        if (!isCurrent() || graphqlStatsTimer !== null) return;
+                        const target = win?.dockerload || null;
+                        if (target === legacyStatsTarget) return;
+                        unbindLegacyStats?.();
+                        legacyStatsTarget = target;
+                        unbindLegacyStats = null;
+                        const handleLegacyStats = (event) => {
+                            if (!isCurrent() || graphqlStatsTimer !== null) return;
+                            if (target !== win.dockerload) {
+                                bindLegacyStats();
+                                return;
+                            }
+                            renderStats(parseStatsMessage(event, ct, cpus));
+                        };
+                        if (typeof target?.addEventListener === 'function' && typeof target.removeEventListener === 'function') {
+                            target.addEventListener('message', handleLegacyStats);
+                            unbindLegacyStats = () => target.removeEventListener('message', handleLegacyStats);
+                        } else if (typeof target?.on === 'function' && typeof target.off === 'function') {
+                            target.on('message', handleLegacyStats);
+                            unbindLegacyStats = () => target.off('message', handleLegacyStats);
+                        }
+                    };
+                    const stopLegacyStats = () => {
+                        if (legacyStatsTimer !== null) win.clearInterval(legacyStatsTimer);
+                        legacyStatsTimer = null;
+                        unbindLegacyStats?.();
+                        unbindLegacyStats = null;
+                        legacyStatsTarget = null;
+                    };
+                    const useLegacyStats = () => {
+                        if (!isCurrent()) return;
+                        clearGraphqlTimer();
+                        bindLegacyStats();
+                        if (legacyStatsTimer === null) {
+                            legacyStatsTimer = win.setInterval(bindLegacyStats, LEGACY_STATS_TARGET_CHECK_MS);
+                        }
+                    };
+                    const handleGraphqlStats = (payload) => {
+                        if (!isCurrent() || !acceptGraphqlStats) return;
+                        const next = parseGraphqlStats(payload, ct, cpus);
+                        if (!next) return;
+                        stopLegacyStats();
+                        clearGraphqlTimer();
+                        graphqlStatsTimer = win.setTimeout(useLegacyStats, GRAPHQL_STATS_TIMEOUT_MS);
+                        renderStats(next);
+                    };
                     const mountCharts = () => {
-                        if (tooltipDom.closest('html').length && charts.length === 0) {
+                        if (isCurrent() && tooltipDom.closest('html').length && charts.length === 0) {
                             charts = createCharts(tooltipDom, ct, settings, CPU, MEM);
                         }
                     };
+                    activePreview = preview;
+                    useLegacyStats();
                     if (win.FolderViewPlusAssetLoader?.ensureChartStack) {
                         win.FolderViewPlusAssetLoader.ensureChartStack().then(mountCharts).catch((error) => {
+                            if (!isCurrent() || !tooltipDom.closest('html').length) return;
                             tooltipDom.find('.folder-graph').empty().append(
                                 jq('<div class="fv-tooltip-lazy-loading"></div>').text(`Graph unavailable: ${String(error?.message || error)}`)
                             );
@@ -458,19 +539,19 @@
                     } else if (typeof win.Chart === 'function') {
                         mountCharts();
                     }
-                    const cpuTextElement = tooltipDom.find(`.cpu-${ct.shortId}`).get(0);
+                    const cpuTextElement = tooltipDom.find(`.cpu-${shortId}`).get(0);
                     if (cpuTextElement && typeof win?.MutationObserver === 'function') {
                         tooltipObserver = new win.MutationObserver((mutationList) => {
+                            if (!isCurrent()) return;
                             for (const mutation of mutationList) {
-                                tooltipDom.find(`span#cpu-${ct.shortId}`).css('width', mutation.target.textContent);
+                                tooltipDom.find(`span#cpu-${shortId}`).css('width', mutation.target.textContent);
                             }
                         });
                         tooltipObserver.observe(cpuTextElement, { childList: true });
                     }
                     const provider = win?.FolderViewPlusDockerProviders?.getDefault?.() || null;
                     if (
-                        !statsSubscription
-                        && (
+                        (
                             provider?.supports?.('subscription.dockerContainerStats') === true
                             || (
                                 typeof provider?.supports !== 'function'
@@ -479,51 +560,35 @@
                         )
                         && typeof provider.subscribeStats === 'function'
                     ) {
-                        statsSubscription = provider.subscribeStats({
+                        const unsubscribe = provider.subscribeStats({
                             onData: handleGraphqlStats,
-                            onError: () => {},
+                            onError: (error) => {
+                                if (['subscription-error', 'subscription-offline'].includes(error?.category)) {
+                                    acceptGraphqlStats = false;
+                                }
+                                useLegacyStats();
+                            },
                             onStatus: (snapshot) => {
                                 const status = String(snapshot?.status || '');
-                                if (status === 'active') {
-                                    if (
-                                        attachedListener === 'sse'
-                                        && win?.dockerload
-                                        && typeof win.dockerload.removeEventListener === 'function'
-                                    ) {
-                                        win.dockerload.removeEventListener('message', graphListener);
-                                    }
-                                    attachedListener = 'graphql';
-                                } else if (['unavailable', 'failed'].includes(status)) {
-                                    if (attachedListener === 'graphql') attachedListener = null;
+                                if (['complete', 'reconnecting', 'unavailable', 'failed', 'closed'].includes(status)) {
+                                    acceptGraphqlStats = false;
+                                    useLegacyStats();
+                                } else if (status === 'active') {
+                                    acceptGraphqlStats = true;
                                     bindLegacyStats();
                                 }
                             },
                             subscriptionId: `fvplus-dashboard-stats-${String(ct.shortId || 'container')}`
                         });
-                        bindLegacyStats();
-                    } else {
-                        bindLegacyStats();
-                    }
-                },
-                functionAfter: function() {
-                    if (attachedListener === 'sse' && win?.dockerload && typeof win.dockerload.removeEventListener === 'function') {
-                        win.dockerload.removeEventListener('message', graphListener);
-                    }
-                    attachedListener = null;
-                    statsSubscription?.();
-                    statsSubscription = null;
-                    for (const chart of charts) {
-                        try {
-                            chart.destroy();
-                        } catch (_error) {
-                            // Ignore late chart cleanup failures.
+                        if (typeof unsubscribe === 'function') {
+                            if (isCurrent()) statsSubscription = unsubscribe;
+                            else unsubscribe();
                         }
                     }
-                    charts = [];
-                    if (tooltipObserver) {
-                        tooltipObserver.disconnect();
-                        tooltipObserver = null;
-                    }
+                },
+                functionAfter: function(_instance, helper) {
+                    const tooltip = helper?.tooltip?.[0] || helper?.tooltip;
+                    if (!tooltip || activePreview?.tooltip === tooltip) disposePreview();
                 },
                 content: jq('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
             });

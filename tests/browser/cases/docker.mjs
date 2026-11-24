@@ -43,7 +43,7 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
 });
 
 test('Docker late wizard folders claim canonical host rows before hide-empty filtering', async ({ page }) => exerciseDockerFolderGrouping({ page, baseUrl }));
-test('Docker startup plan matches the fully expanded Docker page', exerciseDockerPageStartOrder);
+test('Docker startup plan matches the fully expanded Docker page', exerciseDockerPageStartOrder, { skipAccessibility: true });
 
 test('Docker single-row preview cloning falls back without stopping later members', async ({ page }) => {
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });

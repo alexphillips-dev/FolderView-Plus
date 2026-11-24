@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "docker",
-        "content-revision": "6184b0e7ce63d93c9a295288a19b70901ddd52eedaf18dd9e658b1cb74b410ed"
+        "content-revision": "045dd3b97c2d28d6bbcde038dad4081f9c72b9e6a06a4c9239e16115551ae0fe"
     },
     "docker.folder.move-reload": "Klasör yapılandırması değiştirildi. Klasörü tekrar taşımadan önce yenileyin.",
     "docker.actions.label": "Klasör Görünümü eylemleri",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Günlükleri görüntüle",
     "docker.provider.hybrid-label": "GraphQL verileriyle Eski Unraid WebGUI'si",
     "docker.health.api-summary": "Docker API: güncellemeler: $1, yeniden oluşturulmaya hazır: $2, artık: $3, bağlantı noktası çakışmaları: $4",
+    "docker.update.rebuild-ready": "Yeniden oluşturma hazır",
+    "docker.update.status-unavailable": "Güncelleme durumu kullanılamıyor",
     "docker.views.folderview": "Klasör Görünümü",
     "docker.views.host": "Ana bilgisayar listesi",
     "docker.views.command": "Komut",

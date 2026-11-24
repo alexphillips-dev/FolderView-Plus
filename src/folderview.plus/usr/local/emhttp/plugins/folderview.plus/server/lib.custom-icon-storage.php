@@ -472,5 +472,7 @@ require_once __DIR__ . '/lib.custom-icon-repair.php';
         ];
     }
 
-    fvplusBootstrapCustomIconStorage();
-    ensureThemeWorkspaceManagedAssets();
+    if (!defined('FVPLUS_THEME_WORKSPACE_REQUEST') || FVPLUS_THEME_WORKSPACE_REQUEST !== true) {
+        fvplusBootstrapCustomIconStorage();
+        ensureThemeWorkspaceManagedAssets();
+    }

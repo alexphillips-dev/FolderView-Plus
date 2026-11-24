@@ -79,6 +79,9 @@
 
         let workspace = normalizeWorkspace({});
         let workspaceRevision = 0;
+        let publishedWorkspaceRevision = 0;
+        let themeCheckRevision = 0;
+        const draftLayersByProfile = new Map();
         let pendingScan = null;
         let scanRevision = 0;
         let importingTheme = false;
@@ -103,7 +106,9 @@
                     layers: { ...profile.layers, [activeScope]: { ...themeProfiles.normalizeLayer(profile.layers?.[activeScope]), ...patch } }
                 })
             };
-            return syncEditingAliases();
+            const layer = syncEditingAliases();
+            draftLayersByProfile.set(profileId, { ...draftLayersByProfile.get(profileId), [activeScope]: layer });
+            return layer;
         };
 
         const setStatus = (message) => {
@@ -440,11 +445,24 @@
                 : translate("settings.theme.no-active-theme", "No managed theme is currently active.")}`);
         };
 
-        const setWorkspace = (nextWorkspace) => {
+        const setWorkspace = (nextWorkspace, { preserveDrafts = false } = {}) => {
             workspaceRevision += 1;
+            publishedWorkspaceRevision += 1;
+            const previousProfileId = workspace.activeProfileId;
             workspace = normalizeWorkspace(nextWorkspace);
-            presetBeforeLayer = null;
-            selectedPreset = '';
+            if (!preserveDrafts) draftLayersByProfile.clear();
+            if (draftLayersByProfile.size) {
+                const profileIds = new Set(workspace.profiles.map(profile => profile.id));
+                for (const id of draftLayersByProfile.keys()) if (!profileIds.has(id)) draftLayersByProfile.delete(id);
+                workspace.profiles = workspace.profiles.map((profile) => {
+                    const drafts = draftLayersByProfile.get(profile.id);
+                    return drafts ? { ...profile, layers: { ...profile.layers, ...drafts } } : profile;
+                });
+            }
+            if (previousProfileId !== workspace.activeProfileId || !draftLayersByProfile.get(workspace.activeProfileId)?.[activeScope]) {
+                presetBeforeLayer = null;
+                selectedPreset = '';
+            }
             renderWorkspace();
             return workspace;
         };
@@ -454,7 +472,7 @@
             const response = await apiGetJson('/plugins/folderview.plus/server/theme_workspace.php', {
                 data: { action: 'read' }
             });
-            return revision === workspaceRevision ? setWorkspace(response.workspace || {}) : workspace;
+            return revision === workspaceRevision ? setWorkspace(response.workspace || {}, { preserveDrafts: true }) : workspace;
         };
 
         const importGithub = async (source) => {
@@ -469,7 +487,7 @@
                     action: 'import_github', source: input, commitSha
                 });
                 if (pendingScan === reviewed) pendingScan = null;
-                return setWorkspace(response.workspace || {});
+                return setWorkspace(response.workspace || {}, { preserveDrafts: true });
             } finally {
                 importingTheme = false;
                 renderScanResult(pendingScan);
@@ -506,14 +524,14 @@
                 action: 'activate',
                 themeId
             });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         };
 
         const deactivateTheme = async () => {
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
                 action: 'deactivate'
             });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         };
 
         const deleteTheme = async (themeId) => {
@@ -521,7 +539,7 @@
                 action: 'delete',
                 themeId
             });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         };
 
         const collectVariablesFromUi = () => {
@@ -596,10 +614,13 @@
         };
 
         const checkUpdates = async () => {
+            const checkRevision = ++themeCheckRevision;
+            const workspaceAtStart = publishedWorkspaceRevision;
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', {
                 action: 'check_updates'
             });
-            setWorkspace(response.workspace || {});
+            if (checkRevision !== themeCheckRevision || workspaceAtStart !== publishedWorkspaceRevision) return null;
+            setWorkspace(response.workspace || {}, { preserveDrafts: true });
             const complete = translate('legacy.surface.4d3d15fe9284ff59', 'Theme update check complete.');
             const failureCount = Number(response.failedCount) || 0;
             const message = failureCount > 0
@@ -615,7 +636,7 @@
                 action: 'update_theme',
                 themeId
             });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         };
 
         const updateAvailableThemes = async () => {
@@ -628,7 +649,7 @@
             const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_theme_updates', ...payload });
             setStatus(translate('settings.theme.updating-count', 'Updating managed themes: $1…', Number(preview?.plan?.updateCount) || 0));
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'update_themes', ...payload });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         };
 
         const resetTokens = () => {

@@ -108,6 +108,7 @@
         const shouldTrackRequest = typeof deps.shouldTrackRequest === 'function'
             ? deps.shouldTrackRequest
             : (() => true);
+        const isPageCurrent = typeof deps.isPageCurrent === 'function' ? deps.isPageCurrent : (() => true);
         const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const requestedCallbackName = String(deps.callbackName || '').trim();
         const callbackName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(requestedCallbackName)
@@ -217,7 +218,9 @@
             if (outcome.settled !== true) {
                 fallbackCount += 1;
                 schedule(() => {
-                    if (requestGeneration === activeGeneration) queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests });
+                    if (isPageCurrent() && requestGeneration === activeGeneration) {
+                        queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests });
+                    }
                 }, 0);
                 emit('lifecycleNativeRefreshFallback', {
                     generation: requestGeneration,
@@ -241,6 +244,7 @@
             return true;
         };
         const run = (requests, options = {}) => {
+            if (!isPageCurrent()) return Promise.resolve({ settled: false, canceled: true });
             const normalized = normalizeRequests(requests);
             if (normalized.length === 0) return Promise.resolve({ settled: false, skipped: true });
             const ownedUuids = new Set([...normalized, ...requestQueue].map((request) => request.uuid));
@@ -259,6 +263,10 @@
             });
             return new Promise((resolve) => {
                 const cancelIfSuperseded = (attemptIndex) => {
+                    if (!isPageCurrent()) {
+                        resolve({ settled: false, canceled: true });
+                        return true;
+                    }
                     if (requestGeneration === activeGeneration) return false;
                     staleGenerationCount += 1;
                     emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
@@ -322,13 +330,14 @@
         };
         const enqueueNativeRequest = (request) => {
             const normalized = normalizeRequest(request);
-            if (!normalized || shouldTrackRequest(normalized) !== true) return false;
+            if (!normalized || !isPageCurrent() || shouldTrackRequest(normalized) !== true) return false;
             requestQueue.push(normalized);
             captureSurface(normalized);
             emit('lifecycleDispatchIntercepted', { action: normalized.action, intent: normalized.intent, uuid: normalized.uuid });
             return true;
         };
         const handleNativeCallback = () => {
+            if (!isPageCurrent()) return Promise.resolve(false);
             const request = requestQueue.shift();
             if (!request) {
                 emit('lifecycleCallbackWithoutRequest');

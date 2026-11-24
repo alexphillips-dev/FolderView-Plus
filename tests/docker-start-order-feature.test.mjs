@@ -55,7 +55,7 @@ test('server builds preview and sync order from Docker page or custom batches', 
     assert.match(libPhp, /'managed'\s*=>\s*\$mode !== 'unmanaged'/);
     assert.match(prefsEndpoint, /normalizeDockerStartOrderPrefs\(\$current\['dockerStartOrder'\]/);
     assert.match(startOrderEndpoint, /dockerStartOrderPreview\(\)/);
-    assert.match(startOrderEndpoint, /syncContainerOrder\('docker'\)/);
+    assert.match(startOrderEndpoint, /fvplusRespondToDockerOrderSync\('docker'\)/);
 });
 
 test('settings page exposes a user-friendly Docker start-order workspace', () => {

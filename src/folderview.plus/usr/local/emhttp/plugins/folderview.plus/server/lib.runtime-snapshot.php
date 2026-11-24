@@ -69,7 +69,8 @@ function runtimeSnapshotStateProjection(string $type, array $runtime): array {
             'running' => $running,
             'paused' => $paused,
             'autostart' => runtimeSnapshotBool($entry['autostart'] ?? $stateNode['Autostart'] ?? false),
-            'updated' => $entry['Updated'] ?? $stateNode['Updated'] ?? null
+            'updated' => $entry['Updated'] ?? $stateNode['Updated'] ?? null,
+            'isRebuildReady' => is_bool($entry['isRebuildReady'] ?? null) ? $entry['isRebuildReady'] : null
         ];
     }
     ksort($projection, SORT_NATURAL | SORT_FLAG_CASE);

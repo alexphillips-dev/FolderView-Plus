@@ -1812,7 +1812,9 @@ const buildDockerTooltipContent = (ct) => {
         ? previewActionsApi.buildDockerMemberUpdateColumnHtml({
             name: containerName,
             manager: runtimeEntry?.info?.State?.manager,
-            update: runtimeEntry?.info?.State?.Updated === false
+            update: runtimeEntry?.info?.State?.Updated === false,
+            updated: runtimeEntry?.info?.State?.Updated,
+            isRebuildReady: runtimeEntry?.isRebuildReady
         }, {
             advanced: tooltipShowAdvanced
         })
@@ -3079,7 +3081,7 @@ const normalizeDockerStateToken = (entry, fromStateMode = false) => {
     if (!entry || typeof entry !== 'object') {
         return 's:0::';
     }
-    const normalizeUpdatedToken = (value) => (value === false ? 'u0' : (value === true ? 'u1' : 'ux'));
+    const normalizeUpdatedToken = (value) => (entry.isRebuildReady === true ? 'rb' : (value === false ? 'u0' : (value === true ? 'u1' : 'ux')));
     if (fromStateMode) {
         const running = entry.running === true;
         const paused = entry.paused === true;
@@ -4690,29 +4692,6 @@ const createFolders = async () => {
         reconciledOrderFingerprint: dockerRuntimeDiagnosticsModule.buildOrderFingerprint(reconciledOrder.order)
     };
 
-    // debug mode, download the debug json file
-    if(folderDebugMode) { // This is the existing folderDebugMode, not FOLDER_VIEW_DEBUG_MODE
-        const debugData = JSON.stringify({
-            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
-            folders,
-            unraidOrder,
-            originalOrder: order,
-            newOnes,
-            order,
-            containersInfo
-        });
-        if (!isCurrent()) return false;
-        const blob = new Blob([debugData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const element = document.createElement('a');
-        element.href = url;
-        element.download = 'debug-DOCKER.json';
-        element.style.display = 'none';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-        URL.revokeObjectURL(url);
-    }
     dockerFolderRenderRecovery.begin();
     let foldersDone = {};
 
@@ -4881,8 +4860,6 @@ const createFolders = async () => {
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
 
-    folderDebugMode = false; // Existing flag
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Exit');
     dockerFolderRenderRecovery.finish();
@@ -4952,10 +4929,10 @@ const queueCreateFoldersRender = () => {
         });
 };
 
-const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed) => {
+const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed, needsRebuild = false) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     if (hierarchyApi && typeof hierarchyApi.renderFolderUpdateColumn === 'function') {
-        hierarchyApi.renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);
+        hierarchyApi.renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed, needsRebuild);
     }
 };
 
@@ -4985,6 +4962,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
 
     // Default variables
     let upToDate = true;
+    let needsRebuild = false;
     let started = 0;
     let paused = 0;
     let stopped = 0;
@@ -5301,7 +5279,9 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 pause: ct.info.State.Paused,
                 state: ct.info.State.Running,
                 autostart: !(ct.info.State.Autostart === false),
-                update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
+                update: ct.isRebuildReady !== true && ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
+                updated: ct.info.State.Updated,
+                isRebuildReady: ct.isRebuildReady,
                 managed: ct.info.State.manager === 'dockerman',
                 manager: ct.info.State.manager
             };
@@ -5765,6 +5745,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
             }
 
             upToDate = upToDate && !newFolder[container_name_in_folder].update;
+            needsRebuild ||= ct.info.State.manager === 'dockerman' && ct.isRebuildReady === true;
             if (newFolder[container_name_in_folder].state) {
                 if (newFolder[container_name_in_folder].pause) {
                     paused += 1;
@@ -5838,7 +5819,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting folder status indicators based on aggregate states. managerTypes:`, Array.from(managerTypes));
-    renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed);
+    renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed, needsRebuild);
     $(`tr.folder-id-${id} .folder-appname`).toggleClass(
         'orange-text fv-folder-update-ready',
         folder.settings?.folder_update_highlight === true && upToDate === false
@@ -5893,7 +5874,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     else if (managed > 0 && managed === Object.values(folder.containers).length) { $(`tr.folder-id-${id}`).addClass('managed-full'); }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Applied managed status class. Managed: ${managed}, Total: ${Object.values(folder.containers).length}.`);
 
-    folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded: false };
+    folder.status = { upToDate, needsRebuild, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded: false };
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set final folder.status object:`, JSON.parse(JSON.stringify(folder.status)));
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Dispatching docker-post-folder-creation event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-creation', {detail: {
@@ -6239,6 +6220,7 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
     }
 };
 
+let dockerCustomActionsInFlight = 0;
 /**
  * Execute the desired custom action
  * @param {string} id
@@ -6247,17 +6229,17 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
 const folderCustomAction = async (id, actionIndex) => {
     const folder = globalFolders[id];
     const act = folder?.actions?.[actionIndex];
-    if (!act) return;
+    if (!act || dockerRuntimePageDisposed) return;
 
     const nativeActions = window.FolderViewPlusFoundationModules.runtimeNativeActions;
     if (!nativeActions.validateFolderAction(act)) return;
-    return runDockerGuardedAction('docker-custom-action', async () => {
+    return dockerSafeUiActionRunner.run(`docker-custom-action:${id}:${actionIndex}`, () => runDockerGuardedAction('docker-custom-action', async () => {
         const spinner = $('div.spinner.fixed');
-        spinner.show('slow');
+        if (++dockerCustomActionsInFlight === 1) spinner.show('slow');
         try {
             if (act.type === 1) {
                 await nativeActions.runUserScript(act, { openBox });
-                loadlist();
+                if (!dockerRuntimePageDisposed) loadlist();
                 return;
             }
             const containersMap = getFolderRuntimeContainers(folder);
@@ -6283,15 +6265,16 @@ const folderCustomAction = async (id, actionIndex) => {
                 if (!container) throw new Error();
                 return $.ajax({ url: eventURL, type: 'POST', data: { action, container }, dataType: 'json', timeout: 30000 });
             });
+            if (dockerRuntimePageDisposed) return;
             nativeActions.showNativeActionFailures(outcomes, {
                 escapeHtml,
                 privacy: document.body.classList.contains('fvplus-privacy-docker-runtime')
             });
             await refreshDockerRuntimeStateInPlace({ followupDelayMs: 650 });
         } finally {
-            spinner.hide('slow');
+            if (--dockerCustomActionsInFlight === 0 && !dockerRuntimePageDisposed) spinner.hide('slow');
         }
-    });
+    }));
 };
 
 
@@ -7126,8 +7109,6 @@ let loadedFolder = false;
 let globalFolders = {};
 let dockerFolderHierarchy = buildFolderHierarchy({});
 const folderRegex = /^folder-/;
-let folderDebugMode = false; // Existing flag
-let folderDebugModeWindow = [];
 let folderobserver;
 let folderobserverConfig = {
     attributes: true,
@@ -7192,7 +7173,7 @@ const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
             new Set(Array.isArray(status.managerTypes) ? status.managerTypes : []),
             status.upToDate === true,
             Number(status.managed || 0),
-            { advanced: readDockerListViewMode() === 'advanced' }
+            { advanced: readDockerListViewMode() === 'advanced', needsRebuild: status.needsRebuild === true }
         ).actionToken;
     }
     return 'unknown';
@@ -7713,7 +7694,6 @@ queueDockerRuntimePrivacyToggleMount();
 if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] Global variables initialized:', {
         cpus, loadedFolder, globalFolders: {...globalFolders}, folderRegex: folderRegex.toString(),
-        folderDebugMode, folderDebugModeWindow: [...folderDebugModeWindow],
         folderobserverConfig: {...folderobserverConfig},
         folderReq: {
             generation: folderReq?.generation || 0,
@@ -7823,22 +7803,7 @@ $(document).ajaxComplete((event, xhr, settings = {}) => {
     }
 });
 
-// activate debug mode
-addEventListener("keydown", (e) => {
-    if (e.isComposing || e.key.length !== 1) {
-        return;
-    }
-    folderDebugModeWindow.push(e.key);
-    if(folderDebugModeWindow.length > 5) {
-        folderDebugModeWindow.shift();
-    }
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Keydown event: key='${e.key}'. Debug window: ${folderDebugModeWindow.join('')}`);
-    if(folderDebugModeWindow.join('').toLowerCase() === "debug") {
-        folderDebugMode = true; // Existing flag
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Debug sequence "debug" detected. Set folderDebugMode (existing) to true. Reloading list.');
-        loadlist();
-    }
-});
+window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('docker');
 
 window.addEventListener('pagehide', () => {
     dockerRuntimePageDisposed = true;

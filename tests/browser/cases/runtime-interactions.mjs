@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { registerRuntimePrivacyDiagnosticsCases } from './runtime-privacy-diagnostics.mjs';
 
 export const registerRuntimeInteractionsFixtureCases = ({ test, baseUrl }) => {
+registerRuntimePrivacyDiagnosticsCases({ test, baseUrl });
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.click('[data-fvplus-docker-action="filter-empty"]');
@@ -34,31 +36,6 @@ test('Docker action menus support keyboard open and Escape close', async ({ page
     await page.keyboard.press('Escape');
     assert.equal(await trigger.getAttribute('aria-expanded'), 'false');
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fvplus-docker-menu')), 'view');
-});
-
-test('Privacy classifier honors each secondary masking preference independently', async ({ page }) => {
-    await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
-    await page.evaluate(() => window.FolderViewPlusRuntimePrivacy.apply('docker', true, {
-        privacyMaskVolumePaths: false,
-        privacyMaskImageRegistry: true,
-        privacyMaskPublicIps: true,
-        privacyMaskInterfaces: true,
-        privacyMaskExternalUrls: true
-    }));
-    await page.waitForFunction(() => document.querySelector('#fixture-public-ip')?.classList.contains('fvplus-sensitive-public-ip'));
-    assert.equal(await page.locator('body.fvplus-privacy-docker-sensitive-publicIps').count(), 1);
-    assert.equal(await page.locator('body.fvplus-privacy-docker-sensitive-volumePaths').count(), 0);
-    assert.equal(await page.locator('#fixture-volume.fvplus-sensitive-volume-path').count(), 1);
-    assert.equal(await page.locator('#fixture-public-ip.fvplus-sensitive-public-ip').count(), 1);
-    assert.equal(await page.locator('#fixture-private-ip.fvplus-sensitive-public-ip').count(), 0);
-    assert.equal(await page.locator('#fixture-interface.fvplus-sensitive-interface').count(), 1);
-    assert.equal(await page.locator('#fixture-external-url.fvplus-sensitive-external-url').count(), 1);
-    const maskedFilter = await page.locator('#fixture-public-ip').evaluate((node) => getComputedStyle(node).filter);
-    const unmaskedFilter = await page.locator('#fixture-volume').evaluate((node) => getComputedStyle(node).filter);
-    assert.notEqual(maskedFilter, 'none');
-    assert.equal(unmaskedFilter, 'none');
-    await page.evaluate(() => window.FolderViewPlusRuntimePrivacy.apply('docker', false, {}));
-    assert.equal(await page.locator('body.fvplus-privacy-docker-sensitive').count(), 0);
 });
 
 test('Docker Privacy toggle preserves its widget through optimistic, confirmed, external, and failed saves', async ({ page }) => {

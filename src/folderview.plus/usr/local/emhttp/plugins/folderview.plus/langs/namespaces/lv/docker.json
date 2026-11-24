@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "docker",
-        "content-revision": "e7e5ab24b9afecba40c2f727da4d466f5bb5374655141c136d16b6c4c0d9d268"
+        "content-revision": "4e66ff7363dac0fe083f7f85f8312f82ce196f869070584cc28f836769de5d32"
     },
     "docker.folder.move-reload": "Mainīta mapes konfigurācija. Atsvaidziniet pirms mapes atkārtotas pārvietošanas.",
     "docker.actions.label": "FolderView darbības",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Skatīt žurnālus",
     "docker.provider.hybrid-label": "Mantotais Unraid WebGUI ar GraphQL datiem",
     "docker.health.api-summary": "Docker API: atjauninājumi: $1, gatavs pārbūvei: $2, bāreņi: $3, portu konflikti: $4",
+    "docker.update.rebuild-ready": "Pārbūve gatava",
+    "docker.update.status-unavailable": "Atjaunināšanas statuss nav pieejams",
     "docker.views.folderview": "Mapes skats",
     "docker.views.host": "Saimniekdatoru saraksts",
     "docker.views.command": "Pavēli",

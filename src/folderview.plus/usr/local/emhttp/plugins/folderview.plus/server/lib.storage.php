@@ -273,10 +273,10 @@ function readJsonObjectFile(string $path): ?array {
         }
     }
 
-    function recoverJsonObjectFromLastGood(string $path): ?array {
+    function recoverJsonObjectFromLastGood(string $path, ?callable $verify = null): ?array {
         $lastGoodPath = getLastGoodJsonPath($path);
         $decoded = readJsonObjectFile($lastGoodPath);
-        if (!is_array($decoded)) {
+        if (!is_array($decoded) || ($verify !== null && !$verify($decoded))) {
             return null;
         }
         try {

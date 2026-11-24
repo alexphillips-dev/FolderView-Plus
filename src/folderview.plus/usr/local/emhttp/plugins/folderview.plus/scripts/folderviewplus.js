@@ -9918,7 +9918,8 @@ const downloadBackupEntry = async (type, name) => {
             type: resolvedType,
             name: resolvedName
         }, {
-            timeoutMs: 30000
+            timeoutMs: 30000,
+            expectJsonAttachment: true
         });
         const objectUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');

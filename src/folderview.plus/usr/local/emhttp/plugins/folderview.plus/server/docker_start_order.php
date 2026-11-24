@@ -1,11 +1,11 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-fvplus_json_try(function (): array {
+fvplus_json_try(function (): ?array {
     $action = strtolower(trim((string)($_REQUEST['action'] ?? 'preview')));
     if ($action === 'sync') {
         requireMutationRequestGuard();
-        syncContainerOrder('docker');
+        if (!fvplusRespondToDockerOrderSync('docker')) return null;
     }
 
     $preview = dockerStartOrderPreview();

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "docker",
-        "content-revision": "24a8e218ca82347027eead719c5b126e98462fec2f728ab3915c823e03ed951e"
+        "content-revision": "a04c09d0e33f3cf7774aae6e8b9f9b63f8aefe973267a190fc37a16830dae32b"
     },
     "docker.folder.move-reload": "Die Ordnerkonfiguration hat sich geändert. Aktualisieren Sie die Ansicht, bevor Sie den Ordner erneut verschieben.",
     "docker.actions.label": "FolderView-Aktionen",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Protokolle anzeigen",
     "docker.provider.hybrid-label": "Legacy-Unraid-WebGUI mit GraphQL-Daten",
     "docker.health.api-summary": "Docker-API: Updates: $1, neu erstellbar: $2, verwaist: $3, Portkonflikte: $4",
+    "docker.update.rebuild-ready": "Bereit zur Neuerstellung",
+    "docker.update.status-unavailable": "Update-Status nicht verfügbar",
     "docker.views.folderview": "Ordneransicht",
     "docker.views.host": "Hostliste",
     "docker.views.command": "Befehl",

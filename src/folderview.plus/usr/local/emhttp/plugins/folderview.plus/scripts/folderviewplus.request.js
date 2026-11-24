@@ -267,7 +267,7 @@
     const shouldRetryError = (error) => {
         const textStatus = String(error?.textStatus || '').toLowerCase();
         const status = Number(error?.jqXHR?.status || 0);
-        if (textStatus === 'abort') {
+        if (textStatus === 'abort' || textStatus === 'parsererror') {
             return false;
         }
         if (textStatus === 'timeout') {
@@ -312,7 +312,7 @@
 
 
 
-    const classifyMutationResponseFailure = (error, failure) => {
+    const classifyUnexpectedResponseFailure = (error, failure) => {
         const { reasonCode } = failure;
         const xhr = error?.jqXHR;
         const status = Number(xhr?.status || 0);
@@ -332,8 +332,8 @@
 
     const reportFailure = (error, { method, url, traceId, transactionId, phase = 'request', startedAt, attempts = 1 }) => {
         const classified = classifyFailure(error);
-        const failure = method === 'POST' && transport.isPluginUrl(url)
-            ? classifyMutationResponseFailure(error, classified)
+        const failure = transport.isPluginUrl(url)
+            ? classifyUnexpectedResponseFailure(error, classified)
             : classified;
         const formatted = formatAjaxError(error, url, traceId);
         Object.assign(formatted, failure, { phase, method, attempts, traceId, transactionId, retryable: failure.failureSource === 'transport' && shouldRetryError(error) });
@@ -341,7 +341,10 @@
         if (message) {
             formatted.message = `${message} ${translate('request.failure.support-code', 'Support code: $1', `FVPLUS/${phase}/${failure.reasonCode}`)}`;
         } else if (failure.reasonCode === 'unexpected-response') {
-            formatted.message = `Invalid JSON response from ${sanitizeDiagnosticUrl(url)}.`;
+            const endpoint = sanitizeDiagnosticUrl(url);
+            formatted.message = error.responseFormat === 'blob'
+                ? `Unexpected binary response from ${endpoint}.`
+                : `Invalid JSON response from ${endpoint}.`;
         }
         formatted.status = Number(error?.jqXHR?.status || formatted.status || 0);
         formatted.httpStatus = formatted.status;
@@ -371,7 +374,8 @@
         signal = null,
         onRequest = null,
         onProgress = null,
-        parseMutationJson = false
+        parseMutationJson = false,
+        parseResponse = parseMutationJson ? parseResponseJson : null
     }) => {
         if (!url) {
             throw new Error('Request URL is required.');
@@ -432,18 +436,20 @@
                 response.traceId = traceId;
                 response.transactionId = transactionId;
                 let result = response;
-                if (parseMutationJson) {
+                if (typeof parseResponse === 'function') {
                     try {
-                        result = parseResponseJson(response, url);
-                    } catch (_error) {
+                        result = await parseResponse(response, url);
+                    } catch (error) {
                         throw Object.assign(new Error(), {
                             jqXHR: response.jqXHR,
-                            responseBody: response.data,
+                            responseBody: error?.responseBody ?? response.data,
+                            responseFormat: dataType === 'binary' ? 'blob' : 'json',
                             textStatus: 'parsererror',
                             reasonCode: 'unexpected-response'
                         });
                     }
                 }
+                if (signal?.aborted === true) throw { textStatus: 'abort' };
                 recordDiagnostic({
                     method: normalizedMethod,
                     url,
@@ -510,6 +516,28 @@
         return parsed;
     };
 
+    const parseResponseBlob = async (response, expectJsonAttachment) => {
+        const blob = response?.data;
+        if (typeof Blob === 'undefined' || !(blob instanceof Blob) || blob.size === 0) throw new Error();
+        const mediaType = String(response.jqXHR?.getResponseHeader?.('Content-Type') || blob.type).split(';', 1)[0].trim().toLowerCase();
+        const attachment = /^\s*attachment(?:\s*;|\s*$)/i.test(response.jqXHR?.getResponseHeader?.('Content-Disposition') || '');
+        const html = mediaType === 'text/html' || mediaType === 'application/xhtml+xml';
+        if ((!attachment && html) || (expectJsonAttachment && (!attachment || mediaType !== 'application/json'))) {
+            const responseBody = await blob.slice(0, 32768).text();
+            throw Object.assign(new Error(), { responseBody });
+        }
+        if (expectJsonAttachment) {
+            const responseBody = await blob.text();
+            try {
+                const parsed = parseJsonStrict(responseBody, '');
+                if (!parsed || typeof parsed !== 'object' || parsed.ok === false) throw new Error();
+            } catch (_error) {
+                throw Object.assign(new Error(), { responseBody: responseBody.slice(0, 32768) });
+            }
+        }
+        return blob;
+    };
+
     const getText = async (url, {
         data = undefined,
         timeoutMs = DEFAULT_TIMEOUT_MS,
@@ -567,7 +595,7 @@
         cache = undefined,
         signal = null
     } = {}) => {
-        const response = await request({
+        return request({
             method: 'GET',
             url,
             data,
@@ -577,9 +605,10 @@
             headers,
             tokenStorageKey,
             cache,
-            signal
+            signal,
+            dataType: 'text',
+            parseResponse: parseResponseJson
         });
-        return parseResponseJson(response, url);
     };
 
     const postJson = async (url, data = {}, {
@@ -608,9 +637,10 @@
         timeoutMs = DEFAULT_TIMEOUT_MS,
         headers = {},
         tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
-        signal = null
+        signal = null,
+        expectJsonAttachment = false
     } = {}) => {
-        const response = await request({
+        return request({
             method: 'POST',
             url,
             data,
@@ -620,12 +650,9 @@
             tokenStorageKey,
             signal,
             dataType: 'binary',
-            xhrFields: { responseType: 'blob' }
+            xhrFields: { responseType: 'blob' },
+            parseResponse: (response) => parseResponseBlob(response, expectJsonAttachment)
         });
-        if (typeof Blob === 'undefined' || !(response?.data instanceof Blob)) {
-            throw new Error(`Unexpected binary response from ${url}.`);
-        }
-        return response.data;
     };
 
     const uploadJson = async (url, data, {

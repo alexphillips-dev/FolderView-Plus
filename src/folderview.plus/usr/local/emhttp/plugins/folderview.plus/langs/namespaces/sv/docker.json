@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "docker",
-        "content-revision": "af8d26dc0ec89ad00871a6e02fa20c48819c98d579c71ccf392def801464b813"
+        "content-revision": "ed8fc515d48df0be4c4ff0f5e150b38c7dd1fe5ab40f70139595ff691379d1d4"
     },
     "docker.folder.move-reload": "Mappkonfigurationen har ändrats. Uppdatera innan du flyttar mappen igen.",
     "docker.actions.label": "Åtgärder i mappvy",
@@ -30,6 +30,8 @@
     "docker.preview.view-logs": "Visa loggar",
     "docker.provider.hybrid-label": "Äldre Unraid WebGUI med GraphQL-data",
     "docker.health.api-summary": "Docker API: uppdateringar: $1, redo att byggas om: $2, föräldralös: $3, portkonflikter: $4",
+    "docker.update.rebuild-ready": "Ombyggnad klar",
+    "docker.update.status-unavailable": "Uppdateringsstatus är inte tillgänglig",
     "docker.views.folderview": "Mappvy",
     "docker.views.host": "Värdlista",
     "docker.views.command": "Kommandon",

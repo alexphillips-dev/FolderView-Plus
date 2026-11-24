@@ -8926,10 +8926,6 @@
     "phrase": "request failed",
     "locations": [
       {
-        "file": "scripts/dashboard.js",
-        "anchor": "'request failed'"
-      },
-      {
         "file": "scripts/runtime.shared-diagnostics.js",
         "anchor": "'request failed'"
       }

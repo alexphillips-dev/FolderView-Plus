@@ -135,9 +135,9 @@
             webUiUrl: normalizeOptionalString(entry.webUiUrl || runtimeState.WebUi || runtimeState.TSWebUi),
             shell: normalizeOptionalString(entry.shell || info.Shell),
             isOrphaned: normalizeBoolean(entry.isOrphaned, false),
-            isUpdateAvailable: typeof entry.update === 'boolean' ? entry.update : (
+            isUpdateAvailable: entry.isRebuildReady === true ? false : (typeof entry.update === 'boolean' ? entry.update : (
                 typeof entry.isUpdateAvailable === 'boolean' ? entry.isUpdateAvailable
-                    : ((runtimeState.Updated ?? entry.State?.Updated ?? entry.Updated) === false)),
+                    : (source === 'unraid-graphql' ? null : (runtimeState.Updated ?? entry.State?.Updated ?? entry.Updated) === false))),
             isRebuildReady: typeof entry.isRebuildReady === 'boolean'
                 ? entry.isRebuildReady
                 : null,

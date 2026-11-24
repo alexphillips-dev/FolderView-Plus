@@ -54,7 +54,6 @@ export const registerFolderBadgeCases = ({ test, baseUrl }) => {
             await page.goto('about:blank'); await page.unrouteAll({ behavior: 'wait' }); await host.close();
         }
     }, { skipAccessibility: true });
-
     test('Folder badges restore VM icon visibility after each runtime state and preference change', async ({ page }) => {
         await mountVmBadgeHost(page, baseUrl);
         const icon = page.locator('#load-folder-media');

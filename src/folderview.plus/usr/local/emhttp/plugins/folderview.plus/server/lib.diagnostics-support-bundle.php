@@ -89,7 +89,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
         return $manifestMetadata;
     }
 
-    function diagnosticsBuildSupportBundleBuildIdentitySection(array $diagnostics): array {
+    function diagnosticsBuildSupportBundleBuildIdentitySection(array $diagnostics, array &$redactor): array {
         $buildMetadata = diagnosticsReadSupportBundleBuildMetadata();
         $manifestMetadata = diagnosticsResolveSupportBundleManifestMetadata();
         $sourceCommitSha = trim((string)($buildMetadata['sourceCommitSha'] ?? ''));
@@ -111,13 +111,12 @@ function diagnosticsResolveSupportBundleChannel(): string {
         $archiveUrl = ($resolvedArchiveUrl !== '' && strpos($resolvedArchiveUrl, '&') === false)
             ? $resolvedArchiveUrl
             : $buildArchiveUrl;
-        $sourceCommitIsExact = is_bool($sourceCommitExact) ? $sourceCommitExact : null;
-        $buildBaseCommitSha = $sourceCommitIsExact === false && $headCommitSha !== '' ? $headCommitSha : null;
-        $provenanceStatus = $sourceCommitIsExact === true
+        $buildBaseCommitSha = $sourceCommitExact === false && $headCommitSha !== '' ? $headCommitSha : null;
+        $provenanceStatus = $sourceCommitExact === true
             ? 'exactCommit'
             : ($sourceSnapshotMode !== '' ? 'sourceSnapshot' : 'unknown');
 
-        return [
+        $identity = [
             'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'channel' => in_array($sourceBranch, ['dev', 'main'], true)
                 ? $sourceBranch
@@ -125,9 +124,9 @@ function diagnosticsResolveSupportBundleChannel(): string {
             'sourceBranch' => $sourceBranch !== '' ? $sourceBranch : null,
             'sourceCommitSha' => $sourceCommitSha !== '' ? $sourceCommitSha : null,
             'headCommitSha' => $headCommitSha !== '' ? $headCommitSha : null,
-            'headCommitRole' => $sourceCommitIsExact === true
+            'headCommitRole' => $sourceCommitExact === true
                 ? 'sourceCommit'
-                : ($sourceCommitIsExact === false ? 'buildBaseCommit' : 'unknown'),
+                : ($sourceCommitExact === false ? 'buildBaseCommit' : 'unknown'),
             'buildBaseCommitSha' => $buildBaseCommitSha,
             'sourceTreeSha' => $sourceTreeSha !== '' ? $sourceTreeSha : null,
             'sourceContentSha256' => preg_match('/^[a-f0-9]{64}$/', $sourceContentSha256) ? $sourceContentSha256 : null,
@@ -137,7 +136,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
             'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['content', 'head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
                 ? $sourceSnapshotMode
                 : null,
-            'sourceCommitExact' => $sourceCommitIsExact,
+            'sourceCommitExact' => $sourceCommitExact,
             'provenanceStatus' => $provenanceStatus,
             'packageVersion' => trim((string)($buildMetadata['packageVersion'] ?? '')) ?: (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'manifestPath' => $manifestMetadata['manifestPath'] ?? null,
@@ -153,9 +152,23 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 : null,
             'iconAssetPackUrl' => trim((string)($manifestMetadata['iconAssetPackUrl'] ?? ($buildMetadata['iconAssetPackUrl'] ?? ''))) ?: null
         ];
+        if (($redactor['mode'] ?? 'sanitized') === 'full') return $identity;
+        $prefix = 'https://raw\.githubusercontent\.com/alexphillips-dev/FolderView-Plus/(?:main|dev|[a-f0-9]{40})/';
+        $publicFields = [
+            'sourceBranch' => '~\A(?:main|dev)\z~',
+            'manifestUrl' => '~\A' . $prefix . 'folderview\.plus\.plg\z~',
+            'archiveUrl' => '~\A' . $prefix . 'archive/folderview\.plus-[0-9.]+\.txz\z~',
+            'iconAssetPackUrl' => '~\A' . $prefix . 'asset-packs/folderview\.plus-icons-[0-9.]+\.txz\z~'
+        ];
+        foreach ($publicFields as $key => $pattern) {
+            if ($identity[$key] !== null && !preg_match($pattern, $identity[$key])) {
+                $identity[$key] = diagnosticsSupportBundleRedactScalar($redactor, 'bundleMeta.buildIdentity.' . $key, $identity[$key]);
+            }
+        }
+        return $identity;
     }
 
-    function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array $redactor): array {
+    function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array &$redactor): array {
         $requestedLocale = fvplus_i18n_normalize_locale((string)($_SESSION['locale'] ?? 'en'));
         $localeResolution = fvplus_i18n_resolve_locale($requestedLocale);
         $catalogReport = fvplus_i18n_catalog_report();
@@ -190,7 +203,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                     ? $localeCoverage[$localeResolution['resolved'] ?? 'en']
                     : null
             ],
-            'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics)
+            'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics, $redactor)
         ];
     }
 

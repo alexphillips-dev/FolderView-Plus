@@ -382,6 +382,8 @@ test('Dashboard runtime refresh ignores superseded generations, lifecycle action
     const patchedStates = [];
     const scope = {
         folderReq: { docker: [] },
+        dashboardPendingFullRenders: new WeakMap(),
+        dashboardLayoutTransitionInFlightByType: { docker: false },
         dashboardHostAdapter: { isDisposed: () => false },
         dashboardRuntimeReadsByType: { docker: { requested: 0, applied: 0 } },
         requestClient: { getJson: () => new Promise((resolve) => pending.push(resolve)) },
@@ -402,6 +404,11 @@ test('Dashboard runtime refresh ignores superseded generations, lifecycle action
     };
     const refresh = vm.runInNewContext(dashboardSource.slice(start, end) + '\nrefreshDashboardTypeRuntimeStateInPlace;', scope);
     const reply = (state) => ({ runtime: { app: { state } } });
+
+    scope.dashboardPendingFullRenders.set(scope.folderReq.docker, {});
+    assert.equal(await refresh('docker'), null);
+    assert.deepEqual(pending, []);
+    scope.dashboardPendingFullRenders.delete(scope.folderReq.docker);
 
     const oldGrouping = refresh('docker');
     scope.folderReq.docker = [];

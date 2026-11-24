@@ -44,6 +44,12 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.error, 'FVPlusConfigConflictException');
         assert.equal(result.unchanged, true);
     });
+    test(`${type} missing update targets do not create a folder`, () => {
+        const result = run({ type, operation: 'missing' });
+        assert.equal(result.error, 'RuntimeException');
+        assert.equal(result.unchanged, true);
+        assert.deepEqual(Object.keys(result.folders), ['parent', 'folder', 'child']);
+    });
     test(`${type} changed settings, ordered members and normalized hierarchy still persist`, () => {
         for (const operation of ['appearance', 'members', 'parent', 'create']) {
             const result = run({ type, operation });

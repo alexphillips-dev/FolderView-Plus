@@ -127,6 +127,12 @@ changed_paths_since_ref() {
   git diff --name-only --find-renames "${source_ref}" || true
 }
 
+manifest_install_contract() {
+  git show "$1:folderview.plus.plg" \
+    | sed -nE '/^[[:space:]]*<FILE([[:space:]>])/,$p' \
+    | sed -E 's#(<URL>https://raw[.]githubusercontent[.]com/&github;/)(main|dev)(/archive/&name;-&version;[.]txz</URL>)#\1channel\3#'
+}
+
 if [[ -n "$(git status --porcelain)" ]]; then
   echo 'Refusing to synchronize a dirty worktree.' >&2
   exit 1
@@ -146,6 +152,14 @@ if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then
 fi
 
 PRE_MERGE_REF="$(git rev-parse HEAD)"
+merge_base="$(git merge-base "${MAIN_REF}" "${PRE_MERGE_REF}")"
+main_install_contract="$(manifest_install_contract "${MAIN_REF}")"
+base_install_contract="$(manifest_install_contract "${merge_base}")"
+dev_install_contract="$(manifest_install_contract "${PRE_MERGE_REF}")"
+if [[ "${main_install_contract}" != "${base_install_contract}" && "${main_install_contract}" != "${dev_install_contract}" ]]; then
+  echo 'Main changes the FolderView Plus manifest installation or removal hooks. Apply the hook changes to dev before synchronizing release metadata.' >&2
+  exit 1
+fi
 
 if ! git merge --no-ff --no-commit -m "Sync main into dev" "${MAIN_REF}"; then
   if ! resolve_release_only_conflicts_from_ref "${PRE_MERGE_REF}"; then

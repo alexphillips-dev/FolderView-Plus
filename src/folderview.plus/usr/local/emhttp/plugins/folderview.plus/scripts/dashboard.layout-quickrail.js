@@ -171,6 +171,12 @@
             let hiddenMembers = 0;
 
             $tbody.toggleClass('fv-dashboard-started-only-enabled', enabled);
+            // Native Unraid toggles inline visibility only on load and checkbox changes.
+            const nativeSelector = resolvedType === 'vm' ? 'span.outer.vms' : 'span.outer.apps';
+            $tbody.children('tr.updated').children('td').children(nativeSelector).each((_, row) => {
+                const $row = jq(row).finish();
+                row.style.display = enabled && !isDashboardStartedOnlyMemberActive($row) ? 'none' : '';
+            });
             $members.each((_, node) => {
                 const $member = jq(node);
                 const hidden = enabled && !isDashboardStartedOnlyMemberActive($member);

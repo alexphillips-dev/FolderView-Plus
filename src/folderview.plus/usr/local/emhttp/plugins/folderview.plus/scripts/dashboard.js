@@ -785,6 +785,7 @@ const dashboardUnassignedGroups = Object.fromEntries(['docker', 'vm'].map((type)
     type, dashboardUnassignedGroupModule?.createApi({ window, type })
 ]));
 const dashboardUnassignedMembersByType = { docker: new Map(), vm: new Map() };
+const dashboardPendingUnassignedFocus = new Set();
 const normalizeDashboardUnassignedId = (type, value) => {
     const id = String(value ?? '').trim().toLowerCase();
     return type === 'vm' ? id.replace(/^vm-/, '') : id.replace(/^sha256:/, '').slice(0, 12);
@@ -1627,13 +1628,15 @@ const renderDashboardVmFolders = (prom) => {
 
 const createFolders = async (type, { isCurrent = () => true } = {}) => {
     const requests = folderReq[type];
+    const fullRender = dashboardPendingFullRenders.get(requests);
     const widget = document.querySelector(dashboardTypeMeta(type).tbodySelector);
     const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
         && requests === folderReq[type] && widget?.isConnected;
     if (!requests.length || !isActive()) return false;
     const unassignedGroup = dashboardUnassignedGroups[type];
     const previousUnassignedMembers = dashboardUnassignedMembersByType[type];
-    renderDashboardUnassignedGroup(type, widget, previousUnassignedMembers);
+    const restoreNativeFocus = dashboardPendingUnassignedFocus.delete(type) && document.activeElement === document.body;
+    renderDashboardUnassignedGroup(type, widget, previousUnassignedMembers, { restoreFocus: restoreNativeFocus });
     dashboardFolderRenderCompleteByType[type] = false;
     showDashboardRuntimeLoadingRow(type);
     let rendering = false;
@@ -1641,7 +1644,8 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
     try {
         const prom = await Promise.all(requests);
         if (!isActive()) return false;
-        restoreUnassignedFocus = unassignedGroup?.isHeader(document.activeElement?.parentElement) === true;
+        restoreUnassignedFocus = unassignedGroup?.isHeader(document.activeElement?.parentElement) === true
+            || (restoreNativeFocus && document.activeElement === document.body);
         unassignedGroup?.clear();
         dashboardFolderRenderRecovery[type].begin();
         rendering = true;
@@ -1655,6 +1659,7 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
             dashboardUnassignedMembersByType[type] = members;
         }
         applyDashboardRuntimePrefs();
+        if (fullRender?.snapshot) rememberDashboardRuntimeSnapshot(type, fullRender.snapshot);
         return true;
     } catch (error) {
         if (!isActive()) return false;
@@ -1665,6 +1670,7 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
         showDashboardRuntimeFailedRow(type);
         throw error;
     } finally {
+        dashboardPendingFullRenders.delete(requests);
         if (isActive()) {
             hideDashboardRuntimeLoadingRow(type);
             if (rendering) dashboardFolderRenderRecovery[type].finish();
@@ -2339,6 +2345,7 @@ let folderReq = {
     docker: [],
     vm: []
 };
+const dashboardPendingFullRenders = new WeakMap();
 let dashboardPerformancePolicies = { docker: null, vm: null };
 let dashboardDockerRuntimeReconcileApi = null;
 const dashboardDockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
@@ -2644,7 +2651,8 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type, { isCurrent = () =>
     const reads = dashboardRuntimeReadsByType[resolvedType];
     const revision = ++reads.requested;
     const isActive = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.()
-        && requests === folderReq[resolvedType] && revision >= reads.applied;
+        && requests === folderReq[resolvedType] && !dashboardPendingFullRenders.has(requests)
+        && !dashboardLayoutTransitionInFlightByType[resolvedType] && revision >= reads.applied;
     if (!isActive()) return null;
     try {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
@@ -2832,7 +2840,9 @@ const dashboardLiveRefreshController = runtimeLiveRefreshModule.createController
     tick: async (type) => {
         const resolvedType = type === 'vm' ? 'vm' : 'docker';
         const requests = folderReq[resolvedType];
-        const isCurrent = () => requests === folderReq[resolvedType] && !dashboardHostAdapter?.isDisposed?.();
+        const isCurrent = () => requests === folderReq[resolvedType] && !dashboardPendingFullRenders.has(requests)
+            && !dashboardHostAdapter?.isDisposed?.();
+        if (!isCurrent()) return false;
         let check = null;
         try {
             check = await fetchDashboardTypeSnapshotCheck(resolvedType);
@@ -2911,9 +2921,17 @@ const bindDashboardPreferenceSync = () => {
         if (snapshot.hydrated === true) {
             dashboardPrefsHydratedByType[type] = true;
         }
+        const wasLegacy = isDashboardLegacyLayoutForType(type);
         const groupWasEnabled = folderTypePrefs[type]?.groupUnassignedItems === true;
         folderTypePrefs[type] = utils.normalizePrefs(snapshot.prefs);
         applyDashboardRuntimePrefs();
+        if (wasLegacy !== isDashboardLegacyLayoutForType(type) && dashboardFolderRenderCompleteByType[type]
+            && !dashboardLayoutTransitionInFlightByType[type] && !dashboardPendingFullRenders.has(folderReq[type])) {
+            void rerenderDashboardWidgetStructureForType(type).catch(() => {
+                if (!dashboardHostAdapter?.isDisposed?.()) queueLoadlistRefresh();
+            });
+            return;
+        }
         const groupEnabled = folderTypePrefs[type].groupUnassignedItems === true;
         if (groupWasEnabled !== groupEnabled && (!groupEnabled || dashboardFolderRenderCompleteByType[type])) {
             const widget = document.querySelector(dashboardTypeMeta(type).tbodySelector);
@@ -2956,6 +2974,7 @@ const prepareDashboardFolderRequestsForType = (type) => {
         () => getDashboardRequestWithFallback(resolvedType, 'unraid order', `/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`, {}),
         () => getDashboardRequestWithFallback(resolvedType, 'preferences', `/plugins/folderview.plus/server/prefs.php?type=${resolvedType}`)
     ];
+    const fullRender = { snapshot: null };
     let requests;
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
         requests = legacyFactories.map((factory) => factory());
@@ -2973,17 +2992,14 @@ const prepareDashboardFolderRequestsForType = (type) => {
         });
         requests = runtimeSnapshotApi.createProjectedBundle(snapshotRequest,
             ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'], {
-            onSnapshot: (snapshot) => {
-                if (requests === folderReq[resolvedType] && !dashboardHostAdapter?.isDisposed?.()) {
-                    rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
-                }
-            },
+            onSnapshot: (snapshot) => { fullRender.snapshot = snapshot; },
             fallbackFactories: legacyFactories
         });
     }
     // Requests start during loadlist, before the native rows are ready to group.
     // Observe early rejections while preserving the rejected field for the renderer.
     requests.forEach((request) => request.catch(() => {}));
+    dashboardPendingFullRenders.set(requests, fullRender);
     folderReq[resolvedType] = requests;
     return requests;
 };
@@ -3000,7 +3016,15 @@ dashboardHostAdapter = dashboardHostAdapterModule.getOrCreate({
     onEvent: (event = {}) => {
         const eventName = String(event?.name || 'dashboardEvent');
         if (eventName === 'nativeRowsLoading') {
+            const activeElement = document.activeElement;
+            if (activeElement !== document.body) dashboardPendingUnassignedFocus.clear();
+            for (const [type, group] of Object.entries(dashboardUnassignedGroups)) {
+                if (group?.isHeader(activeElement?.parentElement)) dashboardPendingUnassignedFocus.add(type);
+            }
             dashboardRuntimePerformanceTelemetry?.begin?.('folderGrouping');
+        } else if (eventName === 'nativeRowsFailed') {
+            dashboardPendingUnassignedFocus.clear();
+            Object.values(folderReq).forEach(requests => dashboardPendingFullRenders.delete(requests));
         } else if (eventName === 'nativeRowsLoaded') {
             const dashboardRoot = document.querySelector('#docker_view')?.parentElement
                 || document.querySelector('#vm_view')?.parentElement;

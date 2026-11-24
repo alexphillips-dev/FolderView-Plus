@@ -29,6 +29,7 @@ url="${@: -3:1}"
 prefix="https://raw.githubusercontent.com/example/fixture/${FVPLUS_FIXTURE_REF}/"
 [[ "${url}" == "${prefix}"* ]]
 relative="${url#"${prefix}"}"
+printf '%s\n' "${relative}" >> "${FVPLUS_FIXTURE_HTTP_LOG}"
 [[ -f "${FVPLUS_FIXTURE_REMOTE}/${relative}" ]] || exit 22
 cp -- "${FVPLUS_FIXTURE_REMOTE}/${relative}" "${destination}"
 CURL
@@ -36,6 +37,7 @@ chmod +x "${fixture}/bin/curl"
 export PATH="${fixture}/bin:${PATH}"
 export FVPLUS_REMOTE_PUBLISH_ATTEMPTS=1 FVPLUS_REMOTE_PUBLISH_DELAY_SEC=0
 export FVPLUS_FIXTURE_REMOTE="${fixture}/served"
+export FVPLUS_FIXTURE_HTTP_LOG="${fixture}/http-requests"
 
 run_guard() {
   bash "${fixture}/scripts/remote_publish_guard.sh"
@@ -93,5 +95,10 @@ MANIFEST
 
   printf '%s\n' 'incorrect icon archive bytes' > "${served_icon_archive}"
   verify_failure 'published icon pack bytes stale or mismatched'
+
+  rm -- "${served_manifest}"
+  : > "${FVPLUS_FIXTURE_HTTP_LOG}"
+  FVPLUS_REMOTE_PUBLISH_ATTEMPTS=08 verify_failure 'after 8 attempt(s): manifest unavailable.'
+  [[ "$(wc -l < "${FVPLUS_FIXTURE_HTTP_LOG}")" -eq 8 ]]
   printf '%s publication fixture passed\n' "${branch}"
 done

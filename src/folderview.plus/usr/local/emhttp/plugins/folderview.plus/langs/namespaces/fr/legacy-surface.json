@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "legacy-surface",
-        "content-revision": "e322a0a235285b0414f96ffbc8bfaac5cebb7a74108dddf634535635c60a578e"
+        "content-revision": "11569f4722f88b05803d7981eec4d2828488cf3f85d640994118783758273789"
     },
     "legacy.surface.0008eb7acd3f7a56": "Déplacement groupé indisponible",
     "legacy.surface.0012950979762d8c": "Choisissez un instantané à restaurer, télécharger ou supprimer.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Total de stockage (disques sauvegardés sur fichiers) : $1",
     "legacy.surface.6156e461d8859f35": "Articles arrêtés",
     "legacy.surface.61666b10759bb4ec": "Vérifier et appliquer",
-    "legacy.surface.6170d7f8c17bdf29": "La référence de dossier « $1 » est introuvable dans la mappe de dossiers enregistrée, dans le contexte d'amorçage du serveur ou dans le contexte de modification récente. L'éditeur est resté en mode nouveau dossier au lieu d'hydrater silencieusement les mauvaises données.",
     "legacy.surface.6196b89119b0d502": "Les règles de démarrage $1 sont activées sans aucune entrée sélectionnée.",
     "legacy.surface.619ad13c8afe5d80": "Avertissement de validation : les métadonnées n'ont pas pu être entièrement validées.",
     "legacy.surface.61b970f55f66b301": "Icône inconnue",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Mise à jour de $1 à partir du modèle enregistré.",
     "legacy.surface.920e413c7d411b61": "Statut",
     "legacy.surface.9213c7f4046c085d": "Seuil d'avertissement pour l'attention",
-    "legacy.surface.9220b4922c4fbc06": "La référence du dossier \"$1\" a été restaurée à partir du dossier sur lequel vous avez cliqué avant le chargement de l'éditeur. Les données enregistrées sur les membres et les affichages devraient désormais être disponibles immédiatement.",
     "legacy.surface.9224e419ab9b17c4": "Échec du chargement de $1",
     "legacy.surface.92340695899bd2d8": "Actif",
     "legacy.surface.9244d344142f4dc1": "Le nom du modèle semble bon.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Déplacement de dossier bloqué",
     "legacy.surface.e2e9665f249edc57": "Sélectionnez le dossier cible",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone) :",
-    "legacy.surface.e31aec177cb21baa": "Dossier demandé récupéré à partir du contexte de navigation.",
     "legacy.surface.e3248784451162bb": "Appliquer au dossier",
     "legacy.surface.e32bb6dbee9c1caa": "Changer de favori",
     "legacy.surface.e3323b3118d5e7ec": "Thème d'auto-guérison appliqué",

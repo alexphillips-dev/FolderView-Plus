@@ -162,3 +162,37 @@ test('rapid profile selections write in order and subsequent edits address the d
     await new Promise(setImmediate);
     assert.equal(api.getWorkspace().activeProfileId, 'second');
 });
+
+test('copying a profile preserves newer scope edits on the source profile', async () => {
+    const requests = [];
+    const handlers = new Map();
+    const document = { getElementById: () => null, querySelector: () => null };
+    const $ = () => ({ off: () => ({ on: (event, _selector, handler) => handlers.set(event, handler) }) });
+    const api = createApi({ document, $, apiPostJson: (_url, payload) => new Promise(resolve => {
+        requests.push({ payload, resolve });
+    }) });
+    const source = { id: 'default', name: 'Default' };
+    api.setWorkspace({ activeProfileId: source.id, profiles: [source] });
+    api.bindEvents();
+    api.previewPreset('blue');
+
+    const copying = api.saveAsProfile('Copy');
+    assert.equal(requests[0].payload.scope, 'global');
+    const submitted = JSON.parse(requests[0].payload.variables);
+    const copy = { id: 'copy', name: 'Copy', layers: { global: { variables: submitted } } };
+    handlers.get('change.fvthemescope')({ target: { value: 'docker' } });
+    api.previewPreset('green');
+    requests[0].resolve({ workspace: { activeProfileId: copy.id, profiles: [source, copy] } });
+    await copying;
+
+    const workspace = api.getWorkspace();
+    assert.equal(workspace.activeProfileId, copy.id);
+    assert.equal(workspace.variables['--fvplus-theme-accent'], undefined);
+    assert.equal(workspace.profiles.find(profile => profile.id === copy.id).layers.global.variables['--fvplus-theme-accent'], '#3b82f6');
+    handlers.get('change.fvthemeprofile')({ target: { value: source.id } });
+    requests[1].resolve({ workspace: { activeProfileId: source.id, profiles: [source, copy] } });
+    await new Promise(setImmediate);
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#22c55e');
+    handlers.get('change.fvthemescope')({ target: { value: 'global' } });
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#3b82f6');
+});

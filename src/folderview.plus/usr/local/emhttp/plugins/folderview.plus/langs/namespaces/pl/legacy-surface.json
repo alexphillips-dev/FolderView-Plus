@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "legacy-surface",
-        "content-revision": "6f63d0808ae8039acdb3347dab59d28e5df884ad94850081db9f89b29df3a805"
+        "content-revision": "1dd723d2b9bca96bb5435ce4e2da7433ec679faecb002e5a1a594384da5fa846"
     },
     "legacy.surface.0008eb7acd3f7a56": "Przenoszenie zbiorcze niedostępne",
     "legacy.surface.0012950979762d8c": "Wybierz migawkę, którą chcesz przywrócić, pobrać lub usunąć.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Łączna ilość miejsca na dysku (dyski z kopią zapasową plików): $1",
     "legacy.surface.6156e461d8859f35": "Zatrzymane elementy",
     "legacy.surface.61666b10759bb4ec": "Sprawdź i zastosuj",
-    "legacy.surface.6170d7f8c17bdf29": "Nie znaleziono odniesienia do folderu „$1” w zapisanej mapie folderów, kontekście ładowania serwera lub kontekście ostatniej edycji. Edytor pozostał w trybie nowego folderu, zamiast po cichu nawadniać niewłaściwe dane.",
     "legacy.surface.6196b89119b0d502": "$1 reguły startowe są włączone bez wybranych wpisów.",
     "legacy.surface.619ad13c8afe5d80": "Ostrzeżenie dotyczące walidacji: nie można w pełni zweryfikować metadanych.",
     "legacy.surface.61b970f55f66b301": "Nieznana ikona",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Zaktualizowano $1 z zapisanego szablonu.",
     "legacy.surface.920e413c7d411b61": "Stan",
     "legacy.surface.9213c7f4046c085d": "Ostrzegaj próg uwagi",
-    "legacy.surface.9220b4922c4fbc06": "Odniesienie do folderu „$1” zostało przywrócone z folderu klikniętego przed załadowaniem edytora. Zapisane dane członkowskie i wyświetlane powinny być teraz dostępne natychmiast.",
     "legacy.surface.9224e419ab9b17c4": "Nie udało się załadować $1",
     "legacy.surface.92340695899bd2d8": "Aktywny",
     "legacy.surface.9244d344142f4dc1": "Nazwa szablonu wygląda dobrze.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Przenoszenie folderu zablokowane",
     "legacy.surface.e2e9665f249edc57": "Wybierz folder docelowy",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Odzyskano żądany folder z kontekstu nawigacji.",
     "legacy.surface.e3248784451162bb": "Zastosuj do folderu",
     "legacy.surface.e32bb6dbee9c1caa": "Przełącz ulubione",
     "legacy.surface.e3323b3118d5e7ec": "Zastosowano samoleczenie motywu",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "legacy-surface",
-        "content-revision": "6fd5ae957e0351adbecd43c01cf8901a76fee115ca4f364302cf89cfd6fd2dbb"
+        "content-revision": "1e7181dc45ca0487afcec0494a9403fa5ff5c9226d37c44d6fa41eb56b5951c1"
     },
     "legacy.surface.0008eb7acd3f7a56": "Skupno premještanje nije dostupno",
     "legacy.surface.0012950979762d8c": "Odaberite snimku za vraćanje, preuzimanje ili brisanje.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Ukupna pohrana (diskovi s podrškom za datoteke): $1",
     "legacy.surface.6156e461d8859f35": "Zaustavljene stavke",
     "legacy.surface.61666b10759bb4ec": "Pregledaj i primijeni",
-    "legacy.surface.6170d7f8c17bdf29": "Referenca mape \"$1\" nije pronađena u spremljenoj mapi mape, kontekstu pokretanja poslužitelja ili kontekstu nedavnog uređivanja. Uređivač je ostao u načinu nove mape umjesto da tiho hidratizira pogrešne podatke.",
     "legacy.surface.6196b89119b0d502": "$1 početna pravila su omogućena bez odabranih unosa.",
     "legacy.surface.619ad13c8afe5d80": "Upozorenje provjere valjanosti: metapodaci se ne mogu u potpunosti potvrditi.",
     "legacy.surface.61b970f55f66b301": "Nepoznata ikona",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Ažuriran $1 iz spremljenog predloška.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Prag upozorenja za pozornost",
-    "legacy.surface.9220b4922c4fbc06": "Referenca mape \"$1\" vraćena je iz mape koju ste kliknuli prije učitavanja uređivača. Spremljeni podaci o članovima i prikazu sada bi trebali biti dostupni odmah.",
     "legacy.surface.9224e419ab9b17c4": "Nije uspjelo učitavanje $1",
     "legacy.surface.92340695899bd2d8": "Aktivno",
     "legacy.surface.9244d344142f4dc1": "Naziv predloška izgleda dobro.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Premještanje mape blokirano",
     "legacy.surface.e2e9665f249edc57": "Odaberite ciljnu mapu",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Zatražena mapa oporavljena je iz navigacijskog konteksta.",
     "legacy.surface.e3248784451162bb": "Primijeni na mapu",
     "legacy.surface.e32bb6dbee9c1caa": "Uključi/isključi omiljeno",
     "legacy.surface.e3323b3118d5e7ec": "Primijenjena je tema samoizlječenja",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "legacy-surface",
-        "content-revision": "694328d56001df7134ad55edcd65437833aa0603895b2e8dde086c7036e446f1"
+        "content-revision": "147bd19b6bd8b22649e4eff32b073fa0b3593bfb66b7f4140cf1f2f387597d97"
     },
     "legacy.surface.0008eb7acd3f7a56": "無法大量移動",
     "legacy.surface.0012950979762d8c": "選擇要還原、下載或刪除的快照。",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "儲存總量（檔案備份磁碟）：$1",
     "legacy.surface.6156e461d8859f35": "停止的專案",
     "legacy.surface.61666b10759bb4ec": "檢查並套用",
-    "legacy.surface.6170d7f8c17bdf29": "在已儲存的資料夾對映、伺服器引導上下文或最近的編輯上下文中找不到資料夾引用「$1」。編輯器保持新資料夾模式，而不是默默地補充錯誤的資料。",
     "legacy.surface.6196b89119b0d502": "$1 啟動器規則在沒有選定專案的情況下啟用。",
     "legacy.surface.619ad13c8afe5d80": "驗證警告：無法完全驗證元資料。",
     "legacy.surface.61b970f55f66b301": "未知的圖示",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "從已儲存的模板更新了 $1。",
     "legacy.surface.920e413c7d411b61": "狀態",
     "legacy.surface.9213c7f4046c085d": "注意警告閾值",
-    "legacy.surface.9220b4922c4fbc06": "資料夾引用「$1」已從您在載入編輯器之前點選的資料夾中復原。儲存的成員和顯示資料現在應該立即可用。",
     "legacy.surface.9224e419ab9b17c4": "無法載入 $1",
     "legacy.surface.92340695899bd2d8": "活躍",
     "legacy.surface.9244d344142f4dc1": "模板名稱看起來不錯。",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "資料夾移動被阻止",
     "legacy.surface.e2e9665f249edc57": "選擇目標資料夾",
     "legacy.surface.e2f31764f5df1c1b": "Safari（iPhone）：",
-    "legacy.surface.e31aec177cb21baa": "從導航上下文中恢復了請求的資料夾。",
     "legacy.surface.e3248784451162bb": "應用到資料夾",
     "legacy.surface.e32bb6dbee9c1caa": "切換收藏夾",
     "legacy.surface.e3323b3118d5e7ec": "應用主題自我修復",

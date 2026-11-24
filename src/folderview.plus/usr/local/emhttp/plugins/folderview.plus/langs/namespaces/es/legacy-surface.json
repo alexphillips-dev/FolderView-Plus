@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface",
-        "content-revision": "67b8ec9442c8b79417c056cf73f2ccd2cfa91f95c4d013d712ebb263ee0308aa"
+        "content-revision": "e8b8b1d04abfb207403c6f5164e6da992e2d8f95a3714ba8e1dd197643c3636e"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimiento masivo no disponible",
     "legacy.surface.0012950979762d8c": "Elija una instantánea para restaurar, descargar o eliminar.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Total de almacenamiento (discos respaldados por archivos): $1",
     "legacy.surface.6156e461d8859f35": "Artículos detenidos",
     "legacy.surface.61666b10759bb4ec": "Revisar y aplicar",
-    "legacy.surface.6170d7f8c17bdf29": "La referencia de carpeta \"$1\" no se encontró en el mapa de carpetas guardadas, en el contexto de arranque del servidor o en el contexto de edición reciente. El editor permaneció en el modo de nueva carpeta en lugar de hidratar silenciosamente los datos incorrectos.",
     "legacy.surface.6196b89119b0d502": "$1 reglas iniciales están habilitadas sin entradas seleccionadas.",
     "legacy.surface.619ad13c8afe5d80": "Advertencia de validación: los metadatos no se pudieron validar completamente.",
     "legacy.surface.61b970f55f66b301": "Icono desconocido",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Actualizado $1 de la plantilla guardada.",
     "legacy.surface.920e413c7d411b61": "Estado",
     "legacy.surface.9213c7f4046c085d": "Umbral de advertencia para atención",
-    "legacy.surface.9220b4922c4fbc06": "La referencia de carpeta \"$1\" se restauró desde la carpeta en la que hizo clic antes de que se cargara el editor. Los datos de visualización y miembros guardados ahora deberían estar disponibles de inmediato.",
     "legacy.surface.9224e419ab9b17c4": "No se pudo cargar $1",
     "legacy.surface.92340695899bd2d8": "Activo",
     "legacy.surface.9244d344142f4dc1": "El nombre de la plantilla se ve bien.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Movimiento de carpeta bloqueado",
     "legacy.surface.e2e9665f249edc57": "Seleccione la carpeta de destino",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Carpeta solicitada recuperada del contexto de navegación.",
     "legacy.surface.e3248784451162bb": "Aplicar a la carpeta",
     "legacy.surface.e32bb6dbee9c1caa": "Alternar favorito",
     "legacy.surface.e3323b3118d5e7ec": "Tema de autocuración aplicado.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface",
-        "content-revision": "37533d04da7eb6cf1f83730a8c1e7f86e64f6dc79af0a19a8e04ca07cf043371"
+        "content-revision": "6e620a567d8f5a5d8120d29b2c34a21158f0076f5a749ff641a63db044cfce96"
     },
     "legacy.surface.0008eb7acd3f7a56": "Massenverschiebung nicht verfügbar",
     "legacy.surface.0012950979762d8c": "Wählen Sie einen Snapshot zum Wiederherstellen, Herunterladen oder Löschen aus.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Gesamtspeicher (dateigestützte Festplatten): $1",
     "legacy.surface.6156e461d8859f35": "Gestoppte Artikel",
     "legacy.surface.61666b10759bb4ec": "Prüfen und anwenden",
-    "legacy.surface.6170d7f8c17bdf29": "Der Ordnerverweis „$1“ wurde in der gespeicherten Ordnerzuordnung, im Server-Bootstrap-Kontext oder im aktuellen Bearbeitungskontext nicht gefunden. Der Editor blieb im Modus „Neuer Ordner“, anstatt stillschweigend die falschen Daten zu speichern.",
     "legacy.surface.6196b89119b0d502": "$1 Starterregeln sind ohne ausgewählte Einträge aktiviert.",
     "legacy.surface.619ad13c8afe5d80": "Validierungswarnung: Metadaten konnten nicht vollständig validiert werden.",
     "legacy.surface.61b970f55f66b301": "Unbekanntes Symbol",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "$1 aus der gespeicherten Vorlage aktualisiert.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Warnschwelle für Aufmerksamkeit",
-    "legacy.surface.9220b4922c4fbc06": "Der Ordnerverweis „$1“ wurde aus dem Ordner wiederhergestellt, auf den Sie vor dem Laden des Editors geklickt haben. Gespeicherte Mitglieds- und Anzeigedaten sollten nun sofort verfügbar sein.",
     "legacy.surface.9224e419ab9b17c4": "$1 konnte nicht geladen werden",
     "legacy.surface.92340695899bd2d8": "Aktiv",
     "legacy.surface.9244d344142f4dc1": "Der Name der Vorlage sieht gut aus.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Ordnerverschiebung blockiert",
     "legacy.surface.e2e9665f249edc57": "Wählen Sie den Zielordner aus",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Angeforderter Ordner aus Navigationskontext wiederhergestellt.",
     "legacy.surface.e3248784451162bb": "Auf Ordner anwenden",
     "legacy.surface.e32bb6dbee9c1caa": "Favorit umschalten",
     "legacy.surface.e3323b3118d5e7ec": "Theme-Selbstheilung angewendet",

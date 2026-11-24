@@ -14,6 +14,7 @@ const run = request => {
     const base = fs.realpathSync(os.tmpdir());
     const root = fs.mkdtempSync(path.join(base, 'fvplus-boundaries-'));
     for (const directory of ['config', 'source', 'host']) fs.mkdirSync(path.join(root, directory));
+    if (request.buildMetadata) fs.writeFileSync(path.join(root, 'source', 'build-metadata.json'), JSON.stringify(request.buildMetadata));
     fs.writeFileSync(path.join(root, 'request.json'), JSON.stringify(request));
     try {
         return JSON.parse(execFileSync('php', [fixture, server, root], { encoding: 'utf8', timeout: 30000,
@@ -93,5 +94,22 @@ test('public support bundle sanitizes persisted nested icon/history data and ret
     for (const value of ['PRIVATE_ID', 'PRIVATE_FOLDER', 'PRIVATE_ICON.png', 'PRIVATE_SOURCE.json',
         'PRIVATE_TEMPLATE', 'PRIVATE_FROM', 'PRIVATE_TO', 'PRIVATE_ERROR', 'PRIVATE_NESTED.json', 'PRIVATE_ITEM']) {
         assert.ok(fullText.includes(value), `full mode lost ${value}`);
+    }
+});
+
+test('support bundles omit private build origins and branch names from the sanitized export', () => {
+    const publicPrefix = 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/';
+    const buildMetadata = {
+        sourceBranch: 'private-fixture-branch',
+        manifestUrl: 'https://packages.fixture.invalid/private-plugin',
+        archiveUrl: publicPrefix + 'archive/folderview.plus-2026.11.24.06.txz?key=private-fixture',
+        iconAssetPackUrl: 'https://packages.fixture.invalid/private-icon-pack'
+    };
+    const { sanitized, full } = run({ operation: 'bundle', buildMetadata });
+    for (const [key, value] of Object.entries(buildMetadata)) {
+        assert.equal(sanitized.bundleMeta.buildIdentity[key], null);
+        assert.equal(full.bundleMeta.buildIdentity[key], value);
+        assert.ok(sanitized.redactionManifest.omittedFields.includes('bundleMeta.buildIdentity.' + key));
+        assert.equal(JSON.stringify(sanitized).includes(value), false);
     }
 });

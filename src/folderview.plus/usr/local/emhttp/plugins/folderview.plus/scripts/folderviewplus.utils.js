@@ -36,7 +36,7 @@
     return Object.freeze({
         EXPORT_SCHEMA_VERSION: api.EXPORT_SCHEMA_VERSION,
         RULE_KINDS: api.RULE_KINDS,
-        RULE_EFFECTS: api.RULE_EFFECTS,
+        RULE_EFFECTS: api.RULE_EFFECTS, ruleBackreferencesArePortable: api.ruleBackreferencesArePortable,
         LEGACY_FOLDER_LABEL_KEYS: api.LEGACY_FOLDER_LABEL_KEYS,
         RUNTIME_PREFS_SCHEMA: api.RUNTIME_PREFS_SCHEMA,
         DEFAULT_FOLDER_STATUS_COLORS: api.DEFAULT_FOLDER_STATUS_COLORS,

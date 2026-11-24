@@ -106,7 +106,6 @@
                 }
             }
             return $removed;
-
         });
     }
 
@@ -193,8 +192,10 @@
                     || (array_key_exists('prefs', $entry) && !is_array($entry['prefs']))) {
                     throw new RuntimeException('Rollback snapshot is missing required type data.');
                 }
-                $types[$type] = ['folders' => $entry['folders'], 'prefs' => $entry['prefs'] ?? readTypePrefs($type)];
+                fvplusAssertSnapshotFolderMap($entry['folders'], 'Rollback snapshot is missing required type data.');
+                $types[$type] = $entry;
             }
+            foreach (FVPLUS_ALLOWED_TYPES as $type) $types[$type]['prefs'] ??= readTypePrefs($type);
             // Older checkpoints can omit Theme Workspace; retain its current state in that adapter.
             $workspace = $decoded['themeWorkspace'] ?? readThemeWorkspace();
             if (!is_array($workspace)) throw new RuntimeException('Rollback snapshot contains invalid Theme Workspace data.');

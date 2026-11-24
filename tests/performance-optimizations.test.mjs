@@ -646,7 +646,7 @@ test('folder editor save confirms nonce-protected Docker order sync before navig
     assert.match(folderEditorTypeVmJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorTypeVmJs, /applyPreviewConstraints:/);
     const modernSubmitBlock = fs.readFileSync(path.join(path.dirname(folderEditorJsPath), 'folder.editor.submit.js'), 'utf8');
-    assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| folderId \|\| ''\)\.trim\(\);/);
+    assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| ''\)\.trim\(\);/);
     assert.match(modernSubmitBlock, /const syncSavedFolder = async \(options\) => \{[\s\S]*?await flushPostSaveTypeSync\(options\);/);
     assert.match(modernSubmitBlock, /await syncSavedFolder\(\{\s*force:\s*saveAsCopy \|\| !currentFolderId,\s*folder,\s*folderId:\s*currentFolderId,\s*previousFolder\s*\}\);[\s\S]*?leave\(editingFolderDefaults \? '\/Settings\/FolderViewPlus' : undefined\);/);
     assert.doesNotMatch(modernSubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);

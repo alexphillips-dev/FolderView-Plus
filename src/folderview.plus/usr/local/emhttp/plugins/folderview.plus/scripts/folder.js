@@ -117,10 +117,8 @@ const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapC
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
     : {};
-let folderEditorExpectedFolderRevision = Math.max(
-    0,
-    Number.parseInt(String(folderEditorBootstrapContext?.metadata?.folderRevision ?? '0'), 10) || 0
-);
+let folderEditorExpectedFolderRevision = null;
+let folderEditorMissingTarget = false;
 const inferFolderEditorTypeFromPath = () => {
     const pathname = String(window.location?.pathname || '').toLowerCase();
     if (pathname.includes('/docker/')) {
@@ -3293,12 +3291,17 @@ const startFolderEditorRuntime = async () => {
     const cacheBust = Date.now();
     // get folders
     const foldersResponse = await requestClient.getJson('/plugins/folderview.plus/server/read.php', {
-        data: { type, nocache: 1, _: cacheBust },
+        data: { type, includeMetadata: 1, nocache: 1, _: cacheBust },
         cache: false
     });
+    const folderRevision = foldersResponse?.metadata?.folderRevision;
+    if (!Number.isSafeInteger(folderRevision) || folderRevision < 0 || !foldersResponse.folders) {
+        throw new Error('Folder configuration snapshot is invalid.');
+    }
+    folderEditorExpectedFolderRevision = folderRevision;
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
     const folders = createFolderMap();
-    for (const [id, folder] of Object.entries(utils.normalizeFolderMap(foldersResponse))) {
+    for (const [id, folder] of Object.entries(utils.normalizeFolderMap(foldersResponse.folders))) {
         setFolderMapEntry(folders, id, normalizeFolderRecordForEditor(folder));
     }
     allFoldersById = utils.normalizeFolderMap(folders);
@@ -3336,20 +3339,15 @@ const startFolderEditorRuntime = async () => {
                 break;
             }
         }
-        currentEditFolder = resolvedEditFolder?.folder || bootstrapFolderRecord || navigationPrefill?.folder || null;
-        currentEditFolderId = String(
-            resolvedEditFolder?.id
-            || navigationPrefill?.id
-            || bootstrapFolderId
-            || requestedFolderRef
-            || ''
-        ).trim();
+        currentEditFolder = resolvedEditFolder?.folder || null;
+        currentEditFolderId = String(resolvedEditFolder?.id || '').trim();
         if (!currentEditFolder || !currentEditFolderId) {
+            folderEditorMissingTarget = true;
             activeFolderEditorFolderId = '';
             activeFolderEditorResolvedFolderId = '';
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
-                `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
+                surfaceT('common.server.folder-not-found-ccbf07', 'Folder not found.'),
                 'warning'
             );
             setBootstrapDiagnostics({
@@ -3368,36 +3366,23 @@ const startFolderEditorRuntime = async () => {
             refreshParentFolderChooser(folders, '', new Set());
             setParentDefaultsNote(surfaceT("common.runtime.select-a-parent-to-inherit-preview-icon-defaults-automatically", "Select a parent to inherit preview/icon defaults automatically."), 'info');
         } else {
-        if (!resolvedEditFolder && bootstrapFolderRecord) {
-            setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
-            setFolderMapEntry(allFoldersById, currentEditFolderId, currentEditFolder);
-        }
-        if (!resolvedEditFolder && navigationPrefill && !bootstrapFolderRecord) {
-            setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
-            setFolderMapEntry(allFoldersById, currentEditFolderId, currentEditFolder);
-            setValidationBannerState(
-                'Recovered requested folder from navigation context.',
-                `Folder reference "${requestedFolderRef}" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.`,
-                'warning'
-            );
-        }
-        activeFolderEditorResolvedFolderId = String(resolvedEditFolder?.id || '').trim();
-        hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
-        updateLiveSummary();
-        setBootstrapDiagnostics({
-            mode: 'hydrate',
-            requestedRef: requestedFolderRef,
-            requestedFolderRefs,
-            resolvedId: currentEditFolderId,
-            navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
-            navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
-            foldersLoaded: String(folderCount),
-            resolvedBy: String(resolvedEditFolder?.resolvedBy || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')),
-            result: 'hydrated',
-            effectiveFolderId: currentEditFolderId,
-            routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
-            routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
-        });
+            activeFolderEditorResolvedFolderId = currentEditFolderId;
+            hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+            updateLiveSummary();
+            setBootstrapDiagnostics({
+                mode: 'hydrate',
+                requestedRef: requestedFolderRef,
+                requestedFolderRefs,
+                resolvedId: currentEditFolderId,
+                navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+                navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+                foldersLoaded: String(folderCount),
+                resolvedBy: resolvedEditFolder.resolvedBy,
+                result: 'hydrated',
+                effectiveFolderId: currentEditFolderId,
+                routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
+                routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
+            });
         }
     } else {
         activeFolderEditorFolderId = '';
@@ -3462,8 +3447,7 @@ const startFolderEditorRuntime = async () => {
         membersLoaded: String(Array.isArray(choose) ? choose.length : 0),
         resolvedBy: currentEditFolderId
             ? String(
-                resolveCurrentEditFolder(folders, requestedFolderRef)?.resolvedBy
-                || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')
+                resolveCurrentEditFolder(folders, requestedFolderRef)?.resolvedBy || '(none)'
             )
             : '(none)',
         result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target',
@@ -4386,7 +4370,7 @@ const applyFolderSettingsToFolders = async () => {
 const submitForm = window.FolderViewPlusFoundationModules.folderEditorSubmit.createSubmitHandler({
     window, storageKey: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
     getState: () => ({ activeFolderEditorFolderId, folderId, allFoldersById, editingFolderDefaults,
-        initialSnapshot, folderEditorExpectedFolderRevision, type }),
+        initialSnapshot, folderEditorExpectedFolderRevision, missingEditTarget: folderEditorMissingTarget, type }),
     validateForm, buildFolderPayloadFromForm, normalizeFolderRecordForEditor, generateCopyName,
     setFieldError, surfaceT, computeFormSnapshot, securePost, flushPostSaveTypeSync, extractAjaxErrorMessage,
     saveDefaults: folder => window.FolderViewPlusFoundationModules.folderDefaults.save({ folder, type,

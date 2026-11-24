@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "content-revision": "22a6dc4a032236eb2d1e791e7293f92ba0edc101309b80124ef0a4a7a2c361d7"
+        "content-revision": "d5c6bf0ea663b0fc55a36847fc30ba2668aae9b329807bc786152199cde19e8c"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -1149,8 +1149,6 @@
     "legacy.surface.2f22a41c8db3e07d": "Folder organization reader was not supplied.",
     "legacy.surface.d60767baeafac641": "Folder organization writer was not supplied.",
     "legacy.surface.a5a1bfad6fc86811": "Folder preview",
-    "legacy.surface.6170d7f8c17bdf29": "Folder reference \"$1\" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.",
-    "legacy.surface.9220b4922c4fbc06": "Folder reference \"$1\" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.",
     "legacy.surface.ed4d8b0265fd6298": "folder remains",
     "legacy.surface.fb149e4ca320d150": "Folder row action controller dependencies are invalid.",
     "legacy.surface.a2b7bee38cd02645": "folder settings",
@@ -2017,7 +2015,6 @@
     "legacy.surface.31144631339cfa63": "Recommended defaults for daily use.",
     "legacy.surface.7611fe57a952da4b": "Recommended. Blocks risky changes automatically.",
     "legacy.surface.2a7bb086c977a805": "Recover blank Settings surface",
-    "legacy.surface.e31aec177cb21baa": "Recovered requested folder from navigation context.",
     "legacy.surface.07d59065ece38c26": "Recovery action failed",
     "legacy.surface.dc40dcf6a1d6267c": "Recovery backup created: $1.",
     "legacy.surface.f17174e7e88e2141": "Recovery overview will load after backups finish loading.",

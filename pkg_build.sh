@@ -208,6 +208,7 @@ sync_ca_template_metadata() {
 }
 
 acquire_build_lock() {
+    local fallback_lockdir="${lockfile}.d"
     mkdir -p "$(dirname "$lockfile")"
     if command -v flock >/dev/null 2>&1 && [ "${FVPLUS_PKG_BUILD_DISABLE_FLOCK:-0}" != "1" ]; then
         exec 9>"$lockfile"
@@ -217,11 +218,11 @@ acquire_build_lock() {
         fi
         return
     fi
-    lockdir="${lockfile}.d"
-    if ! mkdir "$lockdir" 2>/dev/null; then
-        echo "ERROR: Another pkg_build.sh instance is already running (lock: $lockdir)." >&2
+    if ! mkdir "$fallback_lockdir" 2>/dev/null; then
+        echo "ERROR: Another pkg_build.sh instance is already running (lock: $fallback_lockdir)." >&2
         exit 1
     fi
+    lockdir="$fallback_lockdir"
 }
 
 is_stable_version() {

@@ -197,6 +197,20 @@ test('Dashboard aborts an older unfinished native request on the next load', asy
     await nextTurn();
     assert.equal(aborted, true);
     assert.equal(harness.adapter.getSnapshot().nativeRowsLoadedCount, 0);
+    assert.equal(harness.emittedEvents.some(event => event.type === 'fvplus:dashboard:nativeRowsFailed'), false);
+});
+
+test('Dashboard reports a current native failure without publishing request errors', async () => {
+    const harness = createHarness();
+    harness.adapter.bind();
+    harness.window.loadlist();
+    const request = { promise: () => Promise.reject(new Error('synthetic private error')) };
+    harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, request);
+    await nextTurn();
+    const failure = harness.emittedEvents.find(event => event.type === 'fvplus:dashboard:nativeRowsFailed');
+    assert.deepEqual(Object.keys(failure.detail), ['name', 'generation', 'capturedAt']);
+    assert.equal(failure.detail.generation, 1);
+    assert.equal(harness.adapter.getSnapshot().nativeRowsLoadedCount, 0);
 });
 
 for (const readyType of ['docker', 'vm']) {

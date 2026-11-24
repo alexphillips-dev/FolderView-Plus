@@ -22,8 +22,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         foreach ($toRemove as $snapshot) {
             try {
                 $path = getBackupSnapshotPath($type, (string)$snapshot['name']);
-                if (file_exists($path)) {
-                    @unlink($path);
+                if (file_exists($path) && @unlink($path)) {
                     $removed[] = (string)$snapshot['name'];
                 }
             } catch (Throwable $err) {
@@ -321,23 +320,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (array_key_exists('prefs', $decoded) && !is_array($decoded['prefs'])) {
             throw new RuntimeException('Invalid prefs payload: expected JSON object.');
         }
-        $ids = [];
-        foreach ($folders as $id => $folder) {
-            $safeId = normalizeFolderIdValue($id);
-            if ($safeId === '' || isset($ids[$safeId]) || !is_array($folder)) {
-                throw new RuntimeException('Backup contains invalid folder data.');
-            }
-            foreach (['containers', 'hiddenPreviewMembers', 'hidden_preview'] as $key) {
-                if (!isset($folder[$key])) continue;
-                $members = $folder[$key];
-                // Historical name-keyed maps use their keys even when their values are objects.
-                if (!is_array($members) || (array_is_list($members)
-                    && array_filter($members, static fn($member): bool => !is_scalar($member) && $member !== null))) {
-                    throw new RuntimeException('Backup contains invalid folder membership data.');
-                }
-            }
-            $ids[$safeId] = true;
-        }
+        fvplusAssertSnapshotFolderMap($folders, 'Backup contains invalid folder data.', 'Backup contains invalid folder membership data.');
         return $folders;
     }
 

@@ -87,7 +87,6 @@ if [ "${ACTION}" = "failure" ]; then
         report_line "Previous" "${previous_version}"
     fi
     printf '\n  Review the installation output above. The previous configuration was not intentionally removed.\n'
-    rm -f "${CONTEXT_FILE}" "${ICON_STATUS_FILE}"
     exit 0
 fi
 
@@ -154,5 +153,3 @@ if [ "${operation}" = "downgrade" ]; then
     report_line "Warning" "Verify configuration compatibility before making further changes."
 fi
 printf '\n  Next step: reload the Docker, VM, Dashboard, or Settings page.\n\n'
-
-rm -f "${CONTEXT_FILE}" "${ICON_STATUS_FILE}"

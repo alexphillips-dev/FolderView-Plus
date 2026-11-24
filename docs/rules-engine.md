@@ -24,6 +24,9 @@ escape regex punctuation.
 
 Supported regex syntax is the intersection accepted by JavaScript Unicode mode
 and the PHP compiler. This is not a claim of full ECMAScript/PCRE equivalence.
+Managed rules flag backreferences inside lookbehind and references to captures
+nested inside repeating groups. Both evaluators skip these rules until the
+predicate is corrected. Stored patterns remain editable.
 Legacy folder regexes retain their separate compatibility behavior. Previously
 accepted identity escapes that are invalid in Unicode mode need correction when
 editing an automatic rule. Cross-language fixtures characterize ordinary

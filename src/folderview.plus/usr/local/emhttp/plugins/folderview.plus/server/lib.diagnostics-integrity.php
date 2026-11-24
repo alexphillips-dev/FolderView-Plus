@@ -489,7 +489,7 @@ function readUnraidVersionString(): ?string {
             $folderId = (string)($rule['folderId'] ?? '');
             $kind = (string)($rule['kind'] ?? 'name_regex');
             $effect = (string)($rule['effect'] ?? 'include');
-            if ($folderId === '' || !array_key_exists($folderId, $folders)) {
+            if ($effect !== 'exclude' && ($folderId === '' || !array_key_exists($folderId, $folders))) {
                 $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule folder target is missing or invalid.'];
             }
             if (!in_array($effect, FVPLUS_RULE_EFFECTS, true)) {

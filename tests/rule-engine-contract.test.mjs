@@ -109,12 +109,59 @@ test('managed backreferences behave the same in browser membership, PHP preview,
     const pattern = '^\\1(b)$';
     const cases = ['b', 'bb'].map(name => ({ type: 'docker', name, folders, info, rules: [rule({ pattern })] }));
     assert.deepEqual(runPhp({ cases }).map(result => result.assignedRule?.id), ['fixture-rule', undefined]);
-    const fixedLookbehind = ['(?<=(a)\\1)b(archive-)?\\2$', '(?<=(?<prefix>a)\\k<prefix>)b(archive-)?\\2$'];
+    const fixedLookbehind = ['(?<=aa)b(archive-)?\\1$', '(?<=aa)b(?<suffix>archive-)?\\k<suffix>$'];
     const lookbehindCases = fixedLookbehind.flatMap(pattern => ['aab', 'aabarchive-archive-', 'xb'].map(name => ({
         type: 'docker', name, folders, info, rules: [rule({ pattern })]
     })));
     assert.deepEqual(runPhp({ cases: lookbehindCases }).map(result => result.assignedRule?.id),
         lookbehindCases.map(entry => utils.getAutoRuleDecision({ ...entry, infoByName: info }).assignedRule?.id));
+});
+
+test('ambiguous backreferences cannot produce inconsistent runtime or startup assignments', () => {
+    const folders = { media: { name: 'Media' } };
+    const names = ['ab', 'aab', 'aba', 'abab', 'xb'];
+    const info = Object.fromEntries(names.map(name => [name, {}]));
+    const rejected = [
+        '(?<=(a)\\1)b', '(?<=(?<stem>a)\\k<stem>)b',
+        '^((a)|b)+\\2$', '^(?:(?<stem>a)|b){1,2}\\k<stem>$'
+    ];
+    for (const pattern of rejected) {
+        const rules = [rule({ pattern })];
+        const input = { type: 'docker', folders, rules, info };
+        assert.equal(utils.ruleBackreferencesArePortable(pattern), false, pattern);
+        assert.equal(runPhp({ ...input, operation: 'validate', current: [], next: rules }), false, pattern);
+        const browser = utils.buildMembershipSnapshot({ ...input, names, infoByName: info });
+        const server = runPhp({ ...input, operation: 'membership' });
+        for (const snapshot of [browser, server]) {
+            assert.deepEqual(snapshot.issues, [{ index: 0, code: 'invalid-predicate' }], pattern);
+            assert.deepEqual(snapshot.byFolder.media.liveMembers, [], pattern);
+        }
+    }
+    const rules = [rule({ pattern: rejected[0] })];
+    const input = { type: 'docker', folders, rules, info };
+    const preview = runPhp({ ...input, operation: 'preview-apply' });
+    assert.equal(preview.preview.ready, false);
+    assert.deepEqual(preview.preview.assignments, []);
+    assert.match(preview.error.message, /invalid rules/);
+    assert.deepEqual(runPhp({ ...input, operation: 'startup' }).members['folder-media'], []);
+
+    for (const pattern of ['^([ab])+\\1$', '^(?:(a)|b){0,1}\\1$', '^\\[(?<stem>a)\\k<stem>\\]$']) {
+        assert.equal(utils.ruleBackreferencesArePortable(pattern), true, pattern);
+        assert.equal(runPhp({ ...input, operation: 'validate', current: [], next: [rule({ pattern })] }), true, pattern);
+    }
+});
+
+test('System Health honors the compiler’s target policy for global exclusions', () => {
+    const folders = { media: { name: 'Media' } };
+    const info = { 'media-fixture': {} };
+    const exclusion = rule({ id: 'global-exclude', effect: 'exclude', folderId: 'removed' });
+    const include = rule({ id: 'removed-target', folderId: 'removed' });
+    const input = { type: 'docker', folders, rules: [exclusion, include], info };
+    const diagnostics = runPhp({ ...input, operation: 'diagnostics' });
+    const membership = runPhp({ ...input, operation: 'membership' });
+    assert.equal(membership.decisionsByName['media-fixture'].blockedBy.id, exclusion.id);
+    assert.equal(diagnostics.integrity.invalidAutoRules.count, 1);
+    assert.equal(diagnostics.integrity.invalidAutoRules.rules[0].id, include.id);
 });
 
 test('browser and PHP keep legacy VM membership and diagnostics regex matching in sync', () => {

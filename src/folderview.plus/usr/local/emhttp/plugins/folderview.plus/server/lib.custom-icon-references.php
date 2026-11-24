@@ -77,10 +77,11 @@ function fvplusCustomIconReferenceInputs(string $type, bool $strict): array {
         }
     }
     $sources = [$values['prefs']];
-    if (!hasLegacyMigrationMarker($type, 'prefs') && normalizeTypePrefs($values['prefs']) === defaultTypePrefs()) {
+    $defaults = normalizeTypePrefs(defaultTypePrefs());
+    if (!hasLegacyMigrationMarker($type, 'prefs') && normalizeTypePrefs($values['prefs']) === $defaults) {
         foreach (getLegacyConfigDirCandidates() as $directory) {
             $legacy = readJsonObjectFile($directory . '/' . $type . '.prefs.json');
-            if (is_array($legacy) && normalizeTypePrefs($legacy) !== defaultTypePrefs()) { $sources[] = $legacy; break; }
+            if (is_array($legacy) && normalizeTypePrefs($legacy) !== $defaults) { $sources[] = $legacy; break; }
         }
     }
     return ['folders' => $values['folders'], 'prefsSources' => $sources];

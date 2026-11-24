@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -177,6 +178,32 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /expected_archive_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/archive\/&name;-&version;\.txz"/);
     assert.match(pkgBuild, /canonical entity form/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
+});
+
+test('build contenders leave the occupied fallback lock in place', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const lockDirectory = path.join(directory, 'tmp', 'pkg_build.lock.d');
+    const owner = path.join(lockDirectory, 'owner');
+    fs.mkdirSync(lockDirectory, { recursive: true });
+    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
+    fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), '');
+    fs.writeFileSync(path.join(directory, 'folderview.plus.xml'), '');
+    fs.writeFileSync(owner, 'first builder');
+
+    const windows = process.platform === 'win32';
+    const shellPath = value => windows ? value.replaceAll('\\', '/').replace(/^([A-Z]):/i, (_, drive) => '/mnt/' + drive.toLowerCase()) : value;
+    const command = windows ? 'wsl.exe' : 'bash';
+    const prefix = windows ? ['--exec', 'bash'] : [];
+    const run = 'cd "$1" && exec env FVPLUS_PKG_BUILD_DISABLE_FLOCK=1 bash "$2" --dry-run';
+    for (let contender = 0; contender < 2; contender++) {
+        assert.throws(() => execFileSync(command, [...prefix, '-c', run, 'bash', shellPath(directory), shellPath(pkgBuildPath)], {
+            cwd: repoRoot,
+            stdio: ['ignore', 'pipe', 'pipe'],
+            encoding: 'utf8'
+        }), error => error.status === 1 && /Another pkg_build\.sh instance is already running/.test(error.stderr));
+        assert.equal(fs.readFileSync(owner, 'utf8'), 'first builder');
+    }
 });
 
 test('archive pruning script keeps newest versions and preserves current release artifacts', () => {

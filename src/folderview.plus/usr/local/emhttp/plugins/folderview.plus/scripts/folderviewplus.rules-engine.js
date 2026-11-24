@@ -8,7 +8,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(foundation, normalization, transfer, membership) {
     'use strict';
     const { isPlainObject } = foundation;
-    const { LEGACY_FOLDER_LABEL_KEYS, RULE_KINDS } = normalization;
+    const { LEGACY_FOLDER_LABEL_KEYS, RULE_KINDS, ruleBackreferencesArePortable } = normalization;
     const { normalizeMemberList } = transfer;
     const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
     const unique = (values) => Array.from(new Set(values));
@@ -97,8 +97,9 @@
         if (!isPlainObject(rule) || !RULE_KINDS.includes(rule.kind)) throw new Error('invalid-rule-kind');
         if (type !== 'docker' && rule.kind !== 'name_regex') throw new Error('unsupported-rule-type');
         if (['name_regex', 'image_regex', 'compose_project_regex'].includes(rule.kind)) {
-            if (String(rule.pattern || '') === '') throw new Error('empty-regex');
-            const regex = new RegExp(String(rule.pattern), rule.kind === 'name_regex' && rule.regexMode === 'legacy' ? '' : 'u');
+            const pattern = String(rule.pattern || '');
+            if (pattern === '' || !ruleBackreferencesArePortable(pattern)) throw new Error('invalid-regex');
+            const regex = new RegExp(pattern, rule.kind === 'name_regex' && rule.regexMode === 'legacy' ? '' : 'u');
             return (name, infos) => regex.test(rule.kind === 'name_regex' ? name : rule.kind === 'image_regex' ? getDockerImage(infos, name) : getComposeProject(infos, name));
         }
         const key = String(rule.labelKey || ''), expected = String(rule.labelValue ?? '');

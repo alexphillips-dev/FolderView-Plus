@@ -7,6 +7,10 @@
     root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
     root.FolderViewPlusFoundationModules.prefsOutbox = api;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+    const isPreferenceRevisionConflict = (status, error) => status === 409
+        && (!error?.phase || error.phase === 'request')
+        && !['nonce-stale', 'nonce-target-mismatch', 'transaction-invalid', 'transaction-replayed'].includes(error?.reasonCode);
+
     const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergePatch, patchIsEmpty, mutationIdFor }) => {
         const written = new Map();
         const legacyKey = type => `${prefix}${type}`;
@@ -168,5 +172,5 @@
         });
     };
 
-    return Object.freeze({ createStorage });
+    return Object.freeze({ createStorage, isPreferenceRevisionConflict });
 }));

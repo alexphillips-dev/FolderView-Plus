@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "legacy-surface",
-        "content-revision": "3ce6556cc2eb36a0c8e34f073e306f9a3a26d58ad331f1619f6b12f620e1c64b"
+        "content-revision": "f9f50d809b1c25e11b0c8516fdfef677cc754b052cb45af4ca2326e7234cd505"
     },
     "legacy.surface.0008eb7acd3f7a56": "Lielapjoma pārvietošana nav pieejama",
     "legacy.surface.0012950979762d8c": "Izvēlieties momentuzņēmumu, ko atjaunot, lejupielādēt vai dzēst.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Kopējā krātuves (ar failiem nodrošināti diski): $1",
     "legacy.surface.6156e461d8859f35": "Apturētie vienumi",
     "legacy.surface.61666b10759bb4ec": "Pārskatīt un lietot",
-    "legacy.surface.6170d7f8c17bdf29": "Mapes atsauce “$1” netika atrasta saglabātās mapes kartē, servera sāknēšanas kontekstā vai nesenā rediģēšanas kontekstā. Redaktors palika jaunas mapes režīmā, nevis klusi hidratēja nepareizos datus.",
     "legacy.surface.6196b89119b0d502": "$1 sākuma kārtulas ir iespējotas bez atlasītiem ierakstiem.",
     "legacy.surface.619ad13c8afe5d80": "Validācijas brīdinājums: metadatus nevarēja pilnībā apstiprināt.",
     "legacy.surface.61b970f55f66b301": "Nezināma ikona",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Atjaunināts $1 no saglabātās veidnes.",
     "legacy.surface.920e413c7d411b61": "Statuss",
     "legacy.surface.9213c7f4046c085d": "Brīdinājuma slieksnis uzmanībai",
-    "legacy.surface.9220b4922c4fbc06": "Mapes atsauce \"$1\" tika atjaunota no mapes, uz kuras noklikšķinājāt pirms redaktora ielādes. Saglabātajiem dalībnieku un displeja datiem tagad jābūt pieejamiem nekavējoties.",
     "legacy.surface.9224e419ab9b17c4": "Neizdevās ielādēt $1",
     "legacy.surface.92340695899bd2d8": "Aktīvs",
     "legacy.surface.9244d344142f4dc1": "Veidnes nosaukums izskatās labi.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Mapes pārvietošana ir bloķēta",
     "legacy.surface.e2e9665f249edc57": "Atlasiet mērķa mapi",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Atkopta pieprasītā mape no navigācijas konteksta.",
     "legacy.surface.e3248784451162bb": "Lietot mapei",
     "legacy.surface.e32bb6dbee9c1caa": "Pārslēgt izlasi",
     "legacy.surface.e3323b3118d5e7ec": "Pielietota tēma pašdziedināšana",

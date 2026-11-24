@@ -75,8 +75,8 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    // Import rollback notices were retired and Settings runtime dialogs now use semantic keys.
-    assert.ok(report.extraction.autoBoundMessageCount >= 2978, 'retain the remaining audited conditional surfaces');
+    // The editor now uses one existing message when a persisted folder is missing.
+    assert.ok(report.extraction.autoBoundMessageCount >= 2975, 'retain the remaining audited conditional surfaces');
     assert.ok(report.sourceMessageCount >= 4716, 'retain legacy and semantic theme messages together');
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);

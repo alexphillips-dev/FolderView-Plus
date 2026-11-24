@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "legacy-surface",
-        "content-revision": "6987795470e8f9c52a04e5302205fb7728ddcf7208d9abb5db37290f8bbcd5f0"
+        "content-revision": "3e4c8329b0806782db0d455fe9d36d9b50cbd484187b6aa4ac9f222cd493ca85"
     },
     "legacy.surface.0008eb7acd3f7a56": "Bulkflyttning är inte tillgänglig",
     "legacy.surface.0012950979762d8c": "Välj en ögonblicksbild att återställa, ladda ner eller radera.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Totalt lagringsutrymme (filstödda diskar): $1",
     "legacy.surface.6156e461d8859f35": "Stoppade föremål",
     "legacy.surface.61666b10759bb4ec": "Granska och tillämpa",
-    "legacy.surface.6170d7f8c17bdf29": "Mappreferens \"$1\" hittades inte i den sparade mappkartan, serverns bootstrap-kontext eller den senaste redigeringskontexten. Redaktören stannade i läget för ny mapp istället för att tyst hydratisera fel data.",
     "legacy.surface.6196b89119b0d502": "$1 startregler är aktiverade utan valda poster.",
     "legacy.surface.619ad13c8afe5d80": "Valideringsvarning: metadata kunde inte valideras helt.",
     "legacy.surface.61b970f55f66b301": "Okänd ikon",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Uppdaterade $1 från sparad mall.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Varningströskel för uppmärksamhet",
-    "legacy.surface.9220b4922c4fbc06": "Mappreferens \"$1\" återställdes från mappen du klickade på innan redigeraren laddades. Sparad medlems- och visningsdata ska nu vara tillgänglig omedelbart.",
     "legacy.surface.9224e419ab9b17c4": "Det gick inte att ladda $1",
     "legacy.surface.92340695899bd2d8": "Aktiv",
     "legacy.surface.9244d344142f4dc1": "Mallnamnet ser bra ut.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Mappflyttning blockerad",
     "legacy.surface.e2e9665f249edc57": "Välj målmappen",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Återställd efterfrågad mapp från navigeringssammanhang.",
     "legacy.surface.e3248784451162bb": "Applicera på mapp",
     "legacy.surface.e32bb6dbee9c1caa": "Växla favorit",
     "legacy.surface.e3323b3118d5e7ec": "Tema självläkning tillämpas",

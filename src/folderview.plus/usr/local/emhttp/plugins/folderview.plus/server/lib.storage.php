@@ -366,6 +366,9 @@ function readJsonObjectFile(string $path): ?array {
         if (is_string($receipt) && preg_match('/^[a-f0-9]{64}$/D', $receipt)) {
             $normalized['prefsMutationReceipt'] = $receipt;
         }
+        foreach (['folderLegacyMigrationClosed', 'prefsLegacyMigrationClosed'] as $key) {
+            if (($incoming[$key] ?? false) === true) $normalized[$key] = true;
+        }
         return $normalized;
     }
 
@@ -435,7 +438,8 @@ function readJsonObjectFile(string $path): ?array {
                 $decoded = readJsonObjectFile(getLastGoodJsonPath($path));
             }
             $previous = normalizeConfigMetadata($decoded, $safeType);
-            $rebuilt = defaultConfigMetadata($safeType);
+            $rebuilt = defaultConfigMetadata($safeType)
+                + array_intersect_key($previous, array_flip(['folderLegacyMigrationClosed', 'prefsLegacyMigrationClosed']));
             $rebuilt['createdAt'] = (string)($previous['createdAt'] ?? $rebuilt['createdAt']);
             $rebuilt['folderRevision'] = max(1, (int)($previous['folderRevision'] ?? 0) + 1);
             $rebuilt['prefsRevision'] = max(1, (int)($previous['prefsRevision'] ?? 0) + 1);

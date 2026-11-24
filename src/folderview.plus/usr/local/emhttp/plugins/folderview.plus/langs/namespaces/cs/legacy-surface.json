@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "legacy-surface",
-        "content-revision": "986a99fbf8f5d5c448f14ef2862532df5dfbe7951207d0e57a4fbd678f16f80e"
+        "content-revision": "cbde6630e7bbd30e5d250360424732663bdfe2dc88cd79c4860d9b1a16b484d9"
     },
     "legacy.surface.0008eb7acd3f7a56": "Hromadný přesun není k dispozici",
     "legacy.surface.0012950979762d8c": "Vyberte snímek, který chcete obnovit, stáhnout nebo odstranit.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Celková kapacita úložiště (disky zálohované soubory): $1",
     "legacy.surface.6156e461d8859f35": "Zastavené položky",
     "legacy.surface.61666b10759bb4ec": "Zkontrolovat a použít",
-    "legacy.surface.6170d7f8c17bdf29": "Odkaz na složku \"$1\" nebyl nalezen v uložené mapě složek, kontextu bootstrapu serveru ani kontextu posledních úprav. Editor zůstal v režimu nové složky, místo aby tiše hydratoval nesprávná data.",
     "legacy.surface.6196b89119b0d502": "$1 úvodní pravidla jsou povolena bez vybraných položek.",
     "legacy.surface.619ad13c8afe5d80": "Upozornění na ověření: metadata nelze plně ověřit.",
     "legacy.surface.61b970f55f66b301": "Neznámá ikona",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Aktualizováno $1 z uložené šablony.",
     "legacy.surface.920e413c7d411b61": "Stav",
     "legacy.surface.9213c7f4046c085d": "Varovat práh pozornosti",
-    "legacy.surface.9220b4922c4fbc06": "Odkaz na složku \"$1\" byl obnoven ze složky, na kterou jste klikli před načtením editoru. Uložená data členů a zobrazení by nyní měla být okamžitě k dispozici.",
     "legacy.surface.9224e419ab9b17c4": "Nepodařilo se načíst $1",
     "legacy.surface.92340695899bd2d8": "Aktivní",
     "legacy.surface.9244d344142f4dc1": "Název šablony vypadá dobře.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Přesun složky je zablokován",
     "legacy.surface.e2e9665f249edc57": "Vyberte cílovou složku",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Obnovena požadovaná složka z navigačního kontextu.",
     "legacy.surface.e3248784451162bb": "Použít na složku",
     "legacy.surface.e32bb6dbee9c1caa": "Přepnout oblíbené",
     "legacy.surface.e3323b3118d5e7ec": "Bylo použito téma self-heal",

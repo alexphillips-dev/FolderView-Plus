@@ -95,7 +95,8 @@
     const createMutationId = (sourceId, generation) => `${sourceId}-${Math.max(0, Number(generation) || 0).toString(36)}`.slice(0, 96);
     const isRetryableSyncError = (error) => {
         const status = Number(error?.status || error?.httpStatus || 0);
-        return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500;
+        return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500
+            || (status === 409 && ['nonce-stale', 'transaction-replayed'].includes(error?.reasonCode));
     };
 
     const normalizeDashboardLayout = (value, fallback = null) => {
@@ -575,7 +576,7 @@
             } catch (error) {
                 state.inFlightBatch = null;
                 const status = Number(error?.status || error?.httpStatus || 0);
-                const isConflict = status === 409;
+                const isConflict = outboxApi.isPreferenceRevisionConflict(status, error);
                 const recoveredConflict = isConflict && (restored || retry);
                 const rejected = recoveredConflict || ((status === 400 || status === 422) && (!error?.phase || error.phase === 'request'));
                 if (rejected) {

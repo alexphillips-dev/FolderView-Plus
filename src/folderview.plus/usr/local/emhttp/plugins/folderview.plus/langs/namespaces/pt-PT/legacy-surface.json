@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "legacy-surface",
-        "content-revision": "d1963e3f7686e47cbc77bf0ba532edcb32f198985e79871d0de2f54f89f87ef8"
+        "content-revision": "dfa8f2bd19a87b750e04aca77e94d183c261c76314c42d5f6f03853a92cd480d"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimentação em massa indisponível",
     "legacy.surface.0012950979762d8c": "Escolha um instantâneo para restaurar, transferir ou eliminar.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Total de armazenamento (discos com suporte de ficheiro): $1",
     "legacy.surface.6156e461d8859f35": "Itens parados",
     "legacy.surface.61666b10759bb4ec": "Rever e aplicar",
-    "legacy.surface.6170d7f8c17bdf29": "A referência de pasta \"$1\" não foi encontrada no mapa de pastas guardado, no contexto de inicialização do servidor ou no contexto de edição recente. O editor permaneceu no modo de nova pasta em vez de hidratar silenciosamente os dados errados.",
     "legacy.surface.6196b89119b0d502": "$1 regras iniciais são ativadas sem entradas selecionadas.",
     "legacy.surface.619ad13c8afe5d80": "Aviso de validação: os metadados não puderam ser totalmente validados.",
     "legacy.surface.61b970f55f66b301": "Ícone desconhecido",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Atualizado $1 do modelo guardado.",
     "legacy.surface.920e413c7d411b61": "Estado",
     "legacy.surface.9213c7f4046c085d": "Limite de alerta para atenção",
-    "legacy.surface.9220b4922c4fbc06": "A referência de pasta \"$1\" foi restaurada da pasta em que clicou antes do editor ser carregado. Os dados de exibição e membros guardados agora devem estar disponíveis imediatamente.",
     "legacy.surface.9224e419ab9b17c4": "Falha ao carregar $1",
     "legacy.surface.92340695899bd2d8": "Ativo",
     "legacy.surface.9244d344142f4dc1": "O nome do modelo parece bom.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Movimentação de pasta bloqueada",
     "legacy.surface.e2e9665f249edc57": "Selecione a pasta de destino",
     "legacy.surface.e2f31764f5df1c1b": "Safári (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Pasta solicitada recuperada do contexto de navegação.",
     "legacy.surface.e3248784451162bb": "Aplicar à pasta",
     "legacy.surface.e32bb6dbee9c1caa": "Alternar favorito",
     "legacy.surface.e3323b3118d5e7ec": "Autocorreção do tema aplicada",

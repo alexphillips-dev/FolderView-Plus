@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4794,
-        "total-source-messages": 4794,
+        "translated-messages": 4791,
+        "total-source-messages": 4791,
         "content-revision": "8baa1d21f723883d304e2533415b0f4961106506b7be3d408b41a134a0a2f6db",
-        "locale-content-revision": "b81419a3bef6ad4fdf7c74b608d15386ad18a7dfbec10d466a83451c877b3372"
+        "locale-content-revision": "8b98a263f53a967483132e87afeb073b962c8477816297737d2919d5e5fc8bf0"
     },
     "add-folder": "Mappa hozzáadása",
     "up-to-date": "naprakész",

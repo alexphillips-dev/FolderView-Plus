@@ -26,7 +26,7 @@ function seedState(string $label): void {
     writeThemeWorkspace($workspace);
 }
 
-if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'checkpoint-reader', 'export-reader'], true)) {
+if (in_array($operation, ['backup-prune-fault', 'checkpoint-collision', 'checkpoint-prune-fault', 'checkpoint-reader', 'export-reader'], true)) {
     $GLOBALS['checkpoint_boundary_root'] = $root;
     $GLOBALS['checkpoint_boundary_pause'] = in_array($operation, ['checkpoint-reader', 'export-reader'], true);
     eval('namespace CheckpointBoundary;
@@ -48,6 +48,20 @@ if (in_array($operation, ['checkpoint-collision', 'checkpoint-prune-fault', 'che
             }
             return $value;
         }');
+    if ($operation === 'backup-prune-fault') {
+        $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/lib.backup-snapshots.php'));
+        eval('namespace CheckpointBoundary; use \\RuntimeException; use \\Throwable;' . substr($body, 5));
+        mkdir(getBackupsDirPath(), 0700, true);
+        foreach (['new', 'blocked', 'stale', 'safety'] as $index => $reason) {
+            $path = getBackupSnapshotPath('vm', "vm-$reason.json");
+            writeJsonObjectAtomic($path, ['fixture' => ['name' => 'Fixture']]);
+            touch($path, time() - $index * 120);
+        }
+        $GLOBALS['checkpoint_boundary_unlink'] = getBackupSnapshotPath('vm', 'vm-blocked.json');
+        $removed = CheckpointBoundary\pruneBackupSnapshots('vm', 2, ['vm-safety.json']);
+        $remaining = array_column(listBackupSnapshots('vm'), 'name');
+        echo json_encode(compact('removed', 'remaining'), JSON_THROW_ON_ERROR); exit;
+    }
     if ($operation === 'export-reader') {
         $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/lib.environment-snapshot.php'));
         eval('namespace CheckpointBoundary; use \\RuntimeException; use \\Throwable;' . substr($body, 5));
@@ -154,6 +168,9 @@ if ($operation === 'envelopes') {
     $cases['missing-folders'] = $valid; unset($cases['missing-folders']['types']['vm']['folders']);
     $cases['invalid-folders'] = $valid; $cases['invalid-folders']['types']['vm']['folders'] = 'bad';
     $cases['invalid-folder-record'] = $valid; $cases['invalid-folder-record']['types']['vm']['folders'] = ['bad' => null];
+    $cases['invalid-folder-id'] = $valid; $cases['invalid-folder-id']['types']['vm']['folders'] = ['bad folder id' => ['name' => 'Bad']];
+    $cases['duplicate-folder-id'] = $valid; $cases['duplicate-folder-id']['types']['vm']['folders'] = ['x' => [], ' x ' => []];
+    $cases['invalid-membership'] = $valid; $cases['invalid-membership']['types']['vm']['folders'] = ['x' => ['containers' => [['bad']]]];
     $cases['missing-prefs'] = $valid; unset($cases['missing-prefs']['types']['docker']['prefs']);
     $cases['invalid-prefs'] = $valid; $cases['invalid-prefs']['types']['docker']['prefs'] = 'bad';
     $cases['missing-theme'] = $valid; unset($cases['missing-theme']['themeWorkspace']);
@@ -173,6 +190,20 @@ if ($operation === 'envelopes') {
     }
     $results['validRoundtrip'] = decodeEnvironmentSnapshotPayloadString(json_encode($valid)) === $valid;
     $results['internalPartialAccepted'] = count(normalizeEnvironmentSnapshotPayload(['types' => ['docker' => ['folders' => []]]])['types']) === 2;
+    $checkpoint = createGlobalRollbackSnapshot('invalid-folder-fixture')['name'];
+    $path = getGlobalRollbackSnapshotPath($checkpoint);
+    $saved = readJsonObjectFile($path);
+    foreach (['invalid-folder-record', 'invalid-folder-id', 'duplicate-folder-id', 'invalid-membership'] as $name) {
+        $malformed = $saved;
+        $malformed['types']['vm']['folders'] = $cases[$name]['types']['vm']['folders'];
+        writeJsonObjectAtomic($path, $malformed);
+        $before = $capture(); $backupNames = array_column(listGlobalRollbackSnapshots(), 'name');
+        $error = '';
+        try { restoreLatestGlobalRollbackSnapshot(); }
+        catch (RuntimeException $failure) { $error = $failure->getMessage(); }
+        $results[$name]['global-rollback'] = ['rejected' => $error !== '',
+            'unchanged' => $before === $capture() && $backupNames === array_column(listGlobalRollbackSnapshots(), 'name')];
+    }
     echo json_encode($results, JSON_THROW_ON_ERROR); exit;
 }
 if ($operation === 'seed-read') {

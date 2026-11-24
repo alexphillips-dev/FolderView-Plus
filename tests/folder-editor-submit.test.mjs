@@ -40,6 +40,32 @@ test('unchanged edits leave without mutation, synchronization or revision writes
     }
 });
 
+test('editor updates authoritative IDs after a name alias or recovered route', async () => {
+    for (const folderId of ['Fixture alias', '']) {
+        const f = fixture({ folderId, computeFormSnapshot: () => 'changed', folderEditorExpectedFolderRevision: 9 });
+        await f.run();
+        assert.equal(f.calls[0].url, '/plugins/folderview.plus/server/update.php');
+        assert.equal(f.calls[0].body.id, 'fixture');
+        assert.equal(f.calls[0].body.expectedRevision, 9);
+        assert.equal(f.calls.filter(call => /create\.php$/.test(call.url || '')).length, 0);
+    }
+});
+
+test('editor does not submit before the authoritative read or after losing its edit target', async () => {
+    const pending = fixture({ folderEditorExpectedFolderRevision: null, computeFormSnapshot: () => 'changed' });
+    await pending.run();
+    assert.deepEqual(pending.calls, []);
+    const errors = [];
+    for (const folderId of ['Fixture alias', '']) {
+        const missing = fixture({ folderId, activeFolderEditorFolderId: '', missingEditTarget: true,
+            setFieldError: (_name, message) => errors.push(message) });
+        await missing.run();
+        await missing.run(true);
+        assert.deepEqual(missing.calls, []);
+    }
+    assert.deepEqual(errors, Array(4).fill('Folder not found.'));
+});
+
 test('changed appearance waits for persistence and order reconciliation before leaving', async () => {
     const save = deferred(), sync = deferred();
     const f = fixture({ computeFormSnapshot: () => 'changed', securePost: () => save.promise, flushPostSaveTypeSync: () => sync.promise });

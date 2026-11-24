@@ -648,6 +648,40 @@ test('a temporary storage failure retains its exact preference operation and ret
     assert.deepEqual(storage.snapshot(), {});
 });
 
+for (const reasonCode of ['nonce-stale', 'transaction-replayed']) {
+    test(`a recovered preference operation retains its base and identity after ${reasonCode}`, async () => {
+        const api = loadModule();
+        const key = 'fvplus.prefs.outbox.v1.vm.old.1';
+        const patch = { groupUnassignedItems: true };
+        const original = outboxRecord('old', 7, patch);
+        const storage = createStorage({ [key]: original });
+        const calls = [];
+        const confirmed = normalizePrefs({ groupUnassignedItems: false, _metadata: { prefsRevision: 7 } });
+        const coordinator = api.createPreferenceSaveCoordinator({
+            window: {}, sourceId: 'recovered', storage, normalizePrefs, debounceMs: 0,
+            writePrefs: (_type, submitted, context) => {
+                calls.push(structuredClone({ submitted, context }));
+                if (calls.length === 1) throw Object.assign(new Error('Request guard needs a fresh nonce'), {
+                    status: 409, phase: 'request', failureSource: 'folderview-plus', reasonCode
+                });
+                return { prefs: normalizePrefs({ ...submitted, _metadata: { prefsRevision: 8 } }) };
+            }
+        });
+        coordinator.reconcile('vm', confirmed);
+        await assert.rejects(coordinator.flush('vm'), /fresh nonce/);
+        assert.equal(coordinator.getSnapshot('vm').status, 'sync-pending');
+        assert.equal(coordinator.getSnapshot('vm').recoveryConflict, undefined);
+        assert.equal(storage.getItem(key), original);
+        await coordinator.flush('vm');
+        assert.deepEqual(calls, [
+            { submitted: patch, context: { expectedRevision: 7, clientMutationId: 'old-1' } },
+            { submitted: patch, context: { expectedRevision: 7, clientMutationId: 'old-1' } }
+        ]);
+        assert.equal(coordinator.getSnapshot('vm').prefs.groupUnassignedItems, true);
+        assert.deepEqual(storage.snapshot(), {});
+    });
+}
+
 test('settings and dashboard layout commits reconcile without unrelated or stale writes restoring classic', async () => {
     const api = loadModule();
     const channels = [];

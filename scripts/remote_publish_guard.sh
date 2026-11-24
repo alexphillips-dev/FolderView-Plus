@@ -47,11 +47,21 @@ if [[ ! -f "${CHECKSUM_FILE}" ]]; then
   fvplus::fail "Missing checksum for remote publish validation: ${CHECKSUM_FILE}"
 fi
 
-if ! [[ "${ATTEMPTS_RAW}" =~ ^[0-9]+$ ]] || [[ "${ATTEMPTS_RAW}" -lt 1 ]]; then
+decimal_integer() {
+  local text="$1" digits value
+  [[ "${text}" =~ ^[0-9]+$ ]] || return 1
+  digits="${text#"${text%%[!0]*}"}"
+  digits="${digits:-0}"
+  value="$((10#${digits}))"
+  [[ "${value}" == "${digits}" ]] || return 1
+  printf '%s\n' "${value}"
+}
+
+if ! ATTEMPTS="$(decimal_integer "${ATTEMPTS_RAW}")" || [[ "${ATTEMPTS}" -lt 1 ]]; then
   fvplus::fail "FVPLUS_REMOTE_PUBLISH_ATTEMPTS must be a positive integer."
 fi
 
-if ! [[ "${DELAY_SEC_RAW}" =~ ^[0-9]+$ ]] || [[ "${DELAY_SEC_RAW}" -lt 0 ]]; then
+if ! DELAY_SEC="$(decimal_integer "${DELAY_SEC_RAW}")"; then
   fvplus::fail "FVPLUS_REMOTE_PUBLISH_DELAY_SEC must be a non-negative integer."
 fi
 
@@ -92,10 +102,7 @@ fi
 TMP_BASE_DIR="${ROOT_DIR}/tmp"
 mkdir -p "${TMP_BASE_DIR}"
 TMP_DIR="$(mktemp -d "${TMP_BASE_DIR}/remote-publish.XXXXXX")"
-cleanup_tmpdir() {
-  rm -rf "${TMP_DIR}"
-}
-trap cleanup_tmpdir EXIT
+trap 'rm -rf -- "${TMP_DIR}"' EXIT
 
 REMOTE_PLG_FILE="${TMP_DIR}/folderview.plus.plg"
 REMOTE_CHECKSUM_FILE="${TMP_DIR}/folderview.plus.txz.sha256"
@@ -112,7 +119,7 @@ echo "Remote publish guard: archive=${ARCHIVE_URL}"
 echo "Remote publish guard: icon pack=${ICON_PACK_URL}"
 
 attempt=1
-while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
+while true; do
   if ! fetch_once "${PLUGIN_URL}" "${REMOTE_PLG_FILE}"; then
     attempt_state="manifest unavailable"
   elif ! cmp -s "${PLG_FILE}" "${REMOTE_PLG_FILE}"; then
@@ -134,10 +141,11 @@ while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
     exit 0
   fi
 
-  if [[ "${attempt}" -eq "${ATTEMPTS_RAW}" ]]; then
-    fvplus::fail "Remote publish guard did not observe the expected release artifacts after ${ATTEMPTS_RAW} attempt(s): ${attempt_state}."
+  if [[ "${attempt}" -eq "${ATTEMPTS}" ]]; then
+    break
   fi
-  echo "Remote publish artifacts not ready yet (${attempt_state}; attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
-  sleep "${DELAY_SEC_RAW}"
+  echo "Remote publish artifacts not ready yet (${attempt_state}; attempt ${attempt}/${ATTEMPTS}); retrying in ${DELAY_SEC}s..." >&2
+  sleep "${DELAY_SEC}"
   attempt=$((attempt + 1))
 done
+fvplus::fail "Remote publish guard did not observe the expected release artifacts after ${ATTEMPTS} attempt(s): ${attempt_state}."

@@ -164,6 +164,9 @@ once under `fvplus-sync-candidate-<full commit SHA>`; shipped source changes als
 rebuild the dev package. Main or dev moving during synchronization stops the push.
 Delete its qualification tag only after raw publication and `0 0` alignment
 succeed; failed verification retains the tag and worktree for diagnosis.
+If main changed the manifest's install or remove hooks, synchronization stops
+when dev lacks those changes. Apply the hook changes to dev before retrying so
+each channel keeps its own version, archive, and release notes.
 After success, return to dev and fast-forward to origin/dev; verify a clean
 worktree and `0 0` alignment. Do not monitor Actions after this dev push.
 

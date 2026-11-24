@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "legacy-surface",
-        "content-revision": "e5f1d693479acf7423ed2126d8137fedcc4712c58d5eb567f92d88bc4868b18e"
+        "content-revision": "f5bf288138e60b41be18122c06654ec34f2d132202b821b71170559583471380"
     },
     "legacy.surface.0008eb7acd3f7a56": "Mutare în bloc indisponibilă",
     "legacy.surface.0012950979762d8c": "Alegeți un instantaneu pentru a restaura, descărca sau șterge.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Stocare totală (discuri susținute de fișiere): $1",
     "legacy.surface.6156e461d8859f35": "Articole oprite",
     "legacy.surface.61666b10759bb4ec": "Verifică și aplică",
-    "legacy.surface.6170d7f8c17bdf29": "Referința la dosar „$1” nu a fost găsită în harta folderului salvat, în contextul de bootstrap al serverului sau în contextul editării recente. Editorul a rămas în modul folder nou în loc să hidrateze în tăcere datele greșite.",
     "legacy.surface.6196b89119b0d502": "$1 regulile de pornire sunt activate fără intrări selectate.",
     "legacy.surface.619ad13c8afe5d80": "Avertisment de validare: metadatele nu au putut fi validate complet.",
     "legacy.surface.61b970f55f66b301": "Pictogramă necunoscută",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "S-a actualizat $1 din șablonul salvat.",
     "legacy.surface.920e413c7d411b61": "Stare",
     "legacy.surface.9213c7f4046c085d": "Avertizați pragul pentru atenție",
-    "legacy.surface.9220b4922c4fbc06": "Referința dosarului „$1” a fost restaurată din folderul pe care ați dat clic înainte ca editorul să se încarce. Membrii salvati și datele afișate ar trebui să fie acum disponibile imediat.",
     "legacy.surface.9224e419ab9b17c4": "Nu s-a încărcat $1",
     "legacy.surface.92340695899bd2d8": "Activ",
     "legacy.surface.9244d344142f4dc1": "Numele șablonului arată bine.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Mutarea folderului a fost blocată",
     "legacy.surface.e2e9665f249edc57": "Selectați folderul țintă",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Dosarul solicitat a fost recuperat din contextul de navigare.",
     "legacy.surface.e3248784451162bb": "Aplicați la folder",
     "legacy.surface.e32bb6dbee9c1caa": "Comutați favorit",
     "legacy.surface.e3323b3118d5e7ec": "Tema auto-vindecare aplicată",

@@ -47,8 +47,8 @@ if (in_array($operation, ['noop', 'normalized-parent', 'migrated'], true)) {
 }
 $error = ''; $result = null;
 try {
-    $result = withConfigMutationLock(static fn() => updateFolder($type, json_encode($payload),
-        $operation === 'create' ? '' : 'folder', $revision));
+    $id = match ($operation) { 'create' => '', 'missing' => 'missing', default => 'folder' };
+    $result = withConfigMutationLock(static fn() => updateFolder($type, json_encode($payload), $id, $revision));
 } catch (Throwable $failure) { $error = get_class($failure); }
 putenv('FVPLUS_STORAGE_FAILURE_INJECTION'); putenv('FVPLUS_STORAGE_FAILURE_STAGE');
 $after = $capture();

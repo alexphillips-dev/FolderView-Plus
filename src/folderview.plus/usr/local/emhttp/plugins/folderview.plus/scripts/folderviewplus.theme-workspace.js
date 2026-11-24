@@ -586,12 +586,12 @@
         const createProfile = (name) => queueWorkspaceMutation(async () => {
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'create_profile', name });
             activeScope = 'global';
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         });
 
         const activateProfile = (profileId) => queueWorkspaceMutation(async () => {
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'activate_profile', profileId });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         });
 
         const saveAsProfile = (name) => {
@@ -602,7 +602,7 @@
             };
             return queueWorkspaceMutation(async () => {
                 const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', payload);
-                return setWorkspace(response.workspace || {});
+                return setWorkspace(response.workspace || {}, { preserveDrafts: true });
             });
         };
 
@@ -635,7 +635,7 @@
 
         const deleteProfile = (profileId) => queueWorkspaceMutation(async () => {
             const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'delete_profile', profileId });
-            return setWorkspace(response.workspace || {});
+            return setWorkspace(response.workspace || {}, { preserveDrafts: true });
         });
 
         const checkUpdates = () => queueWorkspaceMutation(async () => {

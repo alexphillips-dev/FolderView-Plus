@@ -109,6 +109,15 @@ test('checkpoint pruning records only actual deletions and continues after a fai
     } finally { harness.cleanup(); }
 });
 
+test('source backup pruning reports only successful deletes and preserves the protected snapshot', () => {
+    const harness = setup();
+    try {
+        const result = harness.run('backup-prune-fault');
+        assert.deepEqual(result.removed, ['vm-stale.json']);
+        assert.deepEqual(result.remaining, ['vm-new.json', 'vm-blocked.json', 'vm-safety.json']);
+    } finally { harness.cleanup(); }
+});
+
 for (const action of ['checkpoint', 'export']) test(action + ' holds the configuration lock across all source reads', async () => {
     const harness = setup(); const children = [];
     const launch = operation => {

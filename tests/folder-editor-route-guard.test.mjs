@@ -52,7 +52,7 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';/);
     assert.match(folderJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
-    assert.match(folderJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
+    assert.match(folderJs, /currentEditFolderId = String\(resolvedEditFolder\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorPageMode = 'modern';/);
     assert.match(folderPage, /\$folderEditorPageModeSource = 'modern-only';/);
@@ -84,6 +84,34 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderEditorChromeJs, /<summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics<\/summary>/);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('error'/);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('unhandledrejection'/);
+});
+
+test('editor bootstrap publishes the authoritative folder map and revision together', async () => {
+    const start = folderJs.indexOf('const foldersResponse = await requestClient.getJson(');
+    const end = folderJs.indexOf('let currentEditFolder = null;', start);
+    assert.ok(start >= 0 && end > start);
+    const readSnapshot = new Function('requestClient', 'type', 'utils', 'createFolderMap', 'setFolderMapEntry',
+        'normalizeFolderRecordForEditor', 'window', 'cacheBust', `
+            return async () => {
+                let allFoldersById = { cached: { name: 'Stale' } };
+                let folderEditorExpectedFolderRevision = 1;
+                ${folderJs.slice(start, end)}
+                return { allFoldersById, folderEditorExpectedFolderRevision };
+            };
+        `);
+    const requests = [];
+    const folders = { canonical: { name: 'Latest', icon: '/new.png' } };
+    const run = response => readSnapshot({
+        getJson: async (url, options) => { requests.push({ url, options }); return response; }
+    }, 'vm', { normalizeFolderMap: value => value }, () => ({}),
+    (map, id, folder) => { map[id] = folder; }, folder => folder, {}, 42)();
+    assert.deepEqual(await run({ folders, metadata: { folderRevision: 2 } }),
+        { allFoldersById: folders, folderEditorExpectedFolderRevision: 2 });
+    assert.deepEqual(requests[0], {
+        url: '/plugins/folderview.plus/server/read.php',
+        options: { data: { type: 'vm', includeMetadata: 1, nocache: 1, _: 42 }, cache: false }
+    });
+    await assert.rejects(run({ folders }), /Folder configuration snapshot is invalid/);
 });
 
 test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {

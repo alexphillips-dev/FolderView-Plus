@@ -6902,6 +6902,8 @@ const getAutoRuleProblems = (type, rule) => {
     if (RULE_REGEX_KINDS.includes(kind)) {
         if (!pattern) {
             issues.push('Empty regex');
+        } else if (!utils.ruleBackreferencesArePortable(pattern)) {
+            issues.push('Invalid regex');
         } else {
             try {
                 // eslint-disable-next-line no-new

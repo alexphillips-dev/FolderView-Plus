@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "legacy-surface",
-        "content-revision": "f11fd9305d25b1a4c4cd19b9efed72d1ea4609de58b5349791ace1918a648f62"
+        "content-revision": "83ff0c3cdd836d2afef8d011e15fee7f0ccde9dbac76af8a8325641fbf2380c6"
     },
     "legacy.surface.0008eb7acd3f7a56": "El moviment massiu no està disponible",
     "legacy.surface.0012950979762d8c": "Trieu una instantània per restaurar, baixar o suprimir.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Emmagatzematge total (discs amb còpia de seguretat de fitxers): $1",
     "legacy.surface.6156e461d8859f35": "Elements aturats",
     "legacy.surface.61666b10759bb4ec": "Revisa i aplica",
-    "legacy.surface.6170d7f8c17bdf29": "La referència de la carpeta \"$1\" no s'ha trobat al mapa de carpetes desat, al context d'arrencada del servidor o al context d'edició recent. L'editor es va quedar en mode de carpeta nova en lloc d'hidratar silenciosament les dades equivocades.",
     "legacy.surface.6196b89119b0d502": "Les regles d'inici $1 estan habilitades sense cap entrada seleccionada.",
     "legacy.surface.619ad13c8afe5d80": "Advertiment de validació: les metadades no s'han pogut validar completament.",
     "legacy.surface.61b970f55f66b301": "Icona desconeguda",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "$1 actualitzat de la plantilla desada.",
     "legacy.surface.920e413c7d411b61": "Estat",
     "legacy.surface.9213c7f4046c085d": "Llindar d'advertència per a l'atenció",
-    "legacy.surface.9220b4922c4fbc06": "La referència de la carpeta \"$1\" s'ha restaurat des de la carpeta on heu fet clic abans que es carregués l'editor. Les dades de visualització i de membres desades ara haurien d'estar disponibles immediatament.",
     "legacy.surface.9224e419ab9b17c4": "No s'ha pogut carregar $1",
     "legacy.surface.92340695899bd2d8": "Actius",
     "legacy.surface.9244d344142f4dc1": "El nom de la plantilla sembla bé.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "S'ha bloquejat el moviment de carpeta",
     "legacy.surface.e2e9665f249edc57": "Seleccioneu la carpeta de destinació",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "S'ha recuperat la carpeta sol·licitada del context de navegació.",
     "legacy.surface.e3248784451162bb": "Aplicar a la carpeta",
     "legacy.surface.e32bb6dbee9c1caa": "Commuta com a preferit",
     "legacy.surface.e3323b3118d5e7ec": "Tema d'autocuració aplicat",

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/lib.rules-regex.php';
+require_once __DIR__ . '/lib.rules-backreference-policy.php';
     function dockerInfoLabelsForName(array $infoByName, string $name): array {
         $item = $infoByName[$name] ?? null;
         if (!is_array($item)) {
@@ -120,7 +121,7 @@ require_once __DIR__ . '/lib.rules-regex.php';
             if ($char === '(' && ($pattern[$index + 1] ?? '') === '?' && !preg_match('/\A\(\?(?:[:=!]|<[=!]|<[A-Za-z_$][A-Za-z0-9_$]*>)/', substr($pattern, $index))) return false;
             if (strpos('*+?}', $char) !== false && ($pattern[$index + 1] ?? '') === '+') return false;
         }
-        return true;
+        return fvplusRegexBackreferencesArePortable($pattern);
     }
 
     function fvplusCompileRuleSet(array $rules, string $type, ?array $folders = null): array {

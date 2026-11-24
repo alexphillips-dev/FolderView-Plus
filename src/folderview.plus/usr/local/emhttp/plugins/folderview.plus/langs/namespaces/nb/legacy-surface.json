@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "legacy-surface",
-        "content-revision": "38041b08dc6a452bb3be9b30e9968cd81f2c1183f287baab8a8e7a41bddbad6d"
+        "content-revision": "8755dc82e296c5cc48323645b179887cbb9cbbfd6f707e9d3e109bede6fe0924"
     },
     "legacy.surface.0008eb7acd3f7a56": "Masseflytting er ikke tilgjengelig",
     "legacy.surface.0012950979762d8c": "Velg et øyeblikksbilde for å gjenopprette, laste ned eller slette.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Totalt lagringsplass (filstøttede disker): $1",
     "legacy.surface.6156e461d8859f35": "Stoppede varer",
     "legacy.surface.61666b10759bb4ec": "Se gjennom og bruk",
-    "legacy.surface.6170d7f8c17bdf29": "Mappereferansen \"$1\" ble ikke funnet i det lagrede mappekartet, serveroppstartskonteksten eller nylig redigeringskontekst. Redaktøren forble i ny mappe-modus i stedet for å hydrere feil data i stillhet.",
     "legacy.surface.6196b89119b0d502": "$1 starterregler er aktivert uten valgte oppføringer.",
     "legacy.surface.619ad13c8afe5d80": "Valideringsadvarsel: Metadata kunne ikke valideres fullstendig.",
     "legacy.surface.61b970f55f66b301": "Ukjent ikon",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Oppdatert $1 fra lagret mal.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Advarselsterskel for oppmerksomhet",
-    "legacy.surface.9220b4922c4fbc06": "Mappereferansen \"$1\" ble gjenopprettet fra mappen du klikket på før redigeringsprogrammet lastet. Lagrede medlems- og visningsdata skal nå være tilgjengelig umiddelbart.",
     "legacy.surface.9224e419ab9b17c4": "Kunne ikke laste inn $1",
     "legacy.surface.92340695899bd2d8": "Aktiv",
     "legacy.surface.9244d344142f4dc1": "Malnavnet ser bra ut.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Mappeflytting blokkert",
     "legacy.surface.e2e9665f249edc57": "Velg målmappen",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Gjenopprettet forespurt mappe fra navigasjonskontekst.",
     "legacy.surface.e3248784451162bb": "Bruk på mappe",
     "legacy.surface.e32bb6dbee9c1caa": "Bytt favoritt",
     "legacy.surface.e3323b3118d5e7ec": "Tema selvhelbredelse brukt",

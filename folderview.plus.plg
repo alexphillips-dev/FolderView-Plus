@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.06">
-<!ENTITY md5 "6cb905aebe6d71e4dab477567231792a">
-<!ENTITY sha256 "1e0675f4c34ff0073e80bceffc2d703f7acafe414ee1331cc60fff56f6753935">
+<!ENTITY version "2026.11.24.07">
+<!ENTITY md5 "74b64da25d3629c3e64f055bcc30aa4c">
+<!ENTITY sha256 "e418345662718405664aa421acae43986056818c85217a80653501f774b8c26d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.07
+- Reliability: Recovery checks folder IDs and membership before restoring snapshots, preserves current data before legacy migration, and reports backup files removed only after deletion succeeds.
+- Fix: Settings keeps queued saves across expired security tokens and removes custom download locations from sanitized support exports.
+- Fix: Folder editing resolves legacy name links to the saved folder ID and checks the revision loaded with the form. Appearance retains unsaved edits when copying a preset.
+- Fix: Dashboard keeps full and incremental refreshes in order, applies the Started filter to native rows, responds to cross-tab layout changes, and preserves focus during native updates.
+- Fix: Managed rules use the same backreference restrictions in runtime membership, the Rule Simulator, and Docker startup order. System Health accepts exclusions without a folder target.
+- Reliability: Installation and removal serialize package changes, failed installations retain their report context, and release tooling protects installer changes and handles zero-padded retry delays.
+
 
 ###2026.11.24.06
 - Reliability: Validate backup contents before restoring folders and use the same manual order for environment preview, apply, and verification.
@@ -10147,48 +10156,6 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
 
     </CHANGES>
 
-    <FILE Run="/bin/bash">
-        <INLINE>
-            set -e
-            install_context="/tmp/folderview.plus-install-context"
-            icon_status="/tmp/folderview.plus-icon-pack-status"
-            config_dir="/boot/config/plugins/&name;"
-            previous_version=""
-            had_config=0
-            backup_count=0
-            custom_icon_count=0
-            override_count=0
-            if [ -f "${config_dir}/version" ] || [ -f "${config_dir}/docker.json" ] || [ -f "${config_dir}/vm.json" ] || [ -f "${config_dir}/docker.prefs.json" ] || [ -f "${config_dir}/vm.prefs.json" ] || [ -d "${config_dir}/backups" ] || [ -d "${config_dir}/images/custom" ] || [ -d "${config_dir}/styles" ] || [ -d "${config_dir}/scripts" ]; then
-                had_config=1
-            fi
-            if [ -f "${config_dir}/version" ]; then
-                previous_version="$(tr -cd '0-9.' &lt; "${config_dir}/version")"
-            fi
-            if [ -d "${config_dir}/backups" ]; then
-                backup_count="$(find "${config_dir}/backups" -type f | wc -l | tr -d '[:space:]')"
-            fi
-            if [ -d "${config_dir}/images/custom" ]; then
-                custom_icon_count="$(find "${config_dir}/images/custom" -type f | wc -l | tr -d '[:space:]')"
-            fi
-            if [ -d "${config_dir}/styles" ]; then
-                override_count="$(find "${config_dir}/styles" -type f | wc -l | tr -d '[:space:]')"
-            fi
-            if [ -d "${config_dir}/scripts" ]; then
-                script_override_count="$(find "${config_dir}/scripts" -type f | wc -l | tr -d '[:space:]')"
-                override_count="$((override_count + script_override_count))"
-            fi
-            {
-                printf 'started_at=%s\n' "$(date +%s)"
-                printf 'previous_version=%s\n' "${previous_version}"
-                printf 'had_config=%s\n' "${had_config}"
-                printf 'backup_count=%s\n' "${backup_count}"
-                printf 'custom_icon_count=%s\n' "${custom_icon_count}"
-                printf 'override_count=%s\n' "${override_count}"
-            } > "${install_context}"
-            rm -f "${icon_status}"
-        </INLINE>
-    </FILE>
-
     <FILE Name="/boot/config/plugins/&name;/folderview.plus-icons-&iconPackVersion;.txz">
         <URL>&iconPackURL;</URL>
         <MD5>&iconPackMd5;</MD5>
@@ -10204,15 +10171,24 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     <FILE Run="/bin/bash">
         <INLINE>
             set -e
+            exec 9>>/run/folderview.plus-install.lock
+            if ! flock -n 9; then
+                printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
+                exit 1
+            fi
             config_dir="/boot/config/plugins/&name;"
             registered_manifest="/boot/config/plugins/&name;.plg"
             cron_file="/etc/cron.d/folderview.plus"
             candidate_archive="${config_dir}/&name;-&version;.txz"
             install_stage="rollback preparation"
             install_report="&plugdir;/scripts/install_report.sh"
-            icon_status="/tmp/folderview.plus-icon-pack-status"
+            install_state="$(mktemp -d /tmp/folderview.plus-install.XXXXXX)"
+            install_context="${install_state}/context"
+            icon_status="${install_state}/icon-status"
+            export FVPLUS_INSTALL_CONTEXT_FILE="${install_context}"
             scheduler_status="registered"
             previous_archive=""
+            active_package_version=""
             previous_icon_pack=""
             previous_icon_sha=""
             cron_backup=""
@@ -10220,6 +10196,41 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             version_stage=""
             core_attempted=0
             cron_changed=0
+
+            capture_install_context() {
+                local previous_version="" had_config=0 backup_count=0 custom_icon_count=0 override_count=0 script_override_count
+                if [ -f "${config_dir}/version" ] || [ -f "${config_dir}/docker.json" ] || [ -f "${config_dir}/vm.json" ] || [ -f "${config_dir}/docker.prefs.json" ] || [ -f "${config_dir}/vm.prefs.json" ] || [ -d "${config_dir}/backups" ] || [ -d "${config_dir}/images/custom" ] || [ -d "${config_dir}/styles" ] || [ -d "${config_dir}/scripts" ]; then
+                    had_config=1
+                fi
+                if [ -f "${config_dir}/version" ]; then
+                    previous_version="$(tr -cd '0-9.' &lt; "${config_dir}/version")"
+                fi
+                if [ -d "${config_dir}/backups" ]; then
+                    backup_count="$(find "${config_dir}/backups" -type f | wc -l | tr -d '[:space:]')"
+                fi
+                if [ -d "${config_dir}/images/custom" ]; then
+                    custom_icon_count="$(find "${config_dir}/images/custom" -type f | wc -l | tr -d '[:space:]')"
+                fi
+                if [ -d "${config_dir}/styles" ]; then
+                    override_count="$(find "${config_dir}/styles" -type f | wc -l | tr -d '[:space:]')"
+                fi
+                if [ -d "${config_dir}/scripts" ]; then
+                    script_override_count="$(find "${config_dir}/scripts" -type f | wc -l | tr -d '[:space:]')"
+                    override_count="$((override_count + script_override_count))"
+                fi
+                {
+                    printf 'started_at=%s\n' "$(date +%s)"
+                    printf 'previous_version=%s\n' "${previous_version}"
+                    printf 'had_config=%s\n' "${had_config}"
+                    printf 'backup_count=%s\n' "${backup_count}"
+                    printf 'custom_icon_count=%s\n' "${custom_icon_count}"
+                    printf 'override_count=%s\n' "${override_count}"
+                } > "${install_context}"
+            }
+
+            cleanup_install_context() {
+                rm -f -- "${install_context}" "${icon_status}" &amp;&amp; rmdir -- "${install_state}"
+            }
 
             read_manifest_value() {
                 sed -n "s/^&lt;!ENTITY $1 \"\([^\"]*\)\">$/\1/p" "${registered_manifest}" | head -n 1
@@ -10239,13 +10250,13 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
 
             previous_package_is_active() {
                 local package_record
-                [ ! -f "&plugdir;/FolderViewPlus.page" ] || return 0
                 for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
-                    if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                        active_package_version="${BASH_REMATCH[1]}"
                         return 0
                     fi
                 done
-                return 1
+                [ -f "&plugdir;/FolderViewPlus.page" ]
             }
 
             install_failure() {
@@ -10260,7 +10271,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     fi
                     rm -f -- "&plugdir;/icon-asset-pack.json" "&plugdir;/icon-asset-pack.json.tmp" || restored=0
                     if [ -n "${previous_archive}" ]; then
-                        if upgradepkg --install-new --reinstall "${previous_archive}"; then
+                        if upgradepkg --install-new --reinstall "${previous_archive}" 9>&amp;-; then
                             if [ -n "${previous_icon_pack}" ]; then
                                 /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "${previous_icon_pack}" "${previous_icon_sha}" || restored=0
                             fi
@@ -10268,7 +10279,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                             restored=0
                         fi
                     else
-                        removepkg "&name;-&version;" || restored=0
+                        removepkg "&name;-&version;" 9>&amp;- || restored=0
                     fi
                 fi
                 if [ "${cron_changed}" -eq 1 ]; then
@@ -10281,9 +10292,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     else
                         rm -f -- "${cron_file}" || restored=0
                     fi
-                    /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || restored=0
+                    /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || restored=0
                 fi
                 rm -f -- "${version_stage}" "${cron_stage}" "${cron_backup}" || restored=0
+                cleanup_install_context || restored=0
                 if [ "${core_attempted}" -eq 1 ]; then
                     if [ "${restored}" -eq 1 ]; then
                         printf 'FolderView Plus restored the previous installation state.\n' >&amp;2
@@ -10294,11 +10306,17 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 exit "${exit_code}"
             }
             trap install_failure EXIT
+            capture_install_context
 
             if previous_package_is_active; then
                 previous_version=""
                 if [ -r "${registered_manifest}" ]; then
                     previous_version="$(read_manifest_value version)"
+                fi
+                # Unraid writes the registered manifest after the installation hook returns.
+                if [ -n "${active_package_version}" ] &amp;&amp; [ "${active_package_version}" != "${previous_version}" ]; then
+                    printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
+                    exit 1
                 fi
                 if ! [[ "${previous_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
                     || ! archive_matches "${config_dir}/&name;-${previous_version}.txz" "$(read_manifest_value sha256)" "$(read_manifest_value md5)"; then
@@ -10328,7 +10346,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_stage="core package installation"
             archive_matches "${candidate_archive}" "&sha256;" || exit 1
             core_attempted=1
-            upgradepkg --install-new --reinstall "${candidate_archive}"
+            upgradepkg --install-new --reinstall "${candidate_archive}" 9>&amp;-
             install_stage="configuration"
             mkdir -p "${config_dir}/styles" "${config_dir}/scripts"
             install_stage="obsolete runtime cleanup"
@@ -10342,7 +10360,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             chmod 644 "${cron_stage}"
             mv -fT -- "${cron_stage}" "${cron_file}"
             cron_changed=1
-            if ! /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1; then
+            if ! /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1; then
                 scheduler_status="registered-restart-warning"
             fi
             install_stage="installation report"
@@ -10353,6 +10371,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             mv -fT -- "${version_stage}" "${config_dir}/version"
             trap - EXIT
             rm -f -- "${cron_backup}" || true
+            cleanup_install_context || true
             printf '%s\n' "${install_summary}"
 
             # Unraid registers the incoming manifest after this hook returns. Keep the files
@@ -10373,9 +10392,21 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
 
     <FILE Run="/bin/bash" Method="remove">
         <INLINE>
-            removepkg &name;-&version; || true
+            exec 9>>/run/folderview.plus-install.lock || exit 1
+            if ! flock -n 9; then
+                printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
+                exit 1
+            fi
+            for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
+                if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                    &amp;&amp; [ "${package_record##*/}" != "&name;-&version;" ]; then
+                    printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
+                    exit 1
+                fi
+            done
+            removepkg &name;-&version; 9>&amp;- || true
             rm -f /etc/cron.d/folderview.plus
-            /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
+            /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || true
             rm -rf &plugdir;
             rm -rf /tmp/folderview.plus-assets
             rm -rf /boot/config/plugins/&name;

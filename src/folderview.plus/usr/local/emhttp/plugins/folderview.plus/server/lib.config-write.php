@@ -1,7 +1,6 @@
 <?php
 class FVPlusConfigWriteRollbackException extends FVPlusStorageException {}
-
-function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata, string $prefsMutationReceipt = ''): array {
+function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata, string $prefsMutationReceipt = '', bool $authoritative = true): array {
     $safeType = ensureType($type);
     if (!in_array($kind, ['folder', 'prefs'], true)) {
         throw new RuntimeException('Unsupported configuration metadata kind.');
@@ -18,13 +17,14 @@ function commitConfigMetadataWrite(string $type, string $kind, string $targetPat
     $metadata['lastTransactionId'] = getRequestTransactionId();
     $metadata['lastMutationAt'] = $now;
     if ($kind === 'prefs') $metadata['prefsMutationReceipt'] = $prefsMutationReceipt;
+    if ($authoritative) $metadata[$kind . 'LegacyMigrationClosed'] = true;
     $metadata = normalizeConfigMetadata($metadata, $safeType);
     writeJsonObjectAtomic(getConfigMetadataPath($safeType), $metadata);
     return $metadata;
 }
 
-function fvplusWriteConfigPayload(string $type, string $kind, string $path, array $payload, string $prefsMutationReceipt = ''): void {
-    withConfigMutationLock(static function () use ($type, $kind, $path, $payload, $prefsMutationReceipt): void {
+function fvplusWriteConfigPayload(string $type, string $kind, string $path, array $payload, string $prefsMutationReceipt = '', bool $authoritative = true): void {
+    withConfigMutationLock(static function () use ($type, $kind, $path, $payload, $prefsMutationReceipt, $authoritative): void {
         $metadataPath = getConfigMetadataPath($type);
         $before = array_map('fvplusTransactionCaptureFile', [$path, $metadataPath]);
         $payloadCommitted = false;
@@ -33,7 +33,7 @@ function fvplusWriteConfigPayload(string $type, string $kind, string $path, arra
             $metadata = readConfigMetadata($type, true, false);
             writeJsonObjectAtomic($path, $payload);
             $payloadCommitted = true;
-            $metadata = commitConfigMetadataWrite($type, $kind, $path, $metadata, $prefsMutationReceipt);
+            $metadata = commitConfigMetadataWrite($type, $kind, $path, $metadata, $prefsMutationReceipt, $authoritative);
         } catch (Throwable $error) {
             if (!$payloadCommitted) throw $error;
             $failureSnapshot = getDurableStorageRuntimeSnapshot();

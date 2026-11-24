@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "legacy-surface",
-        "content-revision": "0a1d9751b0f6cdd1ca5995cfa9834e00e408de14a9f43589053fb55197095848"
+        "content-revision": "848f47bd86cc08a79a693b3779eb7329f867a44e912678633fbb790f3b8ed4c4"
     },
     "legacy.surface.0008eb7acd3f7a56": "Masseflytning er ikke tilgængelig",
     "legacy.surface.0012950979762d8c": "Vælg en sikkerhedskopi, du vil gendanne, downloade eller slette.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Samlet lagerplads (filstøttede diske): $1",
     "legacy.surface.6156e461d8859f35": "Stoppede varer",
     "legacy.surface.61666b10759bb4ec": "Gennemgå og anvend",
-    "legacy.surface.6170d7f8c17bdf29": "Mappereference \"$1\" blev ikke fundet i det gemte mappekort, server bootstrap-kontekst eller nylige redigeringskontekst. Redaktøren forblev i tilstanden ny mappe i stedet for lydløst at hydrere de forkerte data.",
     "legacy.surface.6196b89119b0d502": "$1 starterregler er aktiveret uden valgte poster.",
     "legacy.surface.619ad13c8afe5d80": "Valideringsadvarsel: Metadata kunne ikke valideres fuldt ud.",
     "legacy.surface.61b970f55f66b301": "Ukendt ikon",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Opdateret $1 fra gemt skabelon.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Advarselstærskel for opmærksomhed",
-    "legacy.surface.9220b4922c4fbc06": "Mappereference \"$1\" blev gendannet fra den mappe, du klikkede på, før editoren indlæste. Gemte medlems- og skærmdata skulle nu være tilgængelige med det samme.",
     "legacy.surface.9224e419ab9b17c4": "Kunne ikke indlæse $1",
     "legacy.surface.92340695899bd2d8": "Aktiv",
     "legacy.surface.9244d344142f4dc1": "Skabelonnavnet ser godt ud.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Flytning af mappe blokeret",
     "legacy.surface.e2e9665f249edc57": "Vælg målmappen",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Gendannet anmodet mappe fra navigationskontekst.",
     "legacy.surface.e3248784451162bb": "Anvend på mappe",
     "legacy.surface.e32bb6dbee9c1caa": "Skift favorit",
     "legacy.surface.e3323b3118d5e7ec": "Tema selvhelbredelse anvendt",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "legacy-surface",
-        "content-revision": "3565aac0d36952054d090a5a87f1ab31debcb782b3d6b11874f2247c19e15a8e"
+        "content-revision": "39dffb8df7efad356cd553f73be6fd32a2b31ba4ab83b8cf1718a3d051406db6"
     },
     "legacy.surface.0008eb7acd3f7a56": "Tömeges áthelyezés nem érhető el",
     "legacy.surface.0012950979762d8c": "Válasszon egy pillanatképet a visszaállításhoz, letöltéshez vagy törléshez.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Teljes tárhely (fájllal támogatott lemezek): $1",
     "legacy.surface.6156e461d8859f35": "Leállított tételek",
     "legacy.surface.61666b10759bb4ec": "Ellenőrzés és alkalmazás",
-    "legacy.surface.6170d7f8c17bdf29": "A \"$1\" mappahivatkozás nem található a mentett mappaleképezésben, a szerver rendszerindítási kontextusában vagy a legutóbbi szerkesztési környezetben. A szerkesztő új mappa módban maradt, ahelyett, hogy csendben hidratálta volna a rossz adatokat.",
     "legacy.surface.6196b89119b0d502": "A $1 kezdőszabályok engedélyezve vannak, nincsenek kiválasztott bejegyzések.",
     "legacy.surface.619ad13c8afe5d80": "Érvényesítési figyelmeztetés: a metaadatokat nem sikerült teljesen ellenőrizni.",
     "legacy.surface.61b970f55f66b301": "Ismeretlen ikon",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "$1 frissítve a mentett sablonból.",
     "legacy.surface.920e413c7d411b61": "Állapot",
     "legacy.surface.9213c7f4046c085d": "Figyelmeztetési küszöb",
-    "legacy.surface.9220b4922c4fbc06": "A \"$1\" mappahivatkozás visszaállt abból a mappából, amelyre a szerkesztő betöltése előtt kattintott. A mentett tag- és megjelenítési adatoknak most azonnal elérhetőnek kell lenniük.",
     "legacy.surface.9224e419ab9b17c4": "Nem sikerült betölteni a $1",
     "legacy.surface.92340695899bd2d8": "Aktív",
     "legacy.surface.9244d344142f4dc1": "A sablon neve jól néz ki.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "A mappa áthelyezése blokkolva",
     "legacy.surface.e2e9665f249edc57": "Válassza ki a célmappát",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "A kért mappa helyreállítása a navigációs kontextusból.",
     "legacy.surface.e3248784451162bb": "Alkalmazás mappába",
     "legacy.surface.e32bb6dbee9c1caa": "Kedvencek váltása",
     "legacy.surface.e3323b3118d5e7ec": "Téma öngyógyítás alkalmazott",

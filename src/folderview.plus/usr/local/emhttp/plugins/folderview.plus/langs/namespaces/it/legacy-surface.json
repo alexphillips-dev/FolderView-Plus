@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "legacy-surface",
-        "content-revision": "b21d51521129dbd9ded1f257c5909da3016fbdf19793841508714afa269748c3"
+        "content-revision": "3e6c96e69b003ba3bb0cf655af85467ddf8567225ab3b837c1cca93267df5891"
     },
     "legacy.surface.0008eb7acd3f7a56": "Spostamento collettivo non disponibile",
     "legacy.surface.0012950979762d8c": "Scegli uno snapshot da ripristinare, scaricare o eliminare.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Totale spazio di archiviazione (dischi con backup su file): $1",
     "legacy.surface.6156e461d8859f35": "Articoli fermati",
     "legacy.surface.61666b10759bb4ec": "Verifica e applica",
-    "legacy.surface.6170d7f8c17bdf29": "Il riferimento alla cartella \"$1\" non è stato trovato nella mappa delle cartelle salvata, nel contesto di bootstrap del server o nel contesto di modifica recente. L'editor è rimasto in modalità nuova cartella invece di idratare silenziosamente i dati errati.",
     "legacy.surface.6196b89119b0d502": "Le regole iniziali $1 sono abilitate senza voci selezionate.",
     "legacy.surface.619ad13c8afe5d80": "Avviso di convalida: non è stato possibile convalidare completamente i metadati.",
     "legacy.surface.61b970f55f66b301": "Icona sconosciuta",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Aggiornato $1 dal modello salvato.",
     "legacy.surface.920e413c7d411b61": "Stato",
     "legacy.surface.9213c7f4046c085d": "Soglia di avviso per l'attenzione",
-    "legacy.surface.9220b4922c4fbc06": "Il riferimento alla cartella \"$1\" è stato ripristinato dalla cartella su cui hai fatto clic prima del caricamento dell'editor. I dati salvati sui membri e visualizzati dovrebbero ora essere immediatamente disponibili.",
     "legacy.surface.9224e419ab9b17c4": "Impossibile caricare $1",
     "legacy.surface.92340695899bd2d8": "Attivo",
     "legacy.surface.9244d344142f4dc1": "Il nome del modello sembra buono.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Spostamento della cartella bloccato",
     "legacy.surface.e2e9665f249edc57": "Seleziona la cartella di destinazione",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Cartella richiesta recuperata dal contesto di navigazione.",
     "legacy.surface.e3248784451162bb": "Applica alla cartella",
     "legacy.surface.e32bb6dbee9c1caa": "Attiva/disattiva preferito",
     "legacy.surface.e3323b3118d5e7ec": "Autoguarigione del tema applicata",

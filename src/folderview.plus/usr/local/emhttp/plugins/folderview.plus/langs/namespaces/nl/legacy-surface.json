@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "legacy-surface",
-        "content-revision": "6e133ed12b25c13e36d4fe085bf43b78fbcbf6bf0587e1fddce0009266be2b7b"
+        "content-revision": "e3b4f6e3ba02966409698c925957eb2ce0448bdbb0b4fa7756acfe911808de5a"
     },
     "legacy.surface.0008eb7acd3f7a56": "Bulkverplaatsing niet beschikbaar",
     "legacy.surface.0012950979762d8c": "Kies een momentopname om te herstellen, downloaden of verwijderen.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Totaal opslag (schijven met bestandsback-up): $1",
     "legacy.surface.6156e461d8859f35": "Gestopte artikelen",
     "legacy.surface.61666b10759bb4ec": "Controleren en toepassen",
-    "legacy.surface.6170d7f8c17bdf29": "Mapreferentie \"$1\" is niet gevonden in de opgeslagen mapindeling, serverbootstrapcontext of recente bewerkingscontext. De editor bleef in de nieuwe-mapmodus in plaats van stilletjes de verkeerde gegevens te hydrateren.",
     "legacy.surface.6196b89119b0d502": "$1 starterregels zijn ingeschakeld zonder geselecteerde items.",
     "legacy.surface.619ad13c8afe5d80": "Validatiewaarschuwing: metadata kon niet volledig worden gevalideerd.",
     "legacy.surface.61b970f55f66b301": "Onbekend icoon",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "$1 bijgewerkt vanuit opgeslagen sjabloon.",
     "legacy.surface.920e413c7d411b61": "Status",
     "legacy.surface.9213c7f4046c085d": "Waarschuw drempel voor aandacht",
-    "legacy.surface.9220b4922c4fbc06": "Mapreferentie \"$1\" is hersteld vanuit de map waarop u klikte voordat de editor werd geladen. Opgeslagen lid- en displaygegevens zouden nu onmiddellijk beschikbaar moeten zijn.",
     "legacy.surface.9224e419ab9b17c4": "Kan $1 niet laden",
     "legacy.surface.92340695899bd2d8": "Actief",
     "legacy.surface.9244d344142f4dc1": "Sjabloonnaam ziet er goed uit.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Mapverplaatsing geblokkeerd",
     "legacy.surface.e2e9665f249edc57": "Selecteer de doelmap",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "Opgevraagde map hersteld uit navigatiecontext.",
     "legacy.surface.e3248784451162bb": "Toepassen op map",
     "legacy.surface.e32bb6dbee9c1caa": "Schakel favoriet in",
     "legacy.surface.e3323b3118d5e7ec": "Thema zelfgenezing toegepast",

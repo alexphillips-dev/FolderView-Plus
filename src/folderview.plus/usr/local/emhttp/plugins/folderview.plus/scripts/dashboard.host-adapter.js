@@ -207,6 +207,10 @@
                     .catch(() => {
                         // Native request failures remain owned by Unraid.
                         pendingNativeRequests.delete(jqXHR);
+                        if (!state.disposed && generation === state.generation
+                            && state.renderGeneration !== generation && pendingNativeRequests.size === 0) {
+                            emit('nativeRowsFailed');
+                        }
                     });
             });
             state.prefilterBound = true;

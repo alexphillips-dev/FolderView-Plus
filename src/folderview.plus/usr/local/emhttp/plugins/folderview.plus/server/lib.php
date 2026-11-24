@@ -1594,7 +1594,11 @@
     }
 
     function hasLegacyMigrationMarker(string $type, string $kind): bool {
-        return file_exists(getLegacyMigrationMarkerPath($type, $kind));
+        if (file_exists(getLegacyMigrationMarkerPath($type, $kind))) return true;
+        $path = getConfigMetadataPath($type);
+        $metadata = readJsonObjectFile($path) ?? readJsonObjectFile(getLastGoodJsonPath($path));
+        if ($kind === 'prefs') return ($metadata['prefsLegacyMigrationClosed'] ?? false) === true || isset($metadata['prefsMutationReceipt']);
+        return ($metadata['folderLegacyMigrationClosed'] ?? false) === true || (int)($metadata['folderRevision'] ?? 0) > 1;
     }
 
     function markLegacyMigrationComplete(string $type, string $kind): void {
@@ -1605,26 +1609,25 @@
         writeDurableFileAtomic(getLegacyMigrationMarkerPath($type, $kind), gmdate('c'));
     }
 
-    function migrateLegacyTypeDataIfNeeded(string $type, string $kind): void {
+    function migrateLegacyTypeDataIfNeeded(string $type, string $kind, ?array $targetData): ?array {
         $type = ensureType($type);
         $safeKind = $kind === 'prefs' ? 'prefs' : 'folders';
-        if (hasLegacyMigrationMarker($type, $safeKind)) {
-            return;
-        }
-
-        $targetPath = $safeKind === 'prefs' ? getTypePrefsPath($type) : getFolderFilePath($type);
-        $targetData = readJsonObjectFile($targetPath);
 
         // Keep existing non-empty data/prefs untouched.
+        $defaultPrefs = $safeKind === 'prefs' ? normalizeTypePrefs(defaultTypePrefs()) : [];
         if ($safeKind === 'prefs' && is_array($targetData)) {
-            if (normalizeTypePrefs($targetData) !== defaultTypePrefs()) {
-                return;
+            if (normalizeTypePrefs($targetData) !== $defaultPrefs) {
+                return null;
             }
         }
         if ($safeKind === 'folders' && is_array($targetData) && count($targetData) > 0) {
-            return;
+            return null;
+        }
+        if (hasLegacyMigrationMarker($type, $safeKind)) {
+            return null;
         }
 
+        $targetPath = $safeKind === 'prefs' ? getTypePrefsPath($type) : getFolderFilePath($type);
         $legacyName = $safeKind === 'prefs' ? "$type.prefs.json" : "$type.json";
         foreach (getLegacyConfigDirCandidates() as $legacyDir) {
             // FV3 needs the complete, reviewed converter; raw adoption loses global settings and identities.
@@ -1637,7 +1640,7 @@
 
             if ($safeKind === 'prefs') {
                 $legacyData = normalizeTypePrefs($legacyData);
-                if ($legacyData === defaultTypePrefs()) {
+                if ($legacyData === $defaultPrefs) {
                     continue;
                 }
             } else {
@@ -1649,8 +1652,9 @@
 
             writeJsonObjectWithLastGood($targetPath, $legacyData);
             markLegacyMigrationComplete($type, $safeKind);
-            return;
+            return $legacyData;
         }
+        return null;
     }
 
     function getFolderFilePath(string $type): string {
@@ -1661,7 +1665,6 @@
     function readRawFolderMap(string $type, bool $requireVerified = false): array {
         $type = ensureType($type);
         return withConfigMutationLock(static function () use ($type, $requireVerified): array {
-            migrateLegacyTypeDataIfNeeded($type, 'folders');
             $path = getFolderFilePath($type);
             $decoded = readJsonObjectFile($path);
             $verify = !$requireVerified ? null : static function (array $folders): bool {
@@ -1685,7 +1688,10 @@
                 $decoded = recoverJsonObjectFromLastGood($path, $verify);
                 $recoveredFromLastGood = is_array($decoded);
             }
-            if (!is_array($decoded)) {
+            if (!$recoveredFromLastGood) {
+                $decoded = migrateLegacyTypeDataIfNeeded($type, 'folders', $decoded) ?? $decoded;
+            }
+            if (!is_array($decoded) || ($verify !== null && !$verify($decoded))) {
                 if ($requireVerified) {
                     throw new UnexpectedValueException('Docker start order sync failed');
                 }

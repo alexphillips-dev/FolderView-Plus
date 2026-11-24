@@ -36,6 +36,13 @@ function writeFile(targetPath, contents) {
     fs.writeFileSync(targetPath, contents);
 }
 
+function configureFixtureRepository(cwd) {
+    runGit(['config', 'user.name', 'FolderView Plus Test'], cwd);
+    runGit(['config', 'user.email', 'folderviewplus@example.com'], cwd);
+    runGit(['config', 'core.autocrlf', 'false'], cwd);
+    runGit(['remote', 'set-url', 'origin', '../remote.git'], cwd);
+}
+
 function runSyncMainToDev(cwd, branchName = 'backmerge/test') {
     execFileSync('bash', ['scripts/sync_main_to_dev.sh'], {
         cwd,
@@ -58,8 +65,7 @@ test('sync_main_to_dev preserves main ancestry while keeping dev release artifac
 
     runGit(['init', '--bare', remoteDir], tempDir);
     runGit(['clone', remoteDir, workDir], tempDir);
-    runGit(['config', 'user.name', 'FolderView Plus Test'], workDir);
-    runGit(['config', 'user.email', 'folderviewplus@example.com'], workDir);
+    configureFixtureRepository(workDir);
 
     writeFile(path.join(workDir, 'scripts', 'sync_main_to_dev.sh'), fs.readFileSync(syncMainToDevPath, 'utf8'));
     writeFile(path.join(workDir, 'app.txt'), 'base\n');
@@ -133,8 +139,7 @@ test('sync_main_to_dev records main ancestry even when main differs only by rele
 
     runGit(['init', '--bare', remoteDir], tempDir);
     runGit(['clone', remoteDir, workDir], tempDir);
-    runGit(['config', 'user.name', 'FolderView Plus Test'], workDir);
-    runGit(['config', 'user.email', 'folderviewplus@example.com'], workDir);
+    configureFixtureRepository(workDir);
 
     writeFile(path.join(workDir, 'scripts', 'sync_main_to_dev.sh'), fs.readFileSync(syncMainToDevPath, 'utf8'));
     writeFile(path.join(workDir, 'folderview.plus.plg'), 'version=2026.04.05.12\n');
@@ -185,4 +190,55 @@ test('sync_main_to_dev records main ancestry even when main differs only by rele
     assert.equal(runGit(['show', 'backmerge/test:folderview.plus.plg'], workDir), 'version=2026.04.05.14');
     assert.match(runGit(['ls-tree', '-r', '--name-only', 'backmerge/test'], workDir), /docs\/releases\/2026\.04\.05\.14\.md/);
     assert.doesNotMatch(runGit(['ls-tree', '-r', '--name-only', 'backmerge/test'], workDir), /2026\.04\.05\.13/);
+});
+
+test('sync_main_to_dev refuses to drop an inline installer change from main', (t) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-sync-hooks-'));
+    t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
+    const remoteDir = path.join(tempDir, 'remote.git');
+    const workDir = path.join(tempDir, 'work');
+    const manifest = (branch, version, command) => [
+        `<!ENTITY version "${version}">`,
+        '<PLUGIN>',
+        '  <FILE Name="archive">',
+        `    <URL>https://raw.githubusercontent.com/&github;/${branch}/archive/&name;-&version;.txz</URL>`,
+        '  </FILE>',
+        '  <FILE Run="/bin/bash">',
+        `    <INLINE>${command}</INLINE>`,
+        '  </FILE>',
+        '</PLUGIN>',
+        ''
+    ].join('\n');
+    runGit(['init', '--bare', remoteDir], tempDir);
+    runGit(['clone', remoteDir, workDir], tempDir);
+    configureFixtureRepository(workDir);
+    writeFile(path.join(workDir, 'scripts', 'sync_main_to_dev.sh'), fs.readFileSync(syncMainToDevPath, 'utf8'));
+    const manifestPath = path.join(workDir, 'folderview.plus.plg');
+    writeFile(manifestPath, manifest('main', '2026.04.05.12', 'old install command'));
+    runGit(['add', '.'], workDir);
+    runGit(['commit', '-m', 'Shared installer'], workDir);
+    runGit(['branch', '-M', 'main'], workDir);
+
+    runGit(['checkout', '-b', 'dev'], workDir);
+    writeFile(manifestPath, manifest('dev', '2026.04.05.14', 'old install command'));
+    runGit(['commit', '-am', 'Dev package metadata'], workDir);
+    runGit(['push', '-u', 'origin', 'dev'], workDir);
+    const originalDev = runGit(['rev-parse', 'HEAD'], workDir);
+
+    runGit(['checkout', 'main'], workDir);
+    writeFile(manifestPath, manifest('main', '2026.04.05.13', 'corrected install command'));
+    runGit(['commit', '-am', 'Correct the stable installer'], workDir);
+    runGit(['push', '-u', 'origin', 'main'], workDir);
+    runGit(['checkout', 'dev'], workDir);
+    assert.throws(() => runSyncMainToDev(workDir, 'dev'), error => /manifest installation or removal hooks/.test(error.stderr));
+    assert.equal(runGit(['rev-parse', 'HEAD'], workDir), originalDev);
+    assert.equal(runGit(['status', '--porcelain'], workDir), '');
+
+    const correctedDev = manifest('dev', '2026.04.05.15', 'corrected install command');
+    writeFile(manifestPath, correctedDev);
+    runGit(['commit', '-am', 'Apply the installer correction to dev'], workDir);
+    runGit(['push', 'origin', 'dev'], workDir);
+    runSyncMainToDev(workDir, 'dev');
+    assert.doesNotThrow(() => runGit(['merge-base', '--is-ancestor', 'origin/main', 'HEAD'], workDir));
+    assert.equal(fs.readFileSync(manifestPath, 'utf8'), correctedDev);
 });

@@ -18,6 +18,33 @@
     ];
     const RULE_EFFECTS = ['include', 'exclude'];
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+    const ruleBackreferencesArePortable = (pattern) => {
+        if (!/\\(?:[1-9]|k<)/.test(pattern)) return true;
+        const stack = [], captures = [], repeated = [], references = [];
+        let inClass = false;
+        const tokens = /\\(?:[1-9][0-9]*|k<[A-Za-z_$][A-Za-z0-9_$]*>|[\s\S])|\(\?<[=!]|\(\?<([A-Za-z_$][A-Za-z0-9_$]*)>|\(\?[:=!]|\(|\[|\]|\)(?:[*+]|\{[0-9]+(?:,[0-9]*)?\})?/g;
+        for (const [token, captureName] of pattern.matchAll(tokens)) {
+            if (token === '[' || token === ']') { inClass = token === '['; continue; }
+            if (inClass) continue;
+            if (token[0] === '(') {
+                if (token === '(' || captureName) captures.push(captureName);
+                stack.push({ start: captures.length, lookbehind: token === '(?<=' || token === '(?<!' || stack.at(-1)?.lookbehind });
+            } else if (token[0] === ')') {
+                const group = stack.pop();
+                const limit = token.slice(2, -1).split(',');
+                if (group && (/^\)[*+]/.test(token) || limit[1] === '' || Number(limit.at(-1)) > 1)) {
+                    repeated.push([group.start, captures.length]);
+                }
+            } else if (/^\\(?:[1-9]|k<)/.test(token)) {
+                if (stack.at(-1)?.lookbehind) return false;
+                references.push(token.startsWith('\\k<') ? token.slice(3, -1) : Number(token.slice(1)) - 1);
+            }
+        }
+        return references.every(reference => {
+            const index = typeof reference === 'string' ? captures.indexOf(reference) : reference;
+            return !repeated.some(([start, end]) => index >= start && index < end);
+        });
+    };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 5;
@@ -362,12 +389,12 @@
         'name_desc'
     ]);
 
-
     return Object.freeze({
         ...utilityFoundation,
         EXPORT_SCHEMA_VERSION,
         RULE_KINDS,
         RULE_EFFECTS,
+        ruleBackreferencesArePortable,
         LEGACY_FOLDER_LABEL_KEYS,
         DEFAULT_FOLDER_ICON_PATH,
         IMPORT_ICON_MAX_LENGTH,

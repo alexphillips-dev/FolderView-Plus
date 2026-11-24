@@ -5254,24 +5254,6 @@
     ]
   },
   {
-    "phrase": "Folder reference \"$1\" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.",
-    "locations": [
-      {
-        "file": "scripts/folder.js",
-        "anchor": "\" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data."
-      }
-    ]
-  },
-  {
-    "phrase": "Folder reference \"$1\" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.",
-    "locations": [
-      {
-        "file": "scripts/folder.js",
-        "anchor": "\" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately."
-      }
-    ]
-  },
-  {
     "phrase": "folder remains",
     "locations": [
       {
@@ -8596,15 +8578,6 @@
       {
         "file": "scripts/folderviewplus.js",
         "anchor": "'Recover blank Settings surface'"
-      }
-    ]
-  },
-  {
-    "phrase": "Recovered requested folder from navigation context.",
-    "locations": [
-      {
-        "file": "scripts/folder.js",
-        "anchor": "'Recovered requested folder from navigation context.'"
       }
     ]
   },

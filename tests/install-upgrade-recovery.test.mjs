@@ -23,7 +23,8 @@ test('install hook retains registered core and icon archives through failures an
 const pinnedCli = process.env.FVPLUS_TEST_UNRAID_PLUGIN_CLI;
 test('Unraid 7.4.0 installs, updates, and reinstalls boot assets offline', { skip: !pinnedCli }, () => {
     assert.deepEqual(run(pinnedCli), [
-        'update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-corrupt',
+        'update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
+        'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success'
     ]);

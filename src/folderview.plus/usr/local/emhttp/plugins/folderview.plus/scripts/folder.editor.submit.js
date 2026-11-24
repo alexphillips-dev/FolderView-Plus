@@ -61,11 +61,17 @@
         };
         return async (e, saveAsCopy = false) => {
             const startedAt = Date.now();
-            if (submission !== 'idle' || !validateForm()) return false;
+            if (submission !== 'idle') return false;
             const { activeFolderEditorFolderId, folderId, allFoldersById, editingFolderDefaults,
-                initialSnapshot, folderEditorExpectedFolderRevision, type } = deps.getState();
+                initialSnapshot, folderEditorExpectedFolderRevision, missingEditTarget, type } = deps.getState();
+            const currentFolderId = String(activeFolderEditorFolderId || '').trim();
+            if (!editingFolderDefaults && folderEditorExpectedFolderRevision === null) return false;
+            if (missingEditTarget || (folderId && !currentFolderId)) {
+                setFieldError('name', surfaceT('common.server.folder-not-found-ccbf07', 'Folder not found.'));
+                return false;
+            }
+            if (!validateForm()) return false;
             const folder = buildFolderPayloadFromForm(e);
-            const currentFolderId = String(activeFolderEditorFolderId || folderId || '').trim();
             const previousFolder = !saveAsCopy && currentFolderId && allFoldersById[currentFolderId]
                 ? normalizeFolderRecordForEditor(allFoldersById[currentFolderId]) : null;
             if (saveAsCopy) folder.name = generateCopyName(folder.name, folder.parentId);
@@ -75,7 +81,7 @@
             }
             const timings = { preparationMs: Date.now() - startedAt, requestMs: 0, syncMs: 0 };
             // Untouched editors need no persistence, including default-expanded legacy records.
-            if (!editingFolderDefaults && !saveAsCopy && folderId && previousFolder
+            if (!editingFolderDefaults && !saveAsCopy && currentFolderId && previousFolder
                 && initialSnapshot && computeFormSnapshot() === initialSnapshot) {
                 recordDiagnostics({ ...timings, unchanged: true, ok: true, durationMs: Date.now() - startedAt });
                 leave();
@@ -87,9 +93,9 @@
                 try {
                     if (editingFolderDefaults) {
                         await deps.saveDefaults(folder);
-                    } else if (folderId && !saveAsCopy) {
+                    } else if (currentFolderId && !saveAsCopy) {
                         const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
-                            type, content: JSON.stringify(folder), id: folderId,
+                            type, content: JSON.stringify(folder), id: currentFolderId,
                             expectedRevision: folderEditorExpectedFolderRevision
                         });
                         const savedRevision = Number.parseInt(String(saveResponse?.metadata?.folderRevision ?? ''), 10);

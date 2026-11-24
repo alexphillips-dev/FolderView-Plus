@@ -173,13 +173,13 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const navigationPrefill = editingFolderDefaults \? null : readEditorNavigationPrefill\(type,\s*preferredNavigationRef\);/);
     assert.match(folderEditorScript, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderEditorScript, /for \(const candidateRef of requestedFolderRefs\) \{/);
-    assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
-    assert.match(folderEditorScript, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
+    assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /currentEditFolderId = String\(resolvedEditFolder\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /setFolderMapEntry\(folders, id, normalizeFolderRecordForEditor\(folder\)\);/);
-    assert.match(folderEditorScript, /activeFolderEditorResolvedFolderId = String\(resolvedEditFolder\?\.id \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /activeFolderEditorResolvedFolderId = currentEditFolderId;/);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);\s*updateLiveSummary\(\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
-    assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
+    assert.match(folderEditorScript, /folderEditorMissingTarget = true;/);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
     assert.match(folderEditorScript, /clearEditorNavigationPrefill\(\);/);
     const hierarchyStateIndex = folderEditorScript.indexOf('const folderHierarchyState = {');

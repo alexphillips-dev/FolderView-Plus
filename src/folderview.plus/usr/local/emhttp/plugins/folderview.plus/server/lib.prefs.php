@@ -695,22 +695,21 @@
                     return writeTypePrefs($type, $lastGood);
                 }
             }
-            migrateLegacyTypeDataIfNeeded($type, 'prefs');
-            $decoded = readJsonObjectFile($path);
+            $decoded = migrateLegacyTypeDataIfNeeded($type, 'prefs', $decoded) ?? $decoded;
             if ($decoded === null) {
-                return writeTypePrefs($type, defaultTypePrefs());
+                return writeTypePrefs($type, defaultTypePrefs(), '', false);
             }
             $normalized = normalizeTypePrefs($decoded);
             if (jsonObjectsDiffer($decoded, $normalized)) {
-                writeTypePrefs($type, $normalized);
+                writeTypePrefs($type, $normalized, '', $normalized !== normalizeTypePrefs(defaultTypePrefs()));
             }
             return $normalized;
         });
     }
 
-    function writeTypePrefs(string $type, array $prefs, string $mutationReceipt = ''): array {
+    function writeTypePrefs(string $type, array $prefs, string $mutationReceipt = '', bool $authoritative = true): array {
         $type = ensureType($type);
         $normalized = normalizeTypePrefs($prefs);
-        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized, $mutationReceipt);
+        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized, $mutationReceipt, $authoritative);
         return $normalized;
     }

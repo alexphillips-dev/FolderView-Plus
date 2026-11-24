@@ -45,7 +45,8 @@ foreach (['1.0.0', '2.0.0'] as $iconVersion) {
 $cases = $cliSource === null
     ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-damaged-report', 'hook-legacy-damaged-report',
         'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-reinstall-success', 'hook-unknown']
-    : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-corrupt',
+    : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
+        'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success'];
 $check = [];
@@ -67,6 +68,7 @@ foreach ($cases as $case) {
         '/usr/local/emhttp' => "$dir/emhttp",
         '/tmp/folderview.plus' => "$dir/folderview.plus",
         '/tmp/folderview-plus-archive' => "$dir/archive-preflight",
+        '/run/folderview.plus-install.lock' => "$dir/install.lock",
         '/etc/cron.d' => "$dir/cron.d",
         '/etc/rc.d/rc.crond' => "$dir/bin/crond",
         '/etc/unraid-version' => "$dir/unraid-version",
@@ -136,13 +138,13 @@ foreach ($cases as $case) {
         file_put_contents("$runtime/scripts/install_icon_asset_pack.sh", "\n[ \"\$1\" != 2.0.0 ] || exit 23\n", FILE_APPEND);
     }
     $reportFailure = str_ends_with($case, 'report') ? '[ "$1 $2" != "complete ' . $candidate . '" ] || exit 24' : ':';
-    file_put_contents("$runtime/scripts/install_report.sh", "$reportFailure\nprintf '%s\\n' \"\$1\"\n");
+    file_put_contents("$runtime/scripts/install_report.sh", "$reportFailure\n" . strtr(file_get_contents("$scriptSource/install_report.sh"), $rewrite));
     file_put_contents("$dir/unraid-version", "version=7.4.0\n");
     file_put_contents("$dir/emhttp/webGui/include/Wrappers.php", '<?php function my_logger(...$args) {}');
     file_put_contents("$dir/emhttp/webGui/include/publish.php", '<?php function publish(...$args) {}');
     foreach ([
         "$dir/emhttp/webGui/scripts/notify" => 'exit 0',
-        "$dir/bin/crond" => 'exit 0',
+        "$dir/bin/crond" => '[ ! -e /proc/$$/fd/9 ]',
         "$dir/bin/wget" => 'printf "offline fixture attempted a download\n" >&2; exit 4',
         "$dir/bin/upgradepkg" => 'archive="${@: -1}"
 if [ "$(cat "$FVPLUS_FIXTURE_CORE" 2>/dev/null)" = "$archive" ] && [[ " $* " != *" --reinstall "* ]]; then exit 0; fi
@@ -155,26 +157,48 @@ if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; 
         "$dir/bin/removepkg" => '[ "$1" = folderview.plus-2026.01.01.02 ] || exit 28
 rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_PACKAGES/$1"',
         "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" == *-version && "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
-    [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ]; then exit 25; fi
+    [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ] && [ "${FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT:-}" != 1 ]; then
+    if [ "${FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION:-}" = 1 ]; then
+        touch "$FVPLUS_FIXTURE_DIR/version-commit-paused"
+        for ((attempt=0; attempt<200; attempt++)); do
+            [ ! -f "$FVPLUS_FIXTURE_DIR/allow-version-failure" ] || exit 25
+            sleep 0.05
+        done
+        exit 27
+    fi
+    exit 25
+fi
 exec /bin/mv "$@"'
     ] as $file => $body) {
         file_put_contents($file, "#!/bin/bash\n$body\n");
         chmod($file, 0700);
     }
-    $run = static function (array $command) use ($dir, $case, $runtime, $packages): array {
+    $start = static function (array $command, array $extraEnvironment = []) use ($dir, $case, $runtime, $packages): array {
         $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, $dir, [
             'PATH' => "$dir/bin:/usr/bin:/bin",
             'DOCUMENT_ROOT' => "$dir/emhttp",
             'FVPLUS_FIXTURE_CORE' => "$dir/core-installed",
             'FVPLUS_FIXTURE_PACKAGES' => $packages,
             'FVPLUS_FIXTURE_RUNTIME' => $runtime,
-            'FVPLUS_FIXTURE_CASE' => $case
-        ]);
+            'FVPLUS_FIXTURE_CASE' => $case,
+            'FVPLUS_FIXTURE_DIR' => $dir
+        ] + $extraEnvironment);
         if (!is_resource($process)) throw new RuntimeException('Could not start installer fixture.');
-        $output = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
+        return [$process, $pipes[1]];
+    };
+    $finish = static function (array $activeProcess): array {
+        [$process, $outputPipe] = $activeProcess;
+        $output = stream_get_contents($outputPipe);
+        fclose($outputPipe);
         return [proc_close($process), $output];
     };
+    $run = static fn(array $command, array $environment = []): array => $finish($start($command, $environment));
+
+    $xml = simplexml_load_string($newManifest, null, LIBXML_NONET);
+    verifyInstallFixture($xml !== false, 'Could not parse the fixture manifest.');
+    $hooks = $xml->xpath('//FILE[INLINE and not(@Method)]');
+    verifyInstallFixture(count($hooks) === 1, 'Expected a single installation activation hook.');
+    $activateHook = ['/bin/bash', '-c', (string)$hooks[0]->INLINE];
 
     if (!$fresh) {
         [$oldIconStatus, $oldIconOutput] = $run(['/bin/bash', "$runtime/scripts/install_icon_asset_pack.sh", $previousIcon, hash_file('sha256', $iconArchives[$previousIcon])]);
@@ -188,12 +212,37 @@ exec /bin/mv "$@"'
             ? [PHP_BINARY, $cli, 'update', "$pluginName.plg"]
             : [PHP_BINARY, $cli, 'install', "$dir/manual/$pluginName.plg", 'forced'];
     } else {
-        $xml = simplexml_load_string($newManifest, null, LIBXML_NONET);
-        verifyInstallFixture($xml !== false, 'Could not parse the fixture manifest.');
-        $hooks = $xml->xpath('//FILE[INLINE]');
-        $command = ['/bin/bash', '-c', (string)$hooks[1]->INLINE];
+        $command = $activateHook;
     }
-    [$status, $output] = $run($command);
+    if ($case === 'update-registration-version') {
+        [$firstStatus, $firstOutput] = $run($activateHook, ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
+        verifyInstallFixture($firstStatus === 0 && file_get_contents($bootManifest) === $oldManifest, "$case could not simulate pending manifest registration: $firstOutput");
+        [$status, $output] = $run($command, ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
+        verifyInstallFixture($status !== 0 && str_contains($output, 'does not match the registered manifest'), "$case accepted a stale rollback baseline: $output");
+        [$removeStatus, $removeOutput] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        verifyInstallFixture($removeStatus !== 0 && str_contains($removeOutput, 'does not match the registered manifest'), "$case allowed removal before registration: $removeOutput");
+        verifyInstallFixture(trim(file_get_contents("$config/version")) === $candidate && is_file("$packages/$pluginName-$candidate")
+            && file_get_contents($bootManifest) === $oldManifest && str_contains(readlink("$runtime/images/third-party-icons"), '/icons-2.0.0/'),
+            "$case changed the activated package during pending registration.");
+        verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [], "$case left installation report state behind.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-overlap-version') {
+        $first = $start($command, ['FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION' => '1']);
+        for ($attempt = 0; $attempt < 160 && !is_file("$dir/version-commit-paused"); $attempt++) usleep(50000);
+        verifyInstallFixture(is_file("$dir/version-commit-paused"), "$case did not reach the version commit.");
+        [$secondStatus, $secondOutput] = $run($command, ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
+        [$removeStatus, $removeOutput] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        touch("$dir/allow-version-failure");
+        [$status, $output] = $finish($first);
+        verifyInstallFixture($secondStatus !== 0 && str_contains($secondOutput, 'installation or removal is in progress'),
+            "$case let a second update take ownership: $secondOutput");
+        verifyInstallFixture($removeStatus !== 0 && str_contains($removeOutput, 'installation or removal is in progress'),
+            "$case let removal run alongside an update: $removeOutput");
+    } else {
+        [$status, $output] = $run($command);
+    }
     verifyInstallFixture(($status !== 0) === $failed, "$case returned $status: $output");
     verifyInstallFixture(file_get_contents("$config/docker.json") === '{"previous":"Docker"}', "$case changed Docker configuration.");
     verifyInstallFixture(file_get_contents("$config/vm.json") === '{"previous":"VM"}', "$case changed VM configuration.");
@@ -226,6 +275,12 @@ exec /bin/mv "$@"'
     }
     verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === [],
         "$case left temporary installation state behind.");
+    verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [], "$case left installation report state behind.");
+    if (str_ends_with($case, '-version')) {
+        verifyInstallFixture(str_contains($output, 'Upgrade failed') && preg_match('/Previous\s+' . preg_quote($previous, '/') . '/', $output)
+            && str_contains($output, 'restored the previous installation state') && !str_contains($output, 'Upgrade complete'),
+            "$case reported the wrong operation, previous version, or recovery outcome: $output");
+    }
     verifyInstallFixture(is_file("$config/$pluginName-2025.01.01.01.txz") === ($failed || $case === 'hook-unknown'), "$case pruned unexpectedly.");
     verifyInstallFixture(is_file("$config/$pluginName-icons-0.9.0.txz") === ($failed || $case === 'hook-unknown'), "$case pruned an icon pack unexpectedly.");
 
@@ -242,15 +297,19 @@ exec /bin/mv "$@"'
             $check[] = $case;
             continue;
         }
+        if ($case === 'update-overlap-version') {
+            file_put_contents("$dir/downloads/$pluginName.plg", $newManifest);
+            [$retryStatus, $retryOutput] = $run($command, ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
+            verifyInstallFixture($retryStatus === 0 && file_get_contents($bootManifest) === $newManifest, "$case kept the install lock after recovery: $retryOutput");
+            $activeCoreVersion = $candidate;
+            $failed = false;
+        }
         if (is_dir($cronFile)) rmdir($cronFile);
         unlink($runningLink);
         unlink("$dir/core-installed");
         unlink("$runtime/FolderViewPlus.page");
         unlink("$packages/$pluginName-$activeCoreVersion");
-        if (str_ends_with($case, '-version')) {
-            verifyInstallFixture(str_contains($output, 'restored the previous installation state'), "$case did not report recovery.");
-        }
-        [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
+        [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest], ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
         verifyInstallFixture($bootStatus === 0, "$case could not reinstall offline: $bootOutput");
         $bootVersion = $failed ? $previous : $candidate;
         verifyInstallFixture(trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$bootVersion.txz", "$case reinstalled the wrong core archive.");

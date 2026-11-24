@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "legacy-surface",
-        "content-revision": "1e06258465bf36890cff3dc477183e05e2318e0719f90ad0a8fa48839c6a1bb8"
+        "content-revision": "604a80501ad0c640fdc25cfdcfc65a7739c62894cb915a52625b37264336708b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Toplu taşıma kullanılamıyor",
     "legacy.surface.0012950979762d8c": "Geri yüklemek, indirmek veya silmek için bir anlık görüntü seçin.",
@@ -1124,7 +1124,6 @@
     "legacy.surface.613aa3b591bacd9a": "Toplam depolama alanı (dosya destekli diskler): $1",
     "legacy.surface.6156e461d8859f35": "Durdurulan öğeler",
     "legacy.surface.61666b10759bb4ec": "İncele ve uygula",
-    "legacy.surface.6170d7f8c17bdf29": "\"$1\" klasör referansı kayıtlı klasör haritasında, sunucu önyükleme bağlamında veya son düzenleme bağlamında bulunamadı. Düzenleyici, yanlış verileri sessizce doldurmak yerine yeni klasör modunda kaldı.",
     "legacy.surface.6196b89119b0d502": "$1 başlangıç kuralları seçili giriş olmadan etkinleştirildi.",
     "legacy.surface.619ad13c8afe5d80": "Doğrulama uyarısı: meta veriler tam olarak doğrulanamadı.",
     "legacy.surface.61b970f55f66b301": "Bilinmeyen simge",
@@ -1691,7 +1690,6 @@
     "legacy.surface.91f41a1797b442ab": "Kaydedilen şablondan $1 güncellendi.",
     "legacy.surface.920e413c7d411b61": "Durum",
     "legacy.surface.9213c7f4046c085d": "Dikkat eşiğini uyar",
-    "legacy.surface.9220b4922c4fbc06": "\"$1\" klasör referansı, düzenleyici yüklenmeden önce tıkladığınız klasörden geri yüklendi. Kaydedilen üye ve ekran verileri artık hemen kullanılabilir olmalıdır.",
     "legacy.surface.9224e419ab9b17c4": "$1 yüklenemedi",
     "legacy.surface.92340695899bd2d8": "Aktif",
     "legacy.surface.9244d344142f4dc1": "Şablon adı iyi görünüyor.",
@@ -2642,7 +2640,6 @@
     "legacy.surface.e2e262b966d09446": "Klasör taşıma engellendi",
     "legacy.surface.e2e9665f249edc57": "Hedef klasörü seçin",
     "legacy.surface.e2f31764f5df1c1b": "Safari (iPhone):",
-    "legacy.surface.e31aec177cb21baa": "İstenilen klasör gezinme bağlamından kurtarıldı.",
     "legacy.surface.e3248784451162bb": "Klasöre uygula",
     "legacy.surface.e32bb6dbee9c1caa": "Favoriyi değiştir",
     "legacy.surface.e3323b3118d5e7ec": "Kendi kendini iyileştirme teması uygulandı",

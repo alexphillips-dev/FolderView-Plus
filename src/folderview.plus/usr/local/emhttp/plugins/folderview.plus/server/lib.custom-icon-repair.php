@@ -19,8 +19,9 @@ function fvplusRepairMissingCustomIconReferences(): array {
         try {
             foreach (['docker', 'vm'] as $type) {
                 $folders = readRawFolderMap($type);
-                migrateLegacyTypeDataIfNeeded($type, 'prefs');
-                $prefs = readJsonObjectFile(getTypePrefsPath($type)) ?? readTypePrefs($type);
+                $storedPrefs = readJsonObjectFile(getTypePrefsPath($type));
+                $prefs = $storedPrefs === null ? readTypePrefs($type)
+                    : (migrateLegacyTypeDataIfNeeded($type, 'prefs', $storedPrefs) ?? $storedPrefs);
                 $foldersChanged = false; $prefsChanged = false;
                 fvplusVisitCustomIconReferences($type, $folders, $prefs,
                     static function (string $name, array $reference, array &$record) use (&$repaired, &$missing,

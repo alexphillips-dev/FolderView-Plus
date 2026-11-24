@@ -38,11 +38,11 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
             throw new RuntimeException('Folder payload exceeds raw upload limit.');
         }
-        $isCreate = empty($id);
+        $isCreate = $id === '';
         if (!$isCreate) {
             assertExpectedConfigRevision($type, 'folder', $expectedRevision);
         }
-        if (empty($id)) {
+        if ($isCreate) {
             $id = generateId();
         } else {
             $id = normalizeFolderIdValue($id);
@@ -51,6 +51,9 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             }
         }
         $fileData = readRawFolderMap($type);
+        if (!$isCreate && !isset($fileData[$id])) {
+            throw new RuntimeException('Folder not found.');
+        }
         $originalFileData = $fileData;
         $decodedContent = json_decode($content, true);
         if (!is_array($decodedContent)) {

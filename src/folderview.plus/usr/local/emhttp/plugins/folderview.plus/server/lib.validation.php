@@ -37,14 +37,30 @@ if (!function_exists('fvplus_validation_assert_list_of_scalarish')) {
             if (!is_array($entry) || !is_array($entry['folders'] ?? null) || !is_array($entry['prefs'] ?? null)) {
                 throw new RuntimeException('Environment snapshot is missing required type data.');
             }
-            foreach ($entry['folders'] as $id => $folder) {
-                if (trim((string)$id) === '' || !is_array($folder)) {
-                    throw new RuntimeException('Environment snapshot contains invalid folder data.');
-                }
-            }
+            fvplusAssertSnapshotFolderMap($entry['folders'], 'Environment snapshot contains invalid folder data.');
         }
         return normalizeEnvironmentSnapshotPayload($payload);
     }
+
+function fvplusAssertSnapshotFolderMap(array $folders, string $invalidFolder, ?string $invalidMembership = null): void {
+    $ids = [];
+    foreach ($folders as $id => $folder) {
+        $safeId = normalizeFolderIdValue($id);
+        if ($safeId === '' || isset($ids[$safeId]) || !is_array($folder)) {
+            throw new RuntimeException($invalidFolder);
+        }
+        $ids[$safeId] = true;
+        foreach (['containers', 'hiddenPreviewMembers', 'hidden_preview'] as $key) {
+            if (!isset($folder[$key])) continue;
+            $members = $folder[$key];
+            // Historical name-keyed maps use their keys even when their values are objects.
+            if (!is_array($members) || (array_is_list($members)
+                && array_filter($members, static fn($member): bool => !fvplus_validation_is_scalarish($member)))) {
+                throw new RuntimeException($invalidMembership ?? $invalidFolder);
+            }
+        }
+    }
+}
 
 
 if (!function_exists('fvplus_validation_assert_assoc_map')) {

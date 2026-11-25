@@ -160,30 +160,78 @@ test('VM lifecycle replaces native loadlist with incremental stop and patches co
     assert.equal(api.getSnapshot().eventGroups.lifecycleContextStateResolved, 1);
 });
 
-test('VM callback names track their originating action and ignore a superseded same-VM completion', async () => {
+test('late same-VM completion reads actual host state without clearing another action’s busy surface', async () => {
     const scheduled = [], callbacks = [], refreshed = [];
+    const surface = makeSurface();
+    let hostState = 'running', publishedState = hostState;
     const window = {
         setTimeout: handler => scheduled.push({ handler }),
         ajaxVMDispatch: (_params, callback) => callbacks.push(callback)
     };
     const api = lifecycleModule.createApi({
         window, hostAdapter: createHookAdapter(window), delaysMs: [0],
-        getRuntimeEntry: () => ({ state: 'running' }),
-        refreshRuntimeStateInPlace: async ({ requests }) => { refreshed.push(requests[0].action); return true; }
+        getSurfaces: () => [surface], getRuntimeEntry: () => ({ state: publishedState }),
+        refreshRuntimeStateInPlace: async ({ requests }) => {
+            refreshed.push(requests[0].action);
+            publishedState = hostState;
+            return true;
+        }
     });
     api.bind();
     window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'fixture' }, 'loadlist');
-    window.ajaxVMDispatch({ action: 'domain-start', uuid: 'fixture' }, 'loadlist');
+    window.ajaxVMDispatch({ action: 'domain-pause', uuid: 'fixture' }, 'loadlist');
     assert.notEqual(callbacks[0], callbacks[1]);
+    hostState = 'paused';
     const newest = window[callbacks[1]]();
     await drainTimers(scheduled);
     assert.equal((await newest).settled, true);
-    assert.equal((await window[callbacks[0]]()).canceled, true);
-    assert.deepEqual(refreshed, ['domain-start']);
-    assert.ok(callbacks.every(name => !Object.hasOwn(window, name)));
-    window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'fixture' }, 'loadlist');
+    assert.equal(publishedState, 'paused');
+    window.ajaxVMDispatch({ action: 'domain-resume', uuid: 'fixture' }, 'loadlist');
+    hostState = 'shutoff';
+    const late = window[callbacks[0]]();
+    await drainTimers(scheduled);
+    assert.equal((await late).settled, true);
+    assert.equal(publishedState, 'shutoff');
+    assert.deepEqual(refreshed, ['domain-pause', 'domain-stop']);
+    assert.equal(surface.icon.hasAttribute('aria-busy'), true);
+    assert.ok(callbacks.slice(0, 2).every(name => !Object.hasOwn(window, name)));
     api.dispose();
     assert.equal(Object.hasOwn(window, callbacks[2]), false);
+});
+
+test('native VM transport failure releases its callback and spinner and rereads the VM state', async () => {
+    for (const transportStatus of ['error', 'parsererror', 'timeout']) {
+        const scheduled = [], surface = makeSurface(), refreshes = [];
+        let prefilter, complete, callback;
+        const ajax = { ajaxPrefilter: handler => { prefilter = handler; } };
+        const window = {
+            setTimeout: handler => scheduled.push({ handler }),
+            ajaxVMDispatch(params, callbackName) {
+                callback = callbackName;
+                surface.icon.setAttribute('class', 'fa-refresh fa-spin');
+                const settings = { url: '/plugins/dynamix.vm.manager/include/VMajax.php', timeout: 0 };
+                prefilter(settings, { data: { ...params } }, { fail: () => assert.fail('unrelated request was intercepted') });
+                prefilter(settings, { data: params }, { fail: handler => { complete = handler; } });
+                assert.equal(settings.timeout, 120000);
+            }
+        };
+        const api = lifecycleModule.createApi({
+            window, $: ajax, hostAdapter: createHookAdapter(window), delaysMs: [0],
+            getSurfaces: () => [surface], getRuntimeEntry: () => ({ state: 'running' }),
+            refreshRuntimeStateInPlace: async ({ requests }) => { refreshes.push(requests[0].uuid); return true; }
+        });
+        api.bind();
+        window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'synthetic-vm' }, 'loadlist');
+        assert.equal(surface.icon.getAttribute('aria-busy'), 'true');
+        complete({ status: transportStatus === 'error' ? 503 : 0 }, transportStatus);
+        assert.equal(api.getSnapshot().queuedRequestCount, 0);
+        assert.equal(api.getSnapshot().pending.length, 0);
+        assert.equal(Object.hasOwn(window, callback), false);
+        assert.equal(surface.icon.hasAttribute('aria-busy'), false);
+        assert.equal(surface.icon.getAttribute('class'), 'fa fa-play');
+        await drainTimers(scheduled);
+        assert.deepEqual(refreshes, ['synthetic-vm']);
+    }
 });
 
 test('VM lifecycle supports start, pause, resume, hibernate, wake, destroy, and console starts', () => {

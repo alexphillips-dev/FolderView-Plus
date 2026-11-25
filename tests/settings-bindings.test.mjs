@@ -352,7 +352,7 @@ test('overflow row actions use delegated click/touch handlers for reliable mobil
 test('basic toolbar actions reuse compact progress overlay for docker and vm flows', () => {
     assert.match(script, /const downloadType = async \(type, id\) =>/);
     assert.match(script, /const clearType = \(type, id\) =>/);
-    assert.match(script, /const restoreLatestBackup = \(type\) =>/);
+    assert.match(script, /const restoreLatestBackup = async \(type\) =>/);
     assert.match(script, /openImportApplyProgressDialog\(resolvedType, progressTotal\);/);
     assert.match(script, /setProgress\(0, surfaceT\("common\.repair\.creating-safety-backup-99eaaf", "Creating safety backup\.\.\."\)\);/);
 });

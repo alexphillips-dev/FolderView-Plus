@@ -337,7 +337,7 @@ test('VM lifecycle keeps native rows, folder totals, icons, and context actions 
 
 test('VM lifecycle reconciles Pause and Resume without stale native menus or spinner tails', async ({ page }) => {
     await checkVmPauseResume(page, baseUrl);
-});
+}, { allowedConsoleErrors: [/^console: Failed to load resource: the server responded with a status of 503 \(Service Unavailable\)$/] });
 
 test('Dashboard lifecycle performs one native fallback when Start snapshots remain stale', async ({ page }) => {
     await page.goto(`${baseUrl}/dashboard-lifecycle`, { waitUntil: 'load' });

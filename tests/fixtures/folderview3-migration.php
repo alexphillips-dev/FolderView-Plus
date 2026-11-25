@@ -76,8 +76,17 @@ try {
             $folder = readRawFolderMap('vm')['lab']; unset($folder['memberIdentities'], $folder['membershipPolicy']);
             updateFolder('vm', json_encode($folder), 'lab', readConfigMetadata('vm', true)['folderRevision']);
         }
+        if (!empty($request['removeMigratedRegexMode'])) {
+            $path = getTypePrefsPath('vm');
+            $prefs = readJsonObjectFile($path);
+            unset($prefs['autoRules'][0]['regexMode']);
+            writeJsonObjectAtomic($path, $prefs);
+        }
         $result['stored'] = [readRawFolderMap('docker'), readRawFolderMap('vm'), readTypePrefs('docker'), readTypePrefs('vm'), readThemeWorkspace()];
         if (isset($request['inventory'])) $result['startOrderContext'] = buildDockerStartOrderContext($request['inventory']);
+        if (isset($request['vmNames'])) {
+            $result['vmMembership'] = buildLegacyFolderMembership($result['stored'][1], $request['vmNames'], [], 'vm', $result['stored'][3]['autoRules']);
+        }
     }
     $result['error'] = '';
 } catch (Throwable $error) { $result = ['error' => $error->getMessage()]; }

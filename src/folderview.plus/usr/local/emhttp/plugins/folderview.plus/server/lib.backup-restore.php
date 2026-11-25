@@ -32,6 +32,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
             }
         } catch (Throwable $error) {
             fvplusTransactionRestoreAfterFailure($before, $error, static function(array $files): void { fvplusEnvironmentRestoreFiles($files); });
+            if (isset($backup['name'])) @unlink(getBackupSnapshotPath($type, $backup['name']));
             throw $error;
         }
         // The safety snapshot must remain usable even when restored retention is one.
@@ -53,32 +54,31 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
     });
 }
 
-function restoreLatestBackupSnapshot(string $type): array {
+function restoreLatestBackupSnapshot(string $type, ?string $expectedName = null, ?string $reviewHash = null): array {
     $type = ensureType($type);
-    return withConfigMutationLock(static function () use ($type): array {
-        $snapshots = listBackupSnapshots($type);
-        if (empty($snapshots)) throw new RuntimeException('No backups available.');
+    return withConfigMutationLock(static function () use ($type, $expectedName, $reviewHash): array {
+        $snapshots = listBackupSnapshots($type, $reviewHash !== null);
         foreach ($snapshots as $snapshot) {
             if (($snapshot['count'] ?? 0) <= 0) continue;
+            if (($expectedName !== null && $snapshot['name'] !== $expectedName)
+                || ($reviewHash !== null && !hash_equals($snapshot['reviewHash'], $reviewHash))) {
+                throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
+            }
             return restoreBackupSnapshot($type, (string)$snapshot['name'], ['createSafetyBackup' => true]);
         }
-        throw new RuntimeException('No non-empty backups available.');
+        throw new RuntimeException($snapshots === [] ? 'No backups available.' : 'No non-empty backups available.');
     });
 }
 
 function isUndoBackupReason(string $reason): bool {
-    $normalized = strtolower(trim($reason));
-    return strpos($normalized, 'before-') === 0
-        || strpos($normalized, 'pre-') === 0
-        || strpos($normalized, 'undo-') === 0
-        || strpos($normalized, 'transaction-') === 0;
+    return preg_match('/^(before|pre|undo|transaction)-/', strtolower(trim($reason))) === 1;
 }
-
 function restoreLatestUndoBackupSnapshot(string $type): array {
     $type = ensureType($type);
     return withConfigMutationLock(static function () use ($type): array {
         foreach (listBackupSnapshots($type) as $snapshot) {
             if (!isset($snapshot['count']) || !isUndoBackupReason((string)($snapshot['reason'] ?? ''))) continue;
+            if (fvplusRestoreSafetyBackupMatchesCurrent($type, $snapshot)) continue;
             return restoreBackupSnapshot($type, (string)$snapshot['name']);
         }
         throw new RuntimeException('No undo-capable backups found.');

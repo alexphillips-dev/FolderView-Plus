@@ -945,11 +945,11 @@ const globalRollbackApi = async (action, fields = {}) => {
     return (creating ? response.rollback : response.restore) || {};
 };
 
-const restoreLatest = async (type) => {
+const restoreLatest = async (type, expectedName, reviewHash) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest' });
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', { type: resolvedType, action: 'restore_latest', expectedName, reviewHash });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
     }

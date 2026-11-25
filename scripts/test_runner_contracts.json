@@ -123,7 +123,8 @@
     { "file": "tests/browser/helpers/icon-browser-host.mjs", "limit": 90, "owner": "production icon markup and shared editor icon controller fixture" },
     { "file": "tests/browser/helpers/upload-card-layout.mjs", "limit": 45, "owner": "uploaded icon card text containment and action target layout" },
     { "file": "tests/browser/helpers/icon-pack-filters.mjs", "limit": 65, "owner": "Icon Packs filter dropdown layout, checkbox filtering and lifecycle" },
-    { "file": "tests/browser/cases/settings-tree-persistence.mjs", "limit": 45, "owner": "Settings tree latest intent persistence before navigation", "requiredImports": ["../helpers/settings-hide-empty-host.mjs"] },
+    { "file": "tests/browser/cases/settings-tree-persistence.mjs", "limit": 45, "owner": "Settings tree order and latest intent persistence before navigation", "requiredImports": ["../helpers/settings-hide-empty-host.mjs", "../helpers/settings-numeric-order.mjs"] },
+    { "file": "tests/browser/helpers/settings-numeric-order.mjs", "limit": 30, "owner": "numeric folder ordering in the rendered Settings table", "requiredImports": ["./settings-hide-empty-host.mjs"] },
     { "file": "tests/browser/cases/settings-search-unicode.mjs", "limit": 15, "owner": "Localized Settings search and private indexing boundary", "requiredImports": ["./settings-search-layout.mjs"] },
     { "file": "tests/browser/cases/settings-nested-display.mjs", "limit": 85, "owner": "Basic Name column curved tree guides, icons and responsive rendering" },
     { "file": "tests/browser/helpers/settings-order-controls.mjs", "limit": 85, "owner": "Native, Aurora and NeoRaid Basic tree-control geometry and interaction", "requiredImports": ["./host-theme.mjs", "./neoraid.mjs"] },
@@ -166,7 +167,8 @@
     { "file": "tests/browser/helpers/docker-page-start-order.mjs", "limit": 47, "owner": "Docker row order and PHP startup plan parity" },
     { "file": "tests/browser/cases/dashboard-tile-loading.mjs", "limit": 140, "owner": "independent Dashboard loading and overlapping host refreshes" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
-    { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause resume and overlapping action assertions" },
+    { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause and resume assertions", "requiredImports": ["./vm-lifecycle-dispatch.mjs"] },
+    { "file": "tests/browser/helpers/vm-lifecycle-dispatch.mjs", "limit": 45, "owner": "out-of-order VM actions and native AJAX failures" },
     { "file": "tests/browser/cases/status-text-theme.mjs", "limit": 18, "owner": "fixture status text theme and explicit override case" },
     { "file": "tests/browser/cases/runtime-interactions.mjs", "limit": 155, "owner": "fixture runtime interaction cases", "requiredImports": ["./runtime-privacy-diagnostics.mjs"] },
     { "file": "tests/browser/cases/runtime-privacy-diagnostics.mjs", "limit": 160, "owner": "runtime privacy categories, native Tailscale masking and sanitized legacy downloads" },
@@ -346,10 +348,12 @@
         "tests/browser/helpers/docker-preview-context.mjs",
         "tests/browser/helpers/docker-hidden-folder-context.mjs",
         "tests/browser/helpers/vm-lifecycle.mjs",
+        "tests/browser/helpers/vm-lifecycle-dispatch.mjs",
         "tests/browser/helpers/advanced-workspace-layout.mjs",
         "tests/browser/helpers/advanced-title-badges.mjs",
         "tests/browser/helpers/settings-alerts-health-layout.mjs",
         "tests/browser/helpers/settings-hide-empty-host.mjs",
+        "tests/browser/helpers/settings-numeric-order.mjs",
         "tests/browser/helpers/settings-order-controls.mjs",
         "tests/browser/helpers/settings-host-heading.mjs",
         "tests/browser/helpers/docker-hide-empty-host.mjs",
@@ -363,10 +367,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 204,
-      "assertionCount": 2468,
-      "pageEvaluateCount": 857,
-      "orderedTitleSha256": "540d52a2b1d6356f149b4f043c49157ac4e53ff394ab97d2b280e41f1e9a2aa2"
+      "testCount": 205,
+      "assertionCount": 2474,
+      "pageEvaluateCount": 860,
+      "orderedTitleSha256": "e95510700a5c7e380ccde11df35149b09069ccebca19e680538a970bdb3077d5"
     }
   }
 }

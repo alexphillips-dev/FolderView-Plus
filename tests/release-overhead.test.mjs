@@ -171,6 +171,8 @@ test('tag-only pre-push avoids repeated guards but mixed main pushes require can
         'include_order_guard', 'dead_code_guard', 'perf_budget_guard']) {
         f.write(`scripts/${name}.sh`, `echo ${name} >> hook.log\n`);
     }
+    f.write('scripts/dev_version_bump_guard.sh',
+        'printf "dev_version_bump_guard %s..%s\\n" "$FVPLUS_DEV_VERSION_BASE_REF" "$FVPLUS_DEV_VERSION_CANDIDATE_REF" >> hook.log\n');
     f.write('scripts/release_validation.mjs', "process.stderr.write('fixture rejects unqualified main'); process.exit(1);\n");
     const sha = f.commit('Hook fixture'); f.git('branch', '-M', 'main');
     const zeros = '0'.repeat(40), tag = `refs/tags/fvplus-release-candidate-${sha}`;
@@ -183,9 +185,9 @@ test('tag-only pre-push avoids repeated guards but mixed main pushes require can
     assert.equal(fs.existsSync(path.join(f.directory, 'hook.log')), false);
     assert.notEqual(check(`${tag} ${'a'.repeat(40)} ${tag} ${zeros}\n`).status, 0);
     for (const [environment, expectedGuards] of [
-        [{}, 7],
-        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' }, 6],
-        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1', GITHUB_ACTIONS: 'true' }, 7]
+        [{}, 6],
+        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' }, 5],
+        [{ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1', GITHUB_ACTIONS: 'true' }, 6]
     ]) {
         f.write('hook.log', '');
         const main = check(`${tag} ${sha} ${tag} ${zeros}\nrefs/heads/main ${sha} refs/heads/main ${zeros}\n`, environment);
@@ -193,6 +195,13 @@ test('tag-only pre-push avoids repeated guards but mixed main pushes require can
         assert.match(main.stderr, /rejects unqualified main/);
         assert.equal(fs.readFileSync(path.join(f.directory, 'hook.log'), 'utf8').trim().split('\n').length, expectedGuards);
     }
+    f.write('hook.log', '');
+    const previousDev = 'b'.repeat(40);
+    const mixed = check(`${tag} ${sha} ${tag} ${zeros}\nrefs/heads/topic ${sha} refs/heads/dev ${previousDev}\n`,
+        { FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' });
+    assert.equal(mixed.status, 0, mixed.stderr);
+    assert.ok(fs.readFileSync(path.join(f.directory, 'hook.log'), 'utf8')
+        .includes('dev_version_bump_guard ' + previousDev + '..' + sha));
 });
 
 test('release profile rejects missing or invalid baselines before qualification', shellOnly, t => {

@@ -110,7 +110,7 @@ fi
 
 if [[ "${VERSION}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]{2,})$ ]]; then
   VERSION_DATE="${BASH_REMATCH[1]}"
-  TODAY_DATE="$(date +"%Y.%m.%d")"
+  TODAY_DATE="$(date -u +"%Y.%m.%d")"
   if [[ "${VERSION_DATE}" > "${TODAY_DATE}" ]]; then
     echo "ERROR: Version date (${VERSION_DATE}) is in the future (today: ${TODAY_DATE})." >&2
     exit 1

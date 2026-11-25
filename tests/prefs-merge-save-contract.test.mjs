@@ -145,6 +145,76 @@ echo json_encode($result, JSON_UNESCAPED_SLASHES);`);
     }
 });
 
+test('folder editor bootstraps the defaults profile and revision together before a competing save', async () => {
+    const page = fs.readFileSync(path.join(pluginRoot, 'Folder.page'), 'utf8');
+    const bootstrap = page.match(/try \{\r?\n    \$folderEditorPageType = ensureType[\s\S]+?(?=\r?\n\?>)/)?.[0];
+    assert.ok(bootstrap, 'exercise the shipped editor bootstrap');
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
+    assert.notEqual(endpoint, prefsEndpoint);
+    const results = await runHarness(`<?php
+namespace EditorDefaultsFixture {
+    function readTypePrefs(string $type): array {
+        $prefs = \\readTypePrefs($type);
+        // A second request can write now only if the page has released the configuration lock.
+        if (is_resource($GLOBALS['fvplus_config_mutation_lock_handle'] ?? null)) $GLOBALS['fixtureWritePending'] = true;
+        else \\fixtureConcurrentSave($type);
+        return $prefs;
+    }
+}
+namespace {
+    $_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+    putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+    require_once ${phpQuote(libPath)};
+
+    function fixtureConcurrentSave(string $type): void {
+        $prefs = readTypePrefs($type);
+        $prefs['folderDefaults']['profile']['icon'] = '/icons/concurrent.png';
+        writeTypePrefs($type, $prefs);
+    }
+
+    $type = $argv[2];
+    if ($argv[1] === 'bootstrap') {
+        writeTypePrefs($type, ['folderDefaults' => ['profile' => ['icon' => '/icons/original.png', 'settings' => ['preview' => 1]]]]);
+        $_GET = ['type' => $type, 'defaults' => '1'];
+        $folderEditorBootstrapContext = ['requestedId' => '', 'resolvedId' => '', 'folder' => null];
+        eval('namespace EditorDefaultsFixture;' . ${phpQuote(bootstrap)});
+        if (!empty($GLOBALS['fixtureWritePending'])) fixtureConcurrentSave($type);
+        echo json_encode(['prefs' => $folderEditorTypePrefs, 'metadata' => $folderEditorBootstrapContext['metadata'],
+            'currentRevision' => readConfigMetadata($type, false)['prefsRevision']]);
+        return;
+    }
+
+    $_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['HTTP_HOST'] = 'localhost';
+    $_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+    $_POST = $_REQUEST = json_decode($argv[3], true) + ['_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
+    ob_start();
+    eval(${phpQuote(endpoint)});
+    $response = json_decode(ob_get_clean(), true);
+    releaseConfigMutationLock();
+    echo json_encode(['status' => http_response_code(), 'response' => $response, 'prefs' => readTypePrefs($type)]);
+}`, invoke => Promise.all(['docker', 'vm'].map(type => {
+        const snapshot = invoke('bootstrap', type);
+        const { folder } = folderDefaults.readProfile(snapshot.prefs);
+        assert.equal(folder.icon, '/icons/original.png');
+        assert.equal(snapshot.metadata.prefsRevision, snapshot.prefs._metadata.prefsRevision);
+        assert.equal(snapshot.currentRevision, snapshot.prefs._metadata.prefsRevision + 1);
+        folder.settings.preview = 2;
+        return folderDefaults.save({ folder, type, prefs: snapshot.prefs,
+            transfer: { normalizeFolderSettingsPayload: payload => ({ payload }) },
+            post: (_url, payload) => invoke('save', type, JSON.stringify(payload)) });
+    })));
+    for (const { status, response, prefs } of results) {
+        assert.equal(status, 409, JSON.stringify(response));
+        assert.equal(response.ok, false);
+        assert.equal(prefs.folderDefaults.profile.icon, '/icons/concurrent.png');
+        assert.equal(prefs.folderDefaults.profile.settings.preview, 1);
+    }
+});
+
 test('health threshold pairs preserve zero and agree after JavaScript and PHP reload normalization', () => {
     const cases = [[0, 90, 0, 90], [0, 0, 0, 5], [60, 20, 60, 65], [95, 10, 95, 100], [100, 0, 100, 100],
         [-20, 150, 0, 100], ['invalid', 'invalid', 60, 90]];

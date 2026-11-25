@@ -5,6 +5,7 @@ ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "${ROOT_DIR}"
 
 declare -a MAIN_PUSH_SHAS=()
+declare -a DEV_PUSH_SHAS=() DEV_BASE_SHAS=()
 only_qualification_tags=1
 updates=0
 while read -r _local_ref local_sha remote_ref remote_sha; do
@@ -20,6 +21,10 @@ while read -r _local_ref local_sha remote_ref remote_sha; do
     only_qualification_tags=0
   fi
   if [[ "$remote_ref" == refs/heads/main ]]; then MAIN_PUSH_SHAS+=("$local_sha"); fi
+  if [[ "$remote_ref" == refs/heads/dev && ! "$local_sha" =~ ^0+$ ]]; then
+    DEV_PUSH_SHAS+=("$local_sha")
+    DEV_BASE_SHAS+=("$remote_sha")
+  fi
 done
 if [[ "$updates" -gt 0 && "$only_qualification_tags" == 1 ]]; then
   echo '[pre-push] Qualification tag update; candidate CI owns validation. No branch promotion.'
@@ -29,8 +34,13 @@ fi
 echo "[pre-push] Running main branch history guard..."
 bash scripts/main_branch_history_guard.sh
 
-echo "[pre-push] Running dev version bump guard..."
-bash scripts/dev_version_bump_guard.sh
+for index in "${!DEV_PUSH_SHAS[@]}"; do
+  echo "[pre-push] Running dev version bump guard..."
+  base_sha="${DEV_BASE_SHAS[index]}"
+  if [[ "$base_sha" =~ ^0+$ ]]; then base_sha=""; fi
+  FVPLUS_DEV_VERSION_BASE_REF="$base_sha" FVPLUS_DEV_VERSION_CANDIDATE_REF="${DEV_PUSH_SHAS[index]}" \
+    bash scripts/dev_version_bump_guard.sh
+done
 
 echo "[pre-push] Running release guard checks..."
 bash scripts/release_guard.sh

@@ -46,7 +46,10 @@ export const registerIconPickerCancelCase = ({ test, baseUrl }) => {
             await page.locator('[data-icon-value$="?automation"]').click(); await use.click();
             await page.getByRole('button', { name: 'Use default icon', exact: true }).click();
             await cancel.click(); await expectIcon(original.split('?')[0]);
-            await input.fill('/plugins/folderview.plus/images/custom/uploaded.png?v=1');
+            await input.fill('https://external.invalid/plugins/folderview.plus/images/custom/uploaded.png');
+            assert.equal(await page.locator('#fv-icon-selection-source').textContent(), 'Icon URL or path');
+            await input.fill(`${baseUrl}/plugins/folderview.plus/images/unused/../custom/%75ploaded.png?v=1`);
+            assert.equal(await page.locator('#fv-icon-selection-source').textContent(), 'My uploads');
             await page.locator('[data-icon-value$="?tools"]').click(); await use.click();
             await page.getByRole('tab', { name: 'My uploads', exact: true }).click();
             await page.locator('[data-custom-icon="uploaded.png"] [data-action="delete"]').click();

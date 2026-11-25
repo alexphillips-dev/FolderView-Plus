@@ -3468,6 +3468,7 @@ const getBulkAssignmentApi = (() => {
             escapeHtml,
             normalizeManagedType,
             normalizedFilter,
+            readFolderConfigurationRevision,
             getFolderMap: (type) => getFolderMap(type),
             getFolderNameForId: (type, id) => folderNameForId(type, id),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -3716,12 +3717,12 @@ const evaluateVmResourceBadge = (...args) => getSettingsHealthApi().evaluateVmRe
 const hasInvalidFolderRegex = (...args) => getSettingsHealthApi().hasInvalidFolderRegex(...args);
 const buildTypeHealthMetrics = (...args) => getSettingsHealthApi().buildTypeHealthMetrics(...args);
 
-const getEffectiveMemberSnapshot = (type, folders) => {
+const getEffectiveMemberSnapshot = (type, folders, displayFolderIds = []) => {
     const info = infoByType[type] || {};
     const names = Object.keys(info);
     const rules = prefsByType[type]?.autoRules || [];
     const snapshot = {};
-    const membership = utils.buildMembershipSnapshot({ type, folders: folders || {}, names, infoByName: info, rules });
+    const membership = utils.buildMembershipSnapshot({ type, folders: folders || {}, names, infoByName: info, rules, displayFolderIds });
     for (const [folderId, folder] of Object.entries(folders || {})) {
         snapshot[String(folderId)] = utils.getEffectiveFolderMembers({ type, folderId, folder, folders, snapshot: membership });
     }
@@ -5865,7 +5866,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         });
     }
     const activeCollapsedParents = filter ? new Set() : collapsedParents;
-    for (const [id, folder] of Object.entries(folders)) {
+    for (const id of hierarchyMeta.orderedIds || Object.keys(folders)) {
+        const folder = folders[id];
         const nameText = String(folder.name || '');
         const pathLabel = String(pathLabelById[id] || nameText || id);
         if (filter && !filterVisibleIds.has(id)) {
@@ -7477,10 +7479,9 @@ const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker ||
 
 const getDockerStartOrderFolderOptions = () => {
     const folders = getFolderMap('docker');
-    const ordered = utils.orderFoldersByPrefs(folders, prefsByType.docker);
-    return Object.entries(ordered).map(([id, folder]) => ({
+    return utils.orderFolderIdsByPrefs(folders, prefsByType.docker).map((id) => ({
         id,
-        name: String(folder?.name || id)
+        name: String(folders[id]?.name || id)
     }));
 };
 
@@ -7971,11 +7972,10 @@ const renderTable = (type) => {
         pendingTableRenderFrameByType[resolvedType] = null;
     }
     type = resolvedType;
-    const folders = getFolderMap(type);
-    const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
-    const hierarchyMeta = buildFolderHierarchyMeta(ordered);
+    const ordered = getFolderMap(type);
+    const hierarchyMeta = buildFolderHierarchyMeta(ordered, utils.orderFolderIdsByPrefs(ordered, prefsByType[type]));
     const collapsedParents = syncCollapsedTreeParentsForType(type, ordered, hierarchyMeta);
-    const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
+    const memberSnapshot = getEffectiveMemberSnapshot(type, ordered, hierarchyMeta.orderedIds);
     const previousStatusSnapshot = statusSnapshotByType[type] && typeof statusSnapshotByType[type] === 'object'
         ? statusSnapshotByType[type]
         : {};
@@ -8999,8 +8999,7 @@ const changeSortMode = async (type, mode) => {
 const saveCurrentFolderOrderAsManual = async (type) => {
     const resolvedType = normalizeManagedType(type);
     const folders = getFolderMap(resolvedType);
-    const ordered = utils.orderFoldersByPrefs(folders, prefsByType[resolvedType]);
-    const order = Object.keys(ordered);
+    const order = utils.orderFolderIdsByPrefs(folders, prefsByType[resolvedType]);
     if (!order.length) {
         addActivityEntry(`No ${resolvedType === 'vm' ? 'VM' : 'Docker'} folders are available to save as manual order.`, 'warning');
         return;
@@ -9862,7 +9861,7 @@ const restoreBackupEntry = (type, name) => {
     });
 };
 
-const restoreLatestBackup = (type) => {
+const restoreLatestBackup = async (type) => {
     let resolvedType;
     try {
         resolvedType = normalizeManagedType(type);
@@ -9873,9 +9872,18 @@ const restoreLatestBackup = (type) => {
     if (!ensureRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
         return;
     }
+    let target;
+    try {
+        const { backups } = await fetchBackups(resolvedType);
+        target = backups.find((backup) => Number.isSafeInteger(backup?.count) && backup.count > 0);
+        if (!target?.name || !target.reviewHash) throw new Error('No non-empty backups available.');
+    } catch (error) {
+        showError('Restore failed', error);
+        return;
+    }
     swal({
         title: 'Restore latest backup?',
-        text: surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'),
+        text: [surfaceT('legacy.surface.170796299d00e8f9', 'Restore this snapshot’s folders and saved preferences? A safety backup is created first.'), formatTimestamp(target.createdAt)].join('\n'),
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -9900,7 +9908,7 @@ const restoreLatestBackup = (type) => {
                 progressOpen = true;
                 setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
-                const restore = await restoreLatest(resolvedType), undoBackup = restore.backup;
+                const restore = await restoreLatest(resolvedType, target.name, target.reviewHash), undoBackup = restore.backup;
                 setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
 
                 setProgress(2, 'Restored latest backup snapshot.');

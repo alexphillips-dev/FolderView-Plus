@@ -1,6 +1,7 @@
 <?php
 $server = $argv[1]; $root = $argv[2];
 $_SERVER['DOCUMENT_ROOT'] = "$root/host";
+$_SERVER['HTTP_HOST'] = 'fixture.test';
 $request = json_decode(file_get_contents($argv[3] ?? "$root/request.json"), true, 512, JSON_THROW_ON_ERROR);
 if (($request['runtimeMode'] ?? 'copy') === 'copy') {
     @mkdir("$root/source/images/custom", 0770, true);

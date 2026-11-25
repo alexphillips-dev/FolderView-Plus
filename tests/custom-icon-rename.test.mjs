@@ -23,7 +23,8 @@ const run = request => {
 const aliases = ['/plugins/folderview.plus/images/custom/before.png?v=7#icon',
     '/usr/local/emhttp/plugins/folderview.plus/images/custom/before.png',
     'plugins/folderview.plus/images/custom/before.png',
-    'https://fixture.invalid/plugins/folderview.plus/images/custom/%62efore.png'];
+    'http://fixture.test/plugins/folderview.plus/images/custom/%62efore.png',
+    '/plugins/folderview.plus/images/invalid/%2e%2e/custom/before.png'];
 
 for (const type of ['docker', 'vm']) for (const kind of ['folder', 'defaults', 'group']) {
     test(`rename refuses ${type} ${kind} references without changing icon, metadata, mirror or saved state`, () => {

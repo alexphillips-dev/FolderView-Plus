@@ -24,12 +24,14 @@ const pinnedCli = process.env.FVPLUS_TEST_UNRAID_PLUGIN_CLI;
 test('pinned Unraid installs, updates, and reinstalls boot assets offline', { skip: !pinnedCli }, () => {
     assert.deepEqual(run(pinnedCli), [
         'update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
-        'update-overlap-success', 'update-late-remove-success', 'update-late-check-success', 'install-url-remove-success',
+        'update-overlap-success', 'update-late-remove-success', 'update-late-check-success', 'install-url-remove-success', 'install-local-stage-remove-success',
         'install-url-channel-downgrade-success', 'update-staged-registration-conflict', 'update-older-staged-manifest',
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
         'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
-        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success'
+        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
+        'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
+        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success'
     ]);
 });

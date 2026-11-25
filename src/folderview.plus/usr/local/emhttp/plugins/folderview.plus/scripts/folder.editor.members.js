@@ -34,7 +34,7 @@
         const configuration = memberIdentity?.reconcileFolders(type, candidateFolders, infoByName)?.folders || candidateFolders;
         if (Array.isArray(order) && ordering) {
             order = ordering.reorderFolderSlotsInBaseOrder(order, configuration, prefs, {
-                orderFolders: utils.orderFoldersByPrefs,
+                orderFolders: utils.orderFolderIdsByPrefs,
                 isFolderToken: (entry) => entry.startsWith('folder-') && (type === 'vm' || Object.hasOwn(configuration, entry.slice(7)))
             });
         }

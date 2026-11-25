@@ -11,7 +11,7 @@ const help = source.match(/<p data-i18n="\[html\]icon-tooltip">[\s\S]*?<\/p>/)[0
 export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
     await page.route(`${baseUrl}/folder-editor`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Icon picker</title><link rel="stylesheet" href="/plugin/styles/theme.tokens.css"><link rel="stylesheet" href="/plugin/styles/folder.css"></head><body><script src="/vendor/jquery.js"></script></body></html>' }));
     await page.goto(`${baseUrl}/folder-editor`);
-    await page.route('**/plugins/dynamix.docker.manager/images/question.png', route => route.fulfill({ path: `${plugin}/images/folder-icon.png` }));
+    await page.route(/\/plugins\/(?:dynamix\.docker\.manager\/images\/question\.png$|folderview\.plus\/images\/custom\/)/, route => route.fulfill({ path: `${plugin}/images/folder-icon.png` }));
     await page.evaluate(({ markup, help, type }) => {
         document.querySelectorAll('style').forEach(node => node.remove());
         document.querySelector('link[href$="/folderviewplus.css"]')?.remove();
@@ -54,7 +54,7 @@ export const mountIconBrowser = async (page, baseUrl, type = 'docker') => {
                     if (state.uploadFail) throw new Error('private-upload-response /private/path http://192.168.1.2');
                     state.uploadOptions = { dedupe: options.dedupe, replace: options.replace };
                     if (state.pending) await new Promise(resolve => { state.complete = resolve; });
-                    const icon = { name: file.name, url: `${defaultIcon}?upload=${file.name}`, usageCount: 0 };
+                    const icon = { name: file.name, url: `/plugins/folderview.plus/images/custom/${encodeURIComponent(file.name)}?v=1`, usageCount: 0 };
                     state.uploads.push(icon); return icon;
                 }
             }
@@ -81,4 +81,10 @@ export const checkIconPackTileLayout = async page => {
     assert.ok(tile.top <= 4 && tile.right <= 4 && tile.target >= 32 && tile.font >= 18);
     assert.equal(tile.border, '0px');
     await checkIconPackFilters(page, checkIconDialogAccessibility);
+};
+export const checkCustomIconDeletePreviews = async (page, expected, type) => {
+    assert.equal(await page.locator('#fixture-delete-icon').inputValue(), expected);
+    for (const selector of ['#fixture-field-preview', '#fvHeroIcon', '#fvIconPanelPreview', '#fvLivePreviewCanvas .fv-live-folder-icon']) {
+        assert.equal(await page.locator(selector).getAttribute('src'), expected, `${type}: ${selector}`);
+    }
 };

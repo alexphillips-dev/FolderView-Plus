@@ -15,6 +15,7 @@
     const VM_LIFECYCLE_STORAGE_KEY = 'fv.support.bundle.vm.lifecycle.v1';
     const VM_LIFECYCLE_CALLBACK_NAME = '__fvplusVmLifecycleRefresh';
     const VM_LIFECYCLE_DELAYS_MS = Object.freeze([0, 500, 1250, 2500]);
+    const VM_NATIVE_REQUEST_TIMEOUT_MS = 120000;
     const VM_DISPATCH_HOOKS = Object.freeze([
         'ajaxVMDispatch',
         'ajaxVMDispatchconsole',
@@ -86,6 +87,7 @@
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const jquery = deps.$ || win.jQuery || win.$;
         const hostAdapter = deps.hostAdapter || null;
         const refreshRuntimeStateInPlace = typeof deps.refreshRuntimeStateInPlace === 'function'
             ? deps.refreshRuntimeStateInPlace
@@ -128,6 +130,7 @@
         let staleGenerationCount = 0;
         let bound = false;
         let latest = null;
+        let activeNativeDispatch = null;
 
         const schedule = (handler, delayMs) => {
             const setTimer = typeof win?.setTimeout === 'function' ? win.setTimeout.bind(win) : setTimeout;
@@ -225,7 +228,7 @@
                 pending.delete(request.uuid);
                 restoreSurface(request);
             });
-            if (outcome.settled !== true) {
+            if (outcome.settled !== true && outcome.fallback !== false) {
                 fallbackCount += 1;
                 schedule(() => {
                     const current = ownedBy(requestGeneration, requests);
@@ -259,6 +262,8 @@
             const normalized = normalizeRequests(requests);
             if (normalized.length === 0) return Promise.resolve({ settled: false, skipped: true });
             const requestGeneration = options.requestGeneration ?? begin(normalized);
+            const reconcileOnly = options.reconcileOnly === true;
+            const currentRequests = () => reconcileOnly ? normalized : ownedBy(requestGeneration, normalized);
             emit('lifecycleRefreshScheduled', {
                 generation: requestGeneration,
                 source: String(options.source || 'native-dispatch'),
@@ -272,7 +277,7 @@
                         resolve({ settled: false, canceled: true });
                         return true;
                     }
-                    if (ownedBy(requestGeneration, normalized).length) return false;
+                    if (currentRequests().length) return false;
                     staleGenerationCount += 1;
                     emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
                     resolve({ settled: false, canceled: true });
@@ -286,11 +291,11 @@
                         Promise.resolve(refreshRuntimeStateInPlace({
                             preserveGroupedDom: true,
                             lifecycle: true,
-                            requests: ownedBy(requestGeneration, normalized)
+                            requests: currentRequests()
                         })).then((success) => {
                             if (cancelIfSuperseded(attemptIndex)) return;
-                            const current = ownedBy(requestGeneration, normalized);
-                            const settled = success === true && current.every((request) => isSettled(request, getRuntimeEntry(request.uuid)) === true);
+                            const current = currentRequests();
+                            const settled = success === true && (reconcileOnly || current.every((request) => isSettled(request, getRuntimeEntry(request.uuid)) === true));
                             emit('lifecycleRefreshResult', {
                                 generation: requestGeneration,
                                 requestCount: current.length,
@@ -301,12 +306,12 @@
                                 observedStates: current.map((request) => ({ uuid: request.uuid, state: stateForEntry(getRuntimeEntry(request.uuid)) }))
                             });
                             if (settled) {
-                                finalize(requestGeneration, current, { reason: 'settled', settled: true, success: true, attempt: attemptIndex + 1 });
+                                if (!reconcileOnly) finalize(requestGeneration, current, { reason: 'settled', settled: true, success: true, attempt: attemptIndex + 1 });
                                 resolve({ settled: true, attempt: attemptIndex + 1 });
                                 return;
                             }
                             if (attemptIndex + 1 >= delaysMs.length) {
-                                finalize(requestGeneration, current, { reason: 'attempts-exhausted', settled: false, success: success === true, attempt: attemptIndex + 1 });
+                                if (!reconcileOnly) finalize(requestGeneration, current, { reason: 'attempts-exhausted', settled: false, success: success === true, attempt: attemptIndex + 1 });
                                 resolve({ settled: false, attempt: attemptIndex + 1 });
                                 return;
                             }
@@ -323,7 +328,7 @@
                                 message: String(error?.message || error || 'VM lifecycle refresh failed')
                             });
                             if (attemptIndex + 1 >= delaysMs.length) {
-                                finalize(requestGeneration, ownedBy(requestGeneration, normalized), { reason: 'attempts-exhausted', settled: false, success: false, attempt: attemptIndex + 1 });
+                                if (!reconcileOnly) finalize(requestGeneration, currentRequests(), { reason: 'attempts-exhausted', settled: false, success: false, attempt: attemptIndex + 1 });
                                 resolve({ settled: false, attempt: attemptIndex + 1 });
                             } else {
                                 attempt(attemptIndex + 1);
@@ -360,21 +365,49 @@
                 queueNativeRefresh({ reason: 'vm-lifecycle-callback-without-request', requests: [] });
                 return Promise.resolve(false);
             }
-            return run([entry.request], { source: 'native-dispatch', requestGeneration: entry.requestGeneration });
+            const reconcileOnly = !ownedBy(entry.requestGeneration, [entry.request]).length;
+            return run([entry.request], { source: 'native-dispatch', requestGeneration: entry.requestGeneration, reconcileOnly });
+        };
+        const handleNativeTransportFailure = (name) => {
+            const entry = removeCallback(name);
+            if (!entry || !isPageCurrent()) return;
+            const { request, requestGeneration } = entry;
+            if (!ownedBy(requestGeneration, [request]).length) return;
+            finalize(requestGeneration, [request], { reason: 'native-transport-failed', settled: false, success: false, fallback: false });
+            return run([request], { source: 'native-transport-failed', requestGeneration, reconcileOnly: true });
         };
         const bindDispatchHooks = () => {
             if (!hostAdapter || typeof hostAdapter.wrapHook !== 'function') return false;
             if (typeof win[callbackName] !== 'function') win[callbackName] = handleNativeCallback;
+            // The Unraid dispatch functions return no jqXHR. Observe only the
+            // request created synchronously by the wrapped dispatch.
+            jquery?.ajaxPrefilter?.((settings, original, xhr) => {
+                const dispatch = activeNativeDispatch;
+                if (!dispatch || original.data !== dispatch.params
+                    || settings.url !== '/plugins/dynamix.vm.manager/include/VMajax.php') return;
+                if (!settings.timeout) settings.timeout = VM_NATIVE_REQUEST_TIMEOUT_MS;
+                xhr.fail(() => handleNativeTransportFailure(dispatch.name));
+            });
             let wrapped = 0;
             VM_DISPATCH_HOOKS.forEach((hookName) => {
                 if (typeof win[hookName] !== 'function') return;
                 hostAdapter.wrapHook(hookName, ({ args, invokeOriginal }) => {
                     const request = normalizeRequest(args?.[0]);
                     const refreshTarget = String(args?.[1] || '').trim();
-                    if (request && (refreshTarget === 'loadlist' || refreshTarget === callbackName)) {
-                        args[1] = enqueueNativeRequest(request) || args[1];
+                    const name = request && (refreshTarget === 'loadlist' || refreshTarget === callbackName)
+                        ? enqueueNativeRequest(request) : false;
+                    if (!name) return invokeOriginal(...args);
+                    args[1] = name;
+                    const previousDispatch = activeNativeDispatch;
+                    activeNativeDispatch = { name, params: args[0] };
+                    try {
+                        return invokeOriginal(...args);
+                    } catch (error) {
+                        handleNativeTransportFailure(name);
+                        throw error;
+                    } finally {
+                        activeNativeDispatch = previousDispatch;
                     }
-                    return invokeOriginal(...args);
                 }, { legacyAlias: `${hookName}_original` });
                 boundHooks.add(hookName);
                 wrapped += 1;

@@ -53,13 +53,15 @@ $cases = $cliSource === null
     ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-damaged-report', 'hook-legacy-damaged-report',
         'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-reinstall-success', 'hook-unknown']
     : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
-        'update-overlap-success', 'update-late-remove-success', 'update-late-check-success', 'install-url-remove-success',
+        'update-overlap-success', 'update-late-remove-success', 'update-late-check-success', 'install-url-remove-success', 'install-local-stage-remove-success',
         'install-url-channel-downgrade-success', 'update-staged-registration-conflict', 'update-older-staged-manifest',
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
         'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
-        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success'];
+        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
+        'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
+        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -73,6 +75,8 @@ foreach ($cases as $case) {
     $runtime = "$dir/emhttp/plugins/$pluginName";
     $postHooks = "$dir/emhttp/plugins/dynamix.plugin.manager/post-hooks";
     $registrationHook = "$postHooks/00-folderview.plus-registration";
+    $recoveryWrapper = "$boot/00-folderview.plus-registration-recovery.plg";
+    $journal = "$config/.native-registration";
     $packages = str_contains($case, '-legacy-') ? "$dir/legacy-packages" : "$dir/packages";
     foreach ([$config, "$runtime/scripts", "$dir/emhttp/webGui/include", "$dir/emhttp/webGui/scripts", "$dir/bin", "$dir/cron.d", "$dir/running", "$dir/downloads", "$dir/manual", $packages, $postHooks] as $folder) {
         mkdir($folder, 0770, true);
@@ -84,6 +88,7 @@ foreach ($cases as $case) {
         '/tmp/folderview-plus-archive' => "$dir/archive-preflight",
         '/run/folderview.plus-install.lock' => "$dir/install.lock",
         '/run/folderview.plus-registration' => "$dir/registration",
+        '/proc/sys/kernel/random/boot_id' => "$dir/boot-id",
         '/etc/cron.d' => "$dir/cron.d",
         '/etc/rc.d/rc.crond' => "$dir/bin/crond",
         '/etc/unraid-version' => "$dir/unraid-version",
@@ -94,6 +99,7 @@ foreach ($cases as $case) {
         '/tmp/inline' => "$dir/inline",
         '/usr/local/sbin/update_cron' => "$dir/bin/crond"
     ];
+    file_put_contents("$dir/boot-id", "synthetic boot one\n");
     $manifest = static function (string $version, string $icon, ?string $template = null) use ($source, $rewrite, $iconArchives): string {
         $values = [
             'version' => $version,
@@ -160,6 +166,7 @@ foreach ($cases as $case) {
         file_put_contents($installedScript, strtr(file_get_contents("$scriptSource/$script"), $rewrite));
         chmod($installedScript, 0700);
     }
+    copy("$runtime/scripts/complete_native_registration.sh", "$dir/recovery-script");
     if (str_ends_with($case, 'icon')) {
         // Fail after the real helper has activated the candidate's icon link and cache.
         file_put_contents("$runtime/scripts/install_icon_asset_pack.sh", "\n[ \"\$1\" != 2.0.0 ] || exit 23\n", FILE_APPEND);
@@ -172,6 +179,12 @@ foreach ($cases as $case) {
     foreach ([
         "$dir/emhttp/webGui/scripts/notify" => 'exit 0',
         "$dir/bin/crond" => '[ ! -e /proc/$$/fd/9 ]',
+        "$dir/bin/plugin" => 'exec php "$FVPLUS_FIXTURE_DIR/plugin.php" "$@"',
+        "$dir/bin/tar" => 'if [ "$1" = -xOf ] && [[ "$3" == */scripts/complete_native_registration.sh ]]; then
+    test -f "$2" || exit 32
+    exec cat "$FVPLUS_FIXTURE_DIR/recovery-script"
+fi
+exec /bin/tar "$@"',
         "$dir/bin/wget" => 'while [ "$#" -gt 1 ] && [ "$1" != -O ]; do shift; done
 if [ "$#" -gt 1 ] && [ "$2" = "$FVPLUS_FIXTURE_DIR/downloads/folderview.plus.plg" ] &&
     [ -f "$FVPLUS_FIXTURE_DIR/remote.plg" ]; then
@@ -189,11 +202,21 @@ if [ ! -d "$FVPLUS_FIXTURE_RUNTIME" ]; then
     mkdir -p "$FVPLUS_FIXTURE_RUNTIME"
     cp -R "$FVPLUS_FIXTURE_DIR/package-scripts" "$FVPLUS_FIXTURE_RUNTIME/scripts"
 fi
+if [[ "$archive" == *-2026.01.01.02.txz ]]; then
+    cp "$FVPLUS_FIXTURE_DIR/recovery-script" "$FVPLUS_FIXTURE_RUNTIME/scripts/complete_native_registration.sh"
+fi
 printf "PACKAGE NAME: %s\n" "${package%.txz}" > "$FVPLUS_FIXTURE_PACKAGES/${package%.txz}"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
 version="${package#folderview.plus-}"
 printf "{\n  \"packageVersion\": \"%s\",\n  \"sourceBranch\": \"dev\"\n}\n" "${version%.txz}" > "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json"
+if [ "$FVPLUS_FIXTURE_CASE" = update-early-activation-interrupted-success ]; then
+    printf "%s\n" "$package" >> "$FVPLUS_FIXTURE_DIR/package-history"
+    if [ "$package" = folderview.plus-2026.01.01.02.txz ] && [ "${FVPLUS_FIXTURE_INTERRUPT:-}" != 1 ]; then
+        cat "$FVPLUS_FIXTURE_DIR/cron.d/folderview.plus" > "$FVPLUS_FIXTURE_DIR/recovered-cron"
+        stat -c "%a" "$FVPLUS_FIXTURE_DIR/cron.d/folderview.plus" > "$FVPLUS_FIXTURE_DIR/recovered-cron-mode"
+    fi
+fi
 if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
         "$dir/bin/removepkg" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
     printf "Native removal fixture failed\n" >&2
@@ -226,6 +249,23 @@ if [[ "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
         exit 27
     fi
     [[ "$FVPLUS_FIXTURE_CASE" != *-version ]] || exit 25
+fi
+if [[ "$FVPLUS_FIXTURE_CASE" == update-journal-interrupted-success && "${FVPLUS_FIXTURE_INTERRUPT:-}" == 1 &&
+    "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]]; then
+    /bin/mv "$@" || exit $?
+    kill -KILL "$PPID"
+    exit 0
+fi
+if [[ "${FVPLUS_FIXTURE_INTERRUPT:-}" == 1 ]]; then
+    if [[ "$FVPLUS_FIXTURE_CASE" == update-early-activation-interrupted-success && "${@: -1}" == */cron.d/folderview.plus ]]; then
+        /bin/mv "$@" || exit $?
+        kill -KILL "$PPID"
+        exit 0
+    fi
+    if [[ "$FVPLUS_FIXTURE_CASE" == install-fresh-journal-interrupted-success && "${@: -1}" == */boot/folderview.plus.plg ]]; then
+        kill -KILL "$PPID"
+        exit 0
+    fi
 fi
 exec /bin/mv "$@"'
     ] as $file => $body) {
@@ -267,7 +307,14 @@ exec /bin/mv "$@"'
 
     if ($cliSource !== null) {
         $cli = "$dir/plugin.php";
-        file_put_contents($cli, strtr($cliSource, $rewrite));
+        $nativeCode = strtr($cliSource, $rewrite);
+        if ($case === 'update-late-check-interrupted-boot-success') {
+            // Stop the native owner after its flash copy, before it decides which post-hooks to run.
+            $needle = 'function post_hooks($error=\'\') {';
+            $nativeCode = str_replace($needle, $needle . "\n" . '  if (getenv("FVPLUS_FIXTURE_INTERRUPT") === "1" && $error === "") exit(137);', $nativeCode, $replaced);
+            verifyInstallFixture($replaced === 1, 'Could not inject the native post-copy interruption.');
+        }
+        file_put_contents($cli, $nativeCode);
         $command = str_starts_with($case, 'update')
             ? [PHP_BINARY, $cli, 'update', "$pluginName.plg"]
             : [PHP_BINARY, $cli, 'install', "$dir/manual/$pluginName.plg", 'forced'];
@@ -422,11 +469,83 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if ($case === 'update-late-check-success') {
+    if ($case === 'update-legacy-registration-interrupted-success') {
+        [$firstStatus, $firstOutput] = $run($activateHook);
+        verifyInstallFixture($firstStatus === 0 && file_get_contents($bootManifest) === $oldManifest,
+            "$case could not set up the partially registered legacy state: $firstOutput");
+        mkdir("$dir/registration", 0700);
+        file_put_contents("$runtime/scripts/complete_native_registration.sh", "#!/bin/bash\nexit 42\n");
+        [$status, $output] = $run($command);
+        verifyInstallFixture($status === 0 && file_get_contents($bootManifest) === $newManifest
+            && trim(file_get_contents("$config/version")) === $candidate
+            && !is_dir("$dir/registration") && !is_link("$dir/registration") && !is_dir($journal) && !is_file($recoveryWrapper),
+            "$case could not recover an incomplete legacy directory with an older helper: $output");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-journal-interrupted-success') {
+        [$interruptedStatus, $interruptedOutput] = $run($command, ['FVPLUS_FIXTURE_INTERRUPT' => '1']);
+        verifyInstallFixture($interruptedStatus !== 0 && trim(file_get_contents("$config/version")) === $candidate
+            && file_get_contents($bootManifest) === $oldManifest && file_get_contents("$journal/manifest") === $newManifest
+            && is_file("$journal/activated") && !is_file("$journal/committed") && is_file($recoveryWrapper),
+            "$case did not interrupt an activated package before flash registration: $interruptedOutput");
+        $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+        [$firstStatus, $firstOutput] = $run($remove);
+        verifyInstallFixture($firstStatus !== 0 && file_get_contents($bootManifest) === $newManifest
+            && readlink($runningLink) === $bootManifest && !is_dir($journal),
+            "$case did not repair the manifest during the original removal attempt: $firstOutput");
+        [$status, $output] = $run($remove);
+        clearstatcache();
+        verifyInstallFixture($status === 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && !is_dir($runtime) && !is_dir($config) && !is_file($recoveryWrapper),
+            "$case could not remove the recovered installation: $output");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-early-activation-interrupted-success') {
+        [$interruptedStatus, $interruptedOutput] = $run($command, ['FVPLUS_FIXTURE_INTERRUPT' => '1']);
+        verifyInstallFixture($interruptedStatus !== 0 && trim(file_get_contents("$config/version")) === $previous
+            && file_get_contents($bootManifest) === $oldManifest && str_contains(file_get_contents("$runtime/build-metadata.json"), $candidate)
+            && str_contains(file_get_contents($cronFile), 'scheduled_backup.php') && is_file("$journal/core-started") && !is_file("$journal/activated"),
+            "$case did not interrupt activation after package and scheduler replacement: $interruptedOutput");
+        [$status, $output] = $run($command);
+        verifyInstallFixture($status === 0 && file_get_contents("$bootManifest") === $newManifest
+            && trim(file_get_contents("$config/version")) === $candidate && !is_dir($journal)
+            && file("$dir/package-history", FILE_IGNORE_NEW_LINES) === [
+                "$pluginName-$candidate.txz", "$pluginName-$previous.txz", "$pluginName-$candidate.txz"
+            ] && file_get_contents("$dir/recovered-cron") === $priorCron && trim(file_get_contents("$dir/recovered-cron-mode")) === '600',
+            "$case did not reinstall the verified previous package and restore the scheduler before retry: $output");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'install-fresh-journal-interrupted-success') {
+        $command = [PHP_BINARY, $cli, 'install', "$dir/downloads/$pluginName.plg"];
+        [$interruptedStatus, $interruptedOutput] = $run($command, ['FVPLUS_FIXTURE_INTERRUPT' => '1']);
+        verifyInstallFixture($interruptedStatus !== 0 && !is_file($bootManifest) && is_file("$journal/committed") && is_file($recoveryWrapper),
+            "$case did not interrupt first-time registration before the primary manifest existed: $interruptedOutput");
+        unlink("$dir/registration");
+        unlink($registrationHook);
+        unlink("$dir/downloads/$pluginName.plg");
+        unlink("$dir/core-installed");
+        unlink("$runtime/FolderViewPlus.page");
+        unlink("$runtime/build-metadata.json");
+        unlink("$packages/$pluginName-$candidate");
+        file_put_contents("$dir/boot-id", "synthetic boot two\n");
+        verifyInstallFixture(glob("$boot/*.plg") === [$recoveryWrapper], "$case incorrectly enumerated a primary startup manifest.");
+        [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $recoveryWrapper]);
+        verifyInstallFixture($bootStatus === 0 && file_get_contents($bootManifest) === $newManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$candidate.txz"
+            && !is_dir($journal) && !is_link("$dir/running/" . basename($recoveryWrapper)),
+            "$case could not bootstrap the verified first installation offline: $bootOutput");
+        $check[] = $case;
+        continue;
+    }
+    if (in_array($case, ['update-late-check-success', 'update-late-check-interrupted-boot-success'], true)) {
+        $interrupted = $case === 'update-late-check-interrupted-boot-success';
         $stagedVersion = '2026.01.01.03';
         $peerManifest = $manifest($stagedVersion, '3.0.0');
         file_put_contents("$dir/remote.plg", $peerManifest);
-        $first = $start($command);
+        $first = $start($command, $interrupted ? ['FVPLUS_FIXTURE_INTERRUPT' => '1'] : []);
         for ($attempt = 0; $attempt < 160 && !is_file("$dir/registration-commit-paused"); $attempt++) usleep(50000);
         verifyInstallFixture(is_file("$dir/registration-commit-paused") && is_link($registrationHook), "$case did not arm the post-hook at registration.");
         [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
@@ -435,15 +554,52 @@ exec /bin/mv "$@"'
             && file_get_contents($bootManifest) === $oldManifest, "$case let the unrelated check consume the handoff: $checkOutput");
         touch("$dir/allow-registration-commit");
         [$status, $output] = $finish($first);
+        if ($interrupted) {
+            verifyInstallFixture($status === 137 && file_get_contents($bootManifest) === $peerManifest
+                && !file_exists("$config/$pluginName-$stagedVersion.txz") && is_file("$journal/committed"),
+                "$case did not stop between the native copy and its post-hook: $output");
+            unlink($runningLink);
+            unlink("$dir/registration");
+            unlink($registrationHook);
+            unlink("$dir/downloads/$pluginName.plg");
+            unlink("$dir/core-installed");
+            unlink("$runtime/FolderViewPlus.page");
+            unlink("$runtime/build-metadata.json");
+            unlink("$packages/$pluginName-$candidate");
+            file_put_contents("$dir/boot-id", "synthetic boot two\n");
+            $bootManifests = glob("$boot/*.plg");
+            verifyInstallFixture($bootManifests === [$recoveryWrapper, $bootManifest], "$case did not load recovery before the primary manifest.");
+            foreach ($bootManifests as $manifestPath) {
+                [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $manifestPath]);
+                verifyInstallFixture($bootStatus === 0 && !str_contains($bootOutput, 'offline fixture attempted a download'),
+                    "$case failed to load $manifestPath offline: $bootOutput");
+            }
+            clearstatcache();
+            verifyInstallFixture(file_get_contents($bootManifest) === $newManifest && readlink($runningLink) === $bootManifest
+                && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$candidate.txz"
+                && !is_dir($journal) && !is_link("$dir/running/" . basename($recoveryWrapper)),
+                "$case did not boot the exact verified installation.");
+            // The wrapper may still be enumerated on a later boot after its record is retired.
+            [$inactiveStatus, $inactiveOutput] = $run([PHP_BINARY, $cli, 'install', $recoveryWrapper]);
+            verifyInstallFixture($inactiveStatus === 0 && !is_link("$dir/running/" . basename($recoveryWrapper))
+                && file_get_contents($bootManifest) === $newManifest && !is_dir($journal),
+                "$case let an inactive wrapper register itself or modify the plugin: $inactiveOutput");
+            $check[] = $case;
+            continue;
+        }
         verifyInstallFixture(str_contains($output, 'Executing hook script: 00-folderview.plus-registration')
             && !str_contains($output, 'could not confirm native boot registration')
             && file_get_contents("$dir/downloads/$pluginName.plg") === $peerManifest,
             "$case failed post-hook reconciliation or lost the newer stage: $output");
-    } elseif (in_array($case, ['update-overlap-success', 'update-late-remove-success', 'install-url-remove-success', 'update-staged-registration-conflict'], true)) {
+    } elseif (in_array($case, ['update-overlap-success', 'update-late-remove-success', 'install-url-remove-success', 'install-local-stage-remove-success', 'update-staged-registration-conflict'], true)) {
         $lateRemove = $case === 'update-late-remove-success';
         if ($case === 'install-url-remove-success') {
             file_put_contents("$dir/remote.plg", $newManifest);
             $command = [PHP_BINARY, $cli, 'install', 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg'];
+        }
+        if ($case === 'install-local-stage-remove-success') {
+            // Native install resolves this relative path to the same shared stage.
+            $command = [PHP_BINARY, $cli, 'install', "downloads/../downloads/$pluginName.plg"];
         }
         $first = $start($command, $lateRemove ? [] : ['FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION' => '1']);
         $checkpoint = $lateRemove ? 'registration' : 'version';
@@ -522,7 +678,8 @@ exec /bin/mv "$@"'
     verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === []
         && glob("$boot/.folderview.plus.plg.*") === [] && glob("$dir/downloads/.folderview.plus.plg.*") === [],
         "$case left temporary installation state behind.");
-    verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [] && !is_dir("$dir/registration") && !is_link($registrationHook),
+    verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [] && !is_dir("$dir/registration")
+        && !is_link("$dir/registration") && !is_dir($journal) && !is_file($recoveryWrapper) && !is_link($registrationHook),
         "$case left temporary reporting or native registration state behind: $output");
     if (str_ends_with($case, '-version')) {
         verifyInstallFixture(str_contains($output, 'Upgrade failed') && preg_match('/Previous\s+' . preg_quote($previous, '/') . '/', $output)

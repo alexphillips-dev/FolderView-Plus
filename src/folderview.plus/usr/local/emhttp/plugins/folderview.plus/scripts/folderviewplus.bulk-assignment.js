@@ -55,6 +55,9 @@
         const getFolderMap = typeof deps.getFolderMap === 'function'
             ? deps.getFolderMap
             : (() => ({}));
+        const readFolderConfigurationRevision = typeof deps.readFolderConfigurationRevision === 'function'
+            ? deps.readFolderConfigurationRevision
+            : (() => null);
         const getFolderNameForId = typeof deps.getFolderNameForId === 'function'
             ? deps.getFolderNameForId
             : ((type, id) => String(id || ''));
@@ -895,6 +898,11 @@
                 swal({ title: 'Nothing to apply', text: summary, type: 'info' });
                 return;
             }
+            const expectedRevision = readFolderConfigurationRevision(resolvedType);
+            if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+                showError('Bulk assignment failed', new Error('The current folder configuration revision is unavailable.'));
+                return;
+            }
             state.confirming = true;
             updateBulkSummaryCards(resolvedType, plan);
             workspace?.update(resolvedType, plan);
@@ -921,6 +929,8 @@
                 const executionResult = sharedApi && typeof sharedApi.executeBulkAssignmentPlan === 'function'
                     ? await sharedApi.executeBulkAssignmentPlan(resolvedType, plan, {
                         typeLabel,
+                        expectedRevision,
+                        createSafetyBackup: true,
                         preludeLines: resultLines,
                         onProgress: ({ chunkSize: currentBatchSize, resultLines: nextLines }) => {
                             renderBulkResultPanel(resolvedType, {

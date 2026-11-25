@@ -12,12 +12,9 @@
         const getFolderLabelValue = typeof deps.getFolderLabelValue === 'function' ? deps.getFolderLabelValue : (() => '');
         const normalizeFolderParentId = (value) => String(value || '').trim();
 
-        const getPrefsOrderedFolderMap = (folders, prefs) => {
+        const getPrefsOrderedFolderIds = (folders, prefs) => {
             const source = folders && typeof folders === 'object' ? folders : {};
-            if (typeof utils.orderFoldersByPrefs === 'function') {
-                return utils.orderFoldersByPrefs(source, prefs || {});
-            }
-            return source;
+            return utils.orderFolderIdsByPrefs?.(source, prefs || {}) || Object.keys(source);
         };
 
         const sortFolderIdsByPrefs = (ids, folders, prefs) => {
@@ -32,7 +29,7 @@
                     scoped[id] = source[id];
                 }
             }
-            const ordered = Object.keys(getPrefsOrderedFolderMap(scoped, prefs));
+            const ordered = getPrefsOrderedFolderIds(scoped, prefs);
             if (ordered.length) {
                 return ordered;
             }
@@ -151,7 +148,7 @@
             const foldersWithSlots = Object.fromEntries(Object.entries(folders || {}).filter(([id]) =>
                 isDashboardFolderToken(`folder-${id}`, infoByName)));
             return runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, foldersWithSlots, prefs, {
-                orderFolders: getPrefsOrderedFolderMap,
+                orderFolders: getPrefsOrderedFolderIds,
                 folderTokenPrefix: 'folder-',
                 isFolderToken: (entry) => isDashboardFolderToken(entry, infoByName)
                     && (type !== 'docker' || Object.hasOwn(foldersWithSlots, entry.slice(7)))
@@ -241,7 +238,6 @@
         });
 
         return Object.freeze({
-            getPrefsOrderedFolderMap,
             sortFolderIdsByPrefs,
             normalizeFolderParentId,
             filterDashboardToRootFolders,

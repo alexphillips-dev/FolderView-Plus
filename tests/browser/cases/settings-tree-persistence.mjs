@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHideEmptySettingsHost } from '../helpers/settings-hide-empty-host.mjs';
+import { checkNumericSettingsOrder } from '../helpers/settings-numeric-order.mjs';
 
 export const registerSettingsTreePersistenceCases = ({ test }) => {
+    test('Basic nested settings renders numeric folders in saved, alphabetical, and pinned order',
+        ({ page }) => checkNumericSettingsOrder(page), { skipAccessibility: true });
+
     for (const type of ['docker', 'vm']) {
         test(`Basic nested ${type} expansion survives reload while storage is pending`, async ({ page }) => {
             const host = await createHideEmptySettingsHost(page, type);

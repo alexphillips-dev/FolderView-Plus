@@ -107,7 +107,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
         await dialog.locator('.fv-icon-browser-footer').getByRole('button', { name: 'Cancel', exact: true }).click();
         await page.locator('[data-custom-icon="example.png"] [data-action="use"]').click();
         await dialog.getByRole('button', { name: 'Use icon', exact: true }).click();
-        assert.match(await input.inputValue(), /upload=example.png/);
+        assert.equal(await input.inputValue(), '/plugins/folderview.plus/images/custom/example.png?v=1');
         assert.equal(await page.locator('[data-action="delete"]').isVisible(), true);
         const toolbar = await page.locator('#fv-icon-upload').evaluate(node => ({ wrap: getComputedStyle(node).whiteSpace, width: node.clientWidth, content: node.scrollWidth, row: node.parentElement.clientWidth, rowContent: node.parentElement.scrollWidth }));
         assert.equal(toolbar.wrap, 'nowrap');
@@ -132,7 +132,7 @@ export const registerIconBrowserCases = ({ test, baseUrl }) => {
     test('Icon browser asks about upload conflicts and Escape cancels without writing a library file', async ({ page }) => {
         for (const decision of ['Keep both', 'Replace', 'Escape']) {
             await mountIconBrowser(page, baseUrl);
-            await page.evaluate(() => { window.iconBrowserFixture.uploads.push({ name: 'existing.png', url: '/plugins/folderview.plus/images/folder-icon.png?existing', usageCount: 0 }); });
+            await page.evaluate(() => { window.iconBrowserFixture.uploads.push({ name: 'existing.png', url: '/plugins/folderview.plus/images/custom/existing.png?v=1', usageCount: 0 }); });
             await page.getByRole('tab', { name: 'My uploads' }).click();
             await page.locator('#fv-icon-upload-file').setInputFiles({ name: 'existing.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
             const conflict = page.getByRole('dialog', { name: 'Replace this icon?', exact: true });

@@ -44,8 +44,8 @@ const buildFolderPathLabel = (type, folderId, foldersInput = null, hierarchyMeta
     return parts.join(' / ');
 };
 
-const buildFolderHierarchyMeta = (foldersInput) => {
-    return utils.buildFolderHierarchyModel(utils.normalizeFolderMap(foldersInput || {}));
+const buildFolderHierarchyMeta = (foldersInput, orderedIds) => {
+    return utils.buildFolderHierarchyModel(utils.normalizeFolderMap(foldersInput || {}), { orderedIds });
 };
 
 const bindTreeMoveDialogPreview = (type, sourceId, folders, hierarchyMeta, modeInsideOnly, translate) => {
@@ -265,8 +265,7 @@ const collapseAllFolderTrees = (type) => {
 
 const getOrderedFolderIdsForTreeOps = (type) => {
     const resolvedType = normalizeManagedType(type);
-    const orderedMap = utils.orderFoldersByPrefs(getFolderMap(resolvedType), prefsByType[resolvedType] || {});
-    return Object.keys(orderedMap);
+    return utils.orderFolderIdsByPrefs(getFolderMap(resolvedType), prefsByType[resolvedType] || {});
 };
 
 const applyOptimisticManualOrder = (type, order) => {

@@ -135,6 +135,56 @@ foreach (['latest' => 'restoreLatestBackupSnapshot', 'undo' => 'restoreLatestUnd
     $result['skipsMalformed'][$mode] = $listed['name'] === $name && $listed['count'] === null
         && $restored['name'] === $target['name'] && readRawFolderMap($type) === $savedFolders && readTypePrefs($type) === $savedPrefs;
 }
+seedFixture($type, $savedFolders, array_replace_recursive($savedPrefs, ['backupSchedule' => ['retention' => 2]]));
+$target = createBackupSnapshot($type, 'manual');
+$brokenName = $type . '-newest-broken.json';
+writeJsonObjectAtomic(getBackupSnapshotPath($type, $brokenName), $broken);
+$new = createBackupSnapshot($type, 'scheduled');
+$result['retainsUsable'] = array_column(listBackupSnapshots($type), 'name') === [$new['name'], $target['name']]
+    && $new['pruned'] === [$brokenName];
+$before = captureFixture($type);
+try { restoreLatestBackupSnapshot($type, $target['name']); $result['rejectsStaleReview'] = false; }
+catch (FVPlusConfigConflictException $failure) {
+    $result['rejectsStaleReview'] = $before === captureFixture($type) && count(listBackupSnapshots($type)) === 2;
+}
+$result['acceptsExactReview'] = restoreLatestBackupSnapshot($type, $new['name'])['name'] === $new['name'];
+
+seedFixture($type, $savedFolders, $savedPrefs);
+$reviewed = createBackupSnapshot($type, 'manual');
+$row = listBackupSnapshots($type, true)[0];
+$replacement = readJsonObjectFile(getBackupSnapshotPath($type, $reviewed['name']));
+$replacement['folders'] = $currentFolders;
+writeJsonObjectAtomic(getBackupSnapshotPath($type, $reviewed['name']), fvplusJsonTypeConfig($replacement));
+$before = captureFixture($type);
+try { restoreLatestBackupSnapshot($type, $row['name'], $row['reviewHash']); $result['rejectsReplacement'] = false; }
+catch (FVPlusConfigConflictException $failure) {
+    $result['rejectsReplacement'] = $before === captureFixture($type) && count(listBackupSnapshots($type)) === 1;
+}
+
+$globalOld = createGlobalRollbackSnapshot('manual');
+$brokenGlobal = 'global-20990101-000000-broken.json';
+writeJsonObjectAtomic(getGlobalRollbackSnapshotPath($brokenGlobal), ['createdAt' => '2099-01-01T00:00:00Z']);
+$globalNew = createGlobalRollbackSnapshot('manual');
+$prunedGlobal = pruneGlobalRollbackSnapshots(2, [$globalNew['name']]);
+$result['globalRetainsUsable'] = $prunedGlobal === [$brokenGlobal]
+    && array_column(listGlobalRollbackSnapshots(), 'name') === [$globalNew['name'], $globalOld['name']];
+
+seedFixture($type, $savedFolders, $savedPrefs);
+$prior = createBackupSnapshot($type, 'before-import');
+$target = createBackupSnapshot($type, 'manual', false);
+writeRawFolderMap($type, $currentFolders); writeTypePrefs($type, $currentPrefs);
+$interrupted = createBackupSnapshot($type, 'before-restore-012345abcdef', false);
+$bulkInterrupted = createBackupSnapshot($type, 'before-folder-editor-bulk-move', false);
+try {
+    restoreBackupSnapshot($type, $target['name'], ['createSafetyBackup' => true,
+        'afterStage' => static function(): void { throw new RuntimeException('Injected restore failure.'); }]);
+} catch (RuntimeException $failure) {
+    $result['failureLeavesHistory'] = count(listBackupSnapshots($type)) === 4 && readRawFolderMap($type) === $currentFolders;
+}
+$result['undoSkipsNoop'] = restoreLatestUndoBackupSnapshot($type)['name'] === $prior['name']
+    && is_file(getBackupSnapshotPath($type, $interrupted['name']))
+    && is_file(getBackupSnapshotPath($type, $bulkInterrupted['name'])) && readRawFolderMap($type) === $savedFolders;
+
 foreach (['folders', 'prefs', 'docker-order'] as $stage) {
     if ($stage === 'docker-order' && $type !== 'docker') continue;
     seedFixture($type, $savedFolders, $savedPrefs);
@@ -220,6 +270,9 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.emptySafety, true, 'empty current state was not protected');
         assert.equal(result.latestSkipsEmpty, true, 'latest restore selected an empty snapshot');
         assert.deepEqual(result.skipsMalformed, { latest: true, undo: true }, 'a damaged backup blocked a valid older restore point');
+        for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement', 'globalRetainsUsable', 'failureLeavesHistory', 'undoSkipsNoop']) {
+            assert.equal(result[check], true, check);
+        }
         assert.deepEqual(result.rejectsOnlyMalformed, { latest: true, undo: true }, 'restore mutated state without valid backup data');
         assert.equal(result.otherUnchanged, true, 'restore changed the other source');
         for (const [stage, failure] of Object.entries(result.failures)) {

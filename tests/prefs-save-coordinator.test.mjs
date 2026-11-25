@@ -65,6 +65,64 @@ const outboxRecord = (sourceId, expectedRevision, patch) => JSON.stringify({
     operation: { patch, expectedRevision, mutationId: `${sourceId}-1` }
 });
 
+test('runtime expansion retry acknowledges its session draft before a newer peer edit and reload', async () => {
+    const stateObservers = createRequire(modulePath)('./folder.runtime.state-observers.js');
+    for (const durableOutbox of [true, false]) {
+        const api = loadModule(), timers = new Map(), storage = createStorage(), session = createStorage();
+        const folders = { folder: { settings: {} } };
+        let nextTimer = 0, writes = 0;
+        let disk = normalizePrefs({ expandedFolderState: { folder: false }, _metadata: { prefsRevision: 1 } });
+        if (!durableOutbox) storage.setItem = () => { throw new Error('Storage quota denied'); };
+        const setTimeout = (handler, delay) => { const id = ++nextTimer; timers.set(id, { handler, delay }); return id; };
+        const clearTimeout = id => timers.delete(id);
+        const drain = async () => {
+            while (timers.size) {
+                const [id, timer] = Array.from(timers).sort((a, b) => a[1].delay - b[1].delay)[0];
+                timers.delete(id); timer.handler();
+                for (let index = 0; index < 12; index++) await Promise.resolve();
+                if (writes === 1) break;
+            }
+        };
+        const freshCoordinator = () => api.createPreferenceSaveCoordinator({
+            normalizePrefs, storage, setTimeout, clearTimeout,
+            fetchPrefs: async () => disk,
+            writePrefs: async (_type, patch) => {
+                if (++writes === 1) throw Object.assign(new Error('Unavailable'), { status: 503 });
+                disk = normalizePrefs({ ...disk, expandedFolderState: { ...disk.expandedFolderState, ...patch.expandedFolderState },
+                    _metadata: { prefsRevision: disk._metadata.prefsRevision + 1 } });
+                return disk;
+            }
+        });
+        const createController = coordinator => {
+            let current = { ...disk.expandedFolderState };
+            return stateObservers.createExpandedStateController({ type: 'vm', storageKey: 'expansion',
+                window: { setTimeout, clearTimeout, localStorage: storage, sessionStorage: session },
+                normalizePrefs, preferenceCoordinator: coordinator, readPrefs: () => disk,
+                readServerMap: () => current, writeServerMap: map => { current = map; }
+            });
+        };
+        const controller = createController(freshCoordinator());
+        controller.buildStateMap(folders, {}, disk.expandedFolderState);
+        controller.persistStateMap({ folder: true });
+        assert.deepEqual(JSON.parse(session.getItem('expansion.pending')), { folder: true });
+        await drain();
+        assert.equal(writes, 1);
+        assert.equal(session.getItem('expansion.pending'), durableOutbox ? null : '{"folder":true}');
+        await drain(); // Fire the autonomous retry timer, then its queued write.
+        await drain();
+        assert.equal(writes, 2);
+        assert.equal(disk.expandedFolderState.folder, true);
+        assert.equal(session.getItem('expansion.pending'), null);
+
+        disk = normalizePrefs({ expandedFolderState: { folder: false }, _metadata: { prefsRevision: 3 } });
+        const reopened = createController(freshCoordinator());
+        assert.deepEqual(reopened.buildStateMap(folders, {}, disk.expandedFolderState), { folder: false });
+        await drain();
+        assert.equal(writes, 2);
+        assert.equal(disk.expandedFolderState.folder, false);
+    }
+});
+
 test('preference coordinator applies immediately, coalesces rapid patches, and serializes writes', async () => {
     const api = loadModule();
     const writes = [];

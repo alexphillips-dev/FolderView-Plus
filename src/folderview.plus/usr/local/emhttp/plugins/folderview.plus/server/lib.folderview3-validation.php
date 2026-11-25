@@ -62,6 +62,7 @@ function fvplusFolderView3AssertFolder(array $folder, string $type = 'docker'): 
     }
     foreach (['containerIds', 'containerImages'] as $key) {
         if (!array_key_exists($key, $folder)) continue;
+        if ($folder[$key] instanceof stdClass) $folder[$key] = (array)$folder[$key];
         if (!is_array($folder[$key]) || count($folder[$key]) > 5000) throw new RuntimeException('Invalid FolderView3 member identity collection.');
         foreach ($folder[$key] as $value) {
             fvplusFolderView3AssertText($value, 'member identity', $key === 'containerIds' ? ($type === 'vm' ? 128 : 64) : 512);
@@ -86,12 +87,13 @@ function fvplusFolderView3AssertFolder(array $folder, string $type = 'docker'): 
     $pattern = $folder['regex'] ?? '';
     if (trim($pattern) !== '' && (@preg_match(serverRuleRegex($pattern, false), '') === false
         || fvplusCompileRuleSet([['kind' => 'name_regex', 'pattern' => $pattern]], $type)['issues'] !== []
+        || fvplusCompileRuleSet([['kind' => 'name_regex', 'pattern' => $pattern, 'regexMode' => 'legacy']], $type)['issues'] !== []
         || preg_match('/\(\?(?![:=!]|<[=!]|<[A-Za-z_$][A-Za-z0-9_$]*>)|\(\*|\\\\(?:[AKRXCQELNZzaehHvV]|p\{|P\{|g[<{])|(?:[*+?]|\})\+/', $pattern))) {
         throw new RuntimeException('FolderView3 regex is invalid or uses unsupported JavaScript/PHP syntax. Correct the original expression before importing.');
     }
 }
 
-function fvplusFolderView3ValidateBundle(array $bundle): void {
+function fvplusFolderView3ValidateBundle(array &$bundle, ?object $shape = null): void {
     if (($bundle['fv3_export_version'] ?? null) !== 1) throw new RuntimeException('Unsupported FolderView3 export version.');
     foreach (['docker', 'vm', 'settings', 'css_config', 'custom_styles'] as $key) {
         if (!array_key_exists($key, $bundle)) throw new RuntimeException('FolderView3 backup is missing required ' . $key . ' data.');
@@ -99,11 +101,17 @@ function fvplusFolderView3ValidateBundle(array $bundle): void {
     }
     foreach (['docker', 'vm'] as $type) {
         $seen = [];
+        $folderShapes = (array)($shape->$type ?? null);
         foreach ($bundle[$type] as $id => $folder) {
             if (normalizeFolderIdValue($id) === '' || (string)$id !== normalizeFolderIdValue($id) || !is_array($folder)) {
                 throw new RuntimeException('FolderView3 contains an invalid folder identifier or record.');
             }
             fvplusFolderView3AssertFolder($folder, $type);
+            // Numeric member names can turn a decoded object into a PHP list.
+            foreach (['containerIds', 'containerImages'] as $field) {
+                $identityShape = $folderShapes[$id]->$field ?? null;
+                if ($identityShape instanceof stdClass) $bundle[$type][$id][$field] = $identityShape;
+            }
             if (isset($seen[$folder['name']])) throw new RuntimeException('FolderView3 contains ambiguous duplicate folder names. Rename them before importing.');
             $seen[$folder['name']] = true;
         }

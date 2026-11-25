@@ -383,7 +383,7 @@
                     });
                 }
 
-                if (showUndo) {
+                if (showUndo && backup?.name) {
                     await offerUndoAction(resolvedType, backup, 'Bulk assignment');
                 }
 

@@ -119,6 +119,7 @@ const phpUnusedHelpersBaseline = JSON.parse(fs.readFileSync(phpUnusedHelpersBase
 const visualRuntimeContract = fs.readFileSync(visualRuntimeContractPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
+    assert.match(pkgBuild, /today_version="\$\(date -u \+"%Y\.%m\.%d"\)"/);
     assert.match(pkgBuild, /next_stable_version_for_date/);
     assert.match(pkgBuild, /highest_stable_archive_version_for_date/);
     assert.match(pkgBuild, /version="\$\(next_stable_version_for_date \"\$today_version\"\)"/);
@@ -219,10 +220,16 @@ for patch in 09 10 11; do
         if bash scripts/dev_version_bump_guard.sh > result 2>&1; then exit 11; fi
         grep -F 'must bump folderview.plus.plg version' result
     fi
+    if [ "$patch" = 10 ]; then bad_candidate="$(git rev-parse HEAD)"; fi
 done
+git checkout -qb other
+printf '<!ENTITY version "2026.01.01.99">\\n' > folderview.plus.plg
+if FVPLUS_DEV_VERSION_CANDIDATE_REF="$bad_candidate" bash scripts/dev_version_bump_guard.sh > result 2>&1; then exit 12; fi
+grep -F 'must bump folderview.plus.plg version' result
+FVPLUS_DEV_VERSION_CANDIDATE_REF="$(git rev-parse HEAD)" bash scripts/dev_version_bump_guard.sh
 `);
     assert.match(output, /passed: no shipped plugin files changed/);
-    assert.equal(output.match(/must bump folderview\.plus\.plg version/g).length, 2);
+    assert.equal(output.match(/must bump folderview\.plus\.plg version/g).length, 3);
     assert.match(output, /passed: 2026\.01\.01\.10 -> 2026\.01\.01\.11/);
 });
 
@@ -237,7 +244,7 @@ test('package version resolution stops when the two-digit revision is exhausted'
     }
     const output = runBuildFixture(directory, `set -euo pipefail
 cd "$1"
-today="$(date +%Y.%m.%d)"
+today="$(date -u +%Y.%m.%d)"
 touch "archive/folderview.plus-$today.98.txz"
 bash "$2" --branch dev --dry-run --no-validate
 touch "archive/folderview.plus-$today.99.txz"
@@ -335,7 +342,7 @@ fi
     const output = runBuildFixture(directory, `set -euo pipefail
 cd "$1"
 git -c init.defaultBranch=main init -q
-FVPLUS_REPRO_ALLOW_STALE_STABLE=1 FVPLUS_FIXTURE_REPRO_ROOT="$PWD" bash scripts/repro_build_guard.sh
+FVPLUS_REPRO_VERSION_OVERRIDE=2026.01.01.01 FVPLUS_FIXTURE_REPRO_ROOT="$PWD" bash scripts/repro_build_guard.sh
 `);
     assert.match(output, /Deterministic build guard passed/);
     const buildPaths = fs.readFileSync(path.join(directory, 'build-paths'), 'utf8').trim().split('\n');
@@ -344,6 +351,30 @@ FVPLUS_REPRO_ALLOW_STALE_STABLE=1 FVPLUS_FIXTURE_REPRO_ROOT="$PWD" bash scripts/
     assert.equal(fs.readFileSync(path.join(directory, 'folderview.plus.plg'), 'utf8'), 'newer manifest\n');
     assert.equal(fs.readFileSync(path.join(directory, 'folderview.plus.xml'), 'utf8'), 'newer CA metadata\n');
     assert.equal(fs.readFileSync(path.join(directory, 'docs/sbom.cdx.json'), 'utf8'), 'newer SBOM\n');
+});
+
+test('repro guard requires archived bytes for exact qualified candidates after midnight UTC', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-repro-qualified-date-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    fs.copyFileSync(reproBuildGuardPath, path.join(directory, 'scripts', 'repro_build_guard.sh'));
+    fs.copyFileSync(sharedLibPath, path.join(directory, 'scripts', 'lib.sh'));
+    fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), '<!ENTITY version "2026.11.24.01">\n');
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+mkdir bin
+printf '#!/bin/bash\\nexec /bin/date --date="2026-11-25 00:30 UTC" "$@"\\n' > bin/date
+chmod +x bin/date
+export PATH="$PWD/bin:$PATH" TZ=America/New_York
+GITHUB_REF_NAME=dev bash scripts/repro_build_guard.sh
+for branch in release sync; do
+    if GITHUB_REF_NAME="fvplus-$branch-candidate-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \\
+        bash scripts/repro_build_guard.sh > exact-result 2>&1; then exit 11; fi
+    grep -F 'could not locate the repository archive' exact-result
+done
+`);
+    assert.match(output, /Skipping deterministic build guard.*today: 2026\.11\.25/);
+    assert.equal(output.match(/could not locate the repository archive/g).length, 2);
 });
 
 test('archive pruning script keeps newest versions and preserves current release artifacts', () => {
@@ -359,7 +390,7 @@ test('archive pruning script keeps newest versions and preserves current release
 
 test('release_guard blocks future-dated versions', () => {
     assert.match(releaseGuard, /Version date \(\$\{VERSION_DATE\}\) is in the future/);
-    assert.match(releaseGuard, /TODAY_DATE="\$\(date \+\"%Y\.%m\.%d\"\)"/);
+    assert.match(releaseGuard, /TODAY_DATE="\$\(date -u \+\"%Y\.%m\.%d\"\)"/);
 });
 
 test('release_guard validates pull-request packages against the protected base channel', () => {
@@ -488,9 +519,9 @@ test('dev pushes that change shipped plugin files must bump the manifest version
     assert.match(devVersionBumpGuard, /TARGET_BRANCH="\$\(detect_branch\)"/);
     assert.match(devVersionBumpGuard, /if \[\[ "\$\{TARGET_BRANCH\}" != "dev" \]\]/);
     assert.match(devVersionBumpGuard, /FVPLUS_DEV_VERSION_BASE_REF/);
-    assert.match(devVersionBumpGuard, /fvplus::read_plg_version "\$\{ROOT_DIR\}\/folderview\.plus\.plg"/);
+    assert.match(devVersionBumpGuard, /read_version_from_ref "\$\{CANDIDATE_REF\}"/);
     assert.match(devVersionBumpGuard, /git show "\$\{ref_name\}:folderview\.plus\.plg"/);
-    assert.match(devVersionBumpGuard, /src\/folderview\.plus\/\*|folderview\.plus\.plg|folderview\.plus\.xml/);
+    assert.match(devVersionBumpGuard, /src\/folderview\.plus\/ folderview\.plus\.plg folderview\.plus\.xml/);
     assert.match(devVersionBumpGuard, /change shipped plugin files must bump folderview\.plus\.plg version/);
     assert.match(devVersionBumpGuard, /bash scripts\/dev_finalize\.sh --message/);
     assert.match(devVersionBumpGuard, /bash pkg_build\.sh/);

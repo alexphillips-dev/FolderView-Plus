@@ -96,7 +96,8 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('fvplusWriteJsonLastGood');
         for (const name of ['backupConfigurationFingerprint', 'latestBackupConfiguration', 'backupScheduleStatePath',
             'readBackupScheduleState', 'backupScheduleSettingsFingerprint', 'readBackupScheduleRuntime',
-            'backupScheduleCoverageAge', 'recordBackupScheduleCheck', 'backupScheduleHistoryEvents']) additions.add(name);
+            'backupScheduleCoverageAge', 'recordBackupScheduleCheck', 'backupScheduleHistoryEvents',
+            'fvplusRestoreSafetyBackupMatchesCurrent']) additions.add(name);
         for (const name of ['customIconUploadStageDirectory', 'stageCustomIconUploadChunk', 'resolveCustomIconUploadSource']) additions.add(name);
         for (const name of ['fvplusRuntimeInventoryFailure', 'fvplusReadRuntimeEntityList', 'fvplusReadVmInfoState',
             'fvplusReadRepairInventory', 'fvplusAssertRepairMembersNotRenamed', 'renameCustomIconUnlocked']) additions.add(name);

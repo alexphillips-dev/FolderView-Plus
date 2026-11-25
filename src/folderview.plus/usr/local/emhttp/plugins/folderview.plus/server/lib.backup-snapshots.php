@@ -18,6 +18,8 @@ function getBackupSnapshotPath(string $type, string $name): string {
         }
         $protected = array_filter($snapshots, static fn($entry): bool => in_array($entry['name'], $protectedNames, true));
         $unprotected = array_values(array_filter($snapshots, static fn($entry): bool => !in_array($entry['name'], $protectedNames, true)));
+        // Preserve time order within each group while giving usable backups the retained slots.
+        usort($unprotected, static fn(array $a, array $b): int => isset($b['count']) <=> isset($a['count']));
         $toRemove = array_slice($unprotected, max(0, $keep - count($protected)));
         foreach ($toRemove as $snapshot) {
             try {
@@ -168,7 +170,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         ];
     }
 
-    function listBackupSnapshots(string $type): array {
+    function listBackupSnapshots(string $type, bool $includeReviewHash = false): array {
         $type = ensureType($type);
         $backupDir = getBackupsDirPath();
         if (!is_dir($backupDir)) {
@@ -186,7 +188,8 @@ function getBackupSnapshotPath(string $type, string $name): string {
             if (!is_file($path)) {
                 continue;
             }
-            $decoded = @json_decode((string)@file_get_contents($path), true);
+            $raw = (string)@file_get_contents($path);
+            $decoded = @json_decode($raw, true);
             $reason = '';
             $count = null;
             $traceId = '';
@@ -209,7 +212,8 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 'reason' => $reason,
                 'count' => $count,
                 'traceId' => $traceId,
-                'transactionId' => $transactionId
+                'transactionId' => $transactionId,
+                ...($includeReviewHash && $count !== null ? ['reviewHash' => hash('sha256', $raw)] : [])
             ];
         }
         usort($entries, function($a, $b) {
@@ -343,6 +347,19 @@ function getBackupSnapshotPath(string $type, string $name): string {
         if (array_key_exists('schemaVersion', $decoded) && $declaredRaw === '') {
             throw new RuntimeException('Backup payload is missing a required type marker.');
         }
+    }
+
+    function fvplusRestoreSafetyBackupMatchesCurrent(string $type, array $snapshot): bool {
+        // A restore interrupted before its first write can leave its safety copy behind.
+        if ($snapshot['reason'] !== 'before-folder-editor-bulk-move'
+            && !preg_match('/^before-restore-[0-9a-f]{12}$/D', (string)$snapshot['reason'])) {
+            return false;
+        }
+        $safety = readBackupSnapshot($type, $snapshot['name']);
+        $folders = normalizeFolderMapPayload($safety['folders']);
+        $prefs = readTypePrefs($type);
+        return !jsonObjectsDiffer($folders, readRawFolderMap($type))
+            && !jsonObjectsDiffer(reconcileManualOrderPrefs($safety['prefs'] ?? $prefs, $folders), $prefs);
     }
 
     require_once __DIR__ . '/lib.backup-restore.php';

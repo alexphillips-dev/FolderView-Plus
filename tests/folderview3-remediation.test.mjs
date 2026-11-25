@@ -91,6 +91,31 @@ test('FolderView3 rejects legacy predicates that would become inactive managed r
     }
 });
 
+test('migrated VM regex uses the original UTF-16 matching semantics after save and upgrade', () => {
+    const bundle = copy();
+    bundle.vm.lab.regex = '^..$';
+    bundle.vm.lab.containers = [];
+    const vmNames = ['😀', 'AB', 'ABC', 'é'];
+    const infoByName = Object.fromEntries(vmNames.map(name => [name, { name }]));
+    const expected = vmNames.filter(name => new RegExp(bundle.vm.lab.regex).test(name));
+    assert.deepEqual(expected, ['😀', 'AB']);
+    for (const removeMigratedRegexMode of [false, true]) {
+        const result = runMigrationFixture({ bundle, vmNames, removeMigratedRegexMode, operation: 'apply' });
+        assert.equal(result.error, '');
+        assert.equal(result.applied.transaction.verified, true);
+        const [, folders, , prefs] = result.stored;
+        assert.equal(prefs.autoRules[0].regexMode, 'legacy');
+        assert.deepEqual(result.vmMembership.lab, expected);
+
+        const { regexMode, ...oldRule } = prefs.autoRules[0];
+        const { source, ...nativeRule } = oldRule;
+        const normalized = utils.normalizePrefs({ autoRules: [oldRule, { ...nativeRule, id: 'native' }] });
+        assert.equal(normalized.autoRules[0].regexMode, regexMode);
+        assert.equal(normalized.autoRules[1].regexMode, undefined);
+        assert.deepEqual(utils.buildLegacyMembership({ folders, names: vmNames, infoByName, type: 'vm', rules: normalized.autoRules }).lab, expected);
+    }
+});
+
 test('M07/M21/M29/M30: preview is pure with missing, legacy and corrupt workspace states', () => {
     for (const request of [{ seed: false }, { workspace: { variables: {}, customCss: '.synthetic {}' } }, { corruptWorkspace: true }]) {
         const r = runMigrationFixture(request); assert.equal(r.error, ''); assert.equal(r.unchanged, true);
@@ -213,6 +238,34 @@ test('M14: imported VM identities reconcile unique renames and retain missing or
     const saved = runMigrationFixture({ bundle: numeric, operation: 'apply' }); assert.equal(saved.error, '');
     const zero = identity.reconcileFolders('vm', saved.stored[1], { Renamed: { name: 'Renamed', uuid } });
     assert.deepEqual(zero.folders.lab.containers, ['Renamed']);
+});
+
+test('exported and installed member identity objects remain keyed by name, including numeric names', () => {
+    const bundle = copy();
+    const image = 'synthetic/actual:1';
+    const containerId = 'a'.repeat(64);
+    bundle.docker.manual.containers = ['11', ...Array.from({ length: 11 }, (_, index) => `synthetic-${index}`)];
+    bundle.docker.manual.containerIds = { '11': containerId };
+    bundle.docker.manual.containerImages = { '11': image };
+    bundle.docker.numeric = {
+        name: 'Numeric object key', containers: ['ordinary', '0'], containerImages: { '0': image }
+    };
+    bundle.docker.positional = {
+        name: 'Positional identity list', containers: ['1', 'other'], containerImages: [image, 'synthetic/other:1']
+    };
+    for (const operation of ['apply', 'installed']) {
+        const result = runMigrationFixture({ raw: JSON.stringify(bundle), operation });
+        assert.equal(result.error, '', operation);
+        assert.equal(result.applied.transaction.verified, true, operation);
+        const [folders] = result.stored;
+        assert.deepEqual(Object.keys(folders.manual.memberIdentities), ['11']);
+        assert.equal(folders.manual.memberIdentities['11'].containerId, containerId);
+        assert.equal(folders.manual.memberIdentities['11'].image, image);
+        assert.deepEqual(Object.keys(folders.numeric.memberIdentities), ['0']);
+        assert.equal(folders.numeric.memberIdentities['0'].image, image);
+        assert.equal(folders.positional.memberIdentities['1'].image, image);
+        assert.equal(folders.positional.memberIdentities.other.image, 'synthetic/other:1');
+    }
 });
 
 test('M15/M16/M17/M18/M19/M37: PHP startup and browser ownership/order equal the unchanged original evaluator', () => {

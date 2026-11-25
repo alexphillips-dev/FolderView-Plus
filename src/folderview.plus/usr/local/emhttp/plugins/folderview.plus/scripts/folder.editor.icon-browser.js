@@ -10,6 +10,26 @@
         collections: surfaceT('common.icon-browser.collections', 'Icon Packs'),
         uploads: surfaceT('common.icon-browser.uploads', 'My uploads')
     });
+    const customIconNameFromUrl = (value, origin) => {
+        if (!value || !origin) return '';
+        try {
+            const reference = String(value).replace(/[\t\r\n]/g, '').trim();
+            if (/^[/\\]{2}/.test(reference)) return '';
+            const url = /^https?:/i.test(reference) ? new URL(reference) : new URL(reference, origin);
+            if (url.origin !== origin || url.username || url.password) return '';
+            const path = decodeURIComponent(url.pathname);
+            if (/(?:^|\/)\.{0,2}$/.test(path) || /[\x00-\x1f\x7f]/.test(path)) return '';
+            const segments = [];
+            for (const segment of path.split('/')) {
+                if (!segment || segment === '.') continue;
+                if (segment === '..') segments.pop();
+                else segments.push(segment);
+            }
+            const normalizedPath = '/' + segments.join('/');
+            const name = normalizedPath.match(/^\/(?:usr\/local\/emhttp\/)?plugins\/folderview\.plus\/images\/custom\/([^/\\]+)$/)?.[1] || '';
+            return name === name.trim() && /\.(?:png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(name) ? name : '';
+        } catch (_error) { return ''; }
+    };
     // Browsing is staged; Use Icon applies to the editor and Cancel can undo that application.
     const createApi = ({ window: win = globalThis, getValue = () => '', setValue = () => {},
         defaultIcon = '', sanitizeImageUrl = (_value, fallback) => fallback,
@@ -30,6 +50,7 @@
         const enabled = Boolean(library && workspace?.body && workspace?.footer && ui?.openModal);
         const byId = (id) => doc?.getElementById(id);
         const text = (id, value) => { const node = byId(id); if (node) node.textContent = value; };
+        const getCustomIconName = (value) => customIconNameFromUrl(value, win.location?.origin);
         const info = (value) => {
             const known = describe(value);
             if (known) return known;
@@ -38,8 +59,9 @@
                 const url = new URL(value, win.location.href);
                 const file = url.searchParams.get('file');
                 if (url.pathname.includes('/third_party_icons.php') && file) return { name: file, source: url.searchParams.get('folder') || labels().collections };
-                if (url.pathname.includes('/images/custom/')) return { name: decodeURIComponent(url.pathname.split('/').pop()), source: labels().uploads };
             } catch (_error) { /* A pasted data image or incomplete URL still gets a readable label. */ }
+            const customIcon = getCustomIconName(value);
+            if (customIcon) return { name: customIcon, source: labels().uploads };
             return { name: surfaceT('common.icon-browser.external', 'External icon'), source: surfaceT('common.icon-browser.path', 'Icon URL or path') };
         };
         const updateImage = (image, value) => {
@@ -177,9 +199,9 @@
             });
             reset();
         }
-        const invalidate = (value) => {
-            if (rollbackValue !== null && rollbackValue.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) rollbackValue = defaultIcon;
-            if (enabled && draft.split(/[?#]/, 1)[0] === String(value).split(/[?#]/, 1)[0]) stage(defaultIcon);
+        const invalidate = (name) => {
+            if (name && getCustomIconName(rollbackValue) === name) rollbackValue = defaultIcon;
+            if (enabled && name && getCustomIconName(draft) === name) stage(defaultIcon);
             sync();
         };
         const showDialog = (options, callback = () => {}) => {
@@ -237,5 +259,5 @@
             isOpen: () => enabled, getSelection: () => enabled ? draft : getValue(),
             token: () => generation, isCurrent: (token) => enabled && token === generation });
     };
-    return Object.freeze({ createApi });
+    return Object.freeze({ createApi, customIconNameFromUrl });
 }));

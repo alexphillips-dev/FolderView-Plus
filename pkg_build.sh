@@ -4,7 +4,7 @@ set -euo pipefail
 CWD="$(pwd)"
 version_override="${FVPLUS_VERSION_OVERRIDE:-}"
 historical_rebuild="${FVPLUS_HISTORICAL_REBUILD:-0}"
-today_version="$(date +"%Y.%m.%d")"
+today_version="$(date -u +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"

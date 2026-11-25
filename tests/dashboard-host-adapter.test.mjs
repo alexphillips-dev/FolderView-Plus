@@ -291,22 +291,26 @@ test('Dashboard expanded-state store normalizes, batches, patches, and survives 
     const values = new Map();
     const writes = [];
     const storage = {
+        get length() { return values.size; },
+        key: index => [...values.keys()][index] ?? null,
         getItem: (key) => values.get(key) ?? null,
         setItem: (key, value) => values.set(key, value),
         removeItem: (key) => values.delete(key)
     };
     const writer = {
-        setItem: (key, value, options) => {
-            writes.push({ key, value, options });
+        updateItem: (key, update, { onCommit, ...options }) => {
+            const value = update(storage.getItem(key));
+            writes.push({ options });
             values.set(key, value);
+            onCommit(value);
         }
     };
     const store = dashboardStateStoreModule.createStore({ storage, writer });
     assert.equal(store.write('docker', { media: true, '': true, tools: 1 }), true);
-    assert.deepEqual(JSON.parse(writes[0].value), { media: true, tools: false });
-    assert.deepEqual(writes[0].options, { delayMs: 80, idle: true });
+    assert.deepEqual(dashboardStateStoreModule.createStore({ storage }).read('docker'), { media: true, tools: false });
     assert.equal(store.patch('docker', { media: true }), false, 'unchanged state should not schedule a write');
     assert.equal(store.patch('docker', { media: false, cloud: true }), true);
+    assert.deepEqual(writes, [{ options: { delayMs: 80, idle: true } }, { options: { delayMs: 80, idle: true } }]);
     assert.deepEqual(store.read('docker'), { media: false, tools: false, cloud: true });
     values.set(dashboardStateStoreModule.EXPANDED_STATE_STORAGE_KEYS.vm, '{bad json');
     assert.deepEqual(store.read('vm'), {});

@@ -72,6 +72,7 @@
         const getIconInput = typeof deps.getIconInput === 'function' ? deps.getIconInput : (() => ($ ? $() : null));
         const getCurrentIconValue = typeof deps.getCurrentIconValue === 'function' ? deps.getCurrentIconValue : (() => '');
         const setIconInputValue = typeof deps.setIconInputValue === 'function' ? deps.setIconInputValue : (() => {});
+        const iconBrowser = win?.FolderViewPlusFoundationModules?.iconBrowser;
         let browser = null;
         const swal = (options, callback = undefined) => browser?.enabled ? browser.showDialog(options, callback) : legacySwal(options, callback);
         const selectIcon = (value) => browser?.enabled ? browser.stage(value) : setIconInputValue(value);
@@ -529,7 +530,7 @@
                     }
                     try {
                         await requestCustomIconApi('rename', { from: name, to: nextName, selectedIcon: getCurrentIconValue() }, 'POST');
-                        browser?.invalidate(icon.url);
+                        browser?.invalidate(name);
                         await refreshCustomIconManager();
                         setCustomIconStatus(`Renamed "${name}" to "${nextName}".`);
                     } catch (error) {
@@ -556,9 +557,10 @@
                         }
                         try {
                             await requestCustomIconApi('delete', { name }, 'POST');
-                            const selectedPath = getCurrentIconValue().split(/[?#]/, 1)[0];
-                            if (selectedPath && selectedPath === String(icon.url || '').split(/[?#]/, 1)[0]) setIconInputValue(defaultFolderIconPath);
-                            browser?.invalidate(icon.url);
+                            if (iconBrowser?.customIconNameFromUrl(getCurrentIconValue(), win?.location?.origin) === name) {
+                                setIconInputValue(defaultFolderIconPath);
+                            }
+                            browser?.invalidate(name);
                             await refreshCustomIconManager();
                             setCustomIconStatus(`Deleted "${name}".`);
                         } catch (error) {
@@ -1819,7 +1821,7 @@
             if (!panel.length) {
                 return;
             }
-            browser ||= win?.FolderViewPlusFoundationModules?.iconBrowser?.createApi({ window: win,
+            browser ||= iconBrowser?.createApi({ window: win,
                 getValue: getCurrentIconValue, setValue: setIconInputValue, defaultIcon: defaultFolderIconPath, sanitizeImageUrl,
                 describe: (url) => { const icon = builtInIcons.find((entry) => entry.path === url); return icon ? { name: builtInName(icon.name), source: surfaceT('legacy.surface.c55a471f24b6805c', 'Built-in icons') } : null; },
                 activate: (source) => ({ builtin: activateBuiltInIconPicker, collections: activateThirdPartyIconPicker, uploads: activateCustomIconPicker })[source](),

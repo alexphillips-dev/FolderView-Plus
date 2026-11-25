@@ -12,7 +12,7 @@ const begin = source.indexOf('const buildDockerFolderRuntimeOrderState =');
 const end = source.indexOf('const normalizeDockerManualFolderOrder =', begin);
 const readState = (folders, order) => vm.runInNewContext(source.slice(begin, end) + '\nbuildDockerFolderRuntimeOrderState()', {
     utils, globalFolders: folders, folderTypePrefs: { sortMode: 'manual', manualOrder: order },
-    normalizeFolderParentId: value => String(value || '').trim(), getPrefsOrderedFolderMap: () => Object.fromEntries(order.map(id => [id, folders[id]]))
+    normalizeFolderParentId: value => String(value || '').trim()
 });
 const plain = value => JSON.parse(JSON.stringify(value));
 
@@ -40,7 +40,7 @@ test('Docker menu hierarchy retains its existing circular-parent and descendant 
 test('Docker menu hierarchy retains numeric identities and omitted ordered IDs', () => {
     const folders = { root: { name: 'Root' }, '1': { name: 'One', parentId: 'root' }, '2': { name: 'Two', parentId: 'root' }, last: { name: 'Last', parentId: 'root' } };
     const state = readState(folders, ['root', '2', '1']);
-    assert.deepEqual(plain(state.fullOrder), ['1', '2', 'root', 'last']);
-    assert.deepEqual(plain(state.childrenById.root), ['1', '2', 'last']);
-    assert.deepEqual(plain(state.collectDescendants('root')), ['1', '2', 'last']);
+    assert.deepEqual(plain(state.fullOrder), ['root', '2', '1', 'last']);
+    assert.deepEqual(plain(state.childrenById.root), ['2', '1', 'last']);
+    assert.deepEqual(plain(state.collectDescendants('root')), ['2', '1', 'last']);
 });

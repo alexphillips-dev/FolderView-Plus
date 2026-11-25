@@ -66,8 +66,8 @@
         const matchesFolderToken = typeof options.isFolderToken === 'function'
             ? options.isFolderToken
             : (entry) => String(entry || '').startsWith(prefix);
-        const desiredFolderTokens = Object.keys(orderFolders(folderMap, prefs || {}) || {})
-            .map((id) => `${prefix}${id}`);
+        const orderedFolders = orderFolders(folderMap, prefs || {});
+        const desiredFolderTokens = (Array.isArray(orderedFolders) ? orderedFolders : Object.keys(orderedFolders || {})).map(id => `${prefix}${id}`);
         if (!desiredFolderTokens.length) return order;
         const sortMode = ['manual', 'alpha', 'name_desc', 'created_newest', 'created_oldest', 'updated_newest']
             .includes(String(prefs?.sortMode || '').trim().toLowerCase())

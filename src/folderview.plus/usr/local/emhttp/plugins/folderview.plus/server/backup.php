@@ -125,7 +125,11 @@ fvplus_json_try(function (): array {
 
     if ($action === 'restore_latest') {
         return [
-            'restore' => restoreLatestBackupSnapshot($type)
+            'restore' => restoreLatestBackupSnapshot(
+                $type,
+                isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null,
+                isset($_POST['reviewHash']) ? (string)$_POST['reviewHash'] : null
+            )
         ];
     }
 
@@ -137,7 +141,7 @@ fvplus_json_try(function (): array {
 
     if ($action === 'list') {
         return [
-            'backups' => listBackupSnapshots($type),
+            'backups' => listBackupSnapshots($type, true),
             'schedule' => getTypeBackupSchedule($type)
         ];
     }
@@ -153,14 +157,14 @@ fvplus_json_try(function (): array {
         $name = (string)($_POST['name'] ?? '');
         return [
             'deleted' => deleteBackupSnapshot($type, $name),
-            'backups' => listBackupSnapshots($type)
+            'backups' => listBackupSnapshots($type, true)
         ];
     }
 
     if ($action === 'delete_all') {
         return [
             'deleted' => deleteAllBackupSnapshots($type),
-            'backups' => listBackupSnapshots($type)
+            'backups' => listBackupSnapshots($type, true)
         ];
     }
 

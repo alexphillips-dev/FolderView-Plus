@@ -487,6 +487,14 @@ function diagnosticsResolveSupportBundleChannel(): string {
         if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full' && $customIconsRepairHint !== '') {
             diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', 'system.pathHealth.customIcons.repairHint');
         }
+        $runtimeIntegrity = is_array($diagnostics['runtimeIntegrity'] ?? null) ? $diagnostics['runtimeIntegrity'] : [];
+        if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full' && is_array($runtimeIntegrity['findings'] ?? null)) {
+            foreach ($runtimeIntegrity['findings'] as &$finding) {
+                $pathHash = diagnosticsSupportBundleHashValue($redactor, 'system.runtimeIntegrity.findings.*.path', (string)$finding['path']);
+                $finding['path'] = $pathHash === null ? '' : 'file-' . $pathHash;
+            }
+            unset($finding);
+        }
         return [
             'unraidVersion' => $environment['unraidVersion'] ?? null,
             'phpVersion' => $environment['phpVersion'] ?? null,
@@ -514,7 +522,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'customIcons' => $customIcons
             ],
             'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
-            'runtimeIntegrity' => is_array($diagnostics['runtimeIntegrity'] ?? null) ? $diagnostics['runtimeIntegrity'] : [],
+            'runtimeIntegrity' => $runtimeIntegrity,
             'securityAudit' => is_array($diagnostics['securityAudit'] ?? null) ? $diagnostics['securityAudit'] : [],
             'requestSecurity' => is_array($diagnostics['requestSecurity'] ?? null) ? $diagnostics['requestSecurity'] : [],
             'phpExtensions' => array_values(get_loaded_extensions())

@@ -520,8 +520,9 @@
                 'labelKey' => (string)($rule['labelKey'] ?? ''),
                 'labelValue' => (string)($rule['labelValue'] ?? '')
             ];
-            if (($rule['source'] ?? '') === 'folderview3') $normalizedRules[count($normalizedRules) - 1]['source'] = 'folderview3';
-            if ($kind === 'name_regex' && ($rule['regexMode'] ?? '') === 'legacy') {
+            $importedFolderView3Rule = ($rule['source'] ?? '') === 'folderview3';
+            if ($importedFolderView3Rule) $normalizedRules[count($normalizedRules) - 1]['source'] = 'folderview3';
+            if ($kind === 'name_regex' && ($importedFolderView3Rule || ($rule['regexMode'] ?? '') === 'legacy')) {
                 $normalizedRules[count($normalizedRules) - 1]['regexMode'] = 'legacy';
             }
         }

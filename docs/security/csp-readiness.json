@@ -72,7 +72,7 @@
   "htmlStringSinkInventory": [
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1265,
+      "line": 1264,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -82,7 +82,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1276,
+      "line": 1275,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -92,7 +92,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 1321,
+      "line": 1320,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -102,7 +102,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 3386,
+      "line": 3375,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -122,7 +122,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 460,
+      "line": 455,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -132,7 +132,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 468,
+      "line": 463,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -142,7 +142,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 491,
+      "line": 486,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -212,7 +212,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js",
-      "line": 146,
+      "line": 168,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -222,11 +222,11 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js",
-      "line": 187,
+      "line": 209,
       "sink": ".innerHTML =",
-      "risk": "reviewed",
-      "dataClass": "static-or-controlled-ui-template",
-      "requiredControl": "Keep the sink limited to plugin-authored markup and escaped dynamic values.",
+      "risk": "high",
+      "dataClass": "persisted-or-runtime-data",
+      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
     },
@@ -352,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 5569,
+      "line": 5570,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

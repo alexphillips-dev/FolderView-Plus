@@ -98,7 +98,7 @@ test('modern folder editor save path references every schema-backed field', () =
 
 test('modern folder editor create mode receives server prefs and can apply saved folder defaults', () => {
     assert.match(folderPageBootstrapJs, /FolderViewPlusFolderEditorTypePrefs =/);
-    assert.match(folderPage, /\$folderEditorTypePrefs = readTypePrefs\(\$folderEditorPageType\);/);
+    assert.match(folderPage, /\[\$folderEditorTypePrefs, \$folderEditorBootstrapContext\] = withConfigMutationLock\([\s\S]*?\$prefs = readTypePrefs\(\$folderEditorPageType\);[\s\S]*?return \[\$prefs, \$context\];/);
     assert.match(folderJs, /const folderEditorTypePrefs = window\.FolderViewPlusFolderEditorTypePrefs/);
     assert.match(folderJs, /const getSavedFolderDefaultsProfile = \(\) => \{/);
     assert.match(folderJs, /const applySavedFolderDefaultsToNewFolder = \(foldersMap = \{\}\) => \{/);

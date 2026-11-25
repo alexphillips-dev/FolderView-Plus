@@ -7,7 +7,7 @@ export const checkUploadCardLayout = async page => {
         state.uploads = [
             { name: 'Instagram_icon_with_a_very_long_unbroken_filename.png', size: 165321, width: 1024, height: 1024 },
             { name: 'icons8-test-100.png', size: 1305, width: 100, height: 100 }
-        ].map((icon, index) => ({ ...icon, url: `/plugins/folderview.plus/images/folder-icon.png?upload=${icon.name}`, updatedAt: '2026-04-14T14:35:00Z', usageCount: index === 0 ? 2 : 0 }));
+        ].map((icon, index) => ({ ...icon, url: `/plugins/folderview.plus/images/custom/${encodeURIComponent(icon.name)}?v=1`, updatedAt: '2026-04-14T14:35:00Z', usageCount: index === 0 ? 2 : 0 }));
     });
     await page.locator('#fv-custom-icon-refresh').click();
     await page.locator('[data-custom-icon="icons8-test-100.png"]').waitFor();

@@ -7,7 +7,8 @@ const scripts = new URL('../src/folderview.plus/usr/local/emhttp/plugins/folderv
 const fixture = (initial = {}) => {
     let now = 0, nextTimer = 0, denied = false;
     const timers = new Map(), records = new Map(Object.entries(initial));
-    const storage = { getItem: key => records.get(key) ?? null,
+    const storage = { get length() { return records.size; }, key: index => [...records.keys()][index] ?? null,
+        getItem: key => records.get(key) ?? null,
         setItem: (key, value) => { if (denied) throw new Error('Quota denied'); records.set(key, value); },
         removeItem: key => { if (denied) throw new Error('Remove denied'); records.delete(key); } };
     const context = { module: { exports: {} }, setTimeout: (callback, delay) => {
@@ -32,10 +33,13 @@ const fixture = (initial = {}) => {
     };
     const key = type => api.EXPANDED_STATE_STORAGE_KEYS[type];
     const read = type => JSON.parse(JSON.stringify(store.read(type)));
-    const disk = type => JSON.parse(records.get(key(type)) || '{}');
-    const createPeer = () => {
-        const peerWriter = foundation.createBatchedStorageWriter(storage);
-        return { store: api.createStore({ window: context.window, storage, writer: peerWriter }), writer: peerWriter };
+    const disk = type => JSON.parse(JSON.stringify(api.createStore({ storage }).read(type)));
+    const createPeer = ({ staleLegacyRead = false } = {}) => {
+        const peerStorage = staleLegacyRead ? Object.create(storage, {
+            getItem: { value: item => item === key('docker') ? null : storage.getItem(item) }
+        }) : storage;
+        const peerWriter = foundation.createBatchedStorageWriter(peerStorage);
+        return { store: api.createStore({ storage: peerStorage, writer: peerWriter }), writer: peerWriter };
     };
     return { store, writer, records, key, read, disk, advance, createPeer, deny: value => { denied = value; } };
 };
@@ -50,7 +54,7 @@ for (const type of ['docker', 'vm']) {
         f.advance(79); assert.deepEqual(f.disk(type), {});
         f.advance(1); assert.deepEqual(f.disk(type), {});
         f.advance(32); assert.deepEqual(f.disk(type), f.read(type));
-        const fresh = fixture({ [f.key(type)]: JSON.stringify(f.disk(type)) });
+        const fresh = fixture(Object.fromEntries(f.records));
         assert.deepEqual(fresh.read(type), { parent: false, child: true, other: true });
     });
 
@@ -86,12 +90,14 @@ for (const type of ['docker', 'vm']) {
         assert.deepEqual(f.disk(type), { external: true });
         f.writer.flush();
         assert.deepEqual(f.disk(type), { local: true, external: true });
-        f.records.set(f.key(type), '{"local":false,"external":true}');
+        const peer = f.createPeer();
+        peer.store.patch(type, { local: false }); peer.writer.flush();
         assert.deepEqual(f.read(type), { local: false, external: true });
         f.store.patch(type, { next: true }); f.writer.flush();
-        f.records.set(f.key(type), '{"afterAutomaticCommit":true}');
+        peer.store.write(type, { afterAutomaticCommit: true });
         assert.deepEqual(f.read(type), { afterAutomaticCommit: true }, 'external writes are adopted even without an earlier acknowledgement read');
-        f.records.set(f.key(type), '{broken'); assert.deepEqual(f.read(type), {});
+        const corruptedLegacy = fixture({ [f.key(type)]: '{broken' });
+        assert.deepEqual(corruptedLegacy.read(type), {});
     });
 
     test(`${type} failed writes preserve session state and failed clear cannot queue resurrection`, () => {
@@ -128,4 +134,26 @@ test('Dashboard expansion writes merge disjoint changes in both tab flush orders
         lastWriter.flush();
         assert.deepEqual(f.disk('docker'), { first: true, second: true, shared: firstWritesLast });
     }
+});
+
+test('Dashboard disjoint writes survive a peer reading its stale origin snapshot during commit', () => {
+    const f = fixture(), peer = f.createPeer({ staleLegacyRead: true });
+    f.store.patch('docker', { first: true });
+    peer.store.patch('docker', { second: true });
+    f.writer.flush(); peer.writer.flush();
+    assert.deepEqual(f.disk('docker'), { first: true, second: true });
+});
+
+test('Dashboard reads legacy expansion and a peer reset fences queued work', () => {
+    const key = fixture().key('docker');
+    const f = fixture({ [key]: '{"legacy":true}' }), peer = f.createPeer();
+    assert.deepEqual(f.read('docker'), { legacy: true });
+    f.store.patch('docker', { stale: true });
+    peer.store.patch('docker', { previous: false }); peer.writer.flush();
+    assert.equal(peer.store.clear('docker'), true);
+    f.writer.flush();
+    assert.deepEqual(f.disk('docker'), {});
+    f.store.patch('docker', { fresh: true }); f.writer.flush();
+    assert.deepEqual(f.disk('docker'), { fresh: true });
+    assert.equal([...f.records.keys()].filter(key => key.includes('.entry.')).length, 1);
 });

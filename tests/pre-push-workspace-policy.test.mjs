@@ -17,7 +17,12 @@ git() {
         *) return 99 ;;
     esac
 }
-bash() { printf 'guard:%s\\n' "$*"; }
+bash() {
+    printf 'guard:%s\\n' "$*"
+    if [[ "$*" == scripts/dev_version_bump_guard.sh ]]; then
+        printf 'dev-range:%s..%s\\n' "$FVPLUS_DEV_VERSION_BASE_REF" "$FVPLUS_DEV_VERSION_CANDIDATE_REF"
+    fi
+}
 node() { printf 'evidence:%s\\n' "$*"; }
 `;
     const scratchRoot = path.join(process.cwd(), 'tmp');
@@ -44,10 +49,15 @@ test('main push keeps performance budget validation enabled by default', () => {
 test('explicit workspace policy skips only local performance and preserves every other main push guard', () => {
     const output = runHook({ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' });
     assert.doesNotMatch(output, /guard:scripts\/perf_budget_guard\.sh/);
-    for (const guard of ['main_branch_history_guard', 'dev_version_bump_guard', 'release_guard', 'install_smoke', 'include_order_guard', 'dead_code_guard']) {
+    for (const guard of ['main_branch_history_guard', 'release_guard', 'install_smoke', 'include_order_guard', 'dead_code_guard']) {
         assert.ok(output.includes(`guard:scripts/${guard}.sh`), guard);
     }
     assert.match(output, /evidence:scripts\/release_validation\.mjs verify/);
+});
+
+test('dev pre-push passes the actual remote and candidate commits to its version guard', () => {
+    const output = runHook({ FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1' }, 'refs/heads/dev');
+    assert.ok(output.includes('dev-range:' + 'b'.repeat(40) + '..' + commit));
 });
 
 test('workspace performance opt-out cannot suppress hosted push checks', () => {

@@ -75,7 +75,7 @@ const hydrateFixture = async (page, baseUrl) => {
             toggle: toggleFolderExpansion,
             clear: type => dashboardExpandedStateStore.clear(type),
             flush: () => dashboardStorageWriter.flush(),
-            disk: type => JSON.parse(localStorage.getItem(window.FolderViewPlusDashboardStateStore.EXPANDED_STATE_STORAGE_KEYS[type]) || '{}'),
+            disk: type => window.FolderViewPlusDashboardStateStore.createStore({ window }).read(type),
             reset(nextLayout) {
                 layout = nextLayout;
                 for (const type of ['docker', 'vm']) {

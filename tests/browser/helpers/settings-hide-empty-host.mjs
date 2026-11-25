@@ -8,11 +8,11 @@ export const waitForSettingsRuntimeHydration = async page => {
     await page.evaluate(async () => { await window.FolderViewPlusSettingsRuntimeHydrationPromise; });
 };
 
-export const createHideEmptySettingsHost = async (page, type) => {
+export const createHideEmptySettingsHost = async (page, type, overrides = {}) => {
     const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, 'en');
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
         icon: '/plugins/folderview.plus/images/folder-icon.png', settings: {}, actions: [] });
-    const folders = {
+    const folders = overrides.folders || {
         parent: folder('Populated branch'),
         child: folder('Child branch', 'parent'),
         leaf: folder('Manual leaf', 'child', ['fixture-manual']),
@@ -26,7 +26,7 @@ export const createHideEmptySettingsHost = async (page, type) => {
         running: true, State: { Running: true, Paused: false }, icon: '/plugins/folderview.plus/images/folder-icon.png'
     }]));
     let prefs = { hideEmptyFolders: true, sortMode: 'alpha', setupWizardCompleted: true,
-        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], _metadata: { prefsRevision: 1 } };
+        performanceProfile: 'standard', lazyPreviewEnabled: false, autoRules: [], _metadata: { prefsRevision: 1 }, ...overrides.prefs };
     let releaseRuntime;
     const runtimeGate = new Promise(resolve => { releaseRuntime = resolve; });
     const snapshot = (target, configOnly = false) => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type: target,

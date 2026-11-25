@@ -10,7 +10,7 @@
 
     const buildFolderHierarchyModel = (foldersInput, options = {}) => {
         const source = foldersInput && typeof foldersInput === 'object' ? foldersInput : {};
-        const ids = Object.keys(source).filter((id) => source[id] && typeof source[id] === 'object');
+        const ids = (options.orderedIds || Object.keys(source)).filter((id) => source[id] && typeof source[id] === 'object');
         const idSet = new Set(ids);
         const parentById = {};
         const childrenById = Object.fromEntries(ids.map((id) => [id, []]));
@@ -87,8 +87,8 @@
         return { ids, idSet, parentById, childrenById, rootIds, orderedIds, depthById, descendantsById };
     };
 
-    const buildNestedFolderOrderIdsFromMap = (orderedMap) =>
-        buildFolderHierarchyModel(orderedMap, { includeDescendants: false, breakCycles: false }).orderedIds;
+    const buildNestedFolderOrderIdsFromMap = (folderMap, orderedIds) =>
+        buildFolderHierarchyModel(folderMap, { orderedIds, includeDescendants: false, breakCycles: false }).orderedIds;
 
     return Object.freeze({ buildFolderHierarchyModel, buildNestedFolderOrderIdsFromMap });
 }));

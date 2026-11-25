@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.11">
-<!ENTITY md5 "cd5360daffbc1e37533e6968811f02a0">
-<!ENTITY sha256 "39ffce2b6e9204fc53c2058514f86bbbd4132acb81fca6d251fdcaab4579b4d7">
+<!ENTITY version "2026.11.25.01">
+<!ENTITY md5 "722ec07a228d6633cb9e23b48b253480">
+<!ENTITY sha256 "e296311566e411ce63e7f5db42c3562a77afbb40066eb89793948c392f5c6a4d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.01
+- Reliability: Recover Unraid plugin registration after an interrupted native update and protect installs that use the native staging path.
+- Fix: Keep concurrent Folder Defaults edits intact and protect recovery history when a reviewed bulk move or restore becomes stale.
+- Reliability: Keep usable backups ahead of damaged snapshots during retention and preserve the previous Undo action after a failed restore.
+- Compatibility: Preserve FolderView3 name-rule matching and attach imported Docker image identities to the intended members.
+- Fix: Clear busy VM rows after failed native requests, reconcile late VM actions, and preserve folder ordering and expansion across concurrent tabs and retries.
+- Fix: Protect in-use custom icons across equivalent local paths and keep external icons out of local repair.
+- Security: Redact runtime filenames in sanitized support bundles.
+- Quality: Check version bumps against the commit being pushed and use consistent release dates when verifying a package build.
+
 
 ###2026.11.24.11
 - Reliability: Keep the verified Unraid boot registration aligned with the running plugin when a native update check or removal overlaps an update or URL install.
@@ -10209,12 +10220,14 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             config_dir="/boot/config/plugins/&name;"
             registered_manifest="/boot/config/plugins/&name;.plg"
             staged_manifest="/tmp/plugins/&name;.plg"
-            registration_dir="/run/folderview.plus-registration"
+            legacy_registration_dir="/run/folderview.plus-registration"
+            registration_dir="${config_dir}/.native-registration"
+            registration_pending="${registration_dir}.pending"
+            recovery_wrapper="/boot/config/plugins/00-folderview.plus-registration-recovery.plg"
             registration_helper="&plugdir;/scripts/complete_native_registration.sh"
             registration_hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-registration"
             staged_method=""
-            # Native update and URL install both register from the shared staging file.
-            # Local installs and offline boot use their own manifest paths.
+            # Both native update and installs of the shared download require a handoff.
             if [[ "$0" = /tmp/inline*-&name;.sh || "$0" = /tmp/inline.sh ]]; then
                 installer_pid="${PPID}"
                 for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
@@ -10230,10 +10243,21 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                         case "${installer_args[2]:-}:${installer_arg}" in
                             update:&name;.plg|install:http://*/&name;.plg|install:https://*/&name;.plg)
                                 staged_method="${installer_args[2]}"
-                                installer_start="$(sed -E 's/^[0-9]+ \(.*\) //' "/proc/${installer_pid}/stat" | awk '{ print $20 }')"
-                                [[ "${installer_start}" =~ ^[0-9]+$ ]] || exit 1
+                                ;;
+                            install:*/&name;.plg|install:&name;.plg)
+                                case "${installer_arg}" in
+                                    /*) installer_path="${installer_arg}" ;;
+                                    *) installer_path="/proc/${installer_pid}/cwd/${installer_arg}" ;;
+                                esac
+                                if [ "$(readlink -m -- "${installer_path}")" = "${staged_manifest}" ]; then
+                                    staged_method=install
+                                fi
                                 ;;
                         esac
+                        if [ -n "${staged_method}" ]; then
+                            installer_start="$(sed -E 's/^[0-9]+ \(.*\) //' "/proc/${installer_pid}/stat" | awk '{ print $20 }')"
+                            [[ "${installer_start}" =~ ^[0-9]+$ ]] || exit 1
+                        fi
                         break
                     fi
                     installer_pid="$(awk '/^PPid:/ { print $2 }' "/proc/${installer_pid}/status")"
@@ -10249,9 +10273,6 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
             fi
-            if [ -d "${registration_dir}" ]; then
-                /bin/bash "${registration_helper}" recover || exit 1
-            fi
             cron_file="/etc/cron.d/folderview.plus"
             candidate_archive="${config_dir}/&name;-&version;.txz"
             install_stage="rollback preparation"
@@ -10262,6 +10283,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             export FVPLUS_INSTALL_CONTEXT_FILE="${install_context}"
             scheduler_status="registered"
             previous_archive=""
+            previous_version=""
             active_package_version=""
             previous_icon_pack=""
             previous_icon_sha=""
@@ -10272,6 +10294,8 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             registered_stage=""
             staged_repair=""
             registration_owned=0
+            registration_work=""
+            wrapper_stage=""
             version_changed=0
             core_attempted=0
             cron_changed=0
@@ -10315,6 +10339,77 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 sed -n "s/^&lt;!ENTITY $1 \"\([^\"]*\)\">\r\{0,1\}$/\1/p" "${2:-${registered_manifest}}" | head -n 1
             }
 
+            extract_registration_helper() {
+                tar -xOf "${candidate_archive}" "./${registration_helper#/}"
+            }
+
+            clear_registration_files() {
+                [ -d "$1" ] || return 0
+                [ ! -L "$1" ] &amp;&amp; \
+                    rm -f -- "$1"/{manifest,owner,report,boot-id,recover.sh,previous-version,cron,cron-mode,core-started,activated,committed} &amp;&amp; rmdir -- "$1"
+            }
+
+            prepare_registration_recovery() {
+                clear_registration_files "${registration_pending}" || return 1
+                mkdir -m 0700 -- "${registration_pending}" || return 1
+                registration_work="${registration_pending}"
+                cp -- "${registered_stage}" "${registration_work}/manifest" &amp;&amp; \
+                    cp -- /proc/sys/kernel/random/boot_id "${registration_work}/boot-id" &amp;&amp; \
+                    printf '%s %s %s %s\n' "${installer_pid}" "${installer_start}" "${staged_method}" "&version;" > "${registration_work}/owner" &amp;&amp; \
+                    printf '%s\n' "${previous_version}" > "${registration_work}/previous-version" &amp;&amp; \
+                    extract_registration_helper > "${registration_work}/recover.sh" &amp;&amp; \
+                    [ -s "${registration_work}/recover.sh" ] || return 1
+                if [ -n "${cron_backup}" ]; then
+                    cp -- "${cron_backup}" "${registration_work}/cron" &amp;&amp; \
+                        stat -c '%a' "${cron_backup}" > "${registration_work}/cron-mode" || return 1
+                elif [ -e "${cron_file}" ]; then
+                    printf '%s\n' blocked > "${registration_work}/cron-mode" || return 1
+                else
+                    printf '%s\n' absent > "${registration_work}/cron-mode" || return 1
+                fi
+                # Make the bootstrap visible before publishing the journal.
+                # An inactive wrapper is a no-op, including after an interruption here.
+                wrapper_stage="$(mktemp /boot/config/plugins/.folderview.plus.plg.XXXXXX)" || return 1
+                cat > "${wrapper_stage}" &lt;&lt;'FOLDER_VIEW_PLUS_RECOVERY'
+&lt;?xml version="1.0" standalone="yes"?>
+&lt;PLUGIN name="00-folderview.plus-registration-recovery" author="Alexander Phillips" version="1" noInstall="true">
+    &lt;FILE Run="/bin/bash">
+        &lt;INLINE>
+            { # Parse the entire script before another Unraid 7.0 inline can replace it.
+            journal="/boot/config/plugins/folderview.plus/.native-registration"
+            if [ -f "$journal/recover.sh" ]; then
+                exec /bin/bash "$journal/recover.sh" boot
+            fi
+            }
+        &lt;/INLINE>
+    &lt;/FILE>
+&lt;/PLUGIN>
+FOLDER_VIEW_PLUS_RECOVERY
+                [ "$?" -eq 0 ] &amp;&amp; mv -fT -- "${wrapper_stage}" "${recovery_wrapper}" || return 1
+                registration_owned=1
+                mv -T -- "${registration_pending}" "${registration_dir}" &amp;&amp; \
+                    ln -sT -- "${registration_dir}" "${legacy_registration_dir}" &amp;&amp; sync -f "${config_dir}"
+            }
+
+            recover_native_registration() {
+                local status
+                if [ -d "${registration_dir}" ]; then
+                    /bin/bash "${registration_dir}/recover.sh" recover
+                    return $?
+                fi
+                # The previous package may ship the older recovery implementation.
+                registration_work="$(mktemp "${install_state}/recover.XXXXXX")" || return 1
+                if extract_registration_helper > "${registration_work}"; then
+                    /bin/bash "${registration_work}" recover
+                    status=$?
+                else
+                    status=1
+                fi
+                rm -f -- "${registration_work}" || return 1
+                registration_work=""
+                return "${status}"
+            }
+
             prepare_native_registration() {
                 local candidate_url github_entity
                 if [ ! -f "${staged_manifest}" ] || [ -L "${staged_manifest}" ]; then
@@ -10345,13 +10440,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 fi
                 [ -f "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ] \
                     &amp;&amp; cmp -s -- "${registered_stage}" "${staged_manifest}" || return 1
-                # Unraid runs our post-hook after its own copy, which may have read a
-                # different download from staging. Keep a private copy of the chosen manifest.
-                [ -x "${registration_helper}" ] &amp;&amp; mkdir -m 0700 -- "${registration_dir}" || return 1
-                registration_owned=1
-                cp -- "${registered_stage}" "${registration_dir}/manifest" &amp;&amp; \
-                    printf '%s %s %s %s\n' "${installer_pid}" "${installer_start}" "${staged_method}" "&version;" > "${registration_dir}/owner" &amp;&amp; \
-                    printf '%s\n' "${install_summary}" > "${registration_dir}/report" &amp;&amp; \
+                # Keep the verified candidate on flash until the post-hook confirms
+                # Unraid's own copy. An interrupted native copy is repaired at boot.
+                [ -x "${registration_helper}" ] &amp;&amp; \
+                    touch "${registration_dir}/committed" &amp;&amp; sync -f "${config_dir}" &amp;&amp; \
                     ln -sT -- "${registration_helper}" "${registration_hook}" || return 1
                 # The native CLI ignores a failed final copy. Commit verified boot bytes
                 # atomically before returning so a later deleted stage cannot lose registration.
@@ -10407,8 +10499,11 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     if [ "$(readlink -- "${registration_hook}" 2>/dev/null || true)" = "${registration_helper}" ]; then
                         rm -f -- "${registration_hook}" || restored=0
                     fi
-                    rm -f -- "${registration_dir}/manifest" "${registration_dir}/owner" "${registration_dir}/report" &amp;&amp; \
-                        rmdir -- "${registration_dir}" || restored=0
+                    if [ "$(readlink -- "${legacy_registration_dir}" 2>/dev/null || true)" = "${registration_dir}" ]; then
+                        rm -f -- "${legacy_registration_dir}" || restored=0
+                    fi
+                    clear_registration_files "${registration_dir}" &amp;&amp; \
+                        rm -f -- "${recovery_wrapper}" || restored=0
                 fi
                 if [ -f "${install_report}" ]; then
                     /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
@@ -10453,7 +10548,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                         rm -f -- "${config_dir}/version" || restored=0
                     fi
                 fi
-                rm -f -- "${version_stage}" "${version_backup}" "${registered_stage}" "${staged_repair}" "${cron_stage}" "${cron_backup}" || restored=0
+                if [ -d "${registration_work}" ]; then
+                    clear_registration_files "${registration_work}" || restored=0
+                fi
+                rm -f -- "${version_stage}" "${version_backup}" "${registered_stage}" "${staged_repair}" "${cron_stage}" "${cron_backup}" "${wrapper_stage}" "${registration_work}" || restored=0
                 cleanup_install_context || restored=0
                 if [ "${core_attempted}" -eq 1 ]; then
                     if [ "${restored}" -eq 1 ]; then
@@ -10465,6 +10563,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 exit "${exit_code}"
             }
             trap install_failure EXIT
+            archive_matches "${candidate_archive}" "&sha256;" || exit 1
+            if [ -d "${registration_dir}" ] || [ -d "${legacy_registration_dir}" ]; then
+                recover_native_registration || exit 1
+            fi
             capture_install_context
 
             registered_version=""
@@ -10518,8 +10620,14 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 cp -p -- "${cron_file}" "${cron_backup}"
             fi
 
+            if [ -n "${staged_method}" ]; then
+                if ! prepare_registration_recovery; then
+                    printf 'FolderView Plus could not prepare boot registration. Retry the operation.\n' >&amp;2
+                    exit 1
+                fi
+                touch "${registration_dir}/core-started"
+            fi
             install_stage="core package installation"
-            archive_matches "${candidate_archive}" "&sha256;" || exit 1
             core_attempted=1
             upgradepkg --install-new --reinstall "${candidate_archive}" 9>&amp;-
             install_stage="configuration"
@@ -10541,9 +10649,13 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_stage="installation report"
             install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
             install_stage="version metadata"
-            if [ -n "${staged_method}" ] &amp;&amp; { [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; }; then
-                version_backup="$(mktemp "${config_dir}/.version.rollback.XXXXXX")"
-                cp -pP -- "${config_dir}/version" "${version_backup}"
+            if [ -n "${staged_method}" ]; then
+                if [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; then
+                    version_backup="$(mktemp "${config_dir}/.version.rollback.XXXXXX")"
+                    cp -pP -- "${config_dir}/version" "${version_backup}"
+                fi
+                printf '%s\n' "${install_summary}" > "${registration_dir}/report"
+                touch "${registration_dir}/activated"
             fi
             version_stage="$(mktemp "${config_dir}/.version.XXXXXX")"
             printf '%s\n' "&version;" > "${version_stage}"
@@ -10610,7 +10722,9 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
             fi
-            if [ -d /run/folderview.plus-registration ]; then
+            if [ -d /boot/config/plugins/&name;/.native-registration ]; then
+                /bin/bash /boot/config/plugins/&name;/.native-registration/recover.sh recover remove || exit 1
+            elif [ -d /run/folderview.plus-registration ]; then
                 /bin/bash "&plugdir;/scripts/complete_native_registration.sh" recover remove || exit 1
             fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
@@ -10634,6 +10748,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             rm -rf &plugdir;
             rm -rf /tmp/folderview.plus-assets
             rm -rf /boot/config/plugins/&name;
+            rm -f /boot/config/plugins/00-folderview.plus-registration-recovery.plg
             }
         </INLINE>
     </FILE>

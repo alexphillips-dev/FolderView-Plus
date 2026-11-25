@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { checkVmLateAndFailedDispatch } from './vm-lifecycle-dispatch.mjs';
 
 export const checkVmPauseResume = async (page, baseUrl) => {
     await page.goto(`${baseUrl}/vm-lifecycle`, { waitUntil: 'load' });
@@ -27,19 +28,5 @@ export const checkVmPauseResume = async (page, baseUrl) => {
     assert.equal(snapshot.lifecycle.fallbackCount, 0);
     assert.equal(snapshot.consoleIconClasses, 'fa fa-desktop');
     assert.equal(snapshot.menuIconClasses, 'fa fa-bars');
-    await page.evaluate(() => {
-        window.fixtureVmLifecycle.setStaleRefreshBudget(2);
-        window.ajaxVMDispatch({ action: 'domain-pause', uuid: 'vm-1' }, 'loadlist');
-        window.ajaxVMDispatch({ action: 'domain-resume', uuid: 'vm-1' }, 'loadlist');
-    });
-    await page.waitForFunction(() => {
-        const state = window.fixtureVmLifecycle.getSnapshot();
-        return state.lifecycle.eventGroups.lifecycleStaleGenerationCancelled > 0
-            && state.runtimeState === 'running' && state.busyIconCount === 0
-            && document.querySelectorAll('#fixture-vm-row [aria-busy="true"]').length === 0;
-    });
-    snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
-    assert.equal(snapshot.nativeLoadlistCount, 0);
-    assert.equal(snapshot.consoleIconClasses, 'fa fa-desktop');
-    assert.equal(snapshot.menuIconClasses, 'fa fa-bars');
+    await checkVmLateAndFailedDispatch(page);
 };

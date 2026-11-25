@@ -15,8 +15,7 @@
         normalizePrefs
     } = utilityDependencies;
 
-    const orderFoldersByPrefs = (folders, prefs) => {
-        const normalizedFolders = normalizeFolderMap(folders);
+    const orderNormalizedFolderIds = (normalizedFolders, prefs) => {
         const normalizedPrefs = normalizePrefs(prefs);
         const baseOrderIds = Object.keys(normalizedFolders);
         const baseOrderIndex = new Map(baseOrderIds.map((id, index) => [id, index]));
@@ -34,13 +33,6 @@
             }
             const parsed = time ? Date.parse(`${date}T${time}${zone || 'Z'}`) : midnight.getTime();
             return Number.isFinite(parsed) ? parsed : null;
-        };
-        const buildSortedMapFromKeys = (keys) => {
-            const ordered = {};
-            for (const key of keys) {
-                ordered[key] = normalizedFolders[key];
-            }
-            return ordered;
         };
         const sortKeysWithComparator = (comparator) => (
             baseOrderIds.slice().sort((leftId, rightId) => {
@@ -68,36 +60,18 @@
             }
             return current;
         };
-        const applyPinnedOrder = (orderedMap) => {
+        const applyNestedPinnedOrder = (orderedIds) => {
             // Nested children cannot visually float above their parent, so pinning a
             // child promotes the visible branch root to keep the move meaningful.
             const pinnedIds = Array.from(new Set(
                 normalizeStringIdList(normalizedPrefs.pinnedFolderIds)
                     .map((id) => resolvePinnedBranchRootId(id))
-                    .filter((id) => id !== '')
+                    .filter((id) => Object.hasOwn(normalizedFolders, id))
             ));
-            if (!pinnedIds.length) {
-                return orderedMap;
-            }
-
-            const next = {};
-            const remaining = { ...orderedMap };
-
-            for (const id of pinnedIds) {
-                if (Object.prototype.hasOwnProperty.call(remaining, id)) {
-                    next[id] = remaining[id];
-                    delete remaining[id];
-                }
-            }
-
-            for (const [id, folder] of Object.entries(remaining)) {
-                next[id] = folder;
-            }
-            return next;
+            const pinned = new Set(pinnedIds);
+            return buildNestedFolderOrderIdsFromMap(normalizedFolders,
+                pinned.size ? [...pinnedIds, ...orderedIds.filter(id => !pinned.has(id))] : orderedIds);
         };
-        const applyNestedPinnedOrder = (orderedMap) => buildSortedMapFromKeys(
-            buildNestedFolderOrderIdsFromMap(applyPinnedOrder(orderedMap))
-        );
 
         if (normalizedPrefs.sortMode === 'alpha') {
             const keys = sortKeysWithComparator((a, b) => {
@@ -106,7 +80,7 @@
                 const cmp = nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
                 return cmp !== 0 ? cmp : a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
             });
-            return applyNestedPinnedOrder(buildSortedMapFromKeys(keys));
+            return applyNestedPinnedOrder(keys);
         }
 
         if (normalizedPrefs.sortMode === 'name_desc') {
@@ -116,7 +90,7 @@
                 const cmp = nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' });
                 return cmp !== 0 ? cmp : b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
             });
-            return applyNestedPinnedOrder(buildSortedMapFromKeys(keys));
+            return applyNestedPinnedOrder(keys);
         }
 
         if (
@@ -136,27 +110,24 @@
                 if (timeB === null) return -1;
                 return descending ? timeB - timeA : timeA - timeB;
             });
-            return applyNestedPinnedOrder(buildSortedMapFromKeys(keys));
+            return applyNestedPinnedOrder(keys);
         }
 
         if (normalizedPrefs.sortMode === 'manual') {
-            const ordered = {};
-            for (const id of normalizedPrefs.manualOrder) {
-                if (Object.prototype.hasOwnProperty.call(normalizedFolders, id)) {
-                    ordered[id] = normalizedFolders[id];
-                }
-            }
-            for (const [id, folder] of Object.entries(normalizedFolders)) {
-                if (!Object.prototype.hasOwnProperty.call(ordered, id)) ordered[id] = folder;
-            }
-            return applyNestedPinnedOrder(ordered);
+            return applyNestedPinnedOrder([...new Set([...normalizedPrefs.manualOrder.filter(id => baseOrderIndex.has(id)), ...baseOrderIds])]);
         }
 
-        return applyNestedPinnedOrder(normalizedFolders);
+        return applyNestedPinnedOrder(baseOrderIds);
     };
 
+    const orderFolderIdsByPrefs = (folders, prefs) => orderNormalizedFolderIds(normalizeFolderMap(folders), prefs);
+    const orderFolderEntriesByPrefs = (folders, prefs) => {
+        const normalized = normalizeFolderMap(folders);
+        return orderNormalizedFolderIds(normalized, prefs).map(id => [id, normalized[id]]);
+    };
+    const orderFoldersByPrefs = (folders, prefs) => Object.fromEntries(orderFolderEntriesByPrefs(folders, prefs));
 
     return Object.freeze({
-        orderFoldersByPrefs
+        orderFoldersByPrefs, orderFolderIdsByPrefs, orderFolderEntriesByPrefs
     });
 }));

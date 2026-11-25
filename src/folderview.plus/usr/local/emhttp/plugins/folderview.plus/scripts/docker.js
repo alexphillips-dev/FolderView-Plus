@@ -983,7 +983,6 @@ const buildDockerIsolatedViewDeps = () => ({
     escapeHtml: (value) => escapeHtml(value),
     parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
     normalizeDockerRuntimeInfoMap: (source, previousMap = null) => normalizeDockerRuntimeInfoMap(source, previousMap),
-    getPrefsOrderedFolderMap: (folders, prefs) => getPrefsOrderedFolderMap(folders, prefs),
     reorderFolderSlotsInBaseOrder: (baseOrder, folders, prefs) => reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs),
     buildFolderDepthById: (folders) => buildFolderDepthById(folders),
     buildFolderHierarchy: (folders) => buildFolderHierarchy(folders),
@@ -2015,14 +2014,6 @@ const bindDockerNestedPreviewContext = ($item, $tooltipTrigger, entry = {}, fold
     });
 };
 
-const getPrefsOrderedFolderMap = (folders, prefs) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    if (typeof utils.orderFoldersByPrefs === 'function') {
-        return utils.orderFoldersByPrefs(source, prefs || {});
-    }
-    return source;
-};
-
 const normalizeFolderParentId = (value) => String(value || '').trim();
 
 const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepthById(folders, {
@@ -2035,7 +2026,7 @@ const isKnownDockerFolderToken = (entry, folders) => folderRegex.test(entry)
 
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
     runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
-        orderFolders: getPrefsOrderedFolderMap,
+        orderFolders: utils.orderFolderIdsByPrefs,
         folderTokenPrefix: 'folder-',
         isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders)
     })
@@ -2261,7 +2252,7 @@ const reorderVisibleDockerRootFolderBlocks = () => {
         }
         return descendants;
     };
-    const desiredRootIds = Object.keys(getPrefsOrderedFolderMap(folders, folderTypePrefs))
+    const desiredRootIds = utils.orderFolderIdsByPrefs(folders, folderTypePrefs)
         .filter((id) => !String(parentById[id] || '').trim());
     if (desiredRootIds.length < 2) {
         return false;
@@ -2598,8 +2589,7 @@ const toggleDockerFolderPin = async (folderId, requestedPinned = !isDockerFolder
 };
 const buildDockerFolderRuntimeOrderState = () => {
     const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};
-    const orderedMap = getPrefsOrderedFolderMap(folders, folderTypePrefs || {});
-    const fullOrder = Object.keys(orderedMap || {});
+    const fullOrder = utils.orderFolderIdsByPrefs(folders, folderTypePrefs || {});
     for (const id of Object.keys(folders)) {
         if (!fullOrder.includes(id)) {
             fullOrder.push(id);
@@ -2636,12 +2626,11 @@ const buildDockerFolderRuntimeOrderState = () => {
 const normalizeDockerManualFolderOrder = (nextOrder, folders = globalFolders, prefs = folderTypePrefs) => {
     const folderMap = folders && typeof folders === 'object' ? folders : {};
     const requestedOrder = Array.isArray(nextOrder) ? nextOrder.map((id) => String(id || '').trim()).filter((id) => id !== '') : [];
-    const ordered = getPrefsOrderedFolderMap(folderMap, {
+    return utils.orderFolderIdsByPrefs(folderMap, {
         ...(prefs || {}),
         sortMode: 'manual',
         manualOrder: requestedOrder
     });
-    return Object.keys(ordered || {});
 };
 const persistDockerFolderManualOrder = async (nextOrder) => {
     const normalizedOrder = normalizeDockerManualFolderOrder(nextOrder);
@@ -4801,7 +4790,7 @@ const createFolders = async () => {
 
     dockerPerf.begin('createFolders.renderRemaining');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
-    const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
+    const remainingFolders = utils.orderFolderEntriesByPrefs(folders, folderTypePrefs).reverse();
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
         order.unshift(`folder-${id}`);

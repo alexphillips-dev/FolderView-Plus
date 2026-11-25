@@ -67,12 +67,12 @@
         };
 
         const write = (type, patch, operation, pending) => {
-            if (!storage) return;
+            if (!storage) return false;
             try {
                 const contents = { patch, operation, pending };
                 const serialized = Object.keys(patch).length ? JSON.stringify(contents) : '';
                 const previous = written.get(type) || { serialized: '', key: '', sequence: 0 };
-                if (serialized === previous.serialized) return;
+                if (serialized === previous.serialized) return Boolean(previous.key);
                 const sequence = previous.sequence + 1;
                 const nextKey = serialized ? `${key(type)}.${sequence}` : '';
                 if (nextKey) {
@@ -83,8 +83,10 @@
                 }
                 written.set(type, { serialized, key: nextKey, sequence });
                 if (previous.key) storage.removeItem(previous.key);
+                return Boolean(nextKey);
             } catch (_error) {
                 // Server persistence remains available when browser storage is blocked.
+                return false;
             }
         };
 
@@ -194,8 +196,9 @@
         const persist = (state) => {
             const submitted = state.inFlightBatch || state.retryBatch;
             const pending = pendingOperation(state);
-            write(state.type, mergePatch(submitted?.patch || {}, pending.patch),
+            const persisted = write(state.type, mergePatch(submitted?.patch || {}, pending.patch),
                 submitted || pending, submitted && !patchIsEmpty(pending.patch) ? pending : null);
+            return persisted && pending.expectedRevision > 0 && (!submitted || submitted.expectedRevision > 0);
         };
 
         const prepare = (state, restored, recovered) => {

@@ -86,7 +86,7 @@ for (const operation of ['rule-preview-retention', 'folder-transfer-retention', 
             assert.match(result.failure.error, /Injected durable storage failure at 'rename'/);
             assert.equal(result.failure.configUnchanged, true);
             assert.equal(result.failure.previousRetained, true);
-            assert.equal(result.failure.archives, 2);
+            assert.equal(result.failure.archives, operation === 'editor-bulk-retention' ? 1 : 2);
             if (operation === 'editor-bulk-retention') assert.equal(result.staleProtected, true);
             assert.equal(result.applied, true);
             assert.ok(result.backup.pruned.includes(result.oldName));

@@ -151,7 +151,7 @@ function fvplusFolderView3ConfigDir(): string {
     return $override !== '' ? rtrim($override, '/\\') : '/boot/config/plugins/folder.view3';
 }
 
-function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152, bool $folderMap = false): array {
+function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152, bool $folderMap = false, ?object &$shape = null): array {
     if (!file_exists($path)) {
         return [];
     }
@@ -172,6 +172,7 @@ function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152, bo
         throw new RuntimeException('Invalid FolderView3 ' . pathinfo($path, PATHINFO_FILENAME) . ' map. No configuration was imported.');
     }
     fvplusFolderView3AssertUniqueJsonKeys($raw);
+    if ($folderMap) $shape = (object)json_decode($raw);
     return $decoded;
 }
 
@@ -180,13 +181,14 @@ function fvplusFolderView3ReadInstalledBundle(): array {
     if (!is_dir($configDir)) {
         throw new RuntimeException('FolderView3 installation was not detected.');
     }
+    $shape = new stdClass();
     $bundle = [
         'fv3_export_version' => 1,
         'plugin_version' => truncateUtf8String(trim((string)@file_get_contents($configDir . '/version')), 128),
         'unraid_version' => '',
         'exported' => gmdate('c'),
-        'docker' => fvplusFolderView3ReadJsonFile($configDir . '/docker.json', folderMap: true),
-        'vm' => fvplusFolderView3ReadJsonFile($configDir . '/vm.json', folderMap: true),
+        'docker' => fvplusFolderView3ReadJsonFile($configDir . '/docker.json', folderMap: true, shape: $shape->docker),
+        'vm' => fvplusFolderView3ReadJsonFile($configDir . '/vm.json', folderMap: true, shape: $shape->vm),
         'settings' => fvplusFolderView3ReadJsonFile($configDir . '/settings.json'),
         'css_config' => fvplusFolderView3ReadJsonFile($configDir . '/css-config.json'),
         'organizer_registry' => fvplusFolderView3ReadJsonFile($configDir . '/organizer-registry.json'),
@@ -237,7 +239,7 @@ function fvplusFolderView3ReadInstalledBundle(): array {
     if (is_file($autoStartFile) && is_readable($autoStartFile) && (int)@filesize($autoStartFile) <= 524288) {
         $bundle['native_autostart'] = (array)@file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     }
-    return fvplusFolderView3NormalizeBundle($bundle);
+    return fvplusFolderView3NormalizeBundle($bundle, $shape);
 }
 
 function detectFolderView3Installation(): array {
@@ -269,8 +271,8 @@ function detectFolderView3Installation(): array {
     return $result;
 }
 
-function fvplusFolderView3NormalizeBundle(array $bundle): array {
-    fvplusFolderView3ValidateBundle($bundle);
+function fvplusFolderView3NormalizeBundle(array $bundle, ?object $shape = null): array {
+    fvplusFolderView3ValidateBundle($bundle, $shape);
     $normalized = [
         'fv3_export_version' => (int)($bundle['fv3_export_version'] ?? 0),
         'plugin_version' => truncateUtf8String(trim((string)($bundle['plugin_version'] ?? '')), 128),
@@ -339,9 +341,8 @@ function decodeFolderView3BundlePayloadString(string $rawPayload): array {
             throw new RuntimeException('Invalid FolderView3 ' . $type . ' map. No configuration was imported.');
         }
     }
-    return fvplusFolderView3NormalizeBundle($decoded);
+    return fvplusFolderView3NormalizeBundle($decoded, is_object($shape) ? $shape : null);
 }
-
 
 function fvplusFolderView3BuildType(array $sourceFolders, array $settings, string $type, array &$warnings, $orderSnapshot = null): array {
     $candidateFolders = [];
@@ -349,9 +350,6 @@ function fvplusFolderView3BuildType(array $sourceFolders, array $settings, strin
     $defaults = fvplusFolderView3DefaultSettings($settings);
     $claimed = [];
     foreach ($sourceFolders as $id => $folder) {
-        if (!is_array($folder)) {
-            continue;
-        }
         $safeId = normalizeFolderIdValue($id);
         if ($safeId === '') {
             $warnings[] = ucfirst($type) . ' contained a folder with an unsupported identifier; that folder was skipped.';
@@ -360,7 +358,7 @@ function fvplusFolderView3BuildType(array $sourceFolders, array $settings, strin
         $candidate = $folder;
         $candidate['membershipPolicy'] = 'folderview3';
         $candidate['settings'] = fvplusFolderView3FolderSettings((array)($folder['settings'] ?? []), $defaults, $warnings);
-        $containers = is_array($candidate['containers'] ?? null) ? array_values($candidate['containers']) : [];
+        $containers = $candidate['containers'] ?? [];
         $candidate['containers'] = [];
         foreach ($containers as $index => $name) {
             if (isset($claimed[$name])) { $warnings[] = 'Duplicate explicit assignments were resolved using the original first-folder ownership.'; continue; }
@@ -369,18 +367,18 @@ function fvplusFolderView3BuildType(array $sourceFolders, array $settings, strin
         }
         $containers = $candidate['containers'];
         $candidate['containers'] = array_values($containers);
-        $ids = is_array($candidate['containerIds'] ?? null) ? $candidate['containerIds'] : [];
-        $images = is_array($candidate['containerImages'] ?? null) ? $candidate['containerImages'] : [];
+        $ids = $candidate['containerIds'] ?? [];
+        $images = $candidate['containerImages'] ?? [];
+        $idsByPosition = is_array($ids) && array_is_list($ids);
+        $imagesByPosition = is_array($images) && array_is_list($images);
+        $ids = (array)$ids;
+        $images = (array)$images;
         $identities = [];
         foreach ($containers as $index => $name) {
-            $memberName = trim((string)$name);
-            if ($memberName === '') {
-                continue;
-            }
-            $containerId = trim((string)($ids[$memberName] ?? ($ids[$index] ?? '')));
-            $image = trim((string)($images[$memberName] ?? ($images[$index] ?? '')));
+            $containerId = trim((string)($ids[$idsByPosition ? $index : $name] ?? ''));
+            $image = trim((string)($images[$imagesByPosition ? $index : $name] ?? ''));
             if ($containerId !== '' || $image !== '') {
-                $identities[$memberName] = $type === 'vm' ? ['kind' => 'vm', 'uuid' => $containerId] : ['kind' => 'docker', 'containerId' => $containerId, 'image' => $image];
+                $identities[$name] = $type === 'vm' ? ['kind' => 'vm', 'uuid' => $containerId] : ['kind' => 'docker', 'containerId' => $containerId, 'image' => $image];
             }
         }
         if (count($identities) > 0) {
@@ -395,6 +393,7 @@ function fvplusFolderView3BuildType(array $sourceFolders, array $settings, strin
                 'effect' => 'include',
                 'kind' => 'name_regex',
                 'pattern' => $regex,
+                'regexMode' => 'legacy',
                 'source' => 'folderview3',
                 'labelKey' => '',
                 'labelValue' => ''

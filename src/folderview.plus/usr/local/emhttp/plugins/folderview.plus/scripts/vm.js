@@ -1096,14 +1096,6 @@ if (FV_VM_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
 }
 
-const getPrefsOrderedFolderMap = (folders, prefs) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    if (typeof utils.orderFoldersByPrefs === 'function') {
-        return utils.orderFoldersByPrefs(source, prefs || {});
-    }
-    return source;
-};
-
 const normalizeFolderParentId = (value) => String(value || '').trim();
 
 const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepthById(folders, {
@@ -1115,7 +1107,7 @@ const isVmSavedFolderToken = (entry, vmInfo) => folderRegex.test(String(entry ??
 
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, vmInfo) => (
     runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
-        orderFolders: getPrefsOrderedFolderMap,
+        orderFolders: utils.orderFolderIdsByPrefs,
         folderTokenPrefix: 'folder-',
         isFolderToken: (entry) => isVmSavedFolderToken(entry, vmInfo)
     })
@@ -1631,7 +1623,7 @@ const createFolders = async (currentBundle) => {
 
     // Draw the foldes outside of the order
     // Preserve original folder order when inserting at the top with unshift.
-    const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
+    const remainingFolders = utils.orderFolderEntriesByPrefs(folders, folderTypePrefs).reverse();
     for (const [id, value] of remainingFolders) {
         // Add the folder on top of the array
         const token = `folder-${id}`;
@@ -3183,7 +3175,7 @@ const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
         .removeClass('started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text')
         .addClass(meta.className);
     $surface.attr('data-fv-runtime-state', meta.state);
-    if ($icon.length) {
+    if ($icon.length && !$icon.is('[data-fvplus-vm-host-icon-classes]')) {
         $icon.removeClass('fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text')
             .addClass(`fa ${meta.icon} ${meta.className} ${meta.colorClass}`)
             .removeAttr('aria-busy');

@@ -4,28 +4,29 @@ function fvplusAllowedCustomIconExtensions(): array {
 }
 
 function fvplusNormalizeCustomIconReferencePath(string $value): string {
-    $path = trim($value);
-    if ($path === '') return '';
-    $path = explode('#', $path, 2)[0];
-    $path = explode('?', $path, 2)[0];
-    $decoded = rawurldecode($path);
-    if ($decoded !== '') $path = $decoded;
-    $trimmed = preg_replace('#^https?://[^/]+#i', '', $path);
-    if (is_string($trimmed) && $trimmed !== '') $path = $trimmed;
-    return str_replace('\\', '/', trim($path));
+    $reference = trim(str_replace(["\t", "\r", "\n"], '', $value));
+    $path = str_replace('\\', '/', preg_split('/[?#]/', $reference, 2)[0]);
+    if (str_starts_with($path, '//')) return '';
+    // Establish ownership before decoding the path, which may contain encoded separators.
+    if (preg_match('#^([a-z][a-z0-9+.-]*):/*([^/]+)(/.*)?$#i', $path, $absolute)) {
+        $path = isSameOriginHeaderValue($absolute[1] . '://' . $absolute[2]) ? ($absolute[3] ?? '') : '';
+    }
+    $path = rawurldecode($path);
+    if ($path === '' || preg_match('#(?:^|/)\.{0,2}$#D', $path) || preg_match('/[\x00-\x1F\x7F]/', $path)) return '';
+    $segments = [];
+    foreach (explode('/', $path) as $segment) {
+        if ($segment === '..') array_pop($segments);
+        elseif ($segment !== '' && $segment !== '.') $segments[] = $segment;
+    }
+    return '/' . implode('/', $segments);
 }
 
 function fvplusCustomIconNameFromReference(string $value): string {
     $path = fvplusNormalizeCustomIconReferencePath($value);
-    foreach (['/plugins/folderview.plus/images/custom/', '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
-        'plugins/folderview.plus/images/custom/', 'usr/local/emhttp/plugins/folderview.plus/images/custom/'] as $prefix) {
-        if (strpos($path, $prefix) !== 0) continue;
-        $name = basename(substr($path, strlen($prefix)));
-        return $name !== '' && $name === trim($name)
-            && in_array(strtolower((string)pathinfo($name, PATHINFO_EXTENSION)), fvplusAllowedCustomIconExtensions(), true)
-            ? $name : '';
-    }
-    return '';
+    if (!preg_match('#^/(?:usr/local/emhttp/)?plugins/folderview\.plus/images/custom/([^/]+)$#D', $path, $reference)) return '';
+    $name = $reference[1];
+    return $name === trim($name) && !str_contains($name, '\\')
+        && in_array(strtolower((string)pathinfo($name, PATHINFO_EXTENSION)), fvplusAllowedCustomIconExtensions(), true) ? $name : '';
 }
 
 function fvplusVisitCustomIconReferences(string $type, array &$folders, array &$prefs, callable $visitor): void {

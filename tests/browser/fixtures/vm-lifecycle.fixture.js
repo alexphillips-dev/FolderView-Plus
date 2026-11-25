@@ -5,7 +5,8 @@
     const runtime = { ...hostRuntime };
     let nativeLoadlistCount = 0;
     let contextCallCount = 0;
-    let staleRefreshBudget = 0;
+    let nextDispatchDelay = 12;
+    let nextDispatchUsesTransport = false;
 
     const meta = () => {
         if (runtime.state === 'running') return { key: 'started', icon: 'fa-play', className: 'started', color: 'green-text' };
@@ -22,8 +23,10 @@
         surface.dataset.fvRuntimeState = runtime.state;
         surface.classList.remove('started', 'paused', 'stopped');
         surface.classList.add(current.className);
-        icon.className = `fa ${current.icon} ${current.className} ${current.color}`;
-        icon.removeAttribute('aria-busy');
+        if (!icon.hasAttribute('data-fvplus-vm-host-icon-classes')) {
+            icon.className = `fa ${current.icon} ${current.className} ${current.color}`;
+            icon.removeAttribute('aria-busy');
+        }
         state.className = `state ${current.className}`;
         state.textContent = ` ${current.key}`;
         const folderIcon = document.querySelector('#load-folder-media');
@@ -68,11 +71,18 @@
             icon.classList.remove('fa-play', 'fa-square', 'fa-pause');
             icon.classList.add('fa-refresh', 'fa-spin');
         });
-        window.setTimeout(() => {
+        const onSuccess = () => {
             setHostState(String(params?.action || '').toLowerCase());
             events.push({ type: 'host-action-complete', action: params.action, callbackName });
-            window[callbackName]?.();
-        }, 12);
+            window[callbackName]();
+        };
+        if (nextDispatchUsesTransport) {
+            nextDispatchUsesTransport = false;
+            $.post('/plugins/dynamix.vm.manager/include/VMajax.php', params, onSuccess, 'json');
+            return;
+        }
+        window.setTimeout(onSuccess, nextDispatchDelay);
+        nextDispatchDelay = 12;
     };
     window.ajaxVMDispatchconsole = window.ajaxVMDispatch;
     window.ajaxVMDispatchconsoleRV = window.ajaxVMDispatch;
@@ -92,10 +102,6 @@
         getRuntimeEntry: () => runtime,
         getSurfaces: () => [document.querySelector('#fixture-vm-row')],
         refreshRuntimeStateInPlace: async () => {
-            if (staleRefreshBudget > 0) {
-                staleRefreshBudget -= 1;
-                return true;
-            }
             Object.assign(runtime, hostRuntime);
             syncRuntime();
             return true;
@@ -116,7 +122,8 @@
         lifecycle,
         events,
         openContext,
-        setStaleRefreshBudget: (count) => { staleRefreshBudget = Math.max(0, Number(count) || 0); },
+        deferNextDispatch: (delayMs) => { nextDispatchDelay = delayMs; },
+        useTransportForNextDispatch: () => { nextDispatchUsesTransport = true; },
         getSnapshot: () => ({
             hostState: hostRuntime.state,
             runtimeState: runtime.state,

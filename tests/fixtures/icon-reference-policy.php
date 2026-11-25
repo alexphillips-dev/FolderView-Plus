@@ -2,6 +2,7 @@
 $server = $argv[1]; $root = $argv[2];
 $_SERVER['DOCUMENT_ROOT'] = "$root/host";
 $request = json_decode(file_get_contents($argv[3] ?? "$root/request.json"), true, 512, JSON_THROW_ON_ERROR);
+if (empty($request['noAuthority'])) $_SERVER['HTTP_HOST'] = 'fixture.test';
 if (($request['runtimeMode'] ?? 'copy') === 'copy') {
     @mkdir("$root/source/images/custom", 0770, true);
     file_put_contents("$root/source/images/custom/fixture-unmanaged.txt", 'keep');
@@ -30,6 +31,26 @@ function iconFixtureState(string $root): array {
         }
     }
     ksort($result); return $result;
+}
+
+function iconFixtureMutation(string $server, string $file, string $action, array $fields = []): array {
+    $_SERVER['SCRIPT_FILENAME'] = "$server/$file";
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['HTTP_ORIGIN'] = 'http://fixture.test';
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $nonce = fvplus_issue_mutation_nonce($file, $action);
+    $_POST = $_REQUEST = $fields + ['action' => $action, 'token' => getConfiguredRequestToken(),
+        '_fv_nonce' => $nonce['nonce'], '_fv_transaction' => 'tx-icon-reference-fixture-001'];
+    $endpoint = file_get_contents("$server/$file");
+    $endpoint = preg_replace('~require_once\([^;]+;~', '', $endpoint, 1);
+    $endpoint = substr(str_replace('__DIR__', var_export($server, true), $endpoint), 5);
+    if ($file === 'diagnostics.php') {
+        // The live Docker and VM status refresh is independent of the repaired configuration.
+        $endpoint = 'namespace IconReferenceFixture; function getDiagnosticsSnapshot(): array { return []; } ' . $endpoint;
+    }
+    ob_start(); eval($endpoint); $response = json_decode(ob_get_clean(), true);
+    releaseConfigMutationLock();
+    return [http_response_code(), $response];
 }
 
 if (empty($request['skipSeed'])) {
@@ -96,27 +117,18 @@ if (($request['policyAction'] ?? '') === 'recoverable') {
     $primaryBefore = is_file($path) ? file_get_contents($path) : null;
     $usage = customIconUsageMap(); $diagnostics = diagnosticsBuildCustomIconUsageMap();
     $observational = $primaryBefore === (is_file($path) ? file_get_contents($path) : null);
-    $_SERVER['SCRIPT_FILENAME'] = $server . '/upload_custom_icon.php';
-    $_SERVER['REQUEST_METHOD'] = 'POST'; $_SERVER['HTTP_HOST'] = 'fixture.test';
-    $_SERVER['HTTP_ORIGIN'] = 'http://fixture.test'; $_SERVER['HTTP_X_FV_REQUEST'] = '1';
-    $nonce = fvplus_issue_mutation_nonce('upload_custom_icon.php', 'delete');
-    $_POST = ['action' => 'delete', 'name' => 'before.png', 'token' => getConfiguredRequestToken(),
-        '_fv_nonce' => $nonce['nonce'], '_fv_transaction' => 'tx-lastgood-icon-delete-001'];
-    $_REQUEST = $_POST;
     $capture = static function () use ($root): array {
         return array_filter(@iconFixtureState($root), static fn(string $key): bool => strpos($key, 'security.audit.json') === false, ARRAY_FILTER_USE_KEY);
     };
+    ensureConfiguredRequestTokenFile();
     $before = $capture();
-    $endpoint = file_get_contents($server . '/upload_custom_icon.php');
-    $endpoint = preg_replace('~require_once\([^;]+;~', '', $endpoint, 1);
-    $endpoint = str_replace('__DIR__', var_export($server, true), $endpoint);
-    ob_start(); eval(substr($endpoint, 5)); $response = json_decode(ob_get_clean(), true);
+    [$status, $response] = iconFixtureMutation($server, 'upload_custom_icon.php', 'delete', ['name' => 'before.png']);
     $exactUnchanged = $before === $capture(); $mirrorProtected = true;
     if (($request['mirrorState'] ?? '') === 'unreadable') {
         clearstatcache(true, $mirrorPath); $mirrorProtected = (fileperms($mirrorPath) & 0777) === 0000;
         chmod($mirrorPath, $mirrorMode); $mirrorProtected = $mirrorProtected && file_get_contents($mirrorPath) === $mirrorBytes;
     }
-    echo json_encode(['response' => $response, 'status' => http_response_code(),
+    echo json_encode(['response' => $response, 'status' => $status,
         'usageCount' => count($usage['before.png'] ?? []), 'diagnosticsCount' => count($diagnostics['before.png'] ?? []),
         'sameProjection' => $usage === $diagnostics, 'observational' => $observational, 'exactUnchanged' => $exactUnchanged, 'mirrorProtected' => $mirrorProtected,
         'missingPrimaryRemainsMissing' => !file_exists($path),
@@ -124,6 +136,11 @@ if (($request['policyAction'] ?? '') === 'recoverable') {
         'iconRetained' => is_file(customIconDirPath() . '/before.png')], JSON_THROW_ON_ERROR); exit;
 }
 
+if (($request['policyAction'] ?? '') === 'guarded-delete') {
+    [$status, $response] = iconFixtureMutation($server, 'upload_custom_icon.php', 'delete', ['name' => 'before.png']);
+    echo json_encode(['status' => $status, 'response' => $response,
+        'iconRetained' => is_file(customIconDirPath() . '/before.png')]); exit;
+}
 if (($request['policyAction'] ?? '') === 'usage') {
     $map = customIconUsageMap();
     $diagnostics = diagnosticsBuildCustomIconUsageMap();
@@ -167,9 +184,13 @@ if (($request['policyAction'] ?? '') === 'repair') {
         echo json_encode(['error' => $error, 'exactRestored' => $before === fvplusEnvironmentCaptureFiles($paths),
             'archivesRetained' => $archivesRetained]); exit;
     }
-    $result = fvplusRepairMissingCustomIconReferences();
+    $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false));
+    $before = fvplusEnvironmentCaptureFiles($paths);
+    [$status, $response] = iconFixtureMutation($server, 'diagnostics.php', 'repair_missing_custom_icons', ['type' => $request['type']]);
+    $result = $response['repair'] ?? null;
     $afterUsage = customIconUsageMap();
-    echo json_encode(['beforeCount' => count($beforeUsage['before.png'] ?? []), 'result' => $result,
+    echo json_encode(['beforeCount' => count($beforeUsage['before.png'] ?? []), 'result' => $result, 'response' => $response,
+        'status' => $status, 'configUnchanged' => $before === fvplusEnvironmentCaptureFiles($paths),
         'afterCount' => count($afterUsage['before.png'] ?? []),
         'archiveCounts' => array_column(listBackupSnapshots($request['type'] ?? 'docker'), 'count')]); exit;
 }

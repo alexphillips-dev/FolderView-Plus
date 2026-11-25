@@ -43,8 +43,6 @@ try {
 }
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
-    $folderEditorTypePrefs = readTypePrefs($folderEditorPageType);
-    $folderEditorTypePrefs['_metadata'] = readConfigMetadata($folderEditorPageType, true);
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']
@@ -58,11 +56,17 @@ try {
         ?? ''
     ));
     if (($_GET['defaults'] ?? '') === '1') $folderEditorRequestedId = '';
-    if ($folderEditorRequestedId !== '') {
-        $folderEditorBootstrapContext = resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
-        $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
-    }
-    $folderEditorBootstrapContext['metadata'] = readConfigMetadata($folderEditorPageType, true);
+    [$folderEditorTypePrefs, $folderEditorBootstrapContext] = withConfigMutationLock(static function () use (
+        $folderEditorPageType, $folderEditorRequestedId, $folderEditorBootstrapContext
+    ): array {
+        $prefs = readTypePrefs($folderEditorPageType);
+        $context = $folderEditorRequestedId === '' ? $folderEditorBootstrapContext
+            : resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
+        $context['metadata'] = readConfigMetadata($folderEditorPageType, true);
+        $prefs['_metadata'] = $context['metadata'];
+        return [$prefs, $context];
+    });
+    $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'modern';

@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 const server = process.env.FVPLUS_ICON_POLICY_SERVER || path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
 const fixture = process.env.FVPLUS_ICON_POLICY_FIXTURE || path.resolve('tests/fixtures/icon-reference-policy.php');
 const run = request => {
@@ -20,7 +21,54 @@ const run = request => {
 const aliases = ['/plugins/folderview.plus/images/custom/before.png?v=7#icon',
     '/usr/local/emhttp/plugins/folderview.plus/images/custom/before.png',
     'plugins/folderview.plus/images/custom/before.png',
-    'https://fixture.invalid/plugins/folderview.plus/images/custom/%62efore.png'];
+    'http://fixture.test:80/plugins/folderview.plus/images/custom/%62efore.png',
+    '/plugins/folderview.plus/images/unused/../custom/before.png',
+    '/plugins/folderview.plus/images/unused/%2e%2E/custom/before.png'];
+const nonOwners = ['https://different-origin.invalid/plugins/folderview.plus/images/custom/before.png',
+    'http://fixture.test:8080/plugins/folderview.plus/images/custom/before.png',
+    'https://fixture.test/plugins/folderview.plus/images/custom/before.png',
+    '//different-origin.invalid/plugins/folderview.plus/images/custom/before.png',
+    '/plugins/folderview.plus/images/custom/nested/before.png',
+    '/plugins/folderview.plus/images/custom/before.png/'];
+
+test('browser classifies same-origin normalized paths as uploads and distinguishes external icons', () => {
+    const require = createRequire(import.meta.url);
+    const { customIconNameFromUrl } = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-browser.js');
+    for (const reference of aliases) assert.equal(customIconNameFromUrl(reference, 'http://fixture.test'), 'before.png', reference);
+    for (const reference of nonOwners) assert.equal(customIconNameFromUrl(reference, 'http://fixture.test'), '', reference);
+});
+
+test('guarded delete protects normalized local URLs while foreign locations do not own local files', () => {
+    const reference = aliases[4];
+    const request = { type: 'vm', kind: 'folder', policyAction: 'guarded-delete' };
+    const local = run({ ...request, reference });
+    assert.equal(local.status, 400);
+    assert.match(local.response.error, /in use/);
+    assert.equal(local.iconRetained, true);
+    const remote = run({ ...request, reference: nonOwners[0] });
+    assert.equal(remote.status, 200);
+    assert.equal(remote.response.deleted, 'before.png');
+    assert.equal(remote.iconRetained, false);
+});
+
+test('usage and guarded missing-icon repair preserve external or nonmatching paths', () => {
+    const request = { type: 'vm', kind: 'folder' };
+    const absoluteWithoutAuthority = run({ ...request, reference: aliases[3], policyAction: 'usage', noAuthority: true });
+    assert.deepEqual(absoluteWithoutAuthority.usage, []);
+    assert.deepEqual(absoluteWithoutAuthority.diagnostics, []);
+    for (const reference of nonOwners) {
+        const usage = run({ ...request, reference, policyAction: 'usage' });
+        assert.deepEqual(usage.usage, [], reference);
+        assert.deepEqual(usage.diagnostics, [], reference);
+    }
+    for (const kind of ['folder', 'defaults', 'group']) {
+        const repaired = run({ ...request, kind, reference: nonOwners[0], policyAction: 'repair' });
+        assert.equal(repaired.status, 200);
+        assert.equal(repaired.result.repairedFolderCount, 0);
+        assert.equal(repaired.configUnchanged, true, kind);
+        assert.deepEqual(repaired.archiveCounts, []);
+    }
+});
 for (const type of ['docker', 'vm']) for (const kind of ['folder', 'defaults', 'group']) {
     test(`delete refuses ${type}/${kind} references through all persisted path aliases`, () => {
         for (const reference of aliases) {

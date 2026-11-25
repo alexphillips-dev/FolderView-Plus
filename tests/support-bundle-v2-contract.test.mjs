@@ -62,10 +62,12 @@ require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.r
 require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.folder-membership.php'))};
 
 require_once ${phpSingleQuote(libDiagnosticsPath)};
+require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.security.php'))};
 
 $diagnostics = [
     'schemaVersion' => 7,
     'pluginVersion' => '2026.04.04.10',
+    'runtimeIntegrity' => fvplus_get_runtime_integrity_snapshot('full'),
     'environment' => [
         'unraidVersion' => '6.12.10',
         'phpVersion' => '8.3.30',
@@ -495,6 +497,12 @@ const loadSupportBundleFixture = () => {
     const sourceDir = path.join(tempDir, 'plugin-source');
     const apiErrorLogPath = path.join(tempDir, 'folderview.plus.api-error.log');
     fs.mkdirSync(sourceDir, { recursive: true });
+    fs.mkdirSync(path.join(sourceDir, 'scripts'));
+    fs.writeFileSync(path.join(sourceDir, 'scripts', 'PrivateRuntimeName.js'), '// synthetic runtime file');
+    fs.writeFileSync(path.join(sourceDir, 'runtime-integrity.json'), JSON.stringify({
+        schemaVersion: 1,
+        files: [{ path: 'scripts/PrivateMissingRuntimeName.js', sha256: 'unused', mode: '' }]
+    }));
     fs.writeFileSync(
         path.join(sourceDir, 'build-metadata.json'),
         JSON.stringify({
@@ -718,7 +726,9 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
         'child01',
         'https://tower-main.local/Docker',
         'Mozilla/5.0 SecretHost-Agent',
-        '192.168.6.25'
+        '192.168.6.25',
+        'PrivateRuntimeName.js',
+        'PrivateMissingRuntimeName.js'
     ]) {
         assert.equal(serialized.includes(forbidden), false, `sanitized bundle leaked ${forbidden}`);
     }
@@ -815,6 +825,19 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
         bundle.redactionManifest.omittedFields.includes('runtimeState.docker.folderHierarchySummary.folders.*.members.items'),
         true
     );
+});
+
+test('runtime integrity findings retain their counts and kinds with salted paths in sanitized bundles', () => {
+    const sanitized = fixture.sanitized.system.runtimeIntegrity;
+    const full = fixture.full.system.runtimeIntegrity;
+    assert.equal(sanitized.status, 'critical');
+    assert.equal(sanitized.missingCount, 1);
+    assert.equal(sanitized.unexpectedCount, full.unexpectedCount);
+    assert.deepEqual(sanitized.findings.map(finding => finding.kind), full.findings.map(finding => finding.kind));
+    assert.ok(sanitized.findings.every(finding => /^file-[0-9a-f]{16}$/.test(finding.path)));
+    assert.ok(full.findings.some(({ kind, path }) => kind === 'unexpected' && path === 'scripts/PrivateRuntimeName.js'));
+    assert.ok(full.findings.some(({ kind, path }) => kind === 'missing' && path === 'scripts/PrivateMissingRuntimeName.js'));
+    assert.ok(fixture.sanitized.redactionManifest.hashedFields.includes('system.runtimeIntegrity.findings.*.path'));
 });
 
 test('full support bundle fixture keeps raw troubleshooting fields and disables salt metadata', () => {

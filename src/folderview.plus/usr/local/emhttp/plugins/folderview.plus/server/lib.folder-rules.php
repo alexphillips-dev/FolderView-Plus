@@ -138,6 +138,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                     } catch (Throwable $rollbackError) {
                         throw new RuntimeException('Bulk assignment transaction failed: ' . $rollbackError->getMessage(), 0, $error);
                     }
+                    if (isset($backup['name'])) @unlink(getBackupSnapshotPath($type, $backup['name']));
                     throw new RuntimeException('Bulk assignment transaction failed: ' . $error->getMessage()
                         . ' Automatic rollback restored the original configuration.', 0, $error);
                 }

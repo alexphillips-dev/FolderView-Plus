@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
-fvplus::require_commands git sed sort tail
+fvplus::require_commands git sed head sort tail
 
 detect_branch() {
   local branch=""
@@ -38,8 +38,8 @@ resolve_base_ref() {
     return
   fi
 
-  if git rev-parse --verify 'HEAD~1' >/dev/null 2>&1; then
-    printf '%s' 'HEAD~1'
+  if git rev-parse --verify "${CANDIDATE_REF}^" >/dev/null 2>&1; then
+    printf '%s' "${CANDIDATE_REF}^"
     return
   fi
 
@@ -57,22 +57,16 @@ read_version_from_ref() {
   printf '%s\n' "${payload}" | sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' | head -n 1
 }
 
-is_release_relevant_path() {
-  local file_path="${1:-}"
-  case "${file_path}" in
-    src/folderview.plus/*|folderview.plus.plg|folderview.plus.xml)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 TARGET_BRANCH="$(detect_branch)"
+if [[ -n "${FVPLUS_DEV_VERSION_CANDIDATE_REF:-}" ]]; then
+  TARGET_BRANCH=dev
+fi
 if [[ "${TARGET_BRANCH}" != "dev" ]]; then
   echo "Dev version bump guard skipped: branch=${TARGET_BRANCH:-unknown}"
   exit 0
+fi
+if ! CANDIDATE_REF="$(git rev-parse --verify "${FVPLUS_DEV_VERSION_CANDIDATE_REF:-HEAD}^{commit}")"; then
+  fvplus::fail "Dev version bump guard could not resolve the candidate commit."
 fi
 
 BASE_REF="$(resolve_base_ref)"
@@ -81,33 +75,27 @@ if [[ -z "${BASE_REF}" ]]; then
   exit 0
 fi
 
-CURRENT_VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
+CURRENT_VERSION="$(read_version_from_ref "${CANDIDATE_REF}")"
 BASE_VERSION="$(read_version_from_ref "${BASE_REF}")"
 if [[ -z "${BASE_VERSION}" ]]; then
   echo "Dev version bump guard passed: base manifest unavailable at ${BASE_REF}."
   exit 0
 fi
 
-mapfile -t CHANGED_FILES < <(git diff --name-only "${BASE_REF}..HEAD" || true)
-RELEASE_RELEVANT_FILES=()
-for file_path in "${CHANGED_FILES[@]}"; do
-  [[ -z "${file_path}" ]] && continue
-  if is_release_relevant_path "${file_path}"; then
-    RELEASE_RELEVANT_FILES+=("${file_path}")
-  fi
-done
+RELEASE_RELEVANT_FILES="$(git diff --name-only --no-renames "${BASE_REF}" "${CANDIDATE_REF}" -- \
+  src/folderview.plus/ folderview.plus.plg folderview.plus.xml)"
 
-if [[ "${#RELEASE_RELEVANT_FILES[@]}" -eq 0 ]]; then
+if [[ -z "${RELEASE_RELEVANT_FILES}" ]]; then
   echo "Dev version bump guard passed: no shipped plugin files changed."
   exit 0
 fi
 
-if [[ "${CURRENT_VERSION}" == "${BASE_VERSION}" ]] || \
+if [[ -z "${CURRENT_VERSION}" || "${CURRENT_VERSION}" == "${BASE_VERSION}" ]] || \
     [[ "$(printf '%s\n%s\n' "${BASE_VERSION}" "${CURRENT_VERSION}" | sort -V | tail -n 1)" != "${CURRENT_VERSION}" ]]; then
   echo "ERROR: dev pushes that change shipped plugin files must bump folderview.plus.plg version." >&2
   echo "base=${BASE_REF} version=${BASE_VERSION} current=${CURRENT_VERSION}" >&2
   echo "Changed shipped files:" >&2
-  printf '  %s\n' "${RELEASE_RELEVANT_FILES[@]}" >&2
+  printf '%s\n' "${RELEASE_RELEVANT_FILES}" >&2
   echo "HINT: Run 'bash scripts/dev_finalize.sh --message \"...\"' or rebuild with 'bash pkg_build.sh', commit the updated manifest/archive artifacts, then push dev again." >&2
   exit 1
 fi

@@ -69,13 +69,8 @@
                 const raw = String(value || '').trim();
                 return raw && !/^javascript:/i.test(raw) ? raw : '';
             });
-        const getPrefsOrderedFolderMap = typeof deps.getPrefsOrderedFolderMap === 'function'
-            ? deps.getPrefsOrderedFolderMap
-            : ((folders, prefs) => (
-                typeof utils.orderFoldersByPrefs === 'function'
-                    ? utils.orderFoldersByPrefs(folders, prefs || {})
-                    : (folders && typeof folders === 'object' ? folders : {})
-            ));
+        const getPrefsOrderedFolderIds = (folders, prefs) =>
+            utils.orderFolderIdsByPrefs?.(folders, prefs || {}) || Object.keys(folders);
         const reorderFolderSlotsInBaseOrder = typeof deps.reorderFolderSlotsInBaseOrder === 'function'
             ? deps.reorderFolderSlotsInBaseOrder
             : ((baseOrder) => Array.isArray(baseOrder) ? baseOrder.slice() : []);
@@ -391,7 +386,7 @@
                 seen.add(folderId);
                 ids.push(folderId);
             });
-            Object.keys(getPrefsOrderedFolderMap(folderMap, prefs)).forEach((folderId) => {
+            getPrefsOrderedFolderIds(folderMap, prefs).forEach((folderId) => {
                 if (!seen.has(folderId)) {
                     seen.add(folderId);
                     ids.push(folderId);

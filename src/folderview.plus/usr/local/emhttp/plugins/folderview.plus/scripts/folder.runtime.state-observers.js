@@ -53,11 +53,12 @@
         let syncQueued = false;
         let lifecycleHooksBound = false;
         let latestStateMap = {};
-        const pendingIntents = new Map(Object.entries(readDraft()));
+        const draftIntents = new Map(Object.entries(readDraft()));
+        const pendingIntents = new Map(draftIntents);
         const persistDraft = () => {
             if (!draftKey) return;
             try {
-                if (pendingIntents.size) win.sessionStorage?.setItem(draftKey, JSON.stringify(Object.fromEntries(pendingIntents)));
+                if (draftIntents.size) win.sessionStorage?.setItem(draftKey, JSON.stringify(Object.fromEntries(draftIntents)));
                 else win.sessionStorage?.removeItem(draftKey);
             } catch (_error) {
                 // Persistence is best effort if storage is disabled.
@@ -113,6 +114,12 @@
             if (!pendingIntents.size) return;
             const submitted = new Map(pendingIntents);
             const payloadMap = Object.fromEntries(submitted);
+            const releaseDraft = () => {
+                for (const [id, expanded] of submitted) {
+                    if (draftIntents.get(id) === expanded) draftIntents.delete(id);
+                }
+                persistDraft();
+            };
 
             syncInFlight = true;
             try {
@@ -121,7 +128,9 @@
                         expandedFolderState: payloadMap
                     }, {
                         currentPrefs: readPrefs(),
-                        immediate: true
+                        immediate: true,
+                        waitForRetry: true,
+                        onDurablyQueued: releaseDraft
                     }))
                     : normalizePrefs((await request.postJson('/plugins/folderview.plus/server/prefs.php', {
                         type: prefsType,
@@ -136,7 +145,7 @@
                 for (const [id, expanded] of submitted) {
                     if (pendingIntents.get(id) === expanded) pendingIntents.delete(id);
                 }
-                persistDraft();
+                releaseDraft();
                 // The coordinator can publish an older response before resolving.
                 const reconciled = { ...committedMap, ...Object.fromEntries(pendingIntents) };
                 writeLocalMap(reconciled);
@@ -170,7 +179,10 @@
             const persistedLocal = readLocalMap();
             const resolved = {};
             for (const id of pendingIntents.keys()) {
-                if (!Object.hasOwn(source, id)) pendingIntents.delete(id);
+                if (!Object.hasOwn(source, id)) {
+                    pendingIntents.delete(id);
+                    draftIntents.delete(id);
+                }
             }
             for (const [id, folder] of Object.entries(source)) {
                 if (pendingIntents.has(id)) {
@@ -197,7 +209,10 @@
         const persistStateMap = (map, syncServer = true) => {
             const normalized = normalizeExpandedStateMap(map);
             for (const [id, expanded] of Object.entries(normalized)) {
-                if (latestStateMap[id] !== expanded) pendingIntents.set(id, expanded);
+                if (latestStateMap[id] !== expanded) {
+                    pendingIntents.set(id, expanded);
+                    draftIntents.set(id, expanded);
+                }
             }
             persistDraft();
             writeLocalMap(normalized);

@@ -19,11 +19,19 @@ for (const type of ['docker', 'vm']) {
                 const calls = [], errors = [];
                 let confirmation;
                 const backup = { name: `${type}-safety.json` };
+                let latestName = `${type}-selected.json`;
+                let latestHash = 'a'.repeat(64);
+                const createdAt = '2026-11-24T12:00:00Z';
                 const context = vm.createContext({
                     surfaceT: (_key, fallback) => fallback,
                     normalizeManagedType: value => value,
                     assertRuntimeConflictActionAllowed() {}, ensureRuntimeConflictActionAllowed: () => true,
-                    swal: (_options, handler) => { confirmation = handler; },
+                    fetchBackups: async () => ({ backups: [{ name: latestName, reviewHash: latestHash, createdAt, count: 1 }] }),
+                    formatTimestamp: value => value,
+                    swal: (options, handler) => {
+                        if (latest) assert.ok(options.text.includes(createdAt), 'latest confirmation should display the reviewed timestamp');
+                        confirmation = handler;
+                    },
                     withAdvancedOperationLock: async (_type, _area, _label, action) => action(),
                     createBackup: async () => { throw new Error('Safety backup must be owned by the server transaction'); },
                     diagnosticsPrefsCoordinator: { flush: async value => calls.push(`flush:${value}`) },
@@ -42,17 +50,22 @@ for (const type of ['docker', 'vm']) {
                 });
                 const code = [extract(settings, 'restoreBackupByName'), extract(diagnostics, 'restoreLatest'),
                     extract(settings, latest ? 'restoreLatestBackup' : 'restoreBackupEntry')].join('\n');
-                vm.runInContext(`${code}\n${latest ? 'restoreLatestBackup' : 'restoreBackupEntry'}('${type}', '${type}-selected.json');`, context);
+                await vm.runInContext(`${code}\n${latest ? 'restoreLatestBackup' : 'restoreBackupEntry'}('${type}', '${type}-selected.json');`, context);
                 assert.equal(calls.length, 0, 'confirmation must precede all mutations');
                 await confirmation(false);
                 assert.equal(calls.length, 0, 'cancel must not mutate');
+                latestName = `${type}-newer.json`;
+                latestHash = 'b'.repeat(64);
                 await confirmation(true);
                 const requests = calls.filter(value => typeof value === 'object');
                 assert.ok(calls.indexOf(`flush:${type}`) < calls.findIndex(value => typeof value === 'object'));
                 assert.equal(requests.length, 1);
                 assert.equal(requests[0].type, type);
                 assert.equal(requests[0].action, latest ? 'restore_latest' : 'restore');
-                if (!latest) {
+                if (latest) {
+                    assert.equal(requests[0].expectedName, `${type}-selected.json`);
+                    assert.equal(requests[0].reviewHash, 'a'.repeat(64));
+                } else {
                     assert.equal(requests[0].name, `${type}-selected.json`);
                     assert.equal(requests[0].createSafetyBackup, true);
                 }

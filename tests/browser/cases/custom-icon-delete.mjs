@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { checkCustomIconDeletePreviews } from '../helpers/icon-browser-host.mjs';
 
 export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
     test('Deleting an uploaded custom icon resets all editor previews while preserving failed, cancelled and changed selections', async ({ page }) => {
@@ -7,7 +8,7 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
         });
         for (const type of ['docker', 'vm']) {
             await page.goto(`${baseUrl}/folder-editor`, { waitUntil: 'load' });
-            for (const script of ['folderviewplus.utils-foundation', 'folder.editor.icon-api', 'folder.editor.icons', 'folder.editor.preview']) {
+            for (const script of ['folderviewplus.utils-foundation', 'folder.editor.icon-api', 'folder.editor.icon-browser', 'folder.editor.icons', 'folder.editor.preview']) {
                 await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${script}.js` });
             }
             await page.evaluate(async type => {
@@ -64,7 +65,6 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
             }, type);
             const custom = '/plugins/folderview.plus/images/custom/uploaded.png?v=1';
             const defaultIcon = '/plugins/folderview.plus/images/folder-icon.png';
-            const selection = page.locator('#fixture-delete-icon');
             const deleteButton = page.locator('[data-custom-icon="uploaded.png"] [data-action="delete"]');
             const upload = async () => {
                 await page.locator('#fv-icon-upload-file').setInputFiles({ name: 'uploaded.png', mimeType: 'image/png', buffer: Buffer.from('fixture') });
@@ -72,34 +72,29 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
                 await page.locator('#fv-icon-custom-manager-toggle').click();
                 await deleteButton.waitFor();
             };
-            const expectPreviews = async expected => {
-                assert.equal(await selection.inputValue(), expected);
-                for (const selector of ['#fixture-field-preview', '#fvHeroIcon', '#fvIconPanelPreview', '#fvLivePreviewCanvas .fv-live-folder-icon']) {
-                    assert.equal(await page.locator(selector).getAttribute('src'), expected, `${type}: ${selector}`);
-                }
+            const deleteAndCheckPreviews = async expected => {
+                await deleteButton.click();
+                await page.waitForFunction(() => !window.fixtureIconDelete.exists);
+                await checkCustomIconDeletePreviews(page, expected, type);
             };
             await upload();
-            await expectPreviews(custom);
-            await deleteButton.click();
-            await page.waitForFunction(() => !window.fixtureIconDelete.exists);
-            await expectPreviews(defaultIcon);
+            await checkCustomIconDeletePreviews(page, custom, type);
+            await deleteAndCheckPreviews(defaultIcon);
             assert.equal(await deleteButton.count(), 0);
 
             await upload();
             await page.evaluate(() => { window.fixtureIconDelete.confirm = false; });
             await deleteButton.click();
-            await expectPreviews(custom);
+            await checkCustomIconDeletePreviews(page, custom, type);
             assert.equal(await page.evaluate(() => window.fixtureIconDelete.requests), 1, 'cancel must not send deletion');
             await page.evaluate(() => { Object.assign(window.fixtureIconDelete, { confirm: true, mode: 'refuse' }); });
             await deleteButton.click();
             await page.waitForFunction(() => document.getElementById('fv-custom-icon-status').textContent === 'Delete refused');
-            await expectPreviews(custom);
+            await checkCustomIconDeletePreviews(page, custom, type);
             assert.equal(await deleteButton.count(), 1);
 
             await page.evaluate(() => { const state = window.fixtureIconDelete; state.mode = 'success'; state.setIconInputValue(state.defaultIcon + '?different=1'); });
-            await deleteButton.click();
-            await page.waitForFunction(() => !window.fixtureIconDelete.exists);
-            await expectPreviews(defaultIcon + '?different=1');
+            await deleteAndCheckPreviews(defaultIcon + '?different=1');
 
             await upload();
             await page.evaluate(() => { window.fixtureIconDelete.mode = 'pending'; });
@@ -107,21 +102,28 @@ export const registerCustomIconDeleteCase = ({ test, baseUrl }) => {
             await page.waitForFunction(() => typeof window.fixtureIconDelete.finish === 'function');
             await page.evaluate(() => { const state = window.fixtureIconDelete; state.setIconInputValue(state.defaultIcon + '?new=1'); state.finish(); });
             await page.waitForFunction(() => !window.fixtureIconDelete.exists);
-            await expectPreviews(defaultIcon + '?new=1');
+            await checkCustomIconDeletePreviews(page, defaultIcon + '?new=1', type);
 
             await upload();
             await page.evaluate(() => { Object.assign(window.fixtureIconDelete, { mode: 'success', saved: true }); });
             await page.locator('#fv-icon-custom-manager-toggle').click();
             const requests = await page.evaluate(() => window.fixtureIconDelete.requests);
             await deleteButton.click();
-            await expectPreviews(custom);
+            await checkCustomIconDeletePreviews(page, custom, type);
             assert.equal(await page.evaluate(() => window.fixtureIconDelete.requests), requests, 'saved references still block deletion');
             await page.evaluate(() => { window.fixtureIconDelete.saved = false; });
             await page.locator('#fv-icon-custom-manager-toggle').click();
             await page.evaluate(() => { window.fixtureIconDelete.listFail = true; });
-            await deleteButton.click();
-            await page.waitForFunction(() => !window.fixtureIconDelete.exists);
-            await expectPreviews(defaultIcon);
+            await deleteAndCheckPreviews(defaultIcon);
+
+            await page.evaluate(() => { window.fixtureIconDelete.listFail = false; });
+            const localAlias = `${baseUrl}/plugins/folderview.plus/images/unused/../custom/%75ploaded.png?v=9`;
+            const remote = 'https://external.invalid/plugins/folderview.plus/images/custom/uploaded.png';
+            for (const [reference, expected] of [[localAlias, defaultIcon], [remote, remote]]) {
+                await upload();
+                await page.evaluate(value => window.fixtureIconDelete.setIconInputValue(value), reference);
+                await deleteAndCheckPreviews(expected);
+            }
         }
     }, { skipAccessibility: true });
 };

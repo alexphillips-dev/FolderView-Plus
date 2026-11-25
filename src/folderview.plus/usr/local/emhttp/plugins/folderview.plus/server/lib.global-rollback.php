@@ -98,7 +98,10 @@
                 return $removed;
             }
             $remaining = count($snapshots);
-            foreach (array_reverse($snapshots) as $snapshot) {
+            $oldestFirst = array_reverse($snapshots);
+            // Prune damaged snapshots before sacrificing a usable checkpoint.
+            usort($oldestFirst, static fn(array $a, array $b): int => $a['restorable'] <=> $b['restorable']);
+            foreach ($oldestFirst as $snapshot) {
                 if ($remaining <= $keep) break;
                 if (in_array((string)$snapshot['name'], $protectedNames, true)) continue;
                 try {

@@ -354,7 +354,6 @@ const dashboardRuntimeSurfaceApi = dashboardRuntimeSurfaceModule.createApi({
     translate: (key) => $.i18n(key)
 });
 const {
-    getPrefsOrderedFolderMap,
     sortFolderIdsByPrefs,
     filterDashboardToRootFolders,
     buildFolderChildrenIndex,
@@ -1397,7 +1396,7 @@ const renderDashboardDockerFolders = (prom) => {
     
         // Draw the foldes outside of the order
         // Preserve original folder order when inserting at the top with unshift.
-        const remainingDockerFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs.docker)).reverse();
+        const remainingDockerFolders = utils.orderFolderEntriesByPrefs(folders, folderTypePrefs.docker).reverse();
         for (const [id, value] of remainingDockerFolders) {
             // Add the folder on top of the array
             const token = `folder-${id}`;
@@ -1568,7 +1567,7 @@ const renderDashboardVmFolders = (prom) => {
     
         // Draw the foldes outside of the order
         // Preserve original folder order when inserting at the top with unshift.
-        const remainingVmFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs.vm)).reverse();
+        const remainingVmFolders = utils.orderFolderEntriesByPrefs(folders, folderTypePrefs.vm).reverse();
         for (const [id, value] of remainingVmFolders) {
             // Add the folder on top of the array
             const token = `folder-${id}`;

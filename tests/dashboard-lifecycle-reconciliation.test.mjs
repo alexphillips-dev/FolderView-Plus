@@ -29,7 +29,9 @@ test('Dashboard pagehide commits both pending expansion maps before releasing ho
     const foundation = require(path.join(scripts, 'folderviewplus.utils-foundation.js'));
     const api = require(path.join(scripts, 'dashboard.state-store.js'));
     const values = new Map(), events = [], hooks = [];
-    const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    const storage = { get length() { return values.size; }, key: index => [...values.keys()][index] ?? null,
+        getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    const persisted = api.createStore({ storage });
     const writer = foundation.createBatchedStorageWriter(storage), store = api.createStore({ storage, writer });
     store.patch('docker', { parent: true }); store.patch('docker', { child: true });
     store.patch('vm', { vmParent: true }); store.patch('vm', { vmChild: true });
@@ -42,14 +44,14 @@ test('Dashboard pagehide commits both pending expansion maps before releasing ho
         dashboardStorageWriter: writer, queuedLoadlistTimer: null, dashboardThemeReflowTimer: null, dashboardThemeReflowUnsubscribe: () => events.push('theme-unsubscribe'), clearTimeout,
         dashboardUnassignedGroups: { docker: { clear: () => events.push('docker-unassigned') }, vm: { clear: () => events.push('vm-unassigned') } },
         dashboardLiveRefreshController: { dispose() {
-            assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
-            assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.vm)), { vmParent: true, vmChild: true });
+            assert.deepEqual(persisted.read('docker'), { parent: true, child: true });
+            assert.deepEqual(persisted.read('vm'), { vmParent: true, vmChild: true });
             events.push('dispose');
         } }, dashboardHostAdapterModule: null, runtimeHostAdapters: null, dashboardDockerProviderRegistry: null
     });
     assert.equal(hooks.length, 1); assert.equal(hooks[0].name, 'pagehide');
     hooks[0].callback({persisted:true}); assert.deepEqual(events, []);
-    assert.deepEqual(JSON.parse(values.get(api.EXPANDED_STATE_STORAGE_KEYS.docker)), { parent: true, child: true });
+    assert.deepEqual(persisted.read('docker'), { parent: true, child: true });
     hooks[0].callback({persisted:false}); assert.deepEqual(events, ['docker-unassigned','vm-unassigned','dispose','theme-unsubscribe','removed']);
 });
 

@@ -7,6 +7,13 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
         const host = await createDockerHierarchyMoveHost(page);
         const row = id => page.locator(`tr.folder-id-${id}`);
         const { settle, expand, move } = host;
+        const settlePreferences = async (leaving = false) => {
+            await page.waitForFunction(() => sessionStorage.getItem('fvplus.runtime.expand.docker.v1.pending') === null);
+            await page.evaluate(async leaving => {
+                await window.FolderViewPlusPrefsStore.getDefaultCoordinator().flush('docker');
+                if (leaving) window.dispatchEvent(new Event('pagehide'));
+            }, leaving);
+        };
         try {
             await page.goto(host.url, { waitUntil: 'load' });
             await settle();
@@ -27,7 +34,7 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             await page.waitForFunction(() => document.querySelector('tr.folder-id-branch')?.getAttribute('data-folder-parent') === 'parent');
             assert.deepEqual({ parent: host.folders.branch.parentId, sortMode: host.prefs().sortMode,
                 manualOrder: host.prefs().manualOrder || [] }, beforeFailure, 'a rejected batch changes neither parent nor order');
-            await page.reload({ waitUntil: 'load' }); await settle();
+            await settlePreferences(); await page.reload({ waitUntil: 'load' }); await settle();
             assert.equal(await row('branch').getAttribute('data-folder-parent'), 'parent', 'reloading reads the original parent');
             assert.equal(await row('branch').getAttribute('data-folder-depth'), '1');
             assert.equal(await row('leaf').isVisible(), true, 'rollback restores the expanded subtree');
@@ -52,13 +59,13 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             await row('leaf').waitFor({ state: 'visible' });
             assert.equal(await row('leaf').getAttribute('data-folder-depth'), '1');
             assert.equal(await page.locator('#docker_containers tr[id^="ct-"]').count(), host.memberCount);
-            await page.reload({ waitUntil: 'load' });
+            await settlePreferences(); await page.reload({ waitUntil: 'load' });
             await settle();
             assert.equal(await row('branch').getAttribute('data-folder-parent'), '');
             assert.equal(await row('branch').isVisible(), true);
             host.folders.branch.parentId = 'parent';
             host.prefs().hideEmptyFolders = true;
-            await page.reload({ waitUntil: 'load' });
+            await settlePreferences(); await page.reload({ waitUntil: 'load' });
             await settle();
             if (await page.locator('.dropDown-parent').getAttribute('active') !== 'true') await expand('parent');
             await row('branch').waitFor({ state: 'visible' });
@@ -69,7 +76,7 @@ export const registerDockerHierarchyMoveCases = ({ test }) => {
             assert.ok(host.updateCount() >= 2);
         } finally {
             host.releaseFailure();
-            await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+            await settlePreferences(true);
             await page.waitForLoadState('networkidle');
             await page.goto('about:blank');
             await page.unrouteAll({ behavior: 'wait' });

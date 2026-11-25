@@ -67,7 +67,7 @@
                 labelKey: typeof rule.labelKey === 'string' ? rule.labelKey : '',
                 labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : '',
                 ...(rule.source === 'folderview3' ? { source: 'folderview3' } : {}),
-                ...(rule.kind === 'name_regex' && rule.regexMode === 'legacy' ? { regexMode: 'legacy' } : {})
+                ...(rule.kind === 'name_regex' && (rule.regexMode === 'legacy' || rule.source === 'folderview3') ? { regexMode: 'legacy' } : {})
             }))
             .filter((rule) => rule.folderId !== '' || rule.effect === 'exclude');
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);

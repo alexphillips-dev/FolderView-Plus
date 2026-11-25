@@ -279,7 +279,6 @@
         const states = new Map();
         const subscribers = new Set();
         let broadcastChannel = null;
-
         const storageKeyForType = (type) => outbox?.key(normalizeType(type)) || `${storagePrefix}${normalizeType(type)}`;
         const newState = (type) => ({
             type: normalizeType(type),
@@ -456,10 +455,10 @@
             state.waiters = remaining;
         };
 
-        const rejectWaiters = (state, generation, error, restored = false) => {
+        const rejectWaiters = (state, generation, error, restored = false, willRetry = false) => {
             const remaining = [];
             for (const waiter of state.waiters) {
-                if (waiter.generation <= generation && (!restored || waiter.drain)) {
+                if (waiter.generation <= generation && (!restored || waiter.drain) && !(willRetry && waiter.waitForRetry)) {
                     waiter.reject(error);
                 } else {
                     remaining.push(waiter);
@@ -614,10 +613,11 @@
                 state.lastError = String(error?.message || error || 'Preference synchronization failed.');
                 outbox.persist(state);
                 emit(state, Boolean(recoveredConflict));
-                rejectWaiters(state, batchGeneration, error, Boolean(restored));
+                const willRetry = !rejected && outboxApi.isRetryableSyncError(error);
+                rejectWaiters(state, batchGeneration, error, Boolean(restored), willRetry);
                 if (rejected && hasQueuedWork(state)) {
                     scheduleFlush(state, 0);
-                } else if (outboxApi.isRetryableSyncError(error)) {
+                } else if (willRetry) {
                     scheduleRetry(state);
                 }
             }
@@ -652,10 +652,10 @@
             state.status = state.flushing ? 'saving' : 'sync-pending';
             state.lastError = '';
             state.recoveryConflict = false;
-            outbox.persist(state);
+            if (outbox.persist(state)) settings.onDurablyQueued?.();
             emit(state);
             const promise = new Promise((resolve, reject) => {
-                state.waiters.push({ generation: state.generation, resolve, reject });
+                state.waiters.push({ generation: state.generation, resolve, reject, waitForRetry: settings.waitForRetry === true });
             });
             scheduleFlush(state, settings.immediate === true ? 0 : debounceMs);
             return promise;

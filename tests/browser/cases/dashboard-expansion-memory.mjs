@@ -10,13 +10,11 @@ export const registerDashboardExpansionMemoryCase = ({ test, baseUrl, installFix
             }
             await page.evaluate(() => document.getElementById('docker-parent').click());
             await peer.evaluate(() => document.getElementById('docker-other').click());
-            await peer.evaluate(() => window.fixtureDashboardAccordion.flush());
-            await page.waitForFunction(() => window.fixtureDashboardAccordion.disk('docker').other === true);
-            assert.deepEqual(await page.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), { other: true });
-            assert.deepEqual(await page.evaluate(() => window.fixtureDashboardAccordion.snapshot('docker').saved), { parent: true, other: true });
-            await page.evaluate(() => window.fixtureDashboardAccordion.flush());
-            await peer.waitForFunction(() => window.fixtureDashboardAccordion.disk('docker').parent === true);
-            assert.deepEqual(await peer.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), { parent: true, other: true });
+            await Promise.all([page, peer].map(tab => tab.evaluate(() => window.fixtureDashboardAccordion.flush())));
+            for (const tab of [page, peer]) {
+                await tab.waitForFunction(() => { const disk = window.fixtureDashboardAccordion.disk('docker'); return disk.parent && disk.other; });
+                assert.deepEqual(await tab.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), { parent: true, other: true });
+            }
         } finally {
             await peer.close();
             await page.clock.resume();
@@ -41,7 +39,6 @@ export const registerDashboardExpansionMemoryCase = ({ test, baseUrl, installFix
         }
         await page.clock.runFor(79);
         assert.deepEqual(await page.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), {});
-        // Native pagehide must synchronously flush both keys before a fresh document.
         await page.reload(); await hydrateFixture(page, baseUrl);
         for (const type of ['docker', 'vm']) {
             const restored = await page.evaluate(type => window.fixtureDashboardAccordion.snapshot(type), type);

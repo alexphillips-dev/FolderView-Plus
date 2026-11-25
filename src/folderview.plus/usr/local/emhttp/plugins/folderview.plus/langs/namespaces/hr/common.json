@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "content-revision": "ed39385072f22c7b9e546e2c54ecf43e6a5e21b4d1c05b99f5bf03356584b894"
+        "content-revision": "3d1455ff62c8c2f034af227de5a669cf95dc536768d10e8a791014d3782ea0a7"
     },
     "common.unassigned-group.title": "Nedodijeljene stavke",
     "runtime.action.requests-result": "Prihvaćeno $1 · Neuspjelo $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Uvoz dovršen.",
     "common.repair.delete-failed-8727e2": "Brisanje nije uspjelo",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Stvaranje točke vraćanja prije brisanja bilo čega.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Sigurnosno kopiranje preskočeno: nema mapa za zaštitu.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Datoteka sigurnosne kopije nije stvorena jer je karta mapa prazna.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Osvježavanje tablice postavki i sigurnosnih kopija.",
     "common.repair.folder-deleted-048562": "Mapa izbrisana.",
     "common.repair.all-folders-cleared-a7b85c": "Sve su mape izbrisane.",

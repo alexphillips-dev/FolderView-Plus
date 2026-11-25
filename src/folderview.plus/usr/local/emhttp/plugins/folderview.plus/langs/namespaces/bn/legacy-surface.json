@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "legacy-surface",
-        "content-revision": "a099ee24b47eb8354ca2a1c40334993412f7aa60c9a25881c1a3c9172235f3b0"
+        "content-revision": "05cda6fdd0f267d2cfffadae3ada73d96278b21121a8d837117fab40ad7a4a86"
     },
     "legacy.surface.0008eb7acd3f7a56": "বাল্ক সরানো অনুপলব্ধ",
     "legacy.surface.0012950979762d8c": "পুনরুদ্ধার করতে, ডাউনলোড করতে বা মুছতে একটি স্ন্যাপশট বেছে নিন।",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "ডকার রানটাইম বিবরণ আংশিকভাবে অনুপলব্ধ ছিল",
     "legacy.surface.a9ff80bb0824fdc2": "ব্যাকআপ প্রস্তুত।",
     "legacy.surface.aa1897c8cf834c13": "নিরাপদ DOM নির্মাণ প্রত্যাখ্যান বৈশিষ্ট্য: $1",
-    "legacy.surface.aa2181b424db8468": "ব্যাকআপ প্রস্তুত: $1",
     "legacy.surface.aa3090909390156a": "টগল করুন $1",
     "legacy.surface.aa3d3ea5337856c8": "ইম্পোর্ট ফাইলে অবশ্যই একটি JSON অবজেক্ট থাকতে হবে।",
     "legacy.surface.aa54cbf3d0764800": "রোলব্যাক পুনরুদ্ধার ব্যর্থ হয়েছে৷",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "নেস্টেড ফোল্ডার সহ সরাসরি সদস্য / মোট সদস্য",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus সেটিংস পৃষ্ঠাটি খোলা রেখেছে, কিন্তু কিছু ডেটা বা উন্নত মডিউল লোড হতে ব্যর্থ হয়েছে।",
     "legacy.surface.c3ba312a7f9ba04e": "হাইলাইটগুলি স্বয়ংক্রিয়ভাবে বরাদ্দ করুন: $1",
-    "legacy.surface.c3d9b0b812065b73": "রোলব্যাক পয়েন্ট তৈরি করা হয়েছে",
     "legacy.surface.c3f148bfdf3af882": "ফোল্ডারে রাখুন",
     "legacy.surface.c3fc3cce1b150b2f": "অজানা অনুরোধ ত্রুটি",
     "legacy.surface.c42210be655c49df": "FolderView Plus লোড করা শেষ করতে পারেনি $1",

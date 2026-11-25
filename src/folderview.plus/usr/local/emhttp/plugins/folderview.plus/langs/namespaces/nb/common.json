@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "common",
-        "content-revision": "e3387559bf052d9d62fac689531d571aa81773affe1307de889ac3581b644778"
+        "content-revision": "b8e2f3294de5905b8299bf5c55aea7a621ca26de7193274dab35f937d1b3ad19"
     },
     "common.unassigned-group.title": "Ikke-tilordnede elementer",
     "runtime.action.requests-result": "$1 godtatt · $2 mislyktes",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importen er fullført.",
     "common.repair.delete-failed-8727e2": "Sletting mislyktes",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Opprette et tilbakeføringspunkt før du sletter noe.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Sikkerhetskopiering hoppet over: ingen mapper å beskytte.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Ingen sikkerhetskopifil ble opprettet fordi mappekartet er tomt.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Oppdaterer innstillingstabell og sikkerhetskopier.",
     "common.repair.folder-deleted-048562": "Mappe slettet.",
     "common.repair.all-folders-cleared-a7b85c": "Alle mapper er tømt.",

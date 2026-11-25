@@ -101,6 +101,7 @@
       "server/lib.webui-profiles.php": { "limit": 128, "target": 120, "history": [128] },
       "server/lib.diagnostics-support-bundle.php": { "limit": 657, "target": 400, "history": [657] },
       "server/lib.diagnostics-report-privacy.php": { "limit": 139, "target": 139, "history": [139] },
+      "server/lib.docker-page-order.php": { "limit": 112, "target": 112, "history": [112] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
       "server/lib.docker-preview-summary.php": { "limit": 85, "target": 80, "history": [85] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
@@ -767,14 +768,24 @@
       "functionInventory": { "count": 3, "sha256": "e8fe2a884e4b8ed890974351de1494f3af68ff55e6fb93050d503045b80e74c8" }
     },
     {
+      "file": "server/lib.docker-page-order.php",
+      "owner": "server-docker-page-order",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": [],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.docker-order.php",
+      "functionInventory": { "count": 6, "sha256": "c671d7916f9ee75af3153c174548698171938a2c644fa8849e79314a96b74401" }
+    },
+    {
       "file": "server/lib.docker-order.php",
       "owner": "server-docker-start-order",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php", "server/lib.docker-runtime.php", "server/lib.rules-engine.php"],
+      "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php", "server/lib.docker-runtime.php", "server/lib.rules-engine.php", "server/lib.docker-page-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 18, "sha256": "86618c89c55cc4e8e59dc20318833eeb5553fd619268f6b32d96801aef67e0ff" }
+      "functionInventory": { "count": 14, "sha256": "a8abeaf1c95fdbe5cf540ff074b6c3014f79c9c950bcefeb8a7aa2a769743654" }
     },
     {
       "file": "server/lib.folder-batch-order.php",

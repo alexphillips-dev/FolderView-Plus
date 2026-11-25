@@ -879,7 +879,7 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const applyImportOperations = async (type, operations, onProgress = null, { expectedRevision } = {}) => {
+const applyImportOperations = async (type, operations, onProgress = null, { expectedRevision, backupReason } = {}) => {
     const resolvedType = normalizeManagedType(type);
     const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
@@ -896,7 +896,7 @@ const applyImportOperations = async (type, operations, onProgress = null, { expe
     }
 
     emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1...", totalSteps));
-    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates }, { expectedRevision });
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates }, { expectedRevision, backupReason });
     emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {

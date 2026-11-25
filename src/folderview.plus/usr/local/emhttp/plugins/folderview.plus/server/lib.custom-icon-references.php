@@ -2,7 +2,6 @@
 function fvplusAllowedCustomIconExtensions(): array {
     return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
 }
-
 function fvplusNormalizeCustomIconReferencePath(string $value): string {
     $reference = trim(str_replace(["\t", "\r", "\n"], '', $value));
     $path = str_replace('\\', '/', preg_split('/[?#]/', $reference, 2)[0]);
@@ -56,17 +55,16 @@ function fvplusVisitCustomIconReferences(string $type, array &$folders, array &$
 }
 
 function fvplusCustomIconReferenceInputs(string $type, bool $strict): array {
-    $paths = ['folders' => getFolderFilePath($type), 'prefs' => getTypePrefsPath($type)];
+    $paths = ['folders' => getFolderFilePath($type), 'prefs' => getTypePrefsPath($type), 'templates' => getTemplatePath($type)];
     $values = [];
     foreach ($paths as $kind => $path) {
-        $present = file_exists($path) || is_link($path);
         $mirror = getLastGoodJsonPath($path);
-        $value = !is_link($path) && is_file($path) && is_readable($path) ? readJsonObjectFile($path) : null;
-        if ($strict && (($present && !is_array($value))
-            || (!$present && (file_exists($mirror) || is_link($mirror))))) {
+        $read = $kind === 'templates' ? 'readFolderTemplateFile' : 'readJsonObjectFile';
+        $value = !is_link($path) && is_file($path) && is_readable($path) ? $read($path) : null;
+        if ($strict && $value === null && (file_exists($path) || is_link($path) || file_exists($mirror) || is_link($mirror))) {
             throw new RuntimeException('Icon references could not be verified. Reload Settings and try again.');
         }
-        if (!$strict && !is_array($value) && !is_link($mirror)) $value = readJsonObjectFile($mirror);
+        if (!$strict && !is_array($value) && !is_link($mirror)) $value = $read($mirror);
         $values[$kind] = $value ?? [];
     }
     // Match the existing legacy-adoption policy without writing/normalizing saved aliases.
@@ -85,20 +83,24 @@ function fvplusCustomIconReferenceInputs(string $type, bool $strict): array {
             if (is_array($legacy) && normalizeTypePrefs($legacy) !== $defaults) { $sources[] = $legacy; break; }
         }
     }
-    return ['folders' => $values['folders'], 'prefsSources' => $sources];
+    return ['folders' => $values['folders'], 'prefsSources' => $sources, 'templates' => $values['templates']];
 }
 
 function fvplusCustomIconUsageMap(bool $strict = false): array {
     return withConfigMutationLock(static function () use ($strict): array {
         $usage = [];
+        $appendUsage = static function (string $name, array $reference) use (&$usage): void { $usage[$name][] = $reference; };
         foreach (['docker', 'vm'] as $type) {
             $inputs = fvplusCustomIconReferenceInputs($type, $strict);
             foreach ($inputs['prefsSources'] as $index => $prefs) {
                 $folders = $index === 0 ? $inputs['folders'] : [];
-                fvplusVisitCustomIconReferences($type, $folders, $prefs,
-                    static function (string $name, array $reference, array &$record) use (&$usage): void {
-                        $usage[$name][] = $reference;
-                    });
+                fvplusVisitCustomIconReferences($type, $folders, $prefs, $appendUsage);
+            }
+            foreach ($inputs['templates'] as $template) {
+                $name = is_string($template['icon'] ?? null) ? fvplusCustomIconNameFromReference($template['icon']) : '';
+                if ($name === '') continue;
+                $usage[$name][] = ['type' => $type, 'scope' => 'template', 'folderId' => '',
+                    'folderName' => is_string($template['name'] ?? null) ? trim($template['name']) : ''];
             }
         }
         foreach ($usage as &$references) {

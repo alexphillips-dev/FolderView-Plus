@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "content-revision": "15a709759ee479f0e38da56ccd70a4b47bafcafffc7a350247f18c8644744e52"
+        "content-revision": "dafd7a4776652f31645a341aecf1812127de8ab05ed1a812d73e68eb35058643"
     },
     "common.unassigned-group.title": "未分組的項目",
     "runtime.action.requests-result": "已接受 $1 項 · 失敗 $2 項",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "匯入完成。",
     "common.repair.delete-failed-8727e2": "刪除失敗",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "在刪除任何內容之前建立還原點。",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "跳過安全備份：沒有要保護的資料夾。",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "由於資料夾對映為空，因此未建立備份檔案。",
     "common.repair.refreshing-settings-table-and-backups-e72473": "重新整理設定表和備份。",
     "common.repair.folder-deleted-048562": "資料夾已刪除。",
     "common.repair.all-folders-cleared-a7b85c": "所有資料夾均已清除。",

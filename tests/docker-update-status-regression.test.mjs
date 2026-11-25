@@ -16,6 +16,9 @@ const dockerPreviewActionsModule = require(
 const dockerRuntimeInfoModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js')
 );
+const grouping = require(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.folder-grouping.js')
+);
 const dockerRuntimeReconcileModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')
 );
@@ -57,7 +60,7 @@ test('docker runtime preserves hydrated update flags when normalizing partial ru
 
 test('docker runtime still falls back to the host row update cell when cached state omits update flags', () => {
     assert.match(dockerRuntimeInfoJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
-    assert.match(dockerRuntimeInfoJs, /const row = doc\.getElementById\(`ct-\$\{safeName\}`\)/);
+    assert.match(dockerRuntimeInfoJs, /const row = directIds\.map\(value => doc\.getElementById\(`ct-\$\{value\}`\)\)\s*\.find\(candidate => candidate && resolveDockerHostRowName\(candidate, inventory\) === safeName\)/);
     assert.match(dockerRuntimeInfoJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
     assert.match(dockerRuntimeInfoJs, /const normalizedText = String\(updateCell\.textContent \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
     assert.match(dockerRuntimeInfoJs, /const i18nText = \(key, fallback = ''\) => \{/);
@@ -66,7 +69,7 @@ test('docker runtime still falls back to the host row update cell when cached st
     assert.match(dockerRuntimeInfoJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerRuntimeInfoJs, /const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended\(\)[\s\S]*readDockerHostRowUpdateEvidence\(safeName\)/);
+    assert.match(dockerRuntimeInfoJs, /const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended\(\)[\s\S]*readDockerHostRowUpdateEvidence\(safeName, inventory\)/);
     assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = rebuild === true \? null : typeof sourceUpdated === 'boolean'[\s\S]*typeof hostUpdated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /Updated:\s*resolvedUpdated/);
 });
@@ -85,6 +88,8 @@ test('docker runtime prefers visible host up-to-date state over stale cached upd
     class FakeRow extends FakeElement {
         constructor(cell) {
             super('');
+            this.id = 'ct-qbittorrentvpn';
+            this.dataset = { name: 'qbittorrentvpn' };
             this.cell = cell;
         }
         querySelector(selector) {
@@ -95,6 +100,7 @@ test('docker runtime prefers visible host up-to-date state over stale cached upd
     try {
         const api = dockerRuntimeInfoModule.createApi({
             window: {},
+            grouping,
             document: {
                 getElementById: (id) => {
                     assert.equal(id, 'ct-qbittorrentvpn');

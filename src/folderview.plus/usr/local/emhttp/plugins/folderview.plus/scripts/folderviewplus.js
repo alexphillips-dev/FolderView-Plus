@@ -593,8 +593,13 @@ setFatalBannerPhase('bootstrap-state');
 recordFatalBannerAction('Validated required Settings modules');
 markFatalBannerStep('Validated required settings modules');
 
-let dockers = {};
-let vms = {};
+const folderSnapshotsByType = {
+    docker: { folders: {}, revision: null, sequence: 0 },
+    vm: { folders: {}, revision: null, sequence: 0 }
+};
+const optimisticFoldersByType = { docker: null, vm: null };
+const settingsRefreshSequence = { docker: 0, vm: 0 };
+const settingsRuntimeRefreshSequence = { docker: 0, vm: 0 };
 let pluginVersion = '0.0.0';
 let prefsByType = {
     docker: utils.normalizePrefs({}),
@@ -1891,8 +1896,8 @@ const isWizardCompletedServerSide = () => (
 );
 
 const hasExistingPluginData = () => {
-    const dockerFolders = Object.keys(dockers || {}).length;
-    const vmFolders = Object.keys(vms || {}).length;
+    const dockerFolders = Object.keys(typeFolders('docker')).length;
+    const vmFolders = Object.keys(typeFolders('vm')).length;
     if (dockerFolders > 0 || vmFolders > 0) {
         return true;
     }
@@ -2746,14 +2751,6 @@ const formatImportPresetLabel = (preset) => {
     return `${String(preset?.name || 'Preset')} (${modeLabel}${dryRunSuffix})`;
 };
 
-const setTypeFolders = (type, value) => {
-    if (type === 'docker') {
-        dockers = value;
-        return;
-    }
-    vms = value;
-};
-
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -3525,14 +3522,12 @@ const openFolderCreation = (type) => {
     return folderCreationApi.open(resolvedType);
 };
 
+const readSettingsFolderRevision = (metadata) => Number.isSafeInteger(metadata?.folderRevision) && metadata.folderRevision >= 0
+    ? metadata.folderRevision : null;
+
 const readFolderConfigurationRevision = (type) => {
     const resolvedType = normalizeManagedType(type);
-    const metadata = prefsByType[resolvedType]?._metadata;
-    if (!metadata || !Object.prototype.hasOwnProperty.call(metadata, 'folderRevision')) {
-        return null;
-    }
-    const revision = Number(metadata.folderRevision);
-    return Number.isInteger(revision) && revision >= 0 ? revision : null;
+    return optimisticFoldersByType[resolvedType] === null ? folderSnapshotsByType[resolvedType].revision : null;
 };
 
 const refreshTreeIntegrityState = async (type) => {
@@ -4265,6 +4260,7 @@ const requestFolderBatchMutation = async (type, operations, options = {}) => {
             deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
             upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
             creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : [],
+            ...(options.backupReason ? { backupReason: options.backupReason } : {}),
             ...(Array.isArray(safeOperations.manualOrder) ? {
                 manualOrder: safeOperations.manualOrder,
                 expectedPrefsRevision: safeOperations.expectedPrefsRevision
@@ -4696,9 +4692,14 @@ const sanitizeTypeInfoMap = (value) => {
     return output;
 };
 
-const fetchFolders = async (type) => (
-    utils.normalizeFolderMap(sanitizeTypeMapResponse(await apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`)))
-);
+const fetchFolders = async (type) => {
+    const response = await apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}&includeMetadata=1`);
+    const snapshot = response?.ok === true && Object.prototype.hasOwnProperty.call(response, 'folders');
+    return {
+        folders: utils.normalizeFolderMap(sanitizeTypeMapResponse(snapshot ? response.folders : response)),
+        folderRevision: snapshot ? readSettingsFolderRevision(response.metadata) : null
+    };
+};
 const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state`));
 
 const fetchBackups = async (type) => {
@@ -5318,13 +5319,16 @@ const applyTreeMoveHistoryEntry = async (type, entry, direction) => {
         if (expectedRevision === null || (order && !Number.isInteger(expectedPrefsRevision))) {
             throw new Error(surfaceT('legacy.surface.84d5e5d264943e57', 'Unable to verify the current folder configuration revision. Refresh and try again.'));
         }
-        setTypeFolders(resolvedType, { ...folders, [folderId]: { ...folder, parentId } });
-        if (order) applyOptimisticManualOrder(resolvedType, order); else renderTable(resolvedType);
-        const result = await requestFolderBatchMutation(resolvedType, {
-            deletes: [], upserts: [{ id: folderId, folder: { ...folder, parentId } }], creates: [],
-            ...(order ? { manualOrder: order, expectedPrefsRevision } : {})
-        }, { expectedRevision });
-        if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
+        optimisticFoldersByType[resolvedType] = { ...folders, [folderId]: { ...folder, parentId } };
+        try {
+            if (order) applyOptimisticManualOrder(resolvedType, order); else renderTable(resolvedType);
+            await requestFolderBatchMutation(resolvedType, {
+                deletes: [], upserts: [{ id: folderId, folder: { ...folder, parentId } }], creates: [],
+                ...(order ? { manualOrder: order, expectedPrefsRevision } : {})
+            }, { expectedRevision });
+        } finally {
+            optimisticFoldersByType[resolvedType] = null;
+        }
     }
     await refreshType(resolvedType, { configOnly: true, render: false });
 };
@@ -6473,7 +6477,7 @@ const renderPerformancePolicySummary = (type, prefs) => {
     const mode = typeof utils.normalizePerformanceProfile === 'function'
         ? utils.normalizePerformanceProfile(normalized.performanceProfile, normalized.performanceMode === true)
         : (normalized.performanceMode === true ? 'adaptive' : 'standard');
-    const folders = type === 'vm' ? vms : dockers;
+    const folders = typeFolders(type);
     const folderCount = Object.keys(folders || {}).length;
     const itemCount = Object.keys(infoByType[type] || {}).length;
     const largeLibrary = folderCount >= 34 || itemCount >= 220;
@@ -6562,7 +6566,9 @@ const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecyc
 const setViewNumberValue = (id, value) => viewSettingsRangeLifecycle?.setNumberValue ? viewSettingsRangeLifecycle.setNumberValue(id, value) : $(`#${id}`).val(String(value));
 const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
 const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', function releaseSettingsPage(event) {
+    if (event?.persisted) return;
+    window.removeEventListener('pagehide', releaseSettingsPage);
     settingsStorageWriter?.flush?.();
     disposeSettingsSearch();
     dockerPageTitleSettings.dispose();
@@ -6570,7 +6576,7 @@ window.addEventListener('pagehide', () => {
     viewSettingsUiStateStore?.destroy?.();
     viewSettingsChangeController?.destroy?.();
     window.FolderViewPlusCspEvents?.unregisterOwner?.('settings');
-}, { once: true });
+});
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
     $(`#${type}-status-mode`).val(status.mode);
@@ -8058,20 +8064,13 @@ const fetchSettingsCoreSnapshot = async (type, options = {}) => {
     } else {
         snapshot = runtimeSnapshotApi.parsePayload(snapshot);
     }
-    const snapshotPrefs = utils.normalizePrefs({
-        ...(snapshot.prefs && typeof snapshot.prefs === 'object' ? snapshot.prefs : {}),
-        _metadata: snapshot.metadata && typeof snapshot.metadata === 'object' ? snapshot.metadata : {}
-    });
-    const reconciledPrefs = diagnosticsPrefsCoordinator && typeof diagnosticsPrefsCoordinator.reconcile === 'function'
-        ? diagnosticsPrefsCoordinator.reconcile(resolvedType, snapshotPrefs, {
-            force: true,
-            restoreOutbox: true,
-            replay: true
-        })
-        : snapshotPrefs;
     return {
         folders: utils.normalizeFolderMap(snapshot.folders || {}),
-        prefs: reconciledPrefs,
+        folderRevision: readSettingsFolderRevision(snapshot.metadata),
+        prefs: {
+            ...(snapshot.prefs && typeof snapshot.prefs === 'object' ? snapshot.prefs : {}),
+            _metadata: snapshot.metadata && typeof snapshot.metadata === 'object' ? snapshot.metadata : {}
+        },
         info: sanitizeTypeInfoMap(snapshot.runtime || {}),
         runtimeIncluded: snapshot.runtimeIncluded === true,
         snapshotToken: String(snapshot.snapshotToken || '').trim()
@@ -8087,6 +8086,7 @@ const fetchSettingsCombinedConfigSnapshots = async () => {
 };
 
 const refreshType = async (type, options = {}) => {
+    const sequence = ++settingsRefreshSequence[type];
     const startedAt = perfNowMs();
     const coldLoad = settingsUiState.initialized !== true;
     const render = options?.render !== false;
@@ -8095,7 +8095,8 @@ const refreshType = async (type, options = {}) => {
     setFatalBannerPhase('prefs-fetch');
     markFatalBannerStep(`Fetching ${type} folders and preferences`);
     const degradedReasons = [];
-    let folders = {};
+    let folders = null;
+    let folderRevision = null;
     let rawPrefs = {};
     let info = configOnly ? (infoByType[type] || {}) : {};
     let prefsFetched = false;
@@ -8106,6 +8107,7 @@ const refreshType = async (type, options = {}) => {
     try {
         const snapshot = await fetchSettingsCoreSnapshot(type, { configOnly, snapshot: suppliedSnapshot });
         folders = snapshot.folders;
+        folderRevision = snapshot.folderRevision;
         rawPrefs = snapshot.prefs;
         if (!configOnly) {
             info = snapshot.info;
@@ -8124,7 +8126,10 @@ const refreshType = async (type, options = {}) => {
         const foldersResult = results[0];
         const prefsResult = results[1];
         const infoResult = configOnly ? null : results[2];
-        folders = foldersResult.status === 'fulfilled' ? foldersResult.value : {};
+        if (foldersResult.status === 'fulfilled') {
+            folders = foldersResult.value.folders;
+            folderRevision = foldersResult.value.folderRevision;
+        }
         rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
         if (!configOnly) {
             info = infoResult?.status === 'fulfilled' ? infoResult.value : {};
@@ -8142,10 +8147,22 @@ const refreshType = async (type, options = {}) => {
         }
     }
 
+    const currentFolderSnapshot = folderSnapshotsByType[type];
+    // A configuration-only refresh may finish before runtime hydration. Fence the
+    // folder map independently so either path can still deliver newer runtime data.
+    const acceptsFolders = folders !== null && (folderRevision === currentFolderSnapshot.revision
+        ? sequence >= currentFolderSnapshot.sequence
+        : folderRevision !== null && (currentFolderSnapshot.revision === null || folderRevision > currentFolderSnapshot.revision));
+    if (acceptsFolders) {
+        folderSnapshotsByType[type] = { folders, revision: folderRevision, sequence };
+    }
     let normalizedPrefs;
     let normalizeErrorMessage = '';
     try {
         normalizedPrefs = utils.normalizePrefs(rawPrefs || {});
+        if (prefsFetched && !dataSource.endsWith('legacy-fallback') && typeof diagnosticsPrefsCoordinator?.reconcile === 'function') {
+            normalizedPrefs = diagnosticsPrefsCoordinator.reconcile(type, normalizedPrefs, { force: true, restoreOutbox: true, replay: true });
+        }
     } catch (error) {
         normalizeErrorMessage = error?.message || String(error);
         degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', error));
@@ -8158,8 +8175,10 @@ const refreshType = async (type, options = {}) => {
         });
     }
 
-    prefsByType[type] = normalizedPrefs;
-    recordSettingsDashboardLayoutHydration(type, normalizedPrefs);
+    const previousPrefsRevision = Number(prefsByType[type]?._metadata?.prefsRevision ?? -1);
+    const incomingPrefsRevision = Number(normalizedPrefs?._metadata?.prefsRevision ?? -1);
+    if (prefsFetched && incomingPrefsRevision >= previousPrefsRevision) prefsByType[type] = normalizedPrefs;
+    recordSettingsDashboardLayoutHydration(type, prefsByType[type]);
     setFatalBannerPrefsStatus({
         fetched: prefsFetched,
         normalized: true,
@@ -8171,18 +8190,18 @@ const refreshType = async (type, options = {}) => {
         normalizeError: normalizeErrorMessage
     });
     setFatalBannerPhase('render');
-    if (!configOnly) {
+    if (!configOnly && sequence >= settingsRuntimeRefreshSequence[type]) {
+        settingsRuntimeRefreshSequence[type] = sequence;
         infoByType[type] = info && typeof info === 'object' ? info : {};
         runtimeHydrationStateByType[type] = runtimeFetched ? 'ready' : 'unavailable';
     }
-    setTypeFolders(type, utils.normalizeFolderMap(folders || {}));
     if (render) {
         renderTable(type);
         markFatalBannerStep(`Rendered ${type} settings table`);
     }
     if (!configOnly) {
         recordPerformanceDiagnosticsSample('runtimeHydration', type, perfNowMs() - startedAt, {
-            folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
+            folderCount: Object.keys(folderSnapshotsByType[type].folders).length,
             infoCount: Object.keys(info || {}).length,
             coldLoad,
             classificationVersion: 2,
@@ -8696,7 +8715,6 @@ const importType = async (type) => {
         return;
     }
 
-    let transactionBackup = null;
     const progressTotal = 3;
     let progressOpen = false;
     const setProgress = (completed, label) => {
@@ -8711,13 +8729,10 @@ const importType = async (type) => {
         progressOpen = true;
         setProgress(0, surfaceT("common.repair.creating-safety-backup-99eaaf", "Creating safety backup..."));
 
-        transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
-        setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
-
-        await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
+        const result = await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
             const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
             setProgress(batchComplete ? 2 : 1, label || surfaceT("common.repair.applying-import-transaction-464c56", "Applying import transaction..."));
-        }, { expectedRevision });
+        }, { expectedRevision, backupReason: `before-import-transaction-${dialogResult.mode}` });
 
         setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
@@ -8748,7 +8763,7 @@ const importType = async (type) => {
             type: resolvedType,
             focusFolderId: affectedFolderIds[0] || ''
         });
-        await offerUndoAction(resolvedType, transactionBackup, 'Import');
+        await offerUndoAction(resolvedType, result.backup, 'Import');
     } catch (error) {
         if (progressOpen) {
             closeImportApplyProgressDialog();
@@ -8771,6 +8786,12 @@ const clearType = (type, id) => {
         return;
     }
     const folders = getFolderMap(resolvedType);
+    const expectedRevision = readFolderConfigurationRevision(resolvedType);
+    const deleteIds = id ? [id] : Object.keys(folders);
+    if (deleteIds.length > 0 && expectedRevision === null) {
+        showError('Delete failed', new Error(surfaceT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.')));
+        return;
+    }
     const folderName = id ? folders[id]?.name : null;
     const text = id ? `Remove folder: ${escapeHtml(folderName || id)}` : 'Remove ALL folders';
 
@@ -8788,7 +8809,6 @@ const clearType = (type, id) => {
             return;
         }
 
-        const deleteIds = id ? [id] : Object.keys(getFolderMap(resolvedType));
         const progressTotal = 3;
         let progressOpen = false;
         const operationTitle = id
@@ -8830,20 +8850,11 @@ const clearType = (type, id) => {
                 deletedCount: 0
             });
 
-            const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
-            const backupSkipped = backup?.skipped === true;
-            setProgress(1, backupSkipped ? surfaceT("common.repair.safety-backup-skipped-no-folders-to-protect-044e05", "Safety backup skipped: no folders to protect.") : `Safety backup created: ${backup?.name || 'ready'}`, {
-                current: backupSkipped
-                    ? surfaceT("common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a", "No backup file was created because the folder map is empty.")
-                    : `Backup ready: ${backup?.name || 'rollback point created'}`,
-                deletedCount: 0
-            });
-
-            const foldersBeforeDelete = getFolderMap(resolvedType);
+            let backup = null;
             let deletedCount = 0;
             if (deleteIds.length > 0) {
                 const currentLabel = id
-                    ? `Removing folder: ${foldersBeforeDelete[id]?.name || id}`
+                    ? `Removing folder: ${folderName || id}`
                     : `Removing ${deleteIds.length} folders in one transaction.`;
                 setProgress(1, id ? `Deleting ${folderName || id}` : `Deleting ${deleteIds.length} folders`, {
                     current: currentLabel,
@@ -8853,7 +8864,8 @@ const clearType = (type, id) => {
                     deletes: deleteIds,
                     upserts: [],
                     creates: []
-                });
+                }, { expectedRevision, backupReason: id ? `before-delete-${id}` : 'before-clear-all' });
+                backup = result.backup;
                 deletedCount = Array.isArray(result.deletedIds)
                     ? result.deletedIds.length
                     : deleteIds.length;
@@ -8885,7 +8897,7 @@ const clearType = (type, id) => {
                 eventType: id ? 'delete_folder' : 'clear_folders',
                 type: resolvedType,
                 details: {
-                    deletedCount: deleteIds.length,
+                    deletedCount,
                     singleFolder: Boolean(id)
                 }
             });
@@ -8893,7 +8905,7 @@ const clearType = (type, id) => {
                 title: id ? 'Folder deleted' : 'Folders cleared',
                 message: id
                     ? `Deleted ${folderName || id}.`
-                    : surfaceT("common.repair.folders-deleted-1-846e55", "Folders deleted: $1.", deleteIds.length),
+                    : surfaceT("common.repair.folders-deleted-1-846e55", "Folders deleted: $1.", deletedCount),
                 level: 'success'
             });
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');

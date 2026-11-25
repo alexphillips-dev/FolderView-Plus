@@ -38,6 +38,7 @@
         const svgIcon = typeof deps.svgIcon === 'function' ? deps.svgIcon : (() => '');
         let revealHiddenFolders = false;
         let pendingIdsOverride = null;
+        let queuedVisibilityPatch = {};
 
         const normalizeIds = (value) => Array.isArray(value)
             ? Array.from(new Set(value.map((item) => String(item || '').trim()).filter(Boolean)))
@@ -130,11 +131,11 @@
             applyVisibility();
             syncDependentUi();
         };
-        const persistIds = async (nextHiddenIds) => {
-            const folders = getFolders() || {};
-            const hiddenFolderIds = normalizeIds(nextHiddenIds).filter((id) => !!folders[id]);
-            const savedPrefs = await savePrefs({ hiddenFolderIds }, getPrefs() || {});
-            return normalizeIds(savedPrefs?.hiddenFolderIds || hiddenFolderIds).filter((id) => !!folders[id]);
+        const persistVisibility = async () => {
+            const patch = queuedVisibilityPatch;
+            queuedVisibilityPatch = {};
+            const savedPrefs = await savePrefs(patch, getPrefs() || {});
+            return normalizeIds(savedPrefs?.hiddenFolderIds || getExplicitIds());
         };
         const recoverLatestFailure = async (fallbackIds) => {
             try {
@@ -156,7 +157,7 @@
                 : previousIds.filter((entry) => entry !== id);
             return safeActionRunner.run('docker-hidden-folders', async (intent) => {
                 const result = await runGuardedAction('toggle-folder-visibility', async () => {
-                    const confirmedIds = await persistIds(nextIds);
+                    const confirmedIds = await persistVisibility();
                     if (!intent.isLatest()) return;
                     pendingIdsOverride = null;
                     applyIds(confirmedIds);
@@ -175,6 +176,7 @@
             }, {
                 queueIfBusy: true,
                 onIntent: () => {
+                    queuedVisibilityPatch.hiddenFolderIdChanges = { ...queuedVisibilityPatch.hiddenFolderIdChanges, [id]: hidden };
                     pendingIdsOverride = { ids: normalizeIds(nextIds), expiresAt: Date.now() + 10000 };
                     applyIds(nextIds);
                     if (hidden && getOwnerId(getFocusedFolderId())) clearFocusedFolder();
@@ -191,7 +193,7 @@
             if (!previousIds.length) return true;
             return safeActionRunner.run('docker-hidden-folders', async (intent) => {
                 const result = await runGuardedAction('restore-hidden-folders', async () => {
-                    const confirmedIds = await persistIds([]);
+                    const confirmedIds = await persistVisibility();
                     if (!intent.isLatest()) return;
                     pendingIdsOverride = null;
                     applyIds(confirmedIds);
@@ -208,7 +210,13 @@
                 return result.ok;
             }, {
                 queueIfBusy: true,
-                onIntent: () => { pendingIdsOverride = { ids: [], expiresAt: Date.now() + 10000 }; applyIds([]); dismissUndo(); syncUi(); }
+                onIntent: () => {
+                    queuedVisibilityPatch = { hiddenFolderIds: [] };
+                    pendingIdsOverride = { ids: [], expiresAt: Date.now() + 10000 };
+                    applyIds([]);
+                    dismissUndo();
+                    syncUi();
+                }
             });
         };
         const setReveal = (enabled) => {

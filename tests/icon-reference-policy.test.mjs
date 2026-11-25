@@ -123,6 +123,26 @@ test('delete refuses corrupt current reference state without repairing it', () =
     assert.deepEqual(result.after, result.before);
 });
 
+test('an icon used only by an Operations template is reported and protected from deletion and rename', () => {
+    for (const type of ['docker', 'vm']) {
+        const request = { type, kind: 'template', reference: aliases[2] };
+        const usage = run({ ...request, policyAction: 'usage' });
+        assert.deepEqual(usage.usage, [{ type, scope: 'template', folderId: '', folderName: 'Fixture template' }]);
+        assert.deepEqual(usage.diagnostics, usage.usage);
+        for (const action of ['delete', 'rename']) {
+            const result = run({ ...request, action });
+            assert.match(result.error, /in use|saved icon references/);
+            assert.deepEqual(result.after, result.before);
+        }
+        const recoverable = run({ ...request, policyAction: 'recoverable', unavailable: 'malformed' });
+        assert.equal(recoverable.usageCount, 1);
+        assert.equal(recoverable.sameProjection, true);
+        assert.equal(recoverable.iconRetained, true);
+        assert.equal(recoverable.exactUnchanged, true);
+        assert.match(recoverable.response.error, /references could not be verified/);
+    }
+});
+
 test('repair rejects an unavailable icon inventory and compensates folder or preference failures exactly', () => {
     for (const type of ['docker', 'vm']) for (const [kind, policyFault] of [['folder', 'inventory'], ['folder', 'folders'], ['defaults', 'prefs'], ['group', 'prefs']]) {
         const result = run({ type, kind, reference: aliases[2], policyAction: 'repair', policyFault });

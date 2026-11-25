@@ -223,6 +223,14 @@ test('Docker editor awaits one nonce-protected synchronization and propagates fa
     await assert.rejects(failing.flushPostSaveSync({ force: true }), /sync rejected/);
     await api.flushPostSaveSync({ folderId: 'same', folder: { name: 'same' }, previousFolder: { name: 'same' } });
     assert.equal(calls.length, 1, 'unchanged appearance saves do not resynchronize');
+    const reordered = api.flushPostSaveSync({
+        folderId: 'same', folder: { name: 'same', containers: ['second', 'first'] },
+        previousFolder: { name: 'same', containers: ['first', 'second'] }
+    });
+    assert.deepEqual(calls.at(-1), { url: '/plugins/folderview.plus/server/sync_order.php', body: { type: 'docker' } });
+    assert.equal(calls.length, 2, 'a member-order-only edit resynchronizes the managed planner');
+    complete({ ok: true });
+    await reordered;
 });
 
 function iconApiFor(h) {

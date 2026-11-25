@@ -119,6 +119,11 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $deletes = $operations['deletes'] ?? [];
         $upserts = $operations['upserts'] ?? [];
         $creates = $operations['creates'] ?? [];
+        $backupReason = $operations['backupReason'] ?? '';
+        if (!is_string($backupReason) || ($backupReason !== '' && (!preg_match('/^before-(?:import-transaction-(?:merge|skip|replace)|clear-all|delete-[a-zA-Z0-9._:-]{1,128})$/D', $backupReason)
+            || trim((string)$expectedRevision) === ''))) {
+            throw new RuntimeException('Invalid folder batch safety backup request.');
+        }
         [$manualOrder, $expectedPrefsRevision] = parseBatchManualOrder($operations);
         if (!is_array($deletes) || !is_array($upserts) || !is_array($creates)) {
             throw new RuntimeException('Batch operations must contain delete, update, and create arrays.');
@@ -133,7 +138,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $normalizedDeletes[] = $id;
         }
 
-        $normalizeBatchFolder = static function ($rawEntry, bool $requiresId): array {
+        $normalizeBatchFolder = static function ($rawEntry, bool $requiresId) use ($type): array {
             if (!is_array($rawEntry)) {
                 throw new RuntimeException('Batch folder operation must be an object.');
             }
@@ -146,6 +151,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 throw new RuntimeException('Batch folder operation is missing a valid folder payload.');
             }
             fvplus_assert_folder_payload_shape($folder);
+            if ($type === 'docker') fvplusAssertWebuiProfileLimits($folder['settings'] ?? []);
             $rawPreview = json_encode($folder, JSON_UNESCAPED_SLASHES);
             if (!is_string($rawPreview) || strlen($rawPreview) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
                 throw new RuntimeException('Batch folder payload exceeds the raw upload limit.');
@@ -178,7 +184,8 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $manualOrder,
             $expectedPrefsRevision,
             $operationCount,
-            $expectedRevision
+            $expectedRevision,
+            $backupReason
         ): array {
             $startedAt = microtime(true);
             assertExpectedConfigRevision($type, 'folder', $expectedRevision);
@@ -250,6 +257,8 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
             }
             $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+            $backup = $backupReason !== '' && jsonObjectsDiffer($originalFolders, $nextFolders)
+                ? createBackupSnapshot($type, $backupReason, false) : null;
             try {
                 writeRawFolderMap($type, $nextFolders);
                 if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);
@@ -264,9 +273,11 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 } catch (Throwable $rollbackError) {
                     throw new RuntimeException('Folder batch transaction failed: ' . $rollbackError->getMessage(), 0, $error);
                 }
+                if (!empty($backup['name'])) @unlink(getBackupSnapshotPath($type, $backup['name']));
                 throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage()
                     . ' Automatic rollback restored the original configuration.', 0, $error);
             }
+            if (!empty($backup['name'])) $backup['pruned'] = pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
 
             $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
             try {
@@ -287,10 +298,12 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 'requestedCount' => $operationCount,
                 'deletedIds' => $deletedIds,
                 'updatedIds' => $updatedIds,
+                'updatedFolder' => $operationCount === 1 && isset($updatedIds[0]) ? $nextFolders[$updatedIds[0]] : null,
                 'createdIds' => $createdIds,
                 'folderCount' => count($nextFolders),
                 'dockerOrderSynced' => ($dockerSync['syncOutcome'] ?? null) === 'synced',
                 'durationMs' => $durationMs,
+                'backup' => $backup,
                 'metadata' => readConfigMetadata($type, false)
             ];
         });

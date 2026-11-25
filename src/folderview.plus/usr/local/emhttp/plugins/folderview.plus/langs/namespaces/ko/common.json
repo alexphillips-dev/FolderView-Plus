@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "content-revision": "3098928fb5daa8130ab9fe228d061150560d1935dbeeaf69175156a267dfbc3b"
+        "content-revision": "88fd71ebcb7e4b4f796b2684d7fa981fef01a0f1ac7100e254b36541b8a82cc8"
     },
     "common.unassigned-group.title": "미할당 항목",
     "runtime.action.requests-result": "$1개 수락 · $2개 실패",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "가져오기가 완료되었습니다.",
     "common.repair.delete-failed-8727e2": "삭제 실패",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "삭제하기 전에 롤백 지점을 생성하세요.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "안전 백업을 건너뛰었습니다. 보호할 폴더가 없습니다.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "폴더 맵이 비어 있으므로 백업 파일이 생성되지 않았습니다.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "설정 테이블 및 백업을 새로 고치는 중입니다.",
     "common.repair.folder-deleted-048562": "폴더가 삭제되었습니다.",
     "common.repair.all-folders-cleared-a7b85c": "모든 폴더가 지워졌습니다.",

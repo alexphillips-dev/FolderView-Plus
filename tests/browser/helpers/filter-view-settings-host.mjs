@@ -53,7 +53,7 @@ export const createFilterViewSettingsHost = async page => {
 };
 
 // Execute the shipped VM page with synthetic native rows and the native AJAX lifecycle.
-export const mountFilterViewVmHost = async (page, host) => {
+export const mountFilterViewVmHost = async (page, host, { nativeDetails = false } = {}) => {
     const prefix = '/plugins/folderview.plus/';
     const script = file => `<script src="${file}"></script>`;
     const source = fs.readFileSync(path.join(plugin, 'folderview.plus.VMs.page'), 'utf8');
@@ -63,9 +63,12 @@ export const mountFilterViewVmHost = async (page, host) => {
     });
     const langs = fs.readFileSync(path.join(plugin, 'langs/script.php'), 'utf8');
     const langScripts = [...langs.matchAll(/<script[^>]*src="[^"\n]*?fvplus_asset\('([^']+)'\)[^"\n]*"[^>]*><\/script>/g)].map(m => script(m[1])).join('');
-    const buildRows = () => host.names.map(name => {
+    const buildRows = () => host.names.map((name, index) => {
         const { uuid } = host.runtime.vm[name];
-        return `<tr class="sortable" id="${uuid}"><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span></td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>`;
+        const toggle = nativeDetails ? ` <a href="#" onclick="toggle_id('name-${index}'); return false">Info</a>` : '';
+        const detail = nativeDetails && index === 0
+            ? `<tr child-id="${index}" id="name-${index}" hidden><td colspan="5">VM details</td></tr>` : '';
+        return `<tr class="sortable" id="${uuid}"${nativeDetails ? ` parent-id="${index}"` : ''}><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span>${toggle}</td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>${detail}`;
     }).join('');
     const native = `<table id="kvm_table"><thead><tr><th>Name</th><th>OS</th><th>CPU</th><th>RAM</th><th>Autostart</th></tr></thead><tbody id="kvm_list">${buildRows()}</tbody></table>`;
     const config = { requestedLocale: 'en', resolvedLocale: 'en', direction: 'ltr', namespaces: ['common', 'legacy-surface', 'vm', 'diagnostics'], assets: [
@@ -85,6 +88,7 @@ window.loadlist = () => {
         document.getElementById('kvm_list').innerHTML = nativeRows;
     });
 };`)
+        + '\nwindow.toggle_id = id => { const row = document.getElementById(id); if (row) row.hidden = !row.hidden; };'
         + '\ndocument.addEventListener("DOMContentLoaded", () => window.loadlist());';
     await page.route('**/fixture-host.js*', route => route.fulfill({ contentType: 'text/javascript', body: hostSource }));
     await page.route('**/plugins/dynamix.vm.manager/include/VMMachines.php*', route => route.fulfill({ contentType: 'text/html', body: buildRows() }));

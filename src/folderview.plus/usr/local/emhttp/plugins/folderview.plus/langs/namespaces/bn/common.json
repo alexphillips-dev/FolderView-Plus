@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "content-revision": "e7e55413afb8e1817786c2161cfe3bbf818f86d23040be2914cbf1f6060c2d82"
+        "content-revision": "c36b83058dd21f6dbf6f5a78c2fc8a6a2d24a1b8abb9214f1cde406eb0ea301d"
     },
     "common.unassigned-group.title": "অনির্ধারিত আইটেম",
     "runtime.action.requests-result": "$1টি গৃহীত · $2টি ব্যর্থ",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "আমদানি সম্পূর্ণ।",
     "common.repair.delete-failed-8727e2": "মুছে ফেলতে ব্যর্থ হয়েছে",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "কিছু মুছে ফেলার আগে একটি রোলব্যাক পয়েন্ট তৈরি করা।",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "নিরাপত্তা ব্যাকআপ এড়িয়ে গেছে: সুরক্ষিত করার জন্য কোনো ফোল্ডার নেই।",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "ফোল্ডার মানচিত্র খালি থাকার কারণে কোনো ব্যাকআপ ফাইল তৈরি করা হয়নি।",
     "common.repair.refreshing-settings-table-and-backups-e72473": "রিফ্রেশিং সেটিংস টেবিল এবং ব্যাকআপ।",
     "common.repair.folder-deleted-048562": "ফোল্ডার মুছে ফেলা হয়েছে।",
     "common.repair.all-folders-cleared-a7b85c": "সমস্ত ফোল্ডার সাফ করা হয়েছে৷",

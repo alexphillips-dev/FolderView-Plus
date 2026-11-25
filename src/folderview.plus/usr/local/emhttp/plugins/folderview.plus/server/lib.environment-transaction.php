@@ -27,11 +27,7 @@ function fvplusEnvironmentTransactionPaths(array $extraPaths = []): array {
 }
 
 function fvplusEnvironmentCaptureFiles(array $paths): array {
-    $snapshots = [];
-    foreach ($paths as $path) {
-        $snapshots[] = fvplusTransactionCaptureFile((string)$path);
-    }
-    return $snapshots;
+    return array_values(array_map(static fn($path): array => fvplusTransactionCaptureFile((string)$path), $paths));
 }
 
 function fvplusEnvironmentRestoreFiles(array $snapshots): void {
@@ -112,11 +108,12 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             $extraPaths[] = fvplusEnvironmentDockerAutostartPath();
         }
         $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($extraPaths));
+        $typeResults = [];
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
             $rollback = createGlobalRollbackSnapshot('before-' . $reason, [], false);
             $checkpointAvailable = true;
-            $typeResults = []; $retention = [];
+            $retention = [];
             foreach (FVPLUS_ALLOWED_TYPES as $type) {
                 $retention[$type] = getTypeBackupRetention($type);
                 $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason, false)];
@@ -132,6 +129,9 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             } catch (Throwable $rollbackError) {
                 $notify('failed');
                 throw new RuntimeException($error->getMessage() . ' ' . $rollbackError->getMessage(), 0, $error);
+            }
+            foreach ($typeResults as $type => $result) {
+                if (isset($result['backup']['name'])) @unlink(getBackupSnapshotPath($type, $result['backup']['name']));
             }
             $notify('complete');
             throw new RuntimeException($error->getMessage() . ' All changed configuration was restored.', 0, $error);

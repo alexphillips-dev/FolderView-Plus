@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/lib.folder-membership.php';
+require_once __DIR__ . '/lib.docker-page-order.php';
 function dockerSyncOrderLockPath(): string {
         global $configDir;
         if (!is_dir($configDir)) {
@@ -31,15 +32,6 @@ function dockerSyncOrderLockPath(): string {
         return file_exists(dockerSyncOrderPendingPath());
     }
 
-    function fvplus_append_unique_name(array &$list, array &$seen, string $name): void {
-        $name = trim($name);
-        if ($name === '' || isset($seen[$name])) {
-            return;
-        }
-        $list[] = $name;
-        $seen[$name] = true;
-    }
-
     function fvplus_set_autostart_line_delay(string $line, int $delay): string {
         $parts = preg_split('/\s+/', trim($line), 2);
         $name = (string)($parts[0] ?? '');
@@ -49,62 +41,18 @@ function dockerSyncOrderLockPath(): string {
         return $delay > 0 ? $name . ' ' . $delay : $name;
     }
 
-    function dockerPageHasFolderSort(array $prefs): bool {
-        return ($prefs['sortMode'] ?? 'created') !== 'created' || !empty($prefs['pinnedFolderIds']);
-    }
-
-    function composeDockerSavedOrder(array $nativeOrder, array $orderedFolders, array $prefs): array {
-        $folderPlaceholders = array_map(static fn($id) => 'folder-' . $id, array_keys($orderedFolders));
-        $folderTokens = array_fill_keys($folderPlaceholders, true);
-        $sortSlots = dockerPageHasFolderSort($prefs);
-        $slotIndex = 0;
-        $seen = [];
-        $nextOrder = [];
-        foreach ($nativeOrder as $entry) {
-            $value = trim((string)$entry);
-            if ($sortSlots && isset($folderTokens[$value])) $value = $folderPlaceholders[$slotIndex++] ?? '';
-            // An unknown folder-prefixed token may be a real container name.
-            fvplus_append_unique_name($nextOrder, $seen, $value);
-        }
-        // Folders without a host slot keep their established top placement.
-        $missing = array_values(array_diff($folderPlaceholders, $nextOrder));
-        return array_merge($missing, $nextOrder);
-    }
-
-    function buildDockerPageOrderModel(array $currentOrder, array $orderedFolders, array $prefs, array $allContainerNames): array {
-        $savedOrder = composeDockerSavedOrder($currentOrder, $orderedFolders, $prefs);
-        $slotFolders = [];
-        $sortSlots = dockerPageHasFolderSort($prefs);
-        $preferredIds = $sortSlots ? orderFolderBranchIds($orderedFolders, $prefs['pinnedFolderIds'] ?? []) : [];
-        foreach ($savedOrder as $entry) {
-            if (strpos($entry, 'folder-') !== 0) continue;
-            $id = substr($entry, 7);
-            if (!isset($orderedFolders[$id])) continue;
-            if ($sortSlots) $id = $preferredIds[count($slotFolders)];
-            $slotFolders[$id] = $orderedFolders[$id];
-        }
-        // The render starts with a saved-name reconciliation and appends newly discovered rows.
-        natcasesort($allContainerNames);
-        $names = array_values(array_unique(array_merge(array_intersect($savedOrder, $allContainerNames), $allContainerNames)));
-        return [
-            'displayFolderIds' => array_keys($slotFolders),
-            'pageFolderIds' => orderFolderBranchIds($slotFolders, [], true),
-            'names' => $names
-        ];
-    }
-
     function buildDockerStartOrderContext(?array $verifiedInventory = null): array {
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
-        $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
-        $currentPrefs = file_exists($prefsFile) ? @parse_ini_file($prefsFile) : false;
-        $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
+        $currentOrder = readDockerNativePageOrder();
 
         $folders = readRawFolderMap('docker', true);
 
         $allContainerNames = [];
+        $nativeRows = [];
         if ($verifiedInventory === null) {
             $dockerClient = new DockerClient();
-            foreach ((array)fvplusReadDockerHostValue(static fn() => $dockerClient->getDockerContainers(), true) as $containerMeta) {
+            $nativeRows = (array)fvplusReadDockerHostValue(static fn() => $dockerClient->getDockerContainers(), true);
+            foreach ($nativeRows as $containerMeta) {
                 $name = trim((string)($containerMeta['Name'] ?? ''));
                 if ($name === '' || in_array($name, $allContainerNames, true)) {
                     continue;
@@ -119,8 +67,22 @@ function dockerSyncOrderLockPath(): string {
             $allContainerNames = array_map('strval', array_keys($infoByName));
         }
 
+        $unlistedNativeNames = [];
+        if (($prefs['dockerStartOrder']['mode'] ?? '') === 'docker-page'
+            && ($prefs['dockerRowPlacement'] ?? '') === 'saved-order' && empty($prefs['groupUnassignedItems'])
+            && count(array_diff($allContainerNames, $currentOrder)) > 1) {
+            if ($verifiedInventory !== null) {
+                // Only this mode needs the native tiebreaker for multiple unsaved rows.
+                try {
+                    $nativeRows = (array)fvplusReadDockerHostValue(static fn() => (new DockerClient())->getDockerContainers());
+                } catch (Throwable $error) {
+                    fv3_debug_log('Docker startup preview could not verify the native order of unsaved rows.');
+                }
+            }
+            $unlistedNativeNames = dockerPageUnslottedNames($nativeRows, $currentOrder, is_file(FVPLUS_DOCKER_PAGE_ORDER_PATH));
+        }
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders, $prefs);
-        $pageModel = buildDockerPageOrderModel($currentOrder, $orderedFolders, $prefs, $allContainerNames);
+        $pageModel = buildDockerPageOrderModel($currentOrder, $orderedFolders, $prefs, $allContainerNames, $unlistedNativeNames);
         $snapshot = fvplusBuildMembershipSnapshot('docker', $orderedFolders, $rules, $infoByName, $pageModel['names'], $pageModel['displayFolderIds']);
         $folderContainers = []; $folderNames = []; $assignedContainers = [];
         foreach ($orderedFolders as $folderId => $folder) {
@@ -154,7 +116,6 @@ function dockerSyncOrderLockPath(): string {
 
         return [
             'prefs' => $prefs,
-            'currentPrefs' => $currentPrefs,
             'currentOrder' => $currentOrder,
             'folders' => $folders,
             'orderedFolders' => $orderedFolders,
@@ -164,6 +125,7 @@ function dockerSyncOrderLockPath(): string {
             'allContainerNames' => array_values($allContainerNames),
             'pageContainerNames' => $pageModel['names'],
             'pageFolderIds' => $pageModel['pageFolderIds'],
+            'pageOrder' => $pageModel['pageOrder'],
             'autoStartFile' => $autoStartFile,
             'autoStartContent' => $autoStartContent,
             'autoStartMap' => $autoStartMap,
@@ -171,21 +133,27 @@ function dockerSyncOrderLockPath(): string {
         ];
     }
 
-    function buildDockerPageStartOrder(array $context): array {
+    function buildDockerPageStartOrder(array $context, bool $followSavedLayout = true): array {
         $folderContainers = (array)($context['folderContainers'] ?? []);
         $assignedContainers = array_fill_keys($context['assignedContainers'], true);
+        $prefs = $context['prefs'] ?? [];
+        $useMixedOrder = $followSavedLayout && ($prefs['dockerRowPlacement'] ?? 'folders-first') === 'saved-order'
+            && ($prefs['groupUnassignedItems'] ?? false) !== true && isset($context['pageOrder']);
+        $entries = $useMixedOrder ? $context['pageOrder'] : array_merge(
+            array_map(static fn($id) => ['folder', $id], $context['pageFolderIds']),
+            array_map(static fn($name) => ['container', $name], $context['pageContainerNames'])
+        );
         $newOrder = [];
         $seen = [];
-        foreach ($context['pageFolderIds'] as $id) {
+        foreach ($entries as [$kind, $id]) {
+            if ($kind === 'container') {
+                if (!isset($assignedContainers[$id])) fvplus_append_unique_name($newOrder, $seen, (string)$id);
+                continue;
+            }
             foreach ($folderContainers['folder-' . $id] ?? [] as $name) {
                 fvplus_append_unique_name($newOrder, $seen, (string)$name);
             }
         }
-
-        foreach ($context['pageContainerNames'] as $name) {
-            if (!isset($assignedContainers[$name])) fvplus_append_unique_name($newOrder, $seen, (string)$name);
-        }
-
         return $newOrder;
     }
 
@@ -194,7 +162,7 @@ function dockerSyncOrderLockPath(): string {
         $folderContainers = (array)($context['folderContainers'] ?? []);
         $autoStartMap = (array)($context['autoStartMap'] ?? []);
         $nativeNames = array_map('strval', array_keys($autoStartMap));
-        $pageOrder = buildDockerPageStartOrder($context);
+        $pageOrder = buildDockerPageStartOrder($context, false);
         $plannedOrder = [];
         $seen = [];
         $batchesOut = [];

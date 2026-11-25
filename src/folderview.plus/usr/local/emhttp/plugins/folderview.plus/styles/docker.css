@@ -163,13 +163,13 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
 }
 .fvplus-docker-page-title {
     position: absolute;
-    left: 0;
-    top: 0;
+    inset-inline-start: 0;
+    inset-block-start: 0;
     display: block;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    text-align: left;
+    text-align: start;
     line-height: 1.2;
     pointer-events: none;
     color: var(--fvplus-theme-foreground);

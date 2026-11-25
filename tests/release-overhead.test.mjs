@@ -118,8 +118,8 @@ test('dev finalization verifies the generated and staged SBOM before committing'
             execFileSync(process.execPath, ['scripts/generate_sbom.mjs'], { cwd: f.directory, stdio: 'pipe' });
             const base = f.commit('Published fixture');
             f.git('branch', '-M', 'dev');
-            f.write('src/runtime.js', 'fixture source update\n');
-            f.git('add', 'src/runtime.js');
+            f.write('src/folderview.plus/runtime.js', 'fixture source update\n');
+            f.git('add', 'src/folderview.plus/runtime.js');
 
             const result = spawnSync('bash', ['scripts/dev_finalize.sh', '--no-push', '--message', 'Finalize fixture'], {
                 cwd: f.directory, encoding: 'utf8'
@@ -138,6 +138,81 @@ test('dev finalization verifies the generated and staged SBOM before committing'
             }
         });
     }
+});
+
+test('documentation-only dev finalization retains the published package and version', shellOnly, t => {
+    const f = fixture(t);
+    f.copy('scripts/lib.sh');
+    f.copy('scripts/dev_finalize.sh');
+    f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.01">\n');
+    f.write('archive/fixture.txz', 'existing package bytes\n');
+    f.write('pkg_build.sh', 'echo unexpected-build >&2\nexit 55\n');
+    const base = f.commit('Published package');
+    f.git('branch', '-M', 'dev');
+    f.write('README.md', 'Documentation update\n');
+    f.git('add', 'README.md');
+    const result = spawnSync('bash', ['scripts/dev_finalize.sh', '--no-push', '--message', 'Revise documentation'], {
+        cwd: f.directory, encoding: 'utf8'
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /keeping the current package/);
+    assert.equal(f.git('diff', '--name-only', base, 'HEAD'), 'README.md');
+    assert.equal(f.git('show', 'HEAD:archive/fixture.txz'), 'existing package bytes');
+});
+
+test('pre-push rejects a dev candidate other than the clean checked-out commit', shellOnly, t => {
+    const f = fixture(t);
+    f.copy('.githooks/pre-push');
+    f.write('scripts/main_branch_history_guard.sh', ':\n');
+    f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.01">\n');
+    const checkedOut = f.commit('Valid package');
+    f.git('checkout', '-b', 'candidate');
+    f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.02">\n');
+    const candidate = f.commit('Candidate missing its package');
+    f.git('checkout', '--detach', checkedOut);
+    const runHook = ref => spawnSync('bash', ['.githooks/pre-push'], {
+        cwd: f.directory, input: `refs/heads/candidate ${ref} refs/heads/dev ${checkedOut}\n`, encoding: 'utf8',
+        env: { ...process.env, FVPLUS_SKIP_WORKSPACE_PERFORMANCE: '1', GITHUB_ACTIONS: '' }
+    });
+    const wrongTree = runHook(candidate);
+    assert.notEqual(wrongTree.status, 0);
+    assert.match(wrongTree.stderr, /clean checkout of the exact commit/);
+    assert.doesNotMatch(wrongTree.stdout, /Running release guard checks/);
+    f.git('checkout', '--detach', candidate);
+    f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.01">\n');
+    const changedTree = runHook(candidate);
+    assert.notEqual(changedTree.status, 0);
+    assert.match(changedTree.stderr, /clean checkout of the exact commit/);
+    assert.doesNotMatch(changedTree.stdout, /Running release guard checks/);
+});
+
+test('only tracked source enters package staging and redirected tracked paths fail closed', shellOnly, t => {
+    const f = fixture(t);
+    f.copy('scripts/lib.sh');
+    f.write('.gitignore', 'tmp/\n');
+    const trackedSource = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.js';
+    f.write(trackedSource, 'tracked source\n');
+    f.commit('Package source');
+    f.write('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/tmp/local-notes.md', 'ignored fixture\n');
+    f.write('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/untracked.txt', 'untracked fixture\n');
+    const staging = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-package-input-'));
+    t.after(() => fs.rmSync(staging, { recursive: true, force: true }));
+    const copyInput = () => spawnSync('bash', ['-c', 'set -euo pipefail\nsource scripts/lib.sh\nfvplus::copy_indexed_package_source "$PWD" "$1"', 'fixture', staging],
+        { cwd: f.directory, encoding: 'utf8' });
+    const result = copyInput();
+    assert.equal(result.status, 0, result.stderr);
+    const packagedPlugin = path.join(staging, 'usr/local/emhttp/plugins/folderview.plus');
+    assert.deepEqual(fs.readdirSync(packagedPlugin), ['scripts']);
+    assert.equal(fs.readFileSync(path.join(packagedPlugin, 'scripts/runtime.js'), 'utf8'), 'tracked source\n');
+
+    f.write('redirected/runtime.js', 'redirect target\n');
+    const originalDirectory = path.dirname(path.join(f.directory, trackedSource));
+    fs.renameSync(originalDirectory, `${originalDirectory}-original`);
+    fs.symlinkSync(path.join(f.directory, 'redirected'), originalDirectory);
+    const redirected = copyInput();
+    assert.notEqual(redirected.status, 0);
+    assert.match(redirected.stderr, /indexed package source is missing or redirected/);
+    assert.equal(fs.readFileSync(path.join(packagedPlugin, 'scripts/runtime.js'), 'utf8'), 'tracked source\n');
 });
 
 test('synchronization planner rejects stale main before executing repository scripts', shellOnly, t => {
@@ -167,6 +242,7 @@ test('synchronization planner rejects stale main before executing repository scr
 test('tag-only pre-push avoids repeated guards but mixed main pushes require candidate verification', shellOnly, t => {
     const f = fixture(t);
     f.copy('.githooks/pre-push');
+    f.write('.gitignore', 'hook.log\n');
     for (const name of ['main_branch_history_guard', 'dev_version_bump_guard', 'release_guard', 'install_smoke',
         'include_order_guard', 'dead_code_guard', 'perf_budget_guard']) {
         f.write(`scripts/${name}.sh`, `echo ${name} >> hook.log\n`);

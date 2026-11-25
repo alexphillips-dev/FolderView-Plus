@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "content-revision": "2c592eed50771635445107c44159a206f98c225016eeaf5acd4c1f9c61fd8c04"
+        "content-revision": "947ece035e56ec80a4b1d7d779fdc81fb8441c7f4ec7ac35ed249324f846f77f"
     },
     "common.unassigned-group.title": "Nicht zugeordnete Elemente",
     "runtime.action.requests-result": "$1 angenommen · $2 fehlgeschlagen",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Import abgeschlossen.",
     "common.repair.delete-failed-8727e2": "Das Löschen ist fehlgeschlagen",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Erstellen Sie einen Rollback-Punkt, bevor Sie etwas löschen.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Sicherheitssicherung übersprungen: Keine zu schützenden Ordner vorhanden.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Es wurde keine Sicherungsdatei erstellt, da die Ordnerzuordnung leer ist.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Aktualisierung der Einstellungstabelle und Backups.",
     "common.repair.folder-deleted-048562": "Ordner gelöscht.",
     "common.repair.all-folders-cleared-a7b85c": "Alle Ordner gelöscht.",

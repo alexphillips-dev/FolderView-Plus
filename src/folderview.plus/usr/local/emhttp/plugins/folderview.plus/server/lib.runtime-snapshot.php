@@ -112,14 +112,16 @@ function runtimeSnapshotOrderFromEntities(string $type, array $runtime): array {
     return array_values($names);
 }
 
-function readRuntimeSnapshotConfigUnlocked(string $type): array {
+function readRuntimeSnapshotConfigUnlocked(string $type, ?array $dockerLiveNames = null): array {
     $safeType = ensureType($type);
     $folders = json_decode(readFolder($safeType), true);
     if (!is_array($folders)) {
         $folders = [];
     }
     $prefs = readTypePrefs($safeType);
-    $order = json_decode(readUserPrefs($safeType), true);
+    $order = $safeType === 'docker' && $dockerLiveNames !== null
+        ? composeDockerSavedOrder(readDockerNativePageOrder(), $folders, $prefs, $dockerLiveNames)
+        : json_decode(readUserPrefs($safeType), true);
     if (!is_array($order)) {
         $order = [];
     }
@@ -132,10 +134,10 @@ function readRuntimeSnapshotConfigUnlocked(string $type): array {
     ];
 }
 
-function readRuntimeSnapshotConfig(string $type): array {
+function readRuntimeSnapshotConfig(string $type, ?array $dockerLiveNames = null): array {
     $safeType = ensureType($type);
-    return withConfigMutationLock(static function () use ($safeType): array {
-        return readRuntimeSnapshotConfigUnlocked($safeType);
+    return withConfigMutationLock(static function () use ($safeType, $dockerLiveNames): array {
+        return readRuntimeSnapshotConfigUnlocked($safeType, $dockerLiveNames);
     });
 }
 
@@ -238,7 +240,8 @@ function buildRuntimeSnapshot(
         $runtime = [];
     }
 
-    $config = readRuntimeSnapshotConfig($safeType);
+    $dockerLiveNames = $safeType === 'docker' && $safeMode !== 'config' ? array_map('strval', array_keys($runtime)) : null;
+    $config = readRuntimeSnapshotConfig($safeType, $dockerLiveNames);
     $unraidOrder = $safeMode === 'config' ? [] : runtimeSnapshotOrderFromEntities($safeType, $runtime);
     $runtimeSignature = runtimeSnapshotSignature($safeType, $runtime);
     $snapshotToken = runtimeSnapshotToken($safeType, $config, $unraidOrder, $runtimeSignature);

@@ -343,6 +343,10 @@ next_stable_version_for_date() {
 
 should_package_file() {
     local file_path="${1:-}"
+    local basename="${file_path##*/}"
+    case "${basename,,}" in
+        pkg_build.sh|sftp-config.json) return 1 ;;
+    esac
     case "$file_path" in
         ./usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/*)
             return 1
@@ -564,20 +568,14 @@ fi
 # dry-run exit preserves pkg_build.sh's standalone metadata-probe contract.
 # shellcheck source=scripts/lib.sh
 source "$CWD/scripts/lib.sh"
-fvplus::require_commands node
+fvplus::require_commands node git realpath
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 mkdir -p "$CWD/tmp"
 mkdir -p "$archive_dir"
 tmpdir="$(mktemp -d "$CWD/tmp/build.XXXXXX")"
 
-cd "$CWD/src/folderview.plus"
-while IFS= read -r -d '' file; do
-    if ! should_package_file "$file"; then
-        continue
-    fi
-    cp --parents -f "$file" "$tmpdir/"
-done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" \) -print0)
+fvplus::copy_indexed_package_source "$CWD" "$tmpdir" should_package_file
 
 plugin_package_root="$tmpdir/usr/local/emhttp/plugins/folderview.plus"
 "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "$CWD/scripts/package_page_format.mjs")" \

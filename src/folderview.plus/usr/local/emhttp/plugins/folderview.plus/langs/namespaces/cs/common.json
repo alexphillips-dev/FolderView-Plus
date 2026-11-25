@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "content-revision": "e3aa3300c249c00ef2129d0b386c6b2ae7745d5855fac22237617920c85d4001"
+        "content-revision": "999091fa8ff4f06c4efed5a76ce9c3e3bb21303d4269cfae15279c32077691ad"
     },
     "common.unassigned-group.title": "Nepřiřazené položky",
     "runtime.action.requests-result": "Přijato $1 · Selhalo $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Import dokončen.",
     "common.repair.delete-failed-8727e2": "Smazání se nezdařilo",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Vytvoření bodu vrácení před odstraněním čehokoli.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Bezpečnostní záloha přeskočena: žádné složky k ochraně.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Nebyl vytvořen žádný záložní soubor, protože mapa složek je prázdná.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Obnovení tabulky nastavení a záloh.",
     "common.repair.folder-deleted-048562": "Složka byla smazána.",
     "common.repair.all-folders-cleared-a7b85c": "Všechny složky byly vymazány.",

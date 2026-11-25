@@ -14,15 +14,16 @@
                 sources = [];
             }
             for (const source of sources) {
-                await new Promise((resolve, reject) => {
+                const loaded = await new Promise((resolve) => {
                     const script = root.document.createElement('script');
                     script.src = source;
                     script.async = false;
                     script.dataset.fvplusDockerLegacyCustom = 'true';
-                    script.addEventListener('load', resolve, { once: true });
-                    script.addEventListener('error', () => reject(new Error('A Docker custom script could not be loaded.')), { once: true });
+                    script.addEventListener('load', () => resolve(true), { once: true });
+                    script.addEventListener('error', () => resolve(false), { once: true });
                     (root.document.head || root.document.documentElement).appendChild(script);
                 });
+                if (!loaded) root.console?.warn?.('A Docker custom script could not be loaded.');
             }
         })();
         return customScriptsPromise;

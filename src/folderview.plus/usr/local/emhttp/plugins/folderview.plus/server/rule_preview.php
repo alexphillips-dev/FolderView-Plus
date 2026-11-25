@@ -1,4 +1,5 @@
 <?php
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') define('FVPLUS_READ_ONLY_REQUEST', true);
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 fvplus_json_try(function (): array {

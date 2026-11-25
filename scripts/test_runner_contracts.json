@@ -154,7 +154,7 @@
     { "file": "tests/browser/cases/docker-folder-menu-state.mjs", "limit": 120, "owner": "Docker folder shortcut states and removal presentation", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/cases/docker-nested-folder-menu.mjs", "limit": 90, "owner": "Nested preview native folder-menu interactions", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
     { "file": "tests/browser/cases/docker-folder-feedback.mjs", "limit": 108, "owner": "Docker folder action feedback and accessible status breakdown across navigation", "requiredImports": ["../helpers/docker-folder-menu-host.mjs"] },
-    { "file": "tests/browser/cases/vm-runtime-recovery.mjs", "limit": 170, "owner": "Mounted VM runtime recovery, native ordering and Quick Finder parity", "requiredImports": ["../helpers/filter-view-settings-host.mjs"] },
+    { "file": "tests/browser/cases/vm-runtime-recovery.mjs", "limit": 213, "owner": "Mounted VM runtime recovery, native ordering and Quick Finder parity", "requiredImports": ["../helpers/filter-view-settings-host.mjs"] },
     { "file": "tests/browser/helpers/docker-folder-menu-host.mjs", "limit": 50, "owner": "synthetic Docker folder context markup with production actions", "requiredImports": ["./docker-hierarchy-move-host.mjs"] },
     { "file": "scripts/lib/fixture-browser-config.mjs", "limit": 30, "owner": "fixture environment configuration" },
     { "file": "scripts/lib/fixture-browser-profile.mjs", "limit": 30, "owner": "explicit browser fixture profiles with full-suite preservation" },
@@ -163,10 +163,10 @@
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
     { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs", "../helpers/docker-page-start-order.mjs", "./docker-row-placement.mjs"] },
-    { "file": "tests/browser/cases/docker-row-placement.mjs", "limit": 74, "owner": "Docker display order across preference changes and refresh", "requiredImports": ["../helpers/docker-hide-empty-host.mjs"] },
+    { "file": "tests/browser/cases/docker-row-placement.mjs", "limit": 131, "owner": "Docker display order across preference changes and refresh", "requiredImports": ["../helpers/docker-hide-empty-host.mjs"] },
     { "file": "tests/browser/helpers/docker-folder-grouping.mjs", "limit": 35, "owner": "canonical Docker grouping, standalone bottom placement and native node preservation" },
-    { "file": "tests/browser/helpers/docker-page-start-order.mjs", "limit": 47, "owner": "Docker row order and PHP startup plan parity" },
-    { "file": "tests/browser/cases/dashboard-tile-loading.mjs", "limit": 140, "owner": "independent Dashboard loading and overlapping host refreshes" },
+    { "file": "tests/browser/helpers/docker-page-start-order.mjs", "limit": 56, "owner": "Docker row order and PHP startup plan parity" },
+    { "file": "tests/browser/cases/dashboard-tile-loading.mjs", "limit": 167, "owner": "independent Dashboard loading and overlapping host refreshes" },
     { "file": "tests/browser/cases/dashboard-lifecycle.mjs", "limit": 365, "owner": "fixture Dashboard and VM lifecycle cases" },
     { "file": "tests/browser/helpers/vm-lifecycle.mjs", "limit": 45, "owner": "fixture VM pause and resume assertions", "requiredImports": ["./vm-lifecycle-dispatch.mjs"] },
     { "file": "tests/browser/helpers/vm-lifecycle-dispatch.mjs", "limit": 45, "owner": "out-of-order VM actions and native AJAX failures" },
@@ -369,10 +369,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 206,
-      "assertionCount": 2477,
-      "pageEvaluateCount": 863,
-      "orderedTitleSha256": "070e8d100f3a64eabefa0e18facfb8f2f7eda0d43755cc141afb09db52cb4a7f"
+      "testCount": 211,
+      "assertionCount": 2494,
+      "pageEvaluateCount": 869,
+      "orderedTitleSha256": "69e92d63004b8525fd4b192ac1a967d93b095a6a1081e562b92d0b2d3234e805"
     }
   }
 }

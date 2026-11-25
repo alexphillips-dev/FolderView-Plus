@@ -11,7 +11,7 @@ const dockerJs = fs.readFileSync(
     'utf8'
 );
 const serverRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
-const libPhp = ['lib.php', 'lib.docker-order.php']
+const libPhp = ['lib.php', 'lib.docker-order.php', 'lib.docker-page-order.php']
     .map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8'))
     .join('\n');
 const require = createRequire(import.meta.url);
@@ -266,7 +266,7 @@ test('docker read order response preserves mixed slots while applying folder sor
     const body = readUserPrefsMatch[1];
     assert.match(body, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders, \$prefs\);/);
     assert.match(body, /\$order = composeDockerSavedOrder\(\$order, \$orderedFolders, \$prefs\);/);
-    assert.match(libPhp, /\$savedOrder = composeDockerSavedOrder\(\$currentOrder, \$orderedFolders, \$prefs\);/);
+    assert.match(libPhp, /\$savedOrder = composeDockerSavedOrder\(\$currentOrder, \$orderedFolders, \$prefs, \$allContainerNames\);/);
 });
 
 test('docker order sync reads but does not write Docker userprefs', () => {
@@ -274,7 +274,59 @@ test('docker order sync reads but does not write Docker userprefs', () => {
     assert.ok(contextMatch, 'buildDockerStartOrderContext body should be present');
     const body = contextMatch[1];
     assert.match(body, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
-    assert.match(body, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);
+    assert.match(body, /\$currentOrder = readDockerNativePageOrder\(\);/);
+    assert.match(libPhp, /function readDockerNativePageOrder\(\): array \{[\s\S]*?is_file\(\$path\) \? @parse_ini_file\(\$path\) : false;/);
     assert.doesNotMatch(body, /file_put_contents\(\$prefsFile/);
     assert.doesNotMatch(body, /wrote userprefs\.cfg/);
+});
+
+test('Docker page startup expands saved mixed slots and leaves explicit custom and unmanaged modes alone', () => {
+    const folders = {
+        alpha: { name: 'Alpha', containers: ['alpha-member'] },
+        child: { name: 'Child', parentId: 'alpha', containers: ['child-member'] },
+        beta: { name: 'Beta', containers: ['beta-member'] }
+    };
+    const native = ['folder-alpha', 'loose', 'folder-child', 'folder-beta'];
+    const names = ['beta-member', 'loose', 'alpha-member', 'child-member', 'new'];
+    const prefs = { sortMode: 'created', dockerRowPlacement: 'saved-order' };
+    const input = { folders, native, names, prefs };
+    const mixed = phpOrder(input);
+    assert.deepEqual(mixed.order, ['alpha-member', 'child-member', 'loose', 'beta-member', 'new']);
+    assert.deepEqual(mixed.autostartOrder, mixed.order);
+    assert.deepEqual(mixed.sequence.map(({ name }) => name), mixed.order);
+    assert.deepEqual(phpOrder({ ...input, prefs: { ...prefs, groupUnassignedItems: true } }).order,
+        ['alpha-member', 'child-member', 'beta-member', 'loose', 'new']);
+    assert.deepEqual(phpOrder({ ...input, startOrder: { mode: 'unmanaged' } }).order, names);
+    const custom = { mode: 'custom-batches', remaining: 'after', batches: [] };
+    assert.deepEqual(phpOrder({ ...input, startOrder: custom }).order,
+        phpOrder({ ...input, prefs: { ...prefs, dockerRowPlacement: 'folders-first' }, startOrder: custom }).order);
+});
+
+test('PHP saved order preserves a native container name colliding with a sorted folder slot', () => {
+    const folders = { alpha: { name: 'Alpha', containers: ['one'] }, beta: { name: 'Beta', containers: ['two'] } };
+    const names = ['one', 'two', 'loose', 'folder-alpha'];
+    const native = ['loose', 'folder-alpha', 'folder-beta'];
+    const plan = phpOrder({ folders, names, native, prefs: { sortMode: 'alpha', dockerRowPlacement: 'saved-order' } });
+    assert.deepEqual(plan.savedOrder, native);
+    assert.deepEqual(plan.order, ['one', 'loose', 'folder-alpha', 'two']);
+});
+
+test('Docker startup places unsaved containers last in the same relative order as native host rows', () => {
+    const input = {
+        folders: { apps: { name: 'Apps', containers: ['member'] } },
+        prefs: { dockerRowPlacement: 'saved-order' },
+        native: ['folder-apps', 'standalone'],
+        names: ['aaa', 'zzz', 'member', 'standalone'],
+        nativeRows: [
+            { Image: 'z-image', Name: 'aaa' },
+            { Image: 'a-image', Name: 'zzz' },
+            { Image: 'app', Name: 'member' },
+            { Image: 'front', Name: 'standalone' }
+        ]
+    };
+    const existingNativeFile = phpOrder({ ...input, hasNativeOrderFile: true });
+    assert.deepEqual(existingNativeFile.order, ['member', 'standalone', 'zzz', 'aaa']);
+    assert.deepEqual(existingNativeFile.autostartOrder, existingNativeFile.order);
+    const nativeFallback = phpOrder({ ...input, native: [] });
+    assert.deepEqual(nativeFallback.order, ['member', 'aaa', 'zzz', 'standalone']);
 });

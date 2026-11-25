@@ -35,7 +35,7 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 export const registerFilterViewSettingsFixes = ({ test }) => {
     registerVmRuntimeRecoveryCases({ test });
 
-    test('Filters and view settings save and reload Docker row placement independently of native ordering', async ({ page }) => {
+    test('Filters and view settings save Docker row placement after a cached page restore and reload', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         const placement = page.locator('#docker-view-settings #docker-row-placement');
         const nativeWrites = [];
@@ -49,6 +49,10 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
             assert.equal(await placement.inputValue(), 'folders-first');
             assert.equal(await placement.isVisible(), true);
             assert.equal(await page.locator('#vm-view-settings [id$="-row-placement"]').count(), 0);
+            await page.evaluate(() => {
+                window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+                window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+            });
             for (const value of ['saved-order', 'folders-first']) {
                 const sent = page.waitForRequest(request => request.url().includes('/server/prefs.php') && request.method() === 'POST');
                 await placement.selectOption(value);

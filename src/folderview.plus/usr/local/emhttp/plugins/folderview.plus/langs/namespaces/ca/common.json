@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "content-revision": "0d4320ffa624e8d44bd97da5bcfa8975ff42a5d73528014f997a990dacc81920"
+        "content-revision": "8a7ca9e935a597e472f8e33287c392e4b311bd673b98d0a5340ddeca885a667e"
     },
     "common.unassigned-group.title": "Elements sense assignar",
     "runtime.action.requests-result": "$1 acceptades · $2 fallides",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importació completada.",
     "common.repair.delete-failed-8727e2": "No s'ha pogut suprimir",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Creació d'un punt de retrocés abans de suprimir qualsevol cosa.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "S'ha omès la còpia de seguretat de seguretat: no hi ha carpetes per protegir.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "No s'ha creat cap fitxer de còpia de seguretat perquè el mapa de carpetes està buit.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Actualització de la taula de configuració i còpies de seguretat.",
     "common.repair.folder-deleted-048562": "S'ha suprimit la carpeta.",
     "common.repair.all-folders-cleared-a7b85c": "S'han esborrat totes les carpetes.",

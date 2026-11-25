@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "legacy-surface",
-        "content-revision": "147bd19b6bd8b22649e4eff32b073fa0b3593bfb66b7f4140cf1f2f387597d97"
+        "content-revision": "39761ad7a5cf2e0f6da87904a21ffcc8b8976a0328860203f1afe43345f4611d"
     },
     "legacy.surface.0008eb7acd3f7a56": "無法大量移動",
     "legacy.surface.0012950979762d8c": "選擇要還原、下載或刪除的快照。",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker 執行時詳細資料部分不可用",
     "legacy.surface.a9ff80bb0824fdc2": "備份準備好了。",
     "legacy.surface.aa1897c8cf834c13": "安全 DOM 建構拒絕屬性：$1",
-    "legacy.surface.aa2181b424db8468": "備份就緒：$1",
     "legacy.surface.aa3090909390156a": "切換 $1",
     "legacy.surface.aa3d3ea5337856c8": "匯入檔案必須包含 JSON 物件。",
     "legacy.surface.aa54cbf3d0764800": "無法從還原快照還原。",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "直接成員/總成員（包括巢狀資料夾）",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus 保持「設定」頁面開啟，但某些資料或進階模組無法載入。",
     "legacy.surface.c3ba312a7f9ba04e": "自動分配突出顯示：$1",
-    "legacy.surface.c3d9b0b812065b73": "已建立還原點",
     "legacy.surface.c3f148bfdf3af882": "放入資料夾中",
     "legacy.surface.c3fc3cce1b150b2f": "未知的請求錯誤",
     "legacy.surface.c42210be655c49df": "FolderView Plus 無法完成載入 $1",

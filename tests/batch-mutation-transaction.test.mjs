@@ -18,6 +18,15 @@ test('batch and bulk writers compensate metadata failures without false rollback
     }
 });
 
+test('failed Settings batch removes only its own checkpoint after exact rollback', () => {
+    for (const type of ['docker', 'vm']) {
+        const result = runConfigWriteFixture({ type, operation: 'batch', checkpointBatch: true });
+        assert.match(result.error, /Automatic rollback restored the original configuration/);
+        assert.deepEqual(result.after, result.before);
+        assert.deepEqual(result.checkpointBatch.retained, [result.checkpointBatch.original]);
+    }
+});
+
 test('preference metadata failure after a batch folder commit restores exact payloads and revisions', () => {
     for (const type of ['docker', 'vm']) {
         const result = runConfigWriteFixture({ type, operation: 'batch', kind: 'prefs' });
@@ -162,6 +171,49 @@ try {
 } catch (RuntimeException $error) {
     $stalePrefsRejected = str_contains($error->getMessage(), 'changed in another page or browser tab');
 }
+$stalePrefsPreservedFolders = $beforeStaleMoveFolders === file_get_contents(getFolderFilePath('vm'));
+$stalePrefsPreservedPrefs = $beforeStaleMovePrefs === file_get_contents(getTypePrefsPath('vm'));
+
+$settingsPrefs = readTypePrefs('vm');
+$settingsPrefs['backupSchedule']['retention'] = 1;
+writeTypePrefs('vm', $settingsPrefs);
+$genuine = createBackupSnapshot('vm', 'before-folder-editor-bulk-move')['name'];
+$reviewedRevision = readConfigMetadata('vm', true)['folderRevision'];
+updateFolder('vm', json_encode(array_merge(readRawFolderMap('vm')['keep'], ['name' => 'Peer rename'])), 'keep', $reviewedRevision);
+$afterPeer = readRawFolderMap('vm');
+$delete = ['deletes' => ['keep'], 'backupReason' => 'before-delete-keep'];
+$import = ['creates' => [['folder' => ['name' => 'Imported']]], 'backupReason' => 'before-import-transaction-merge'];
+$rejected = [];
+foreach ([$delete, $import] as $settingsBatch) {
+    try { applyFolderBatchOperations('vm', $settingsBatch, $reviewedRevision); }
+    catch (FVPlusConfigConflictException $error) { $rejected[] = $settingsBatch['backupReason']; }
+}
+$staleSettingsPreserved = $afterPeer === readRawFolderMap('vm');
+$retainedAfterStale = array_column(listBackupSnapshots('vm'), 'name');
+$fresh = applyFolderBatchOperations('vm', $delete, readConfigMetadata('vm', true)['folderRevision']);
+$snapshot = readBackupSnapshot('vm', $fresh['backup']['name']);
+$retainedAfterFresh = array_column(listBackupSnapshots('vm'), 'name');
+$currentRevision = readConfigMetadata('vm', true)['folderRevision'];
+$beforeImport = readRawFolderMap('vm');
+$freshImport = applyFolderBatchOperations('vm', $import, $currentRevision);
+$importSnapshot = readBackupSnapshot('vm', $freshImport['backup']['name']);
+$importRestorable = $importSnapshot['folders'] === $beforeImport
+    && $importSnapshot['configurationMetadata']['folderRevision'] === $currentRevision;
+
+$profileMembers = array_map(static fn($i): string => 'app-' . $i, range(1, FVPLUS_WEBUI_PROFILE_MAX_MEMBERS + 1));
+$profileFolder = ['name' => 'Profile fixture', 'containers' => $profileMembers, 'settings' => [
+    'webui_profiles' => [['name' => 'Launch', 'containers' => $profileMembers]]
+]];
+$profileBefore = readRawFolderMap('docker');
+$profileRevision = readConfigMetadata('docker', true)['folderRevision'];
+$profileRejected = false;
+try {
+    applyFolderBatchOperations('docker', [
+        'creates' => [['folder' => $profileFolder]], 'backupReason' => 'before-import-transaction-replace'
+    ], $profileRevision);
+} catch (InvalidArgumentException $error) { $profileRejected = true; }
+$profilePreserved = $profileBefore === readRawFolderMap('docker') && empty(listBackupSnapshots('docker'))
+    && $profileRevision === readConfigMetadata('docker', true)['folderRevision'];
 
 echo json_encode([
     'result' => $result,
@@ -182,8 +234,15 @@ echo json_encode([
     'movedParentId' => $movedFolders['child']['parentId'],
     'movedManualOrder' => $movedPrefs['manualOrder'],
     'stalePrefsRejected' => $stalePrefsRejected,
-    'stalePrefsPreservedFolders' => $beforeStaleMoveFolders === file_get_contents(getFolderFilePath('vm')),
-    'stalePrefsPreservedPrefs' => $beforeStaleMovePrefs === file_get_contents(getTypePrefsPath('vm'))
+    'stalePrefsPreservedFolders' => $stalePrefsPreservedFolders,
+    'stalePrefsPreservedPrefs' => $stalePrefsPreservedPrefs,
+    'settings' => [
+        'genuine' => $genuine, 'rejected' => $rejected, 'stalePreserved' => $staleSettingsPreserved,
+        'retainedAfterStale' => $retainedAfterStale, 'confirmedBackup' => $fresh['backup']['name'],
+        'backupFolderName' => $snapshot['folders']['keep']['name'], 'retainedAfterFresh' => $retainedAfterFresh,
+        'deleted' => $fresh['deletedIds'], 'importRestorable' => $importRestorable, 'created' => $freshImport['createdIds'],
+        'profileRejected' => $profileRejected, 'profilePreserved' => $profilePreserved
+    ]
 ], JSON_UNESCAPED_SLASHES);
 `;
 
@@ -230,6 +289,7 @@ test('server batch mutation validates first and commits one atomic folder revisi
     assert.equal(output.stalePreservedFolders, true, 'stale batches must not overwrite newer folder data');
     assert.equal(output.stalePreservedRevision, true, 'stale batches must not advance metadata');
     assert.equal(output.moveResult.updatedIds[0], 'child');
+    assert.equal(output.moveResult.updatedFolder.parentId, 'keep');
     assert.equal(output.moveAfter.folderRevision, output.moveBefore.folderRevision + 1);
     assert.equal(output.moveAfter.prefsRevision, output.moveBefore.prefsRevision + 1);
     assert.equal(output.movedParentId, 'keep');
@@ -237,6 +297,16 @@ test('server batch mutation validates first and commits one atomic folder revisi
     assert.equal(output.stalePrefsRejected, true);
     assert.equal(output.stalePrefsPreservedFolders, true);
     assert.equal(output.stalePrefsPreservedPrefs, true);
+    assert.deepEqual(output.settings.rejected, ['before-delete-keep', 'before-import-transaction-merge']);
+    assert.equal(output.settings.stalePreserved, true);
+    assert.deepEqual(output.settings.retainedAfterStale, [output.settings.genuine]);
+    assert.equal(output.settings.backupFolderName, 'Peer rename');
+    assert.deepEqual(output.settings.retainedAfterFresh, [output.settings.confirmedBackup]);
+    assert.deepEqual(output.settings.deleted, ['keep']);
+    assert.equal(output.settings.importRestorable, true);
+    assert.equal(output.settings.created.length, 1);
+    assert.equal(output.settings.profileRejected, true);
+    assert.equal(output.settings.profilePreserved, true);
 });
 
 test('batch endpoint is guarded, bounded, and delegates one transaction', () => {
@@ -257,10 +327,10 @@ test('imports and deletes use one batch request instead of per-folder endpoints'
     assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
     assert.match(fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.folder-editor.js'), 'utf8'), /await requestFolderBatchMutation\(resolvedType, \{/);
-    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}, \{ expectedRevision \}\)/);
+    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}, \{ expectedRevision, backupReason \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);
     assert.doesNotMatch(importRuntime, /runImportChunked/);
-    assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}\)/);
+    assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}, \{ expectedRevision, backupReason:/);
     assert.doesNotMatch(clearFlow, /await new Promise\(\(resolve\) => setTimeout\(resolve, (?:180|650)\)\)/);
 });
 

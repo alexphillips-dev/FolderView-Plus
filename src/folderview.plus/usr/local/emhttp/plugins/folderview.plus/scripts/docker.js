@@ -984,7 +984,7 @@ const buildDockerIsolatedViewDeps = () => ({
     escapeHtml: (value) => escapeHtml(value),
     parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
     normalizeDockerRuntimeInfoMap: (source, previousMap = null) => normalizeDockerRuntimeInfoMap(source, previousMap),
-    reorderFolderSlotsInBaseOrder: (baseOrder, folders, prefs) => reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs),
+    reorderFolderSlotsInBaseOrder: (baseOrder, folders, prefs, containersInfo) => reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, containersInfo),
     buildFolderDepthById: (folders) => buildFolderDepthById(folders),
     buildFolderHierarchy: (folders) => buildFolderHierarchy(folders),
     buildFolderMatchCache: (orderSnapshot, containersInfo, folders, prefs) =>
@@ -2022,21 +2022,22 @@ const buildFolderDepthById = (folders) => runtimeFolderOrdering.buildFolderDepth
     maxDepth: 8
 });
 
-const isKnownDockerFolderToken = (entry, folders) => folderRegex.test(entry)
-    && Object.prototype.hasOwnProperty.call(folders || {}, entry.slice(7));
+const isKnownDockerFolderToken = (entry, folders, containersInfo) =>
+    dockerFolderGroupingModule.isSavedFolderToken(entry, containersInfo) && Object.hasOwn(folders || {}, entry.slice(7));
 
-const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => (
+const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs, containersInfo) => (
     runtimeFolderOrdering.reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, {
-        orderFolders: utils.orderFolderIdsByPrefs,
+        orderFolders: (folderMap, sortPrefs) => utils.orderFolderIdsByPrefs(folderMap, sortPrefs)
+            .filter(id => dockerFolderGroupingModule.isSavedFolderToken(`folder-${id}`, containersInfo)),
         folderTokenPrefix: 'folder-',
-        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders)
+        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders, containersInfo)
     })
 );
 
-const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => (
+const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders, containersInfo) => (
     runtimeFolderOrdering.reconcileOrderWithFolderSlots(liveOrder, savedOrder, folders, {
         folderTokenPrefix: 'folder-',
-        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders)
+        isFolderToken: (entry) => isKnownDockerFolderToken(entry, folders, containersInfo)
     })
 );
 
@@ -3111,7 +3112,8 @@ const buildDockerStateSignature = (source, fromStateMode = false) => {
 const buildDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => utils.buildFolderMatchCache({
     type: 'docker', folders: folders || {}, rules: prefs?.autoRules || [], infoByName: containersInfo || {},
     names: Array.isArray(orderSnapshot) ? orderSnapshot.filter(name => Object.prototype.hasOwnProperty.call(containersInfo || {}, name)) : [],
-    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : []).filter(name => typeof name === 'string' && name.startsWith('folder-') && Object.prototype.hasOwnProperty.call(folders || {}, name.slice(7))).map(name => name.slice(7))
+    displayFolderIds: (Array.isArray(orderSnapshot) ? orderSnapshot : [])
+        .filter(name => isKnownDockerFolderToken(name, folders, containersInfo)).map(name => name.slice(7))
 });
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-docker');
@@ -3558,14 +3560,12 @@ const readDockerContainerNameFromHostRow = (row) => {
     if (!(row instanceof HTMLElement)) {
         return '';
     }
+    const canonicalName = getDockerRuntimeInfoApi()?.getDockerHostRowContainerName(row);
+    if (canonicalName) return canonicalName;
+    const displayName = String($(row).find('td.ct-name .appname').first().text() || '').trim();
+    if (displayName) return displayName;
     const rawId = String(row.id || '').trim();
-    if (rawId.startsWith('ct-')) {
-        const nameFromId = rawId.slice(3).trim();
-        if (nameFromId) {
-            return nameFromId;
-        }
-    }
-    return String($(row).find('td.ct-name .appname').first().text() || '').trim();
+    return rawId.startsWith('ct-') ? rawId.slice(3).trim() : '';
 };
 
 const normalizeDockerNativeHostOrder = (payload) => {
@@ -3575,7 +3575,7 @@ const normalizeDockerNativeHostOrder = (payload) => {
     return values
         .map((entry) => String(entry || '').trim())
         .filter((entry) => {
-            if (!entry || folderRegex.test(entry) || seen.has(entry)) {
+            if (!entry || seen.has(entry)) {
                 return false;
             }
             seen.add(entry);
@@ -4696,7 +4696,7 @@ const createFolders = async () => {
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
     });
     const folderDepthById = buildFolderDepthById(folders);
-    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
+    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs, containersInfo);
     applyRuntimePrefs(folderTypePrefs);
     queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
@@ -4719,7 +4719,7 @@ const createFolders = async () => {
 
     // Preserve Unraid's saved folder/container slots; append newly discovered rows.
     const liveOrderBeforeReconciliation = [...order];
-    const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
+    const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders, containersInfo);
     order = reconciledOrder.order;
     const newOnes = reconciledOrder.newOnes;
     const placementPrefs = dockerPrefsCoordinator?.getConfirmedPrefs?.('docker') || folderTypePrefs;
@@ -4772,7 +4772,7 @@ const createFolders = async () => {
     dockerPerf.begin('createFolders.renderOrdered');
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
-        if (container && folderRegex.test(container)) {
+        if (isKnownDockerFolderToken(container, folders, containersInfo)) {
             let id = container.replace(folderRegex, '');
             if (folders[id]) {
                 const removedCount = createFolder(
@@ -4798,7 +4798,7 @@ const createFolders = async () => {
     const remainingFolders = utils.orderFolderEntriesByPrefs(folders, folderTypePrefs).reverse();
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
-        order.unshift(`folder-${id}`);
+        order.unshift(dockerFolderGroupingModule.folderSlotToken(id, containersInfo));
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Unshifted folder-${id} to order. New order:`, [...order]);
         createFolder(
             value,
@@ -4992,7 +4992,7 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
 
 // Render one folder transactionally and return the number of earlier order entries moved.
 // The recovery controller restores native rows if rendering fails.
-const createFolder = (...args) => dockerFolderRenderRecovery.render(args[0], args[1], args[3], () => renderDockerFolder(...args));
+const createFolder = (...args) => dockerFolderRenderRecovery.render(args[0], args[1], args[3], () => renderDockerFolder(...args), dockerFolderGroupingModule.folderSlotToken(args[1], args[4]));
 
 const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     id = normalizeFolderId(id);
@@ -5253,7 +5253,9 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
         order: orderSnapshotAtFolderStart,
         completedFolderIds: foldersDone,
-        currentFolderId: id
+        currentFolderId: id,
+        isFolderToken: entry => Boolean(dockerFolderGroupingModule.readOrderFolderId(entry, containersInfo)),
+        toFolderToken: folderId => dockerFolderGroupingModule.folderSlotToken(folderId, containersInfo)
     });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Filtered customOrder based on orderSnapshotAtFolderStart:`, [...customOrderCursor.snapshot()]);
 
@@ -7530,22 +7532,9 @@ const refreshDockerRuntimeStateInPlace = (options = {}) => {
 const readDockerHostOrderFromDom = () => {
     const order = [];
     document.querySelectorAll('#docker_list > tr.sortable').forEach((row) => {
-        const safeRow = row instanceof HTMLElement ? row : null;
-        if (!safeRow || safeRow.classList.contains('folder')) {
-            return;
-        }
-        const rawId = String(safeRow.id || '').trim();
-        if (rawId.startsWith('ct-')) {
-            const nameFromId = rawId.slice(3).trim();
-            if (nameFromId) {
-                order.push(nameFromId);
-                return;
-            }
-        }
-        const textName = String($(safeRow).find('td.ct-name .appname').first().text() || '').trim();
-        if (textName) {
-            order.push(textName);
-        }
+        if (row.classList.contains('folder')) return;
+        const name = readDockerContainerNameFromHostRow(row);
+        if (name) order.push(name);
     });
     return order;
 };
@@ -7709,7 +7698,7 @@ function buildDockerFolderReq(options = {}) {
             source: 'folders',
             label: 'Docker folder definitions'
         }),
-        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
+        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker&native=1', {
             source: 'folder-order',
             label: 'Docker folder order'
         }),
@@ -7893,10 +7882,14 @@ const scheduleFolderViewPlusDockerStartOrderSync = () => {
 };
 
 $(document).ajaxComplete((event, xhr, settings = {}) => {
-    const url = String(settings.url || '');
-    const data = String(settings.data || '');
-    const isOrderSave = url.endsWith('/plugins/dynamix.docker.manager/include/UserPrefs.php') && data.includes('names=');
-    const isAutostartSave = url.includes('/plugins/dynamix.docker.manager/include/UpdateConfig.php') && /action=(autostart|wait)/.test(data);
+    if (!(xhr?.status >= 200 && xhr.status < 300)) return;
+    const url = String(settings.url || '').split('?')[0];
+    const isUserPrefs = url.endsWith('/plugins/dynamix.docker.manager/include/UserPrefs.php');
+    const isNativeConfig = url.endsWith('/plugins/dynamix.docker.manager/include/UpdateConfig.php');
+    if (!isUserPrefs && !isNativeConfig) return;
+    const data = new URLSearchParams(settings.data);
+    const isOrderSave = isUserPrefs && (data.has('names') || data.has('reset'));
+    const isAutostartSave = isNativeConfig && ['autostart', 'wait'].includes(data.get('action'));
     if (isOrderSave || isAutostartSave) {
         scheduleFolderViewPlusDockerStartOrderSync();
     }

@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/lib.legacy-regex-conversion.php';
 
-    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null, $expectedRevision = null, bool $createSafetyBackup = false): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null, $expectedRevision = null,
+        bool $createSafetyBackup = false, ?string $safetyBackupReason = null): array {
         $type = ensureType($type);
         if ($createSafetyBackup && (!is_scalar($expectedRevision) || !ctype_digit((string)$expectedRevision) || (int)$expectedRevision < 1)) {
             throw new RuntimeException('Invalid expected configuration revision.');
         }
+        $safetyBackupReason ??= $createSafetyBackup ? 'before-folder-editor-bulk-move' : null;
         if (count($assignments) <= 0) {
             throw new RuntimeException('At least one folder assignment is required.');
         }
@@ -61,7 +63,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             }
         }
 
-        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem, $expectedRevision, $createSafetyBackup): array {
+        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem, $expectedRevision, $safetyBackupReason): array {
             if ($expectedRevision !== null) assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             $startedAt = microtime(true);
             $originalFolders = readRawFolderMap($type);
@@ -102,11 +104,10 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                 unset($folder);
 
                 foreach ($normalizedByFolder as $folderId => $requested) {
-                    $targetMembers = normalizeFolderMembers($nextFolders[$folderId]['containers'] ?? []);
-                    foreach (array_keys($requested) as $name) {
-                        if (!in_array($name, $targetMembers, true)) {
-                            $targetMembers[] = $name;
-                        }
+                    $targetMembers = array_merge(normalizeFolderMembers($nextFolders[$folderId]['containers'] ?? []),
+                        array_map('strval', array_keys($requested)));
+                    if (count($targetMembers) > folderNormalizationCollectionLimit('containers')) {
+                        throw new RuntimeException('Bulk assignment exceeds the maximum item count.');
                     }
                     $nextFolders[$folderId]['containers'] = $targetMembers;
                 }
@@ -123,13 +124,15 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
 
             $dockerSync = null;
             $backup = null;
+            $committedFolders = $originalFolders;
             if (count($changedFolderIds) > 0) {
                 $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
                 try {
-                    if ($createSafetyBackup) $backup = createBackupSnapshot($type, 'before-folder-editor-bulk-move', false);
+                    if ($safetyBackupReason !== null) $backup = createBackupSnapshot($type, $safetyBackupReason, false);
                     writeRawFolderMap($type, $nextFolders);
                     if ($type === 'docker') $dockerSync = syncContainerOrder('docker');
-                    if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))) {
+                    $committedFolders = readRawFolderMap($type);
+                    if (jsonObjectsDiffer($nextFolders, $committedFolders)) {
                         throw new RuntimeException('Bulk assignment transaction verification failed.');
                     }
                 } catch (Throwable $error) {
@@ -151,7 +154,8 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             $assignedCount = 0;
             $skippedInvalidCount = 0;
             foreach ($normalizedByFolder as $folderId => $requested) {
-                $assigned = array_keys($requested);
+                $members = array_fill_keys(normalizeFolderMembers($committedFolders[$folderId]['containers'] ?? []), true);
+                $assigned = array_keys(array_intersect_key($requested, $members));
                 $skippedInvalid = array_values($skippedByFolder[$folderId] ?? []);
                 $assignedCount += count($assigned);
                 $skippedInvalidCount += count($skippedInvalid);
@@ -193,7 +197,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                 'changedFolderCount' => count($changedFolderIds),
                 'dockerOrderSynced' => ($dockerSync['syncOutcome'] ?? null) === 'synced',
                 'durationMs' => $durationMs,
-                ...($createSafetyBackup ? ['backup' => $backup] : []),
+                ...($safetyBackupReason !== null ? ['backup' => $backup] : []),
                 'metadata' => readConfigMetadata($type, false)
             ];
         });

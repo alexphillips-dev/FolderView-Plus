@@ -28,6 +28,7 @@ const libPhp = readServerGraph([
     'lib.custom-icon-references.php',
     'lib.custom-icon-repair.php',
     'lib.docker-order.php',
+    'lib.docker-page-order.php',
     'lib.runtime-info.php'
 ]);
 const runtimeConflictBootstrap = fs.readFileSync(path.join(
@@ -191,9 +192,11 @@ test('lib.php coalesces docker order sync and uses lightweight state snapshots',
     assert.match(libPhp, /markDockerSyncOrderPending\(\)[\s\S]*?return \['syncOutcome' => 'queued'\];/);
     assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
     assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
-    assert.match(libPhp, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);
+    assert.match(libPhp, /function buildDockerStartOrderContext\([^)]*\): array \{[\s\S]*?\$currentOrder = readDockerNativePageOrder\(\);/);
+    assert.match(libPhp, /const FVPLUS_DOCKER_PAGE_ORDER_PATH = '\/boot\/config\/plugins\/dockerMan\/userprefs\.cfg';/);
+    assert.match(libPhp, /function readDockerNativePageOrder\(\): array \{\s*\$path = FVPLUS_DOCKER_PAGE_ORDER_PATH;\s*\$parsed = is_file\(\$path\) \? @parse_ini_file\(\$path\) : false;/);
     assert.match(libPhp, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
-    assert.doesNotMatch(libPhp, /file_put_contents\(\$prefsFile/);
+    assert.doesNotMatch(libPhp, /file_put_contents\(\s*(?:\$prefsFile\b|FVPLUS_DOCKER_PAGE_ORDER_PATH\b)/);
     assert.match(libPhp, /if \(\(string\)\$currentAutoStartContent !== \$nextAutoStartContent\) \{/);
 });
 

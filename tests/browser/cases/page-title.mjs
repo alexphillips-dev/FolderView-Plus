@@ -2,6 +2,33 @@ import assert from 'node:assert/strict';
 import { createPageTitleHost } from '../helpers/page-title-host.mjs';
 
 export const registerPageTitleCases = ({ test }) => {
+    test('Docker page title reserves logical start space in the Arabic toolbar', async ({ page }) => {
+        const host = await createPageTitleHost(page, true, 'ar');
+        host.prefs().pageTitle = { enabled: true, text: 'Fixture title' };
+        try {
+            await page.goto(`${host.baseUrl}/docker`, { waitUntil: 'load' });
+            await page.waitForFunction(() => document.documentElement.dir === 'rtl'
+                && document.getElementById('fvplus-docker-page-title')?.offsetWidth > 30);
+            const geometry = () => page.locator('#fvplus-docker-page-title').evaluate(title => {
+                const area = title.getBoundingClientRect();
+                const parent = title.parentElement.getBoundingClientRect();
+                const native = document.getElementById('fixture-basic').getBoundingClientRect();
+                return { left: area.left, right: area.right, parentLeft: parent.left, parentRight: parent.right,
+                    nativeLeft: native.left, nativeRight: native.right };
+            });
+            const rtl = await geometry();
+            assert.ok(Math.abs(rtl.right - rtl.parentRight) <= 1);
+            if ((await page.viewportSize()).width > 600) assert.ok(rtl.left >= rtl.nativeRight);
+            await page.evaluate(() => { document.documentElement.dir = 'ltr'; });
+            await page.waitForFunction(() => {
+                const title = document.getElementById('fvplus-docker-page-title');
+                return Math.abs(title.getBoundingClientRect().left - title.parentElement.getBoundingClientRect().left) <= 1;
+            });
+        } finally {
+            try { await page.goto('about:blank'); } finally { await host.close(); }
+        }
+    }, { skipAccessibility: true });
+
     test('Docker page title safely renders in all page views with native and fallback toolbars', async ({ page }) => {
         for (const nativeToolbar of [true, false]) {
             const host = await createPageTitleHost(page, nativeToolbar);

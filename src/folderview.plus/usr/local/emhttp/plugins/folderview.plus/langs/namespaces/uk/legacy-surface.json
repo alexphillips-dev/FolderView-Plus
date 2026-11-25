@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "legacy-surface",
-        "content-revision": "70fed24f3ad12ca5f6c0341246fafb29c9eb1b7a85c0d740b1699e30a823c350"
+        "content-revision": "e976cd1702b99a3493e9fb3a2cee71a2a9cca5357d12d3efe47dc23c1a0eb721"
     },
     "legacy.surface.0008eb7acd3f7a56": "Масове переміщення недоступне",
     "legacy.surface.0012950979762d8c": "Виберіть знімок для відновлення, завантаження чи видалення.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Деталі середовища виконання Docker були частково недоступні",
     "legacy.surface.a9ff80bb0824fdc2": "Резервне копіювання готове.",
     "legacy.surface.aa1897c8cf834c13": "Безпечна конструкція DOM відхилено атрибут: $1",
-    "legacy.surface.aa2181b424db8468": "Резервне копіювання готове: $1",
     "legacy.surface.aa3090909390156a": "Перемкнути $1",
     "legacy.surface.aa3d3ea5337856c8": "Файл імпорту має містити об’єкт JSON.",
     "legacy.surface.aa54cbf3d0764800": "Не вдалося відкотити відновлення.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Прямі учасники / загальна кількість учасників, включаючи вкладені папки",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus залишав сторінку налаштувань відкритою, але деякі дані або розширені модулі не вдалося завантажити.",
     "legacy.surface.c3ba312a7f9ba04e": "Автоматичне призначення виділень: $1",
-    "legacy.surface.c3d9b0b812065b73": "створена точка відкату",
     "legacy.surface.c3f148bfdf3af882": "Помістити в папку",
     "legacy.surface.c3fc3cce1b150b2f": "Невідома помилка запиту",
     "legacy.surface.c42210be655c49df": "FolderView Plus не вдалося завершити завантаження $1",

@@ -7,7 +7,9 @@ emitNoCachePageHeaders();
 try {
     fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-    echo readUserPrefs($type);
+    echo $type === 'docker' && ($_GET['native'] ?? '') === '1'
+        ? json_encode(readDockerNativePageOrder())
+        : readUserPrefs($type);
 } catch (Throwable $e) {
     http_response_code(400);
     echo json_encode([

@@ -8,9 +8,18 @@ import { execFileSync } from 'node:child_process';
 const root = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/';
 const read = file => fs.readFileSync(root + file, 'utf8');
 const settings = read('scripts/folderviewplus.js');
+const section = (source, start, end) => source.slice(source.indexOf(start), source.indexOf(end));
 const refreshSource = settings.slice(settings.indexOf('const refreshType = async'), settings.indexOf('const getAdvancedModuleLoadEntry'));
 const diagnostics = read('scripts/folderviewplus.activity-diagnostics.js');
 const watchdog = read('scripts/folderviewplus.settings-watchdog.js');
+const refreshState = () => ({
+    optimisticFoldersByType: { docker: null, vm: null },
+    folderSnapshotsByType: { docker: { folders: {}, revision: null, sequence: 0 }, vm: { folders: {}, revision: null, sequence: 0 } },
+    settingsRefreshSequence: { docker: 0, vm: 0 },
+    settingsRuntimeRefreshSequence: { docker: 0, vm: 0 }
+});
+const refreshObservers = Object.fromEntries(['recordFatalBannerAction', 'setFatalBannerPhase', 'markFatalBannerStep',
+    'recordSettingsDashboardLayoutHydration', 'setFatalBannerPrefsStatus', 'recordPerformanceDiagnosticsSample'].map(name => [name, () => {}]));
 
 test('server-rendered loading text and early timeout messages are localized before JavaScript catalogs arrive', () => {
     const review = JSON.parse(fs.readFileSync('scripts/lib/i18n_reviewed_startup.json', 'utf8'));
@@ -39,20 +48,19 @@ test('Docker and VM hydration classify cold loads at request start, including co
         const pending = new Promise((yes, no) => { resolve = yes; reject = no; });
         const samples = [];
         const context = vm.createContext({
+            ...refreshState(), ...refreshObservers, diagnosticsPrefsCoordinator: null,
             settingsUiState: { initialized: !cold }, perfNowMs: () => 100,
             fetchSettingsCoreSnapshot: () => pending,
-            fetchFolders: async () => ({}), fetchPrefs: async () => ({}), fetchTypeInfo: async () => ({}),
+            fetchFolders: async () => ({ folders: {}, folderRevision: null }), fetchPrefs: async () => ({}), fetchTypeInfo: async () => ({}),
             utils: { normalizePrefs: value => value, normalizeFolderMap: value => value },
             prefsByType: {}, infoByType: {}, runtimeHydrationStateByType: {},
-            recordPerformanceDiagnosticsSample: (...args) => samples.push(args),
-            ...Object.fromEntries(['recordFatalBannerAction', 'setFatalBannerPhase', 'markFatalBannerStep',
-                'recordSettingsDashboardLayoutHydration', 'setFatalBannerPrefsStatus', 'setTypeFolders'].map(name => [name, () => {}]))
+            recordPerformanceDiagnosticsSample: (...args) => samples.push(args)
         });
         vm.runInContext(refreshSource + '\nglobalThis.refresh = refreshType;', context);
         const result = context.refresh(type, { render: false });
         context.settingsUiState.initialized = true;
         if (fallback) reject(new Error('Synthetic snapshot failure'));
-        else resolve({ folders: {}, prefs: {}, info: {}, runtimeIncluded: true });
+        else resolve({ folders: {}, folderRevision: 0, prefs: {}, info: {}, runtimeIncluded: true });
         assert.equal((await result).hasErrors, false);
         assert.equal(samples.length, 1);
         assert.equal(samples[0][1], type);
@@ -60,6 +68,64 @@ test('Docker and VM hydration classify cold loads at request start, including co
         assert.equal(samples[0][3].classificationVersion, 2);
         assert.equal(samples[0][3].dataSource, fallback ? 'runtime-legacy-fallback' : 'runtime-snapshot');
     }
+});
+
+test('Settings rejects late folder state and pairs revisions to the folder map despite a newer peer preference', async () => {
+    const pending = [];
+    const renders = [];
+    const context = vm.createContext({
+        ...refreshState(), ...refreshObservers,
+        normalizeManagedType: value => value,
+        settingsUiState: { initialized: true }, perfNowMs: () => 0,
+        fetchSettingsCoreSnapshot: () => new Promise(resolve => pending.push(resolve)),
+        utils: { normalizePrefs: value => value },
+        diagnosticsPrefsCoordinator: null, prefsByType: {}, infoByType: {}, runtimeHydrationStateByType: {},
+        renderTable: type => renders.push(Object.keys(context.folderSnapshotsByType[type].folders))
+    });
+    vm.runInContext([
+        section(settings, 'const readSettingsFolderRevision =', 'const refreshTreeIntegrityState ='),
+        refreshSource,
+        'globalThis.refresh = refreshType; globalThis.readRevision = readFolderConfigurationRevision;'
+    ].join('\n'), context);
+    const old = context.refresh('docker', { configOnly: true });
+    const fresh = context.refresh('docker', { configOnly: true });
+    pending[1]({ folders: { kept: {} }, folderRevision: 2, prefs: { _metadata: { prefsRevision: 2, folderRevision: 2 } } });
+    await fresh;
+    context.prefsByType.docker = { _metadata: { prefsRevision: 3, folderRevision: 4 } };
+    assert.equal(context.readRevision('docker'), 2);
+    pending[0]({ folders: { kept: {}, removed: {} }, folderRevision: 1, prefs: { _metadata: { prefsRevision: 2, folderRevision: 1 } } });
+    await old;
+    assert.deepEqual(renders.at(-1), ['kept']);
+    assert.equal(context.readRevision('docker'), 2);
+    assert.equal(context.prefsByType.docker._metadata.prefsRevision, 3);
+    assert.equal(context.readRevision('vm'), null);
+    const legacy = context.refresh('docker', { configOnly: true });
+    pending[2]({ folders: { unversioned: {} }, folderRevision: null, prefs: {} });
+    await legacy;
+    assert.deepEqual(renders.at(-1), ['kept']);
+    assert.equal(context.readRevision('docker'), 2);
+});
+
+test('Settings keeps its bindings across a persisted pagehide and releases them on actual exit', () => {
+    const events = new EventTarget();
+    const disposed = [];
+    const context = vm.createContext({
+        window: Object.assign(events, { FolderViewPlusCspEvents: { unregisterOwner: owner => disposed.push(owner) } }),
+        settingsStorageWriter: { flush: () => disposed.push('storage') },
+        disposeSettingsSearch: () => disposed.push('search'),
+        dockerPageTitleSettings: { dispose: () => disposed.push('title') },
+        viewSettingsRangeLifecycle: { destroy: () => disposed.push('range') },
+        viewSettingsUiStateStore: { destroy: () => disposed.push('store') },
+        viewSettingsChangeController: { destroy: () => disposed.push('controller') }
+    });
+    vm.runInContext(section(settings, "window.addEventListener('pagehide', function releaseSettingsPage", 'const renderStatusControls ='), context);
+    const pagehide = persisted => events.dispatchEvent(Object.assign(new Event('pagehide'), { persisted }));
+    pagehide(true);
+    pagehide(true);
+    assert.deepEqual(disposed, []);
+    pagehide(false);
+    pagehide(false);
+    assert.deepEqual(disposed, ['storage', 'search', 'title', 'range', 'store', 'controller', 'settings']);
 });
 
 const loadDiagnostics = stored => {

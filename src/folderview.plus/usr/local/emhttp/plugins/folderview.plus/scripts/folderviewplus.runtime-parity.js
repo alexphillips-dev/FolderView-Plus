@@ -9,7 +9,7 @@ const normalizeManagedType = (type) => {
     }
     return normalized;
 };
-const typeFolders = (type) => (type === 'docker' ? dockers : vms);
+const typeFolders = (type) => optimisticFoldersByType[type] ?? folderSnapshotsByType[type].folders;
 
 const getManagedTypeLabel = (type) => (normalizeManagedType(type) === 'docker' ? 'Docker' : 'VM');
 const getManagedTypePluralLabel = (type) => (normalizeManagedType(type) === 'docker' ? 'Docker' : 'VMs');

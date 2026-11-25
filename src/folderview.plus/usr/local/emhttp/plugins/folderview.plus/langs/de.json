@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4796,
-        "total-source-messages": 4796,
+        "translated-messages": 4792,
+        "total-source-messages": 4792,
         "content-revision": "a88cfd24fbda9eb98a7780f1b403c2751bd8a0edffaf990896af5abc5269f9a8",
-        "locale-content-revision": "65093cb4cb6f187c84c4b8fa64e7a805d81c1e42cf2f690fd7439cfe7abc2bc0"
+        "locale-content-revision": "ddce44e5b429e5a296d8e57ae191b8320c84cc808791aa91df8bcbc32b1e7655"
     },
     "add-folder": "Ordner hinzufügen",
     "up-to-date": "aktuell",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "content-revision": "ffac7e0823ebec803779ff6e7d98374c5be4a99652f2d8514a7db9c19b2f0db0"
+        "content-revision": "115ac0502a18c2a7f621a8f8f2b6d00f77234b8e66bd1280e8d406d3efe79e69"
     },
     "common.unassigned-group.title": "Elementi non assegnati",
     "runtime.action.requests-result": "$1 accettate · $2 non riuscite",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importazione completata.",
     "common.repair.delete-failed-8727e2": "Eliminazione non riuscita",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Creazione di un punto di rollback prima di eliminare qualsiasi cosa.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Backup di sicurezza saltato: nessuna cartella da proteggere.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Non è stato creato alcun file di backup perché la mappa delle cartelle è vuota.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Aggiornamento della tabella delle impostazioni e dei backup.",
     "common.repair.folder-deleted-048562": "Cartella eliminata.",
     "common.repair.all-folders-cleared-a7b85c": "Tutte le cartelle sono state cancellate.",

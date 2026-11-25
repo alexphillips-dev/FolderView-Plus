@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "content-revision": "7767bbeb10fb9163624bd7ee07719b6a72d42f1302e86845a1d61caf9e168476"
+        "content-revision": "c223017fa81e7e8f86f10aa842059a0f9fb5e9b0685c94d0827cd9488ade82b7"
     },
     "common.unassigned-group.title": "Otilldelade objekt",
     "runtime.action.requests-result": "$1 godkända · $2 misslyckade",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importen slutförd.",
     "common.repair.delete-failed-8727e2": "Det gick inte att ta bort",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Skapa en återställningspunkt innan någonting tas bort.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Säkerhetskopiering hoppade över: inga mappar att skydda.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Ingen säkerhetskopia skapades eftersom mappkartan är tom.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Uppdaterar inställningstabell och säkerhetskopior.",
     "common.repair.folder-deleted-048562": "Mapp raderad.",
     "common.repair.all-folders-cleared-a7b85c": "Alla mappar har rensats.",

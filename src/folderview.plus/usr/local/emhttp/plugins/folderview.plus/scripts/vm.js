@@ -1234,7 +1234,7 @@ const hideVmRuntimeLoadingRow = () => {
     vmHostAdapter?.getBodies?.().forEach((body) => $(body).find('tr.fv-runtime-loading-row').remove());
 };
 
-const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr[id^="name-"]:not([child-id])';
+const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr[id^="name-"]:not([data-fv-vm-folder-detail])';
 const VM_NATIVE_TOGGLE_SELECTOR = 'a[onclick*="toggle_id("]';
 const VM_NATIVE_DETAIL_REQUEST_WINDOW_MS = 1600;
 let vmNativeDetailRowObserver = null;
@@ -1279,7 +1279,7 @@ const scheduleVmZebraRefresh = (delayMs = 32) => {
 const isVmNativeDetailRow = (row) => (
     row instanceof HTMLTableRowElement
     && String(row.id || '').startsWith('name-')
-    && !row.hasAttribute('child-id')
+    && !row.hasAttribute('data-fv-vm-folder-detail')
 );
 
 const getVmNativeDetailRowId = (row) => (
@@ -1327,10 +1327,6 @@ const findVmFolderOwnerIdForRow = (row) => {
     return match ? String(match[1] || '').trim() : '';
 };
 
-const isVmFolderExpanded = (folderId) => (
-    $(`[class~="dropDown-${String(folderId || '').trim()}"]`).attr('active') === 'true'
-);
-
 const findVmNativeToggleAnchorForDetailId = (detailId) => {
     const targetDetailId = String(detailId || '').trim();
     if (!targetDetailId) {
@@ -1363,7 +1359,7 @@ const findVmRuntimeRowForDetailId = (detailId) => {
     return null;
 };
 
-const collectExistingVmDetailRowsForVmRow = (vmRow, includeNativeChildren = false) => {
+const collectExistingVmDetailRowsForVmRow = (vmRow) => {
     if (!(vmRow instanceof HTMLTableRowElement)) {
         return [];
     }
@@ -1372,9 +1368,10 @@ const collectExistingVmDetailRowsForVmRow = (vmRow, includeNativeChildren = fals
         return [];
     }
     const detailRows = [];
+    const parentId = vmRow.getAttribute('parent-id');
     let sibling = vmRow.nextElementSibling;
-    while (sibling instanceof HTMLTableRowElement && sibling.id === detailId
-        && (includeNativeChildren || isVmNativeDetailRow(sibling))) {
+    while (isVmNativeDetailRow(sibling) && sibling.id === detailId
+        && (!sibling.hasAttribute('child-id') || sibling.getAttribute('child-id') === parentId)) {
         detailRows.push(sibling);
         sibling = sibling.nextElementSibling;
     }
@@ -1391,7 +1388,7 @@ const renderVmUnassignedGroup = () => {
     });
     vmUnassignedGroup.render(tbody, rows, {
         columnCount: rows[0]?.cells.length,
-        getRelatedRows: row => collectExistingVmDetailRowsForVmRow(row, true),
+        getRelatedRows: collectExistingVmDetailRowsForVmRow,
         onToggle: () => scheduleVmZebraRefresh(0)
     });
 };
@@ -1409,26 +1406,19 @@ const placeVmNativeDetailRowForOwner = (detailRow, vmRow) => {
     if (!isVmNativeDetailRow(detailRow) || !(vmRow instanceof HTMLTableRowElement)) {
         return false;
     }
+    const childId = detailRow.getAttribute('child-id');
+    if (childId !== null && vmRow.getAttribute('parent-id') !== childId) return false;
     const folderId = findVmFolderOwnerIdForRow(vmRow);
     return withVmNativeDetailAdoptionSuspended(() => {
-        if (folderId) {
-            applyVmFolderElementOwnership(detailRow, folderId);
-            detailRow.dataset.fvplusVmDetailAdopted = '1';
-            if (isVmFolderExpanded(folderId)) {
-                vmRow.after(detailRow);
-            } else {
-                const storage = document.querySelector(`tr[class~="folder-id-${folderId}"] .folder-storage`);
-                if (storage instanceof Element) {
-                    storage.appendChild(detailRow);
-                } else {
-                    vmRow.after(detailRow);
-                }
-            }
-            return true;
+        if (findVmFolderOwnerIdForRow(detailRow) !== folderId) {
+            if (folderId) applyVmFolderElementOwnership(detailRow, folderId);
+            else clearVmFolderElementOwnership(detailRow);
         }
-        clearVmFolderElementOwnership(detailRow);
         detailRow.dataset.fvplusVmDetailAdopted = '1';
-        vmRow.after(detailRow);
+        const adjacentDetails = collectExistingVmDetailRowsForVmRow(vmRow);
+        if (adjacentDetails.includes(detailRow)) return false;
+        const anchor = adjacentDetails.at(-1) || vmRow;
+        anchor.after(detailRow);
         return true;
     });
 };
@@ -1643,6 +1633,25 @@ const createFolders = async (currentBundle) => {
         delete folders[id];
     }
 
+    const hiddenEmptyFolderIds = new Set();
+    if (folderTypePrefs.hideEmptyFolders === true) {
+        const populatedBranches = new Set();
+        for (const [id, folder] of Object.entries(foldersDone)) {
+            if (!Object.keys(folder.containers || {}).length) continue;
+            let ancestor = id;
+            while (Object.hasOwn(foldersDone, ancestor) && !populatedBranches.has(ancestor)) {
+                populatedBranches.add(ancestor);
+                const definition = foldersDone[ancestor];
+                ancestor = normalizeFolderParentId(definition?.parentId || definition?.parent_id || '');
+            }
+        }
+        for (const id of Object.keys(foldersDone)) {
+            if (populatedBranches.has(id)) continue;
+            hiddenEmptyFolderIds.add(id);
+            $(`tr[class~="folder-id-${id}"], tr[data-fv-vm-folder-detail][child-id="${id}"]`).remove();
+        }
+    }
+
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     const expandedStateById = buildVmExpandedStateMap(
         { ...vmFolderRenderRecovery.failedFolders(), ...foldersDone },
@@ -1663,7 +1672,7 @@ const createFolders = async (currentBundle) => {
         : Number.POSITIVE_INFINITY;
     let restoredExpansionCount = 0;
     for (const id of expansionIds) {
-        if (expandedStateById[id] !== true) {
+        if (expandedStateById[id] !== true || hiddenEmptyFolderIds.has(id)) {
             continue;
         }
         const folder = foldersDone[id] || {};
@@ -1841,7 +1850,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" data-fvplus-style="fv-u-uydnfn"></td></tr><tr child-id="${id}" id="name-${id}" data-fvplus-style="fv-u-uydnfn"><td colspan="${totalCols}" data-fvplus-style="fv-u-lwesut"></td></tr>`;
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" data-fvplus-style="fv-u-uydnfn"></td></tr><tr child-id="${id}" id="name-${id}" data-fv-vm-folder-detail data-fvplus-style="fv-u-uydnfn"><td colspan="${totalCols}" data-fvplus-style="fv-u-lwesut"></td></tr>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -2063,11 +2072,6 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     //set tehe status of a folder
 
     const total = Object.entries(folder.containers).length;
-    if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
-        $(`tr[class~="folder-id-${id}"]`).remove();
-        $(`tr[id="name-${id}"]`).remove();
-        return remBefore;
-    }
     const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
     applyFolderAccentStyle($folderRow, folder.settings);

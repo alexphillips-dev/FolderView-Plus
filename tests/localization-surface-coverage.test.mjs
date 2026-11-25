@@ -22,12 +22,14 @@ test('every detected legacy UI phrase is represented by one stable generated key
     // Client rollback was retired; committed imports use the existing refresh warning.
     const retiredImportNotices = ['Automatic rollback restored backup: $1', 'No rollback backup available.',
         'Rollback failed: $1', 'Theme Workspace changed. Reload the Appearance tab if needed.'];
+    const retiredCheckpointNotices = ['Backup ready: $1', 'rollback point created'];
     const retiredEditorNotices = ['legacy.surface.6170d7f8c17bdf29', 'legacy.surface.9220b4922c4fbc06', 'legacy.surface.e31aec177cb21baa'];
     const promotedRuntimeKeys = ['confirm-action', 'confirm-details', 'no-eligible-detail', 'item-already-running',
         'item-already-stopped', 'item-already-paused', 'item-pause-requires-running', 'item-stopped', 'item-action-unsupported'];
-    assert.ok(surface.byPhrase.size >= 2993 - retiredImportNotices.length - retiredEditorNotices.length - promotedRuntimeKeys.length - 2,
+    const retiredNotices = [...retiredImportNotices, ...retiredCheckpointNotices];
+    assert.ok(surface.byPhrase.size >= 2993 - retiredNotices.length - retiredEditorNotices.length - promotedRuntimeKeys.length - 2,
         'retain the audited surfaces after replacing legacy runtime messages and result badges');
-    for (const phrase of retiredImportNotices) assert.equal(surface.byPhrase.has(phrase), false, phrase);
+    for (const phrase of retiredNotices) assert.equal(surface.byPhrase.has(phrase), false, phrase);
     for (const key of retiredEditorNotices) assert.equal(english[key], undefined, key);
     const settings = readJson(path.join(namespacesRoot, 'en/settings.json'));
     for (const key of promotedRuntimeKeys) assert.ok(settings[`settings.operations.${key}`], key);

@@ -15,6 +15,7 @@ const runtimeSnapshotClientPath = 'src/folderview.plus/usr/local/emhttp/plugins/
 const runtimeSnapshotLib = read(runtimeSnapshotLibPath);
 const runtimeSnapshotEndpoint = read(runtimeSnapshotEndpointPath);
 const runtimeSnapshotClient = read(runtimeSnapshotClientPath);
+const dockerPageOrderLib = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-page-order.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
@@ -120,8 +121,10 @@ test('runtime snapshot endpoint exposes a versioned, no-cache GET contract', () 
 
 test('snapshot assembly keeps configuration reads under one mutation boundary', () => {
     assert.match(runtimeSnapshotLib, /const FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1/);
-    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfigUnlocked\(string \$type\): array \{[\s\S]*readFolder\(\$safeType\)[\s\S]*readTypePrefs\(\$safeType\)[\s\S]*readUserPrefs\(\$safeType\)[\s\S]*readConfigMetadata\(\$safeType, true\)/);
-    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfig\(string \$type\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readRuntimeSnapshotConfigUnlocked\(\$safeType\)/);
+    const configReader = runtimeSnapshotLib.match(/^function readRuntimeSnapshotConfigUnlocked\([\s\S]*?^\}/m)?.[0] || '';
+    assert.match(configReader, /readFolder\(\$safeType\)[\s\S]*readTypePrefs\(\$safeType\)[\s\S]*readConfigMetadata\(\$safeType, true\)/);
+    assert.match(configReader, /\$safeType === 'docker' && \$dockerLiveNames !== null\s*\? composeDockerSavedOrder\(readDockerNativePageOrder\(\), \$folders, \$prefs, \$dockerLiveNames\)\s*: json_decode\(readUserPrefs\(\$safeType\), true\)/);
+    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfig\(string \$type, \?array \$dockerLiveNames = null\): array \{\s*\$safeType = ensureType\(\$type\);\s*return withConfigMutationLock\(static function \(\) use \(\$safeType, \$dockerLiveNames\): array \{\s*return readRuntimeSnapshotConfigUnlocked\(\$safeType, \$dockerLiveNames\);/);
     assert.match(runtimeSnapshotLib, /function buildRuntimeConfigBootstrapSnapshot\(\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readRuntimeSnapshotConfigUnlocked\('docker'\)[\s\S]*readRuntimeSnapshotConfigUnlocked\('vm'\)/);
     assert.match(runtimeSnapshotLib, /function runtimeSnapshotToken\([\s\S]*folderRevision[\s\S]*prefsRevision[\s\S]*runtimeSignature/);
     assert.match(runtimeSnapshotLib, /\$notModified = \$safeMode === 'check'[\s\S]*hash_equals\(\$snapshotToken, \$safeSinceToken\)/);
@@ -153,33 +156,55 @@ test('conditional runtime signatures notice matching metadata with unchanged sta
     assert.equal(new Set(signatures).size, 3);
 });
 
-test('snapshot tokens are mode-independent and unchanged checks omit payloads', () => {
+test('live snapshot tokens agree across state, full and check while config-only tokens omit runtime', () => {
+    const dockerOrderPhp = dockerPageOrderLib.slice(dockerPageOrderLib.indexOf('function fvplus_append_unique_name('),
+        dockerPageOrderLib.indexOf('function readDockerNativePageOrder('))
+        + dockerPageOrderLib.slice(dockerPageOrderLib.indexOf('function composeDockerSavedOrder('),
+            dockerPageOrderLib.indexOf('function buildDockerPageOrderModel('));
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",
         "function withConfigMutationLock(callable $callback) { return $callback(); }",
         "function readFolder(string $type): string { return json_encode(['folder-a' => ['name' => 'Media']]); }",
         "function readTypePrefs(string $type): array { return ['sortMode' => 'manual']; }",
-        "function readUserPrefs(string $type): string { return json_encode(['folder-folder-a', 'app']); }",
+        "function readDockerNativePageOrder(): array { return ['app']; }",
+        dockerOrderPhp,
+        "function readUserPrefs(string $type): string { return json_encode(composeDockerSavedOrder(readDockerNativePageOrder(), json_decode(readFolder($type), true), readTypePrefs($type))); }",
         "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => (int)($GLOBALS['snapshotTestFolderRevision'] ?? 7), 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
-        "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { if ($mode === 'full') { return ['app' => ['Id' => 'abc123000000full-docker-id', 'info' => ['Name' => 'app', 'State' => ['Running' => true, 'Paused' => false, 'Autostart' => true, 'Updated' => true]]]]; } return readInfoState($type); }",
-        "function readInfoState(string $type, bool $live = false): array { return ['app' => ['name' => 'app', 'id' => 'abc123000000', 'state' => 'running', 'running' => true, 'paused' => false, 'autostart' => true, 'Updated' => true]]; }",
+        `function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array {
+            $runtime = [];
+            foreach (['app' => 'abc123000000', 'folder-folder-a' => 'def123000000'] as $name => $id) {
+                $runtime[$name] = $mode === 'full'
+                    ? ['Id' => $id . 'full-docker-id', 'info' => ['Name' => $name, 'State' => ['Running' => true, 'Paused' => false, 'Autostart' => true, 'Updated' => true]]]
+                    : ['name' => $name, 'id' => $id, 'state' => 'running', 'running' => true, 'paused' => false, 'autostart' => true, 'Updated' => true];
+            }
+            return $runtime;
+        }`,
         requireRuntimeSnapshotLibPhp,
         "$state = buildRuntimeSnapshot('docker', 'state');",
         "$full = buildRuntimeSnapshot('docker', 'full');",
+        "$config = buildRuntimeSnapshot('docker', 'config');",
+        "$combinedConfig = buildRuntimeConfigBootstrapSnapshot()['snapshots']['docker'];",
         "$check = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
         "$GLOBALS['snapshotTestFolderRevision'] = 8;",
         "$changed = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
-        "echo json_encode(['stateToken' => $state['snapshotToken'], 'fullToken' => $full['snapshotToken'], 'check' => $check, 'changed' => $changed]);"
+        "echo json_encode(compact('state', 'full', 'config', 'combinedConfig', 'check', 'changed'));"
     ].join(' ');
     const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
-    assert.equal(result.stateToken, result.fullToken);
+    assert.deepEqual(result.state.order, ['app']);
+    assert.deepEqual(result.full.order, result.state.order);
+    assert.deepEqual(result.config.order, ['folder-folder-a', 'app']);
+    assert.equal(result.config.runtimeIncluded, false);
+    assert.equal(result.config.snapshotToken, result.combinedConfig.snapshotToken);
+    assert.notEqual(result.config.snapshotToken, result.state.snapshotToken);
+    assert.equal(result.state.snapshotToken, result.full.snapshotToken);
+    assert.equal(result.check.snapshotToken, result.state.snapshotToken);
     assert.equal(result.check.notModified, true);
     assert.equal(result.check.payloadIncluded, false);
     assert.equal(Object.hasOwn(result.check, 'folders'), false);
     assert.equal(Object.hasOwn(result.check, 'runtime'), false);
     assert.deepEqual(result.check.revisions, { folder: 7, prefs: 9 });
     assert.equal(result.changed.notModified, false);
-    assert.notEqual(result.changed.snapshotToken, result.stateToken);
+    assert.notEqual(result.changed.snapshotToken, result.state.snapshotToken);
     assert.deepEqual(result.changed.revisions, { folder: 8, prefs: 9 });
 });
 
@@ -404,7 +429,8 @@ test('Settings bootstrap paints config first and hydrates Docker and VM runtime 
     assert.match(settingsJs, /const fetchSettingsCoreSnapshot = async \(type, options = \{\}\) => \{[\s\S]*const mode = configOnly \? 'config' : 'state';[\s\S]*runtimeSnapshotApi\.buildUrl\(resolvedType, mode/);
     assert.match(settingsJs, /const fetchSettingsCombinedConfigSnapshots = async \(\) => \{[\s\S]*buildConfigBootstrapUrl[\s\S]*parseConfigBootstrapPayload/);
     assert.match(settingsJs, /runtimeSnapshotApi\.parsePayload\(await apiGetJson\(url\)\)/);
-    assert.match(settingsJs, /diagnosticsPrefsCoordinator\.reconcile\(resolvedType, snapshotPrefs/);
+    assert.match(settingsJs, /folderRevision: readSettingsFolderRevision\(snapshot\.metadata\)/);
+    assert.match(settingsJs, /folderSnapshotsByType\[type\] = \{ folders, revision: folderRevision, sequence \};[\s\S]*diagnosticsPrefsCoordinator\.reconcile\(type, normalizedPrefs/);
     assert.match(settingsJs, /const fallbackRequests = \[fetchFolders\(type\), fetchPrefs\(type\)\];[\s\S]*if \(!configOnly\) \{\s*fallbackRequests\.push\(fetchTypeInfo\(type\)\);/);
     assert.match(settingsJs, /fetchSettingsCombinedConfigSnapshots\(\)[\s\S]*snapshot: combined\.snapshots\.docker[\s\S]*snapshot: combined\.snapshots\.vm[\s\S]*per-type-config-fallback/);
     assert.match(settingsJs, /const runtimeHydrationPromise = hydrateSettingsRuntime\(options\.initialBootstrap === true\);/);

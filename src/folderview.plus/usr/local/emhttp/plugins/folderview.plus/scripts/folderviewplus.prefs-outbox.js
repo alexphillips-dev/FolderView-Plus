@@ -24,7 +24,27 @@
         return { isConflict, recoveredConflict, rejected };
     };
 
-    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergePatch, cloneValue, patchIsEmpty, mutationIdFor }) => {
+    const applyFolderVisibilityChanges = (prefs) => {
+        if (!prefs || !Object.hasOwn(prefs, 'hiddenFolderIdChanges')) return prefs;
+        const { hiddenFolderIdChanges, ...next } = prefs;
+        const hiddenIds = new Set(Array.isArray(next.hiddenFolderIds) ? next.hiddenFolderIds : []);
+        for (const [id, hidden] of Object.entries(hiddenFolderIdChanges || {})) {
+            if (hidden === true) hiddenIds.add(id);
+            if (hidden === false) hiddenIds.delete(id);
+        }
+        return { ...next, hiddenFolderIds: [...hiddenIds] };
+    };
+
+    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergeValues, cloneValue, patchIsEmpty, mutationIdFor }) => {
+        const mergePatch = (previous, patch) => {
+            if (!Object.hasOwn(patch, 'hiddenFolderIds') || !Object.hasOwn(previous, 'hiddenFolderIdChanges')) {
+                return mergeValues(previous, patch);
+            }
+            // A complete replacement supersedes earlier individual changes.
+            const base = { ...previous };
+            delete base.hiddenFolderIdChanges;
+            return mergeValues(base, patch);
+        };
         const written = new Map();
         const legacyKey = type => `${prefix}${type}`;
         const key = type => `${legacyKey(type)}.${encodeURIComponent(sourceId)}`;
@@ -228,5 +248,5 @@
         });
     };
 
-    return Object.freeze({ createStorage, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
+    return Object.freeze({ createStorage, applyFolderVisibilityChanges, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
 }));

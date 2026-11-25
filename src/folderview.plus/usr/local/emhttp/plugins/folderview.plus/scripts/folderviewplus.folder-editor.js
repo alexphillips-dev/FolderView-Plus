@@ -614,22 +614,38 @@ const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextPar
     const expectedRevision = readFolderConfigurationRevision(resolvedType);
     const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
     if (expectedRevision === null || (positionalMove && !Number.isInteger(expectedPrefsRevision))) return setFolderTreeMoveError(resolvedType, sourceId, 'Current folder or preference revision is unavailable. Refresh and try again.');
-    const previousFolders = typeFolders(resolvedType);
+    const previousSnapshot = folderSnapshotsByType[resolvedType];
     const previousPrefs = prefsByType[resolvedType];
     const previousOrder = positionalMove ? getOrderedFolderIdsForTreeOps(resolvedType) : null;
     pendingTreeMoveTypes.add(resolvedType);
     let committed = false;
+    let optimisticPrefs = previousPrefs;
     try {
         clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
-        setTypeFolders(resolvedType, { ...previousFolders, [sourceId]: { ...sourceFolder, parentId: nextParentId } });
+        optimisticFoldersByType[resolvedType] = { ...previousSnapshot.folders, [sourceId]: { ...sourceFolder, parentId: nextParentId } };
         if (positionalMove) applyOptimisticManualOrder(resolvedType, nextOrder); else renderTable(resolvedType);
+        optimisticPrefs = prefsByType[resolvedType];
         focusFolderRow(resolvedType, sourceId, { scroll: false });
         const result = await requestFolderBatchMutation(resolvedType, {
             deletes: [], upserts: [{ id: sourceId, folder: { ...sourceFolder, parentId: nextParentId } }], creates: [],
             ...(positionalMove ? { manualOrder: nextOrder, expectedPrefsRevision } : {})
         }, { expectedRevision });
         committed = true;
-        if (result?.metadata) prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
+        const revision = readSettingsFolderRevision(result?.metadata);
+        const savedFolder = utils.normalizeFolderRecord(result?.updatedFolder);
+        const canCommitFolder = folderSnapshotsByType[resolvedType].revision === expectedRevision
+            && revision === expectedRevision + 1 && savedFolder;
+        if (canCommitFolder) {
+            folderSnapshotsByType[resolvedType] = {
+                ...folderSnapshotsByType[resolvedType], revision,
+                folders: { ...folderSnapshotsByType[resolvedType].folders, [sourceId]: savedFolder }
+            };
+        }
+        optimisticFoldersByType[resolvedType] = null;
+        if (result?.metadata && Number(result.metadata.prefsRevision) >= Number(prefsByType[resolvedType]?._metadata?.prefsRevision ?? -1)) {
+            prefsByType[resolvedType] = utils.normalizePrefs({ ...prefsByType[resolvedType], _metadata: result.metadata });
+        }
+        if (!canCommitFolder) await refreshType(resolvedType, { configOnly: true });
         pushTreeMoveHistoryEntry(resolvedType, {
             kind: 'parent', folderId: sourceId,
             beforeParentId: String(sourceFolder.parentId || '').trim(), afterParentId: nextParentId,
@@ -638,8 +654,12 @@ const persistOptimisticTreeMove = async (type, { sourceId, sourceFolder, nextPar
         });
         addActivityEntry(activityMessage, 'success');
     } catch (error) {
-        if (!committed) { setTypeFolders(resolvedType, previousFolders); prefsByType[resolvedType] = previousPrefs; renderTable(resolvedType); }
-        if (!committed) try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
+        optimisticFoldersByType[resolvedType] = null;
+        if (!committed) {
+            if (prefsByType[resolvedType] === optimisticPrefs) prefsByType[resolvedType] = previousPrefs;
+            renderTable(resolvedType);
+            try { await refreshType(resolvedType, { configOnly: true }); } catch (_refreshError) {}
+        }
         setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
         showError(errorTitle || repairTac0a8e31('common.repair.tree-move-failed-6ad607', 'Tree move failed'), error);
     } finally { pendingTreeMoveTypes.delete(resolvedType); }

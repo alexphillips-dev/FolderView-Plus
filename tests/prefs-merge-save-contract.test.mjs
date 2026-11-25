@@ -375,6 +375,58 @@ echo json_encode($result + ['prefs' => $prefs, 'meta' => $meta, 'vmRevision' => 
     });
 });
 
+test('guarded Docker visibility changes retain peer edits without saving mutation instructions', () => {
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
+    runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+require_once ${phpQuote(libPath)};
+$type = $argv[1];
+$stage = $argv[2];
+$response = [];
+if ($stage === 'seed') {
+    writeRawFolderMap($type, ['one' => ['name' => 'One'], 'two' => ['name' => 'Two'], '0' => ['name' => 'Zero']]);
+    writeTypePrefs($type, defaultTypePrefs());
+} else {
+    $_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['HTTP_HOST'] = 'localhost';
+    $_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+    $_POST = $_REQUEST = ['type' => $type, 'expectedRevision' => $argv[3], 'prefs' => $argv[4],
+        '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
+    ob_start();
+    eval(${phpQuote(endpoint)});
+    $response = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true)];
+    releaseConfigMutationLock();
+}
+echo json_encode($response + ['prefs' => readTypePrefs($type), 'meta' => readConfigMetadata($type, false)], JSON_THROW_ON_ERROR);
+`, invoke => {
+        const initial = invoke('docker', 'seed');
+        const save = (from, patch, type = 'docker') => invoke(type, 'save', String(from.meta.prefsRevision), JSON.stringify(patch));
+        const first = save(initial, { hiddenFolderIdChanges: { one: true } });
+        assert.equal(first.status, 200, JSON.stringify(first.body));
+        assert.deepEqual(first.prefs.hiddenFolderIds, ['one']);
+        const stale = save(initial, { hiddenFolderIdChanges: { two: true } });
+        assert.equal(stale.status, 409);
+        assert.deepEqual(stale.prefs.hiddenFolderIds, ['one']);
+        const retried = save(stale, { hiddenFolderIdChanges: { two: true } });
+        assert.equal(retried.status, 200, JSON.stringify(retried.body));
+        assert.deepEqual(retried.prefs.hiddenFolderIds, ['one', 'two']);
+        const restored = save(retried, { hiddenFolderIdChanges: { one: false } });
+        assert.deepEqual(restored.prefs.hiddenFolderIds, ['two']);
+        const reset = save(restored, { hiddenFolderIds: [], hiddenFolderIdChanges: { 0: true } });
+        assert.deepEqual(reset.prefs.hiddenFolderIds, ['0']);
+        assert.equal(Object.hasOwn(reset.prefs, 'hiddenFolderIdChanges'), false);
+        assert.equal(reset.meta.folderRevision, initial.meta.folderRevision);
+        assert.equal(save(reset, { hiddenFolderIdChanges: { two: 'true' } }).status, 400);
+        assert.equal(save(reset, { hiddenFolderIdChanges: { '': true } }).status, 400);
+        const vm = invoke('vm', 'seed');
+        assert.equal(save(vm, { hiddenFolderIdChanges: { two: true } }, 'vm').status, 400);
+    });
+});
+
 test('server enables stopped badges once on upgrade and preserves later opt-outs through saves and reloads', () => {
     const cases = [{}, { badges: {} }, { badges: { running: false } }, { badges: { stopped: false } },
         { badges: { updates: false } }, { badges: { running: false, stopped: false, updates: false } }]

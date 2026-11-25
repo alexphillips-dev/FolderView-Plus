@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "legacy-surface",
-        "content-revision": "10905c40f7db4da62d4bbd695c0c54cdef79a36450104915604ec5a3e0e67391"
+        "content-revision": "e6227902fad59eadc19f2d2f2a16711a22c37b8f88a6c6a415a9954a8b8cb5a0"
     },
     "legacy.surface.0008eb7acd3f7a56": "النقل المجمع غير متاح",
     "legacy.surface.0012950979762d8c": "اختر لقطة لاستعادتها أو تنزيلها أو حذفها.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "لم تكن تفاصيل وقت تشغيل Docker متاحة جزئيًا",
     "legacy.surface.a9ff80bb0824fdc2": "النسخ الاحتياطي جاهز.",
     "legacy.surface.aa1897c8cf834c13": "السمة المرفوضة لبناء DOM الآمن: $1",
-    "legacy.surface.aa2181b424db8468": "النسخة الاحتياطية جاهزة: $1",
     "legacy.surface.aa3090909390156a": "تبديل $1",
     "legacy.surface.aa3d3ea5337856c8": "يجب أن يحتوي ملف الاستيراد على كائن JSON.",
     "legacy.surface.aa54cbf3d0764800": "فشلت عملية الاستعادة.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "الأعضاء المباشرون / إجمالي الأعضاء بما في ذلك المجلدات المتداخلة",
     "legacy.surface.c3b1756abf78160d": "أبقى FolderView Plus صفحة الإعدادات مفتوحة، ولكن فشل تحميل بعض البيانات أو الوحدات المتقدمة.",
     "legacy.surface.c3ba312a7f9ba04e": "التعيين التلقائي للميزات المميزة: $1",
-    "legacy.surface.c3d9b0b812065b73": "تم إنشاء نقطة التراجع",
     "legacy.surface.c3f148bfdf3af882": "ضع في المجلد",
     "legacy.surface.c3fc3cce1b150b2f": "خطأ غير معروف في الطلب",
     "legacy.surface.c42210be655c49df": "تعذر على FolderView Plus إنهاء التحميل $1",

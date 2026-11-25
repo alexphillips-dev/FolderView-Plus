@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "common",
-        "content-revision": "fa46179263dc355d4333b0b0fee258945e09c4edc65221f20e3b5f349195e754"
+        "content-revision": "89e02fafc5e88784b4c4fc11ed02a25a1354a62bfa2508e40b699b0944ad18ff"
     },
     "common.unassigned-group.title": "Itens não atribuídos",
     "runtime.action.requests-result": "$1 aceitas · $2 falharam",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importação concluída.",
     "common.repair.delete-failed-8727e2": "Falha na exclusão",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Criando um ponto de reversão antes de excluir qualquer coisa.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Backup de segurança ignorado: não há pastas para proteger.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Nenhum arquivo de backup foi criado porque o mapa de pastas está vazio.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Atualizando tabela de configurações e backups.",
     "common.repair.folder-deleted-048562": "Pasta excluída.",
     "common.repair.all-folders-cleared-a7b85c": "Todas as pastas foram limpas.",

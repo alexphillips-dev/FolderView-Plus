@@ -43,7 +43,7 @@
                 (Array.isArray(normalized.containers) ? normalized.containers : [])
                     .map((entry) => String(entry || '').trim())
                     .filter(Boolean)
-            )).sort();
+            ));
             return {
                 name: String(normalized.name || '').trim(),
                 regex: String(normalized.regex || ''),

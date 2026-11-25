@@ -41,21 +41,20 @@ function fixture(type, failure = '', { dryRun = false, cancelled = false, revisi
             return { mode: 'merge', operations, dryRunOnly: dryRun };
         },
         countImportOperations: () => 1,
-        createBackup: async () => {
-            events.push('backup');
-            if (failure === 'backup') throw new Error('Backup failed');
-            return backup;
-        },
         apiPostJson: async (url, payload) => {
-            events.push({ url, type: payload.type, operations: JSON.parse(payload.operations), revision: payload.expectedRevision });
+            const operations = JSON.parse(payload.operations);
+            events.push({ url, type: payload.type, operations, revision: payload.expectedRevision });
             if (payload.expectedRevision !== undefined && Number(payload.expectedRevision) !== state.revision) {
                 throw new Error('This folder configuration changed in another page or browser tab.');
             }
+            assert.equal(operations.backupReason, 'before-import-transaction-merge');
+            if (failure === 'backup') throw new Error('Backup failed');
+            events.push('backup');
             if (failure !== 'conflict') state.folders.push('concurrent');
             state.prefs = 'concurrent';
             if (failure === 'batch') throw new Error('Atomic batch rejected');
             state.folders.push('imported');
-            return { ok: true, result: { createdIds: ['imported'] } };
+            return { ok: true, result: { createdIds: ['imported'], backup } };
         },
         restoreBackupByName: async () => {
             events.push('restore');
@@ -114,13 +113,19 @@ for (const type of ['docker', 'vm']) {
     });
 }
 
-test('cancel, dry run and failed safety backup never apply or restore configuration', async () => {
-    for (const f of [fixture('docker', '', { cancelled: true }), fixture('vm', '', { dryRun: true }), fixture('docker', 'backup')]) {
+test('cancel and dry run submit no batch, and failed safety backup prevents the same batch from mutating', async () => {
+    for (const f of [fixture('docker', '', { cancelled: true }), fixture('vm', '', { dryRun: true })]) {
         await f.run();
         assert.ok(!f.events.some(event => event?.url));
         assert.ok(!f.events.includes('restore'));
         assert.deepEqual(f.state.folders, ['original']);
     }
+    const failed = fixture('docker', 'backup');
+    await failed.run();
+    assert.equal(failed.events.filter(event => event?.url).length, 1);
+    assert.ok(!failed.events.includes('restore'));
+    assert.ok(failed.events.some(event => event?.error === 'Backup failed'));
+    assert.deepEqual(failed.state.folders, ['original']);
 });
 
 test('ordinary import carries the reviewed revision even when another tab saves before apply', async () => {
@@ -130,7 +135,39 @@ test('ordinary import carries the reviewed revision even when another tab saves 
     assert.equal(f.state.revision, 10);
     assert.deepEqual(f.state.folders, ['original', 'concurrent']);
     assert.ok(f.events.some(event => /configuration changed/.test(event?.error)));
+    assert.ok(!f.events.includes('backup'));
     assert.ok(!f.events.includes('restore'));
+});
+
+test('Settings clear submits the ids and revision captured before confirmation', async () => {
+    let folders = { original: { name: 'Original' } };
+    let revision = 4;
+    let confirm;
+    const requests = [];
+    const context = {
+        normalizeManagedType: type => type, getFolderMap: () => folders,
+        readFolderConfigurationRevision: () => revision, ensureRuntimeConflictActionAllowed: () => true,
+        escapeHtml: text => text, surfaceT: (_key, text) => text,
+        swal: (_dialog, callback) => { confirm = callback; },
+        apiPostJson: async (_url, payload) => {
+            requests.push({ revision: payload.expectedRevision, ...JSON.parse(payload.operations) });
+            throw new Error('Synthetic revision conflict');
+        },
+        openImportApplyProgressDialog() {}, updateImportApplyProgressDialog() {}, closeImportApplyProgressDialog() {},
+        showError() {}, setTimeout: callback => callback()
+    };
+    vm.runInNewContext([
+        section(main, 'const requestFolderBatchMutation =', 'const fetchPluginVersion ='),
+        section(main, 'const clearType =', 'const updatePrefsPartial ='),
+        'globalThis.clear = clearType;'
+    ].join('\n'), context);
+    context.clear('docker');
+    folders = { ...folders, peer: { name: 'Peer created' } };
+    revision = 5;
+    await confirm(true);
+    assert.deepEqual(requests[0].deletes, ['original']);
+    assert.equal(requests[0].revision, '4');
+    assert.equal(requests[0].backupReason, 'before-clear-all');
 });
 
 test('ordinary import without a verifiable snapshot never opens a write transaction', async () => {

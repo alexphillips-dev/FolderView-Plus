@@ -37,7 +37,7 @@
         return value;
     };
 
-    const mergePatch = (base, patch) => {
+    const mergeValues = (base, patch) => {
         const source = isPlainObject(base) ? base : {};
         if (!isPlainObject(patch)) {
             return cloneValue(patch);
@@ -48,12 +48,12 @@
                 continue;
             }
             next[key] = isPlainObject(value) && key !== 'folderDefaults'
-                ? mergePatch(isPlainObject(source[key]) ? source[key] : {}, value)
+                ? mergeValues(isPlainObject(source[key]) ? source[key] : {}, value)
                 : cloneValue(value);
         }
         return next;
     };
-
+    const mergePatch = (base, patch) => outboxApi.applyFolderVisibilityChanges(mergeValues(base, patch));
     const cleanPatch = (patch, baseline = null) => {
         if (!isPlainObject(patch)) return {};
         return Object.fromEntries(Object.entries(patch).flatMap(([key, value]) => {
@@ -275,7 +275,7 @@
         const clearTimer = typeof options.clearTimeout === 'function' ? options.clearTimeout : clearTimeout;
         const now = typeof options.now === 'function' ? options.now : Date.now;
         const outbox = outboxApi.createStorage({ storage, prefix: storagePrefix, sourceId, now,
-            readRevision, mergePatch, cloneValue, patchIsEmpty, mutationIdFor: generation => createMutationId(sourceId, generation) });
+            readRevision, mergeValues, cloneValue, patchIsEmpty, mutationIdFor: generation => createMutationId(sourceId, generation) });
         const states = new Map();
         const subscribers = new Set();
         let broadcastChannel = null;

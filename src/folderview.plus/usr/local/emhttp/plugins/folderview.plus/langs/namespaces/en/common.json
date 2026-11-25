@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "content-revision": "119cb0a440878b813b5123c91db2f1d5b16bb28dd1bf610074798c26e3ce0d97"
+        "content-revision": "2937a5a9a4e06523990c3ecc4c93ff33053ea2170b788506e1898605a827cbd7"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Import complete.",
     "common.repair.delete-failed-8727e2": "Delete failed",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Creating a rollback point before deleting anything.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Safety backup skipped: no folders to protect.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "No backup file was created because the folder map is empty.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Refreshing settings table and backups.",
     "common.repair.folder-deleted-048562": "Folder deleted.",
     "common.repair.all-folders-cleared-a7b85c": "All folders cleared.",

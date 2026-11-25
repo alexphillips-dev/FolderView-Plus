@@ -75,8 +75,8 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    // The editor now uses one existing message when a persisted folder is missing.
-    assert.ok(report.extraction.autoBoundMessageCount >= 2975, 'retain the remaining audited conditional surfaces');
+    // The transaction owns the checkpoint, so two pre-commit progress messages were retired.
+    assert.ok(report.extraction.autoBoundMessageCount >= 2973, 'retain the remaining audited conditional surfaces');
     assert.ok(report.sourceMessageCount >= 4716, 'retain legacy and semantic theme messages together');
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);

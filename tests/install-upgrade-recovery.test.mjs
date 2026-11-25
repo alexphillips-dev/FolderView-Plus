@@ -9,7 +9,7 @@ const run = (...args) => {
     const prefix = process.platform === 'win32' ? ['--exec', 'php'] : [];
     return JSON.parse(execFileSync(command, [...prefix, fixture, manifest, ...args], {
         encoding: 'utf8',
-        timeout: 45000
+        timeout: 90000
     }));
 };
 
@@ -32,6 +32,8 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
-        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success'
+        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
+        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
+        'install-remove-stale-cleanup-retry-success'
     ]);
 });

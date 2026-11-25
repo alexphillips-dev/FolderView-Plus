@@ -32,8 +32,8 @@ test('vm runtime context menu keeps focus/pin/lock and clone actions in vm folde
 });
 
 test('vm runtime adopts native detail rows for folder members and later host detail inserts', () => {
-    assert.match(vmJs, /const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr\[id\^="name-"\]:not\(\[child-id\]\)';/);
-    assert.match(vmJs, /const collectExistingVmDetailRowsForVmRow = \(vmRow, includeNativeChildren = false\) => \{/);
+    assert.match(vmJs, /const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr\[id\^="name-"\]:not\(\[data-fv-vm-folder-detail\]\)';/);
+    assert.match(vmJs, /const collectExistingVmDetailRowsForVmRow = \(vmRow\) => \{/);
     assert.match(vmJs, /const ensureVmNativeDetailRowObserver = \(\) => \{[\s\S]*const disconnect = vmHostAdapter\.observeRows/);
     assert.match(vmJs, /const ensureVmNativeDetailInteractionHooks = \(\) => \{/);
     assert.match(vmJs, /const placeVmNativeDetailRowForOwner = \(detailRow,\s*vmRow\) => \{/);

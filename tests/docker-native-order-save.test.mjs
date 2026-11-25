@@ -329,7 +329,7 @@ test('the native order keeps one writer, so the saved order outlives the plugin'
     const removeScript = read('folderview.plus.plg').match(/<FILE Run="\/bin\/bash" Method="remove">([\s\S]*?)<\/FILE>/);
     assert.ok(removeScript, 'the plugin manifest declares a remove script');
     assert.doesNotMatch(removeScript[1], /dockerMan|userprefs|unraid-autostart/);
-    assert.match(removeScript[1], /rm -rf \/boot\/config\/plugins\/&name;\s/);
+    assert.match(removeScript[1], /rm -rf -- [^\r\n]+"\/boot\/config\/plugins\/&name;"/);
 });
 
 test('a silent write failure is not reported as saved although the effective order matches the preview', async () => {

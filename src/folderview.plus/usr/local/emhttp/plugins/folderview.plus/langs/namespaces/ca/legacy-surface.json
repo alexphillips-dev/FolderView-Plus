@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "legacy-surface",
-        "content-revision": "83ff0c3cdd836d2afef8d011e15fee7f0ccde9dbac76af8a8325641fbf2380c6"
+        "content-revision": "34959fd76f1b815dd45b888deb77f38ac35a8bc7771f7c6e44e5b297293adc30"
     },
     "legacy.surface.0008eb7acd3f7a56": "El moviment massiu no està disponible",
     "legacy.surface.0012950979762d8c": "Trieu una instantània per restaurar, baixar o suprimir.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Els detalls del temps d'execució de Docker no estaven parcialment disponibles",
     "legacy.surface.a9ff80bb0824fdc2": "Còpia de seguretat a punt.",
     "legacy.surface.aa1897c8cf834c13": "Atribut de construcció segura del DOM rebutjat: $1",
-    "legacy.surface.aa2181b424db8468": "Còpia de seguretat preparada: $1",
     "legacy.surface.aa3090909390156a": "Commuta $1",
     "legacy.surface.aa3d3ea5337856c8": "El fitxer d'importació ha de contenir un objecte JSON.",
     "legacy.surface.aa54cbf3d0764800": "La restauració de la recuperació ha fallat.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Membres directes / membres totals, incloses les carpetes imbricades",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus va mantenir oberta la pàgina de configuració, però algunes dades o mòduls avançats no s'han pogut carregar.",
     "legacy.surface.c3ba312a7f9ba04e": "Assigna automàticament els elements destacats: $1",
-    "legacy.surface.c3d9b0b812065b73": "S'ha creat el punt de retrocés",
     "legacy.surface.c3f148bfdf3af882": "Col·locar a la carpeta",
     "legacy.surface.c3fc3cce1b150b2f": "Error de sol·licitud desconegut",
     "legacy.surface.c42210be655c49df": "FolderView Plus no ha pogut acabar de carregar $1",

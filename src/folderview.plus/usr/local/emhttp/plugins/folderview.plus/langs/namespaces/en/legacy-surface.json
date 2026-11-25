@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "legacy-surface",
-        "content-revision": "d5c6bf0ea663b0fc55a36847fc30ba2668aae9b329807bc786152199cde19e8c"
+        "content-revision": "c2a41414aa3507753072c987e82184e036442929050107035c005318faf80391"
     },
     "legacy.surface.b33225f01af4dcb4": "- Attach the v2 support bundle export if available.",
     "legacy.surface.c6d9cdf6691c809b": "- Bootstrap banner: $1 / $2",
@@ -414,7 +414,6 @@
     "legacy.surface.efefc76eb7b960af": "Backup history",
     "legacy.surface.d18859e1983720b1": "Backup policy",
     "legacy.surface.28ecffaf939bbeae": "Backup policy & protection",
-    "legacy.surface.aa2181b424db8468": "Backup ready: $1",
     "legacy.surface.a9ff80bb0824fdc2": "Backup ready.",
     "legacy.surface.063858ad2a8df632": "Backup restore",
     "legacy.surface.32f0a306ffbfb095": "Backup restore API unavailable.",
@@ -2171,7 +2170,6 @@
     "legacy.surface.0638f6f5421e8d16": "Rollback failed.",
     "legacy.surface.abcffb68d0205bb0": "Rollback now",
     "legacy.surface.e0440639424c6ac8": "Rollback plugin settings?",
-    "legacy.surface.c3d9b0b812065b73": "rollback point created",
     "legacy.surface.aa54cbf3d0764800": "Rollback restore failed.",
     "legacy.surface.4a326363548eeb45": "Rollback restored",
     "legacy.surface.0f416c84f4af17c6": "Root level",

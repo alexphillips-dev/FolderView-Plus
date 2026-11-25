@@ -42,7 +42,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 67);
+    assert.equal(architecture.serverModuleContracts.length, 68);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -84,7 +84,8 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['fvplusThemeGithubManifest', 'fvplusThemeGithubFingerprint', 'fvplusThemeGithubValidFile',
             'fvplusThemeWorkspaceWriteGithubChange']) additions.add(name);
         for (const name of ['dockerPageHasFolderSort', 'composeDockerSavedOrder', 'orderFolderBranchIds',
-            'buildDockerPageOrderModel', 'fvplusRespondToDockerOrderSync']) additions.add(name);
+            'buildDockerPageOrderModel', 'fvplusRespondToDockerOrderSync', 'readDockerNativePageOrder',
+            'dockerPageUnslottedNames']) additions.add(name);
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ['fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences', 'fvplusRegexBackreferencesArePortable']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
@@ -102,6 +103,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['fvplusRuntimeInventoryFailure', 'fvplusReadRuntimeEntityList', 'fvplusReadVmInfoState',
             'fvplusReadRepairInventory', 'fvplusAssertRepairMembersNotRenamed', 'renameCustomIconUnlocked']) additions.add(name);
         additions.add('readUnraidStoredDockerOrder');
+        additions.add('readFolderTemplateFile');
         additions.add('fvplusLegacyRegexCodeUnits');
         additions.add('writeFolderMapAndManualOrder');
         additions.add('fvplusRestoreSelectedGlobalRollbackSnapshot');

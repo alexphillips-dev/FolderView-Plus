@@ -2349,15 +2349,6 @@
     ]
   },
   {
-    "phrase": "Backup ready: $1",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "Backup ready:"
-      }
-    ]
-  },
-  {
     "phrase": "Backup ready.",
     "locations": [
       {
@@ -9246,15 +9237,6 @@
       {
         "file": "scripts/folderviewplus.actions-support.js",
         "anchor": "'Rollback failed.'"
-      }
-    ]
-  },
-  {
-    "phrase": "rollback point created",
-    "locations": [
-      {
-        "file": "scripts/folderviewplus.js",
-        "anchor": "'rollback point created'"
       }
     ]
   },

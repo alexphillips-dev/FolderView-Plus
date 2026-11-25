@@ -14,6 +14,7 @@ git() {
         'rev-parse --show-toplevel') pwd ;;
         'branch --show-current') printf 'main\\n' ;;
         'rev-parse HEAD') printf '${commit}\\n' ;;
+        'status --porcelain --untracked-files=normal') return 0 ;;
         *) return 99 ;;
     esac
 }

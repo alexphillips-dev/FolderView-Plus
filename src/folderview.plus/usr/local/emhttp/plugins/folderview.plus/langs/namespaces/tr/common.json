@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "content-revision": "a5229393feb044e76ec8a896b5bcdcc9f839cd54b0f2a955509d19aab2491437"
+        "content-revision": "46fbe7fffa6c537fd623c418ecec326ca0aebbce296c11fce9eadf738b117c2d"
     },
     "common.unassigned-group.title": "Atanmamış öğeler",
     "runtime.action.requests-result": "$1 kabul edildi · $2 başarısız",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "İçe aktarma tamamlandı.",
     "common.repair.delete-failed-8727e2": "Silinemedi",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Herhangi bir şeyi silmeden önce bir geri alma noktası oluşturma.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Güvenlik yedeklemesi atlandı: korunacak klasör yok.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Klasör haritası boş olduğundan yedekleme dosyası oluşturulmadı.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Ayarlar tablosu ve yedeklemeler yenileniyor.",
     "common.repair.folder-deleted-048562": "Klasör silindi.",
     "common.repair.all-folders-cleared-a7b85c": "Tüm klasörler temizlendi.",

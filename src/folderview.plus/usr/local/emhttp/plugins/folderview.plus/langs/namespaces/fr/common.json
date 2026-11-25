@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "content-revision": "3532a3d3eb338d13f3c597e0d2a7d4607b57a17439b447f5f3271b6741ca1bc4"
+        "content-revision": "9edf0239d245c3aad93c563499e2c701a89f1ed240972119966cb4c21b1053fd"
     },
     "common.unassigned-group.title": "Éléments non affectés",
     "runtime.action.requests-result": "$1 acceptées · $2 en échec",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importation terminée.",
     "common.repair.delete-failed-8727e2": "Échec de la suppression",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Créer un point de restauration avant de supprimer quoi que ce soit.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Sauvegarde de sécurité ignorée : aucun dossier à protéger.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Aucun fichier de sauvegarde n'a été créé car la mappe de dossiers est vide.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Actualisation du tableau des paramètres et des sauvegardes.",
     "common.repair.folder-deleted-048562": "Dossier supprimé.",
     "common.repair.all-folders-cleared-a7b85c": "Tous les dossiers effacés.",

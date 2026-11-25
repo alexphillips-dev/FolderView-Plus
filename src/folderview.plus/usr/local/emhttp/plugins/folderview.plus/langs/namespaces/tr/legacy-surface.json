@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "legacy-surface",
-        "content-revision": "604a80501ad0c640fdc25cfdcfc65a7739c62894cb915a52625b37264336708b"
+        "content-revision": "27d0d6c9592096275c2dc097d4cb339165777ecee46582087369a2034b14692d"
     },
     "legacy.surface.0008eb7acd3f7a56": "Toplu taşıma kullanılamıyor",
     "legacy.surface.0012950979762d8c": "Geri yüklemek, indirmek veya silmek için bir anlık görüntü seçin.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker çalışma zamanı ayrıntıları kısmen kullanılamıyordu",
     "legacy.surface.a9ff80bb0824fdc2": "Yedekleme hazır.",
     "legacy.surface.aa1897c8cf834c13": "Güvenli DOM oluşturma özelliği reddedildi: $1",
-    "legacy.surface.aa2181b424db8468": "Yedekleme hazır: $1",
     "legacy.surface.aa3090909390156a": "$1'yi değiştir",
     "legacy.surface.aa3d3ea5337856c8": "İçe aktarma dosyası bir JSON nesnesi içermelidir.",
     "legacy.surface.aa54cbf3d0764800": "Geri alma geri yüklemesi başarısız oldu.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Doğrudan üyeler / iç içe klasörler dahil toplam üye sayısı",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus, Ayarlar sayfasını açık tuttu ancak bazı veriler veya gelişmiş modüller yüklenemedi.",
     "legacy.surface.c3ba312a7f9ba04e": "Vurguları otomatik olarak ata: $1",
-    "legacy.surface.c3d9b0b812065b73": "geri alma noktası oluşturuldu",
     "legacy.surface.c3f148bfdf3af882": "Klasöre yerleştir",
     "legacy.surface.c3fc3cce1b150b2f": "Bilinmeyen istek hatası",
     "legacy.surface.c42210be655c49df": "FolderView Plus, $1 yüklemesini tamamlayamadı",

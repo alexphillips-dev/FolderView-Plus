@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4796,
-        "total-source-messages": 4796,
+        "translated-messages": 4792,
+        "total-source-messages": 4792,
         "content-revision": "d586184c058f54b024f7d4ee2830865f09c7b3cb5b6920ff4dcb12a0461f995f",
-        "locale-content-revision": "e1046b3d963efc87a07c7cf040d62ec00e5914ed6ba93a8243b7de287699e3a8"
+        "locale-content-revision": "e6d90c2405275c83dd3c513d163a3de2b08c382b83cdd21cfa64659dc8a65f80"
     },
     "add-folder": "Додати папку",
     "up-to-date": "актуально",

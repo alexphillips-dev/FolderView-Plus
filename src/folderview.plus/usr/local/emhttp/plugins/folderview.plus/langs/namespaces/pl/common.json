@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "content-revision": "417cd8eebda58a74aa1020614502f09d20ce50b113655ac858cfc32f3520d49e"
+        "content-revision": "a63bed65941de0d6cd215cc5640d94c9a0c3a2bb23f3324ff6ddefd0f0c0674b"
     },
     "common.unassigned-group.title": "Nieprzypisane elementy",
     "runtime.action.requests-result": "Przyjęto: $1 · Niepowodzenia: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Import zakończony.",
     "common.repair.delete-failed-8727e2": "Usunięcie nie powiodło się",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Tworzenie punktu wycofania przed usunięciem czegokolwiek.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Pominięto kopię zapasową bezpieczeństwa: brak folderów do ochrony.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Nie utworzono pliku kopii zapasowej, ponieważ mapa folderów jest pusta.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Odświeżanie tabeli ustawień i kopii zapasowych.",
     "common.repair.folder-deleted-048562": "Folder usunięty.",
     "common.repair.all-folders-cleared-a7b85c": "Wszystkie foldery wyczyszczone.",

@@ -139,7 +139,6 @@
         let nativeRowIndex = null;
 
         const getHostTable = () => doc?.querySelector('table#docker_containers') || null;
-        const isFolderToken = (value) => String(value || '').trim().startsWith('folder-');
         const folderIdFromToken = (value) => String(value || '').trim().replace(/^folder-/, '');
 
         const setHostTableHidden = (hidden) => {
@@ -357,9 +356,11 @@
             });
         };
 
-        const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder) => {
+        const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder, runtimeInfoByName) => {
             const folderMap = folders && typeof folders === 'object' ? folders : {};
-            const baseOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folderMap, prefs);
+            const isFolderToken = entry => typeof entry === 'string' && entry.startsWith('folder-')
+                && !Object.hasOwn(runtimeInfoByName, entry);
+            const baseOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folderMap, prefs, runtimeInfoByName);
             const order = Array.isArray(hostOrder) && hostOrder.length ? hostOrder.slice() : baseOrder.slice();
             const newOnes = order.filter((entry) => !baseOrder.includes(entry));
             for (let index = 0; index < baseOrder.length; index += 1) {
@@ -723,7 +724,7 @@
                 depthById,
                 prefs,
                 matchCache,
-                orderedFolderIds: computeOrderedFolderIds(folders, prefs, hostOrder, unraidOrder),
+                orderedFolderIds: computeOrderedFolderIds(folders, prefs, hostOrder, unraidOrder, runtimeInfoByName),
                 runtimeInfoByName,
                 stateSignature: buildStateSignature(runtimeState, true)
             };

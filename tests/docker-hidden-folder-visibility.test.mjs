@@ -10,6 +10,8 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const hiddenFoldersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hidden-folders.js');
 const require = createRequire(import.meta.url);
 const hiddenFoldersModule = require(path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hidden-folders.js'));
+const { mergePatch } = require(path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js'));
+const { createSafeUiActionRunner } = require(path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.shared-primitives.js'));
 const prefsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-prefs.js');
 const libPrefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const validationPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
@@ -21,7 +23,7 @@ test('hidden folder ids use normalized conflict-safe server preferences', () => 
     assert.match(libPrefsPhp, /\$normalized\['hiddenFolderIds'\]\s*=\s*normalizeStringIdList/);
     assert.match(validationPhp, /fvplus_validation_assert_list_of_scalarish\(\$payload\['hiddenFolderIds'\], 'hiddenFolderIds'/);
     assert.match(prefsJs, /const hiddenFolderIds = normalizeStringIdList\(incoming\.hiddenFolderIds\)/);
-    assert.match(hiddenFoldersJs, /savePrefs\(\{ hiddenFolderIds \}/);
+    assert.match(hiddenFoldersJs, /queuedVisibilityPatch\.hiddenFolderIdChanges/);
     assert.match(hiddenFoldersJs, /safeActionRunner\.run\('docker-hidden-folders'/);
     assert.match(hiddenFoldersJs, /queueIfBusy:\s*true/);
     assert.match(hiddenFoldersJs, /if \(!intent\.isLatest\(\)\) return/);
@@ -133,4 +135,37 @@ test('hidden-folder diagnostics retain counts and hash folder identities', () =>
     assert.match(pageDiagnosticsJs, /hiddenFolderSelections/);
     assert.match(pageDiagnosticsJs, /effectivelyHiddenFolders/);
     assert.match(pageDiagnosticsJs, /revealHiddenFolders/);
+});
+
+test('rapid independent hides retain every intent when the shared action runner coalesces queued work', async () => {
+    const collection = { toggleClass: () => collection, each: () => collection };
+    let prefs = { hiddenFolderIds: [] };
+    let stored = { ...prefs };
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    const sent = [];
+    const api = hiddenFoldersModule.createApi({
+        $: () => collection,
+        getFolders: () => ({ one: {}, two: {}, three: {} }),
+        getPrefs: () => prefs,
+        setPrefs: value => { prefs = value; },
+        safeActionRunner: createSafeUiActionRunner(),
+        savePrefs: async patch => {
+            sent.push(patch);
+            if (sent.length === 1) await gate;
+            stored = mergePatch(stored, patch);
+            return stored;
+        }
+    });
+    const hides = ['one', 'two', 'three'].map(id => api.hideFolder(id));
+    assert.deepEqual(prefs.hiddenFolderIds, ['one', 'two', 'three']);
+    release();
+    await Promise.all(hides);
+    assert.deepEqual(sent, [
+        { hiddenFolderIdChanges: { one: true } },
+        { hiddenFolderIdChanges: { two: true, three: true } }
+    ]);
+    assert.deepEqual(prefs.hiddenFolderIds, ['one', 'two', 'three']);
+    await api.restoreAll();
+    assert.deepEqual(stored.hiddenFolderIds, []);
 });

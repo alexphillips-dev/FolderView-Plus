@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "content-revision": "b35c862b47b9de896d33d2ef435fb18caf0e1842144f93856222cca16e39d525"
+        "content-revision": "137486fbd8d80e89b35a14c48f4a914fb28f1fb5aa74ad58cdacd40be47d8a84"
     },
     "common.unassigned-group.title": "Niet-toegewezen items",
     "runtime.action.requests-result": "$1 geaccepteerd · $2 mislukt",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importeren voltooid.",
     "common.repair.delete-failed-8727e2": "Verwijderen is mislukt",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Een terugdraaipunt maken voordat u iets verwijdert.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Veiligheidsback-up overgeslagen: geen mappen om te beschermen.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Er is geen back-upbestand gemaakt omdat de mappenstructuur leeg is.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Instellingentabel en back-ups vernieuwen.",
     "common.repair.folder-deleted-048562": "Map verwijderd.",
     "common.repair.all-folders-cleared-a7b85c": "Alle mappen gewist.",

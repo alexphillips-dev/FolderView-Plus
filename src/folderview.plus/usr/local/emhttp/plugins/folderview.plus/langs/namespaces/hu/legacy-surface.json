@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "legacy-surface",
-        "content-revision": "39dffb8df7efad356cd553f73be6fd32a2b31ba4ab83b8cf1718a3d051406db6"
+        "content-revision": "37fca098bf8c35b2da5768c29b4f942c98fd17dd9d8116a7688c286dee3ce9d1"
     },
     "legacy.surface.0008eb7acd3f7a56": "Tömeges áthelyezés nem érhető el",
     "legacy.surface.0012950979762d8c": "Válasszon egy pillanatképet a visszaállításhoz, letöltéshez vagy törléshez.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "A Docker futásidejű részletei részben nem voltak elérhetők",
     "legacy.surface.a9ff80bb0824fdc2": "A biztonsági mentés készen áll.",
     "legacy.surface.aa1897c8cf834c13": "Biztonságos DOM-konstrukció elutasított attribútum: $1",
-    "legacy.surface.aa2181b424db8468": "Biztonsági mentés készen áll: $1",
     "legacy.surface.aa3090909390156a": "Váltás: $1",
     "legacy.surface.aa3d3ea5337856c8": "Az importfájlnak tartalmaznia kell egy JSON-objektumot.",
     "legacy.surface.aa54cbf3d0764800": "A visszaállítás nem sikerült.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Közvetlen tagok / összes tag, beleértve a beágyazott mappákat",
     "legacy.surface.c3b1756abf78160d": "A FolderView Plus nyitva tartotta a Beállítások oldalt, de egyes adatok vagy speciális modulok betöltése nem sikerült.",
     "legacy.surface.c3ba312a7f9ba04e": "Kiemelések automatikus hozzárendelése: $1",
-    "legacy.surface.c3d9b0b812065b73": "visszaállítási pont létrehozva",
     "legacy.surface.c3f148bfdf3af882": "Helyezze a mappába",
     "legacy.surface.c3fc3cce1b150b2f": "Ismeretlen kéréshiba",
     "legacy.surface.c42210be655c49df": "A FolderView Plus nem tudta befejezni a $1 betöltését",

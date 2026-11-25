@@ -350,9 +350,11 @@ function getBackupSnapshotPath(string $type, string $name): string {
     }
 
     function fvplusRestoreSafetyBackupMatchesCurrent(string $type, array $snapshot): bool {
-        // A restore interrupted before its first write can leave its safety copy behind.
-        if ($snapshot['reason'] !== 'before-folder-editor-bulk-move'
-            && !preg_match('/^before-restore-[0-9a-f]{12}$/D', (string)$snapshot['reason'])) {
+        // Interrupted transactions and unchanged imports can leave identical safety copies.
+        $reason = strtolower(trim((string)$snapshot['reason']));
+        if ($reason !== 'before-folder-editor-bulk-move'
+            && !str_starts_with($reason, 'transaction-')
+            && !preg_match('/^before-restore-[0-9a-f]{12}$/D', $reason)) {
             return false;
         }
         $safety = readBackupSnapshot($type, $snapshot['name']);

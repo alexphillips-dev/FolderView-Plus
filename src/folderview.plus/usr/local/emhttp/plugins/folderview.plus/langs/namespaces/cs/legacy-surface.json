@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "legacy-surface",
-        "content-revision": "cbde6630e7bbd30e5d250360424732663bdfe2dc88cd79c4860d9b1a16b484d9"
+        "content-revision": "b33bc475cf916ad758d0adb2db60b67b5a7ee303bbe6f1770d41f21fdd46f4d1"
     },
     "legacy.surface.0008eb7acd3f7a56": "Hromadný přesun není k dispozici",
     "legacy.surface.0012950979762d8c": "Vyberte snímek, který chcete obnovit, stáhnout nebo odstranit.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Podrobnosti runtime Dockeru byly částečně nedostupné",
     "legacy.surface.a9ff80bb0824fdc2": "Záloha připravena.",
     "legacy.surface.aa1897c8cf834c13": "Bezpečná konstrukce DOM odmítnutý atribut: $1",
-    "legacy.surface.aa2181b424db8468": "Záloha připravena: $1",
     "legacy.surface.aa3090909390156a": "Přepnout $1",
     "legacy.surface.aa3d3ea5337856c8": "Importovaný soubor musí obsahovat objekt JSON.",
     "legacy.surface.aa54cbf3d0764800": "Obnovení vrácením se nezdařilo.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Přímí členové / celkový počet členů včetně vnořených složek",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus ponechal stránku Nastavení otevřenou, ale nepodařilo se načíst některá data nebo pokročilé moduly.",
     "legacy.surface.c3ba312a7f9ba04e": "Automatické přiřazení zvýraznění: $1",
-    "legacy.surface.c3d9b0b812065b73": "vytvořen bod vrácení",
     "legacy.surface.c3f148bfdf3af882": "Umístěte do složky",
     "legacy.surface.c3fc3cce1b150b2f": "Chyba neznámého požadavku",
     "legacy.surface.c42210be655c49df": "FolderView Plus nemohl dokončit načítání $1",

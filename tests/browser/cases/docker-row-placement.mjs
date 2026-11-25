@@ -2,6 +2,67 @@ import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
 
 export const registerDockerRowPlacementCases = ({ test }) => {
+    test('Docker row placement preserves a native name that collides with a folder slot', async ({ page }) => {
+        const name = 'folder-parent';
+        const savedOrder = ['folder-direct', 'fixture-app-3', name, 'fixture-app-2', 'fixture-app-0', 'fixture-app-1'];
+        const host = await createDockerHideEmptyHost(page, true, { members: 5, order: savedOrder });
+        host.runtime[name] = { ...host.runtime['fixture-app-4'], name, Name: name,
+            info: { ...host.runtime['fixture-app-4'].info, Name: '/' + name } };
+        delete host.runtime['fixture-app-4'];
+        for (const id of ['collision', 'stale', 'empty', 'emptyChild']) delete host.folders[id];
+        Object.assign(host.prefs(), { sortMode: 'alpha', dockerRowPlacement: 'saved-order' });
+        await page.route('**/docker', async route => {
+            const response = await route.fetch();
+            await route.fulfill({ response, body: (await response.text()).replaceAll('fixture-app-4', name) });
+        });
+        try {
+            const expectOrder = () => page.waitForFunction(() => {
+                const rows = [...document.querySelectorAll('#docker_list > tr')]
+                    .filter(row => !row.dataset.folderParent && !row.classList.contains('folder-element'));
+                const names = rows.map(row => row.dataset.fvFolderId ? 'folder:' + row.dataset.fvFolderId : row.dataset.name).filter(Boolean);
+                return names.join(',') === 'folder:parent,folder:direct,fixture-app-3,folder-parent,fixture-app-2';
+            });
+            await page.goto(host.url, { waitUntil: 'load' });
+            await expectOrder();
+            const refresh = page.waitForResponse(url => url.url().includes('/server/runtime_snapshot.php'));
+            await page.evaluate(() => window.loadlist());
+            await refresh;
+            await expectOrder();
+        } finally {
+            await page.close();
+            await host.close();
+        }
+    }, { skipAccessibility: true });
+
+    test('Docker row placement reconciles managed startup after native sorting is reset', async ({ page }) => {
+        const host = await createDockerHideEmptyHost(page, true);
+        const endpoint = '/plugins/dynamix.docker.manager/include/UserPrefs.php';
+        let syncs = 0;
+        await page.route('**' + endpoint, route => route.fulfill({ status: 200, body: '' }));
+        await page.route('**/server/sync_order.php', route => {
+            syncs++;
+            return route.fulfill({ json: { ok: true, syncOutcome: 'synced' } });
+        });
+        try {
+            await page.goto(host.url, { waitUntil: 'load' });
+            await page.locator('tr.folder-id-parent').waitFor();
+            const reset = () => page.evaluate(endpoint => new Promise(resolve => {
+                window.jQuery.post(endpoint, { reset: true }).always(() => resolve());
+            }), endpoint);
+            await Promise.all([page.waitForResponse('**/server/sync_order.php'), reset()]);
+            assert.equal(syncs, 1);
+            await page.clock.install();
+            await page.evaluate(url => window.jQuery(document).trigger('ajaxComplete', [
+                { status: 403 }, { url, data: 'reset=true' }
+            ]), endpoint);
+            await page.clock.runFor(350);
+            assert.equal(syncs, 1, 'a rejected Unraid write must not sync startup order');
+        } finally {
+            await page.close();
+            await host.close();
+        }
+    }, { skipAccessibility: true });
+
     test('Docker row placement restores saved mixed slots after refresh without saving native order', async ({ page }) => {
         const savedOrder = ['fixture-app-4', 'folder-parent', 'fixture-app-0', 'folder-branch', 'folder-leaf',
             'fixture-app-3', 'folder-empty', 'folder-emptyChild', 'folder-direct', 'fixture-app-1', 'fixture-app-2'];

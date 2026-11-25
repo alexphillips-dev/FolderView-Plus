@@ -2,6 +2,56 @@ import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
 
 export const registerVmRuntimeRecoveryCases = ({ test }) => {
+    test('VM view preferences keep populated ancestors when empty folders are hidden', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        host.folders['fixture-folder-0'].parentId = 'empty';
+        host.folders['empty-control'] = { name: 'Unrelated empty folder', parentId: 'empty', containers: [], settings: {}, actions: [] };
+        host.prefs('vm').hideEmptyFolders = true;
+        try {
+            await mountFilterViewVmHost(page, host);
+            assert.equal(await page.locator('tr.folder-id-empty').count(), 1);
+            assert.equal(await page.locator('tr.folder-id-fixture-folder-0').count(), 1);
+            assert.equal(await page.locator('tr.folder-id-empty-control').count(), 0);
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true });
+
+    test('VM view preferences keep stock info rows with members and settle dynamic detail adoption', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        host.folders['fixture-folder-0'].containers = [host.names[0]];
+        try {
+            await mountFilterViewVmHost(page, host, { nativeDetails: true });
+            const info = page.locator('#name-0');
+            assert.equal(await info.evaluate(row => row.previousElementSibling.id), 'fixture-vm-0');
+            await page.locator('.dropDown-fixture-folder-0').click();
+            await page.locator('#fixture-vm-0').getByText('Info').click();
+            assert.equal(await info.isVisible(), true);
+            assert.equal(await info.evaluate(row => row.previousElementSibling.id), 'fixture-vm-0');
+            await page.locator('.dropDown-fixture-folder-0').click();
+            assert.equal(await info.evaluate(row => row.parentElement.classList.contains('folder-storage')), true);
+
+            await page.evaluate(() => {
+                const prototype = Element.prototype;
+                const after = prototype.after;
+                window.fixtureDetailMoves = 0;
+                prototype.after = function (...nodes) {
+                    if (nodes.some(node => node?.id === 'name-1')) {
+                        window.fixtureDetailMoves++;
+                        if (window.fixtureDetailMoves > 6) return;
+                    }
+                    return after.apply(this, nodes);
+                };
+                const owner = document.getElementById('fixture-vm-1');
+                const detail = document.createElement('tr');
+                detail.id = 'name-1';
+                after.call(owner, detail);
+            });
+            await page.waitForFunction(() => document.getElementById('name-1')?.dataset.fvplusVmDetailAdopted === '1');
+            await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+            assert.equal(await page.evaluate(() => window.fixtureDetailMoves), 0);
+            assert.equal(await page.locator('#name-1').evaluate(row => row.previousElementSibling.id), 'fixture-vm-1');
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true });
+
     test('VM view preferences keep the mounted group and native hooks through persisted navigation', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         host.prefs('vm').groupUnassignedItems = true;

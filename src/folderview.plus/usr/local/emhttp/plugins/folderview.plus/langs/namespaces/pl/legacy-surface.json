@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "legacy-surface",
-        "content-revision": "1dd723d2b9bca96bb5435ce4e2da7433ec679faecb002e5a1a594384da5fa846"
+        "content-revision": "0b4f8076e58dd38b0b175ce4bf218ff1783de65b18b5c0f7782692ab595464f0"
     },
     "legacy.surface.0008eb7acd3f7a56": "Przenoszenie zbiorcze niedostępne",
     "legacy.surface.0012950979762d8c": "Wybierz migawkę, którą chcesz przywrócić, pobrać lub usunąć.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Szczegóły środowiska wykonawczego platformy Docker były częściowo niedostępne",
     "legacy.surface.a9ff80bb0824fdc2": "Kopia zapasowa gotowa.",
     "legacy.surface.aa1897c8cf834c13": "Atrybut bezpiecznej konstrukcji DOM odrzucony: $1",
-    "legacy.surface.aa2181b424db8468": "Gotowa kopia zapasowa: $1",
     "legacy.surface.aa3090909390156a": "Przełącz $1",
     "legacy.surface.aa3d3ea5337856c8": "Plik importu musi zawierać obiekt JSON.",
     "legacy.surface.aa54cbf3d0764800": "Przywracanie stanu początkowego nie powiodło się.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Członkowie bezpośredni/łączna liczba członków, w tym foldery zagnieżdżone",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus pozostawił otwartą stronę Ustawienia, ale nie udało się załadować niektórych danych lub zaawansowanych modułów.",
     "legacy.surface.c3ba312a7f9ba04e": "Automatyczne przypisywanie najważniejszych momentów: $1",
-    "legacy.surface.c3d9b0b812065b73": "Utworzono punkt wycofania",
     "legacy.surface.c3f148bfdf3af882": "Umieść w folderze",
     "legacy.surface.c3fc3cce1b150b2f": "Nieznany błąd żądania",
     "legacy.surface.c42210be655c49df": "FolderView Plus nie mógł dokończyć ładowania $1",

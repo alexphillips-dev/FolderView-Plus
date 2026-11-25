@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "content-revision": "be85f87a3adc8ad47f187d721a7d05c7ba4a8465610f1ec74deb1f60058d8b75"
+        "content-revision": "52bcc4b4293388a3842f289807bd6bf5c5643d3d1ee2753cee65e317f9f63d6c"
     },
     "common.unassigned-group.title": "Nepiešķirtie vienumi",
     "runtime.action.requests-result": "Pieņemti: $1 · Neizdevās: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importēšana ir pabeigta.",
     "common.repair.delete-failed-8727e2": "Dzēst neizdevās",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Atcelšanas punkta izveide pirms jebkādas dzēšanas.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Drošības dublēšana izlaista: nav aizsargātu mapju.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Dublējuma fails netika izveidots, jo mapes karte ir tukša.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Iestatījumu tabulas un dublējumkopiju atsvaidzināšana.",
     "common.repair.folder-deleted-048562": "Mape izdzēsta.",
     "common.repair.all-folders-cleared-a7b85c": "Visas mapes ir notīrītas.",

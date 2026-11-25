@@ -17,7 +17,7 @@ test('Settings performance summaries use loaded translations for every profile, 
         const rendered = [];
         const context = vm.createContext({
             utils: { normalizePrefs: value => value, normalizePerformanceProfile: value => value },
-            dockers: {}, vms: {}, infoByType: { docker: {}, vm: {} }, window: {},
+            typeFolders: () => ({}), infoByType: { docker: {}, vm: {} }, window: {},
             surfaceT: (key, fallback, ...args) => {
                 if (!Object.hasOwn(catalog, key)) missing.add(key);
                 return args.reduce((value, arg, index) => value.replaceAll('$' + (index + 1), String(arg)), catalog[key] || fallback);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface",
-        "content-revision": "e8b8b1d04abfb207403c6f5164e6da992e2d8f95a3714ba8e1dd197643c3636e"
+        "content-revision": "2afe4cd5e1ec4ad7db87729a69243889770d8a4ea40ad005c6987a328cf9fb1b"
     },
     "legacy.surface.0008eb7acd3f7a56": "Movimiento masivo no disponible",
     "legacy.surface.0012950979762d8c": "Elija una instantánea para restaurar, descargar o eliminar.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Los detalles del tiempo de ejecución de Docker no estaban parcialmente disponibles",
     "legacy.surface.a9ff80bb0824fdc2": "Copia de seguridad lista.",
     "legacy.surface.aa1897c8cf834c13": "Atributo rechazado de construcción DOM segura: $1",
-    "legacy.surface.aa2181b424db8468": "Copia de seguridad lista: $1",
     "legacy.surface.aa3090909390156a": "Alternar $1",
     "legacy.surface.aa3d3ea5337856c8": "El archivo de importación debe contener un objeto JSON.",
     "legacy.surface.aa54cbf3d0764800": "La restauración de reversión falló.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Miembros directos/miembros totales, incluidas las carpetas anidadas",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus mantuvo abierta la página de Configuración, pero algunos datos o módulos avanzados no se pudieron cargar.",
     "legacy.surface.c3ba312a7f9ba04e": "Asignación automática de aspectos destacados: $1",
-    "legacy.surface.c3d9b0b812065b73": "punto de reversión creado",
     "legacy.surface.c3f148bfdf3af882": "Colocar en carpeta",
     "legacy.surface.c3fc3cce1b150b2f": "Error de solicitud desconocido",
     "legacy.surface.c42210be655c49df": "FolderView Plus no pudo terminar de cargar $1",

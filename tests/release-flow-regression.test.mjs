@@ -244,7 +244,7 @@ for (const stagedDeletion of [false, true]) {
             git('add', 'keep.txt');
         }
         const devFinalize = fs.readFileSync(path.join(repoRoot, 'scripts/dev_finalize.sh'), 'utf8');
-        const gates = devFinalize.match(/mapfile -t STAGED_FILES[\s\S]*?(?=\nbash pkg_build\.sh)/)?.[0];
+        const gates = devFinalize.match(/mapfile -t STAGED_FILES[\s\S]*?(?=\nif git diff --cached --quiet)/)?.[0];
         assert.ok(gates, 'exercise the actual worktree gates before the package build');
         writeFile(path.join(tempRoot, 'gates.sh'), `#!/usr/bin/env bash
 set -euo pipefail

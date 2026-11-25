@@ -30,6 +30,17 @@ fvplus_json_try(function (): array {
         $decoded = $incoming;
     }
     fvplus_assert_prefs_payload_shape($decoded);
+    if (array_key_exists('hiddenFolderIdChanges', $decoded)) {
+        $visibilityChanges = $decoded['hiddenFolderIdChanges'];
+        if ($type !== 'docker' || !is_array($visibilityChanges) || count($visibilityChanges) > 10000) {
+            throw new RuntimeException("Invalid prefs payload: 'hiddenFolderIdChanges' must be a Docker folder visibility map.");
+        }
+        foreach ($visibilityChanges as $id => $hidden) {
+            if ((string)$id === '' || normalizeFolderIdValue($id) !== (string)$id || !is_bool($hidden)) {
+                throw new RuntimeException("Invalid prefs payload: 'hiddenFolderIdChanges' must use valid folder IDs and boolean values.");
+            }
+        }
+    }
     $expectedRevision = (string)($_POST['expectedRevision'] ?? '');
     $clientMutationId = trim((string)($_POST['clientMutationId'] ?? ''));
     if ($clientMutationId !== '' && !preg_match('/^[a-zA-Z0-9._:-]{1,96}$/', $clientMutationId)) {
@@ -53,6 +64,15 @@ fvplus_json_try(function (): array {
 
     $current = readTypePrefs($type);
     $merged = mergeTypePrefsPatch($current, $decoded);
+    if (isset($decoded['hiddenFolderIdChanges'])) {
+        $hiddenIds = array_fill_keys(normalizeStringIdList($merged['hiddenFolderIds'] ?? []), true);
+        foreach ($decoded['hiddenFolderIdChanges'] as $id => $hidden) {
+            if ($hidden) $hiddenIds[$id] = true;
+            else unset($hiddenIds[$id]);
+        }
+        $merged['hiddenFolderIds'] = array_map('strval', array_keys($hiddenIds));
+        unset($merged['hiddenFolderIdChanges']);
+    }
     fvplusValidateRuleChanges($type, $current['autoRules'] ?? [], $merged['autoRules'] ?? []);
     $next = normalizeTypePrefs($merged);
     $orderPrefsChanged = (

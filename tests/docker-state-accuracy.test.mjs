@@ -6,6 +6,7 @@ import { runInventoryRepair } from './helpers/runtime-inventory-fixture.mjs';
 const require = createRequire(import.meta.url);
 const runtime = '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts';
 const infoModule = require(`${runtime}/docker.runtime.info.js`);
+const grouping = require(`${runtime}/docker.runtime.folder-grouping.js`);
 const previewModule = require(`${runtime}/docker.runtime.preview-actions.js`);
 const coordinator = require(`${runtime}/docker.runtime.api-coordinator.js`);
 const actionsModule = require(`${runtime}/docker.runtime.actions.js`);
@@ -136,6 +137,8 @@ test('native rebuild evidence beats the flash icon, clears on recovery and is ex
         }
     }
     class HostRow {
+        id = 'ct-app';
+        dataset = { name: 'app' };
         querySelector(selector) { return selector === 'td.updatecolumn' ? new HostCell() : null; }
     }
     globalThis.HTMLElement = class {};
@@ -144,7 +147,7 @@ test('native rebuild evidence beats the flash icon, clears on recovery and is ex
     try {
         let current = { app: { name: 'app', info: { Name: 'app', State: { manager: 'dockerman', Updated: true } } } };
         const api = infoModule.createApi({
-            window: {}, document: { getElementById: id => id === 'ct-app' ? new HostRow() : null },
+            window: {}, grouping, document: { getElementById: id => id === 'ct-app' ? new HostRow() : null },
             getDockerRuntimeInfoMap: () => current, setDockerRuntimeInfoMap: next => { current = next; }
         });
         assert.equal(api.syncDockerHostRowUpdateStatesFromDom(['app']), true);

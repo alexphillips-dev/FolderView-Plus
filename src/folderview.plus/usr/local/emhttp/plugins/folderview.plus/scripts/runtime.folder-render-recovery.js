@@ -48,7 +48,7 @@
             failures.clear();
             recoveredCount = 0;
         };
-        const render = (folder, id, order, run, removeFolderSlot = true) => {
+        const render = (folder, id, order, run, folderSlot = true) => {
             const target = options.getRoot?.() || doc.body;
             const observer = new win.MutationObserver(() => {});
             const beforeOrder = order.slice();
@@ -78,7 +78,7 @@
                 for (const key of Object.keys(folder)) delete folder[key];
                 Object.assign(folder, beforeFolder);
                 failures.set(String(id), beforeFolder);
-                const slot = removeFolderSlot ? order.indexOf(`folder-${id}`) : -1;
+                const slot = folderSlot ? order.indexOf(folderSlot === true ? `folder-${id}` : folderSlot) : -1;
                 if (slot >= 0) order.splice(slot, 1);
                 options.onRollback?.(String(id));
                 if (activeElement?.isConnected && doc.activeElement !== activeElement) activeElement.focus?.({ preventScroll: true });

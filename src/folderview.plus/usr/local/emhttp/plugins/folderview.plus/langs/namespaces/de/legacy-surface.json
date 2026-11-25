@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface",
-        "content-revision": "6e620a567d8f5a5d8120d29b2c34a21158f0076f5a749ff641a63db044cfce96"
+        "content-revision": "ed08d51410caa301edfa437c88f309b8910558862887fc2a5a98298e06b53c0c"
     },
     "legacy.surface.0008eb7acd3f7a56": "Massenverschiebung nicht verfügbar",
     "legacy.surface.0012950979762d8c": "Wählen Sie einen Snapshot zum Wiederherstellen, Herunterladen oder Löschen aus.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Details zur Docker-Laufzeit waren teilweise nicht verfügbar",
     "legacy.surface.a9ff80bb0824fdc2": "Backup bereit.",
     "legacy.surface.aa1897c8cf834c13": "Attribut „Sichere DOM-Konstruktion abgelehnt“: $1",
-    "legacy.surface.aa2181b424db8468": "Backup bereit: $1",
     "legacy.surface.aa3090909390156a": "$1 umschalten",
     "legacy.surface.aa3d3ea5337856c8": "Die Importdatei muss ein JSON-Objekt enthalten.",
     "legacy.surface.aa54cbf3d0764800": "Die Rollback-Wiederherstellung ist fehlgeschlagen.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Direkte Mitglieder/Gesamtmitglieder einschließlich verschachtelter Ordner",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus ließ die Seite „Einstellungen“ geöffnet, einige Daten oder erweiterte Module konnten jedoch nicht geladen werden.",
     "legacy.surface.c3ba312a7f9ba04e": "Highlights automatisch zuweisen: $1",
-    "legacy.surface.c3d9b0b812065b73": "Rollback-Punkt erstellt",
     "legacy.surface.c3f148bfdf3af882": "Im Ordner ablegen",
     "legacy.surface.c3fc3cce1b150b2f": "Unbekannter Anfragefehler",
     "legacy.surface.c42210be655c49df": "FolderView Plus konnte das Laden von $1 nicht abschließen.",

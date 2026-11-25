@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "legacy-surface",
-        "content-revision": "cd05e0f38b089de18a46f459483a0b70491f475a2bb3ebfc445a3fdc425b2799"
+        "content-revision": "e1d5522402db8e387508f7fbf2e10b7accc66625db3831491ff075326dc6c5de"
     },
     "legacy.surface.0008eb7acd3f7a56": "一括移動は利用できません",
     "legacy.surface.0012950979762d8c": "復元、ダウンロード、または削除するスナップショットを選択します。",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker ランタイムの詳細が部分的に利用できませんでした",
     "legacy.surface.a9ff80bb0824fdc2": "バックアップの準備ができました。",
     "legacy.surface.aa1897c8cf834c13": "安全な DOM 構築が拒否された属性: $1",
-    "legacy.surface.aa2181b424db8468": "バックアップ準備完了: $1",
     "legacy.surface.aa3090909390156a": "$1 を切り替えます",
     "legacy.surface.aa3d3ea5337856c8": "インポート ファイルには JSON オブジェクトが含まれている必要があります。",
     "legacy.surface.aa54cbf3d0764800": "ロールバック復元に失敗しました。",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "直接メンバー / ネストされたフォルダーを含む合計メンバー",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus は設定ページを開いたままにしましたが、一部のデータまたは高度なモジュールのロードに失敗しました。",
     "legacy.surface.c3ba312a7f9ba04e": "ハイライトの自動割り当て: $1",
-    "legacy.surface.c3d9b0b812065b73": "ロールバックポイントが作成されました",
     "legacy.surface.c3f148bfdf3af882": "フォルダに入れる",
     "legacy.surface.c3fc3cce1b150b2f": "不明なリクエストエラー",
     "legacy.surface.c42210be655c49df": "FolderView Plus は $1 のロードを完了できませんでした",

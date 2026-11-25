@@ -97,7 +97,7 @@ clear_state() {
         retired="${pending_dir}"
         mv -T -- "${state_dir}" "${retired}" || fail_registration
     fi
-    rm -f -- "${retired}/"{manifest,owner,report,boot-id,recover.sh,previous-version,cron,cron-mode,core-started,activated,committed} || fail_registration
+    rm -f -- "${retired}/"{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,activated,committed,rollback} || fail_registration
     rmdir -- "${retired}" || fail_registration
     # The native boot CLI still rereads the wrapper's noInstall attribute.
     if [ "${1:-}" != boot ]; then
@@ -125,8 +125,45 @@ restore_scheduler() {
     /etc/rc.d/rc.crond restart 9>&- >/dev/null 2>&1
 }
 
+read_deployed_version() {
+    sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "${runtime_dir}/build-metadata.json" 2>/dev/null || true
+}
+
+has_package_record() {
+    [ -f "/var/lib/pkgtools/packages/folderview.plus-$1" ] || [ -f "/var/log/packages/folderview.plus-$1" ]
+}
+
+restore_prior_registration() {
+    local previous_version target previous_manifest="${state_dir}/previous-manifest"
+    previous_version="$(cat "${state_dir}/previous-version")" || return 1
+    if [ -f "${previous_manifest}" ]; then
+        if [ -n "${previous_version}" ]; then
+            validate_manifest "${previous_manifest}" "${previous_version}" || return 1
+        fi
+        write_registered_manifest "${previous_manifest}"
+    elif [ -f "${state_dir}/manifest-absent" ] &&
+        { [ -e "${registered_manifest}" ] || [ -L "${registered_manifest}" ]; }; then
+        [ ! -L "${registered_manifest}" ] &&
+            cmp -s -- "${registered_manifest}" "${state_dir}/manifest" &&
+            rm -f -- "${registered_manifest}" || return 1
+    fi
+    if [ -f "${state_dir}/saved-version" ]; then
+        target="$(mktemp "${config_dir}/.version.rollback.XXXXXX")" || return 1
+        if ! cp -p -- "${state_dir}/saved-version" "${target}" ||
+            ! mv -fT -- "${target}" "${config_dir}/version" ||
+            ! cmp -s -- "${state_dir}/saved-version" "${config_dir}/version"; then
+            rm -f -- "${target}"
+            return 1
+        fi
+    elif [ -f "${state_dir}/version-absent" ]; then
+        rm -f -- "${config_dir}/version" || return 1
+    fi
+    sync -f "${config_dir}"
+}
+
 restore_interrupted_activation() {
-    local previous_version previous_icon previous_icon_sha icon_archive
+    local previous_version previous_icon previous_icon_sha icon_archive restored_version
+    local previous_manifest="${state_dir}/previous-manifest"
     [ ! -f "${state_dir}/core-started" ] && return 0
     previous_version="$(cat "${state_dir}/previous-version")" || return 1
     # A different deployed package could belong to a later installation.
@@ -135,11 +172,12 @@ restore_interrupted_activation() {
         return 1
     fi
     if [ -n "${previous_version}" ]; then
+        [ -f "${previous_manifest}" ] || previous_manifest="${registered_manifest}"
         [[ "${previous_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-            validate_manifest "${registered_manifest}" "${previous_version}" || return 1
-        previous_icon="$(manifest_entity iconPackVersion "${registered_manifest}")"
+            validate_manifest "${previous_manifest}" "${previous_version}" || return 1
+        previous_icon="$(manifest_entity iconPackVersion "${previous_manifest}")"
         if [ -n "${previous_icon}" ]; then
-            previous_icon_sha="$(manifest_entity iconPackSha256 "${registered_manifest}")"
+            previous_icon_sha="$(manifest_entity iconPackSha256 "${previous_manifest}")"
             icon_archive="${config_dir}/folderview.plus-icons-${previous_icon}.txz"
             [[ "${previous_icon}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "${previous_icon_sha}" =~ ^[a-f0-9]{64}$ ]] &&
                 [ -f "${icon_archive}" ] && [ ! -L "${icon_archive}" ] &&
@@ -155,10 +193,15 @@ restore_interrupted_activation() {
         if [ -n "${previous_icon}" ]; then
             /bin/bash "${runtime_dir}/scripts/install_icon_asset_pack.sh" "${previous_icon}" "${previous_icon_sha}" || return 1
         fi
-    elif [ "${deployed_version}" = "${owner_version}" ] ||
-        [ -f "/var/lib/pkgtools/packages/folderview.plus-${owner_version}" ] ||
-        [ -f "/var/log/packages/folderview.plus-${owner_version}" ]; then
+        restored_version="$(read_deployed_version)"
+        if [ -n "${restored_version}" ]; then
+            [ "${restored_version}" = "${previous_version}" ] || return 1
+        else
+            has_package_record "${previous_version}" || return 1
+        fi
+    elif [ "${deployed_version}" = "${owner_version}" ] || has_package_record "${owner_version}"; then
         removepkg "folderview.plus-${owner_version}" 9>&- || return 1
+        [ -z "$(read_deployed_version)" ] && ! has_package_record "${owner_version}" || return 1
     fi
     restore_scheduler
 }
@@ -172,7 +215,9 @@ case "${mode}" in
         owner_on_this_boot && exit 0
         read_owner || fail_registration
         bootstrap=0
-        if [ -f "${state_dir}/committed" ]; then
+        if [ -f "${state_dir}/rollback" ]; then
+            restore_prior_registration || fail_registration
+        elif [ -f "${state_dir}/committed" ]; then
             [ -f "${registered_manifest}" ] || bootstrap=1
             validate_manifest "${state_dir}/manifest" || fail_registration
             write_registered_manifest "${state_dir}/manifest"
@@ -185,6 +230,12 @@ case "${mode}" in
             exec plugin install "${registered_manifest}" 9>&-
         fi
         exit 0
+        ;;
+    rollback)
+        # The activation hook still owns the lock and has recorded the failure on flash.
+        read_owner || fail_registration
+        is_owner_callback "${owner_method}" || fail_registration
+        [ -f "${state_dir}/rollback" ] || fail_registration
         ;;
     recover)
         # The main manifest already holds the activation lock.
@@ -199,14 +250,23 @@ case "${mode}" in
         exec 9>>/run/folderview.plus-install.lock
         flock 9 || fail_registration
         read_owner && is_owner_callback "${2:-}" || exit 0
+        [ ! -f "${state_dir}/rollback" ] || fail_registration
         ;;
     *) exit 0 ;;
 esac
 
 report="$(cat "${state_dir}/report" 2>/dev/null || true)"
 candidate_manifest="${state_dir}/manifest"
-deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "${runtime_dir}/build-metadata.json" 2>/dev/null || true)"
+deployed_version="$(read_deployed_version)"
 saved_version="$(cat "${config_dir}/version" 2>/dev/null || true)"
+if [ "${mode}" = rollback ] || { [ "${mode}" = recover ] && [ "${legacy}" -eq 0 ] &&
+    { [ -f "${state_dir}/rollback" ] || [ ! -f "${state_dir}/activated" ]; }; }; then
+    read_owner || fail_registration
+    restore_interrupted_activation || fail_registration
+    restore_prior_registration || fail_registration
+    clear_state
+    exit 0
+fi
 if [ "${mode}" = recover ]; then
     if [ "${legacy}" -eq 1 ]; then
         if ! read_owner; then
@@ -222,11 +282,6 @@ if [ "${mode}" = recover ]; then
         fi
     else
         read_owner || fail_registration
-        if [ ! -f "${state_dir}/activated" ]; then
-            restore_interrupted_activation || fail_registration
-            clear_state
-            exit 0
-        fi
         if [ "${saved_version}" != "${owner_version}" ] && [ "${deployed_version}" = "${owner_version}" ]; then
             validate_manifest "${candidate_manifest}" || fail_registration
             target="$(mktemp "${config_dir}/.version.XXXXXX")" || fail_registration

@@ -1,9 +1,30 @@
 #!/usr/bin/env bash
 
+FVPLUS_SHIPPED_PATHS=(src/folderview.plus/ folderview.plus.plg folderview.plus.xml)
+
 fvplus::fail() {
   echo "ERROR: $*" >&2
   exit 1
 }
+
+fvplus::copy_indexed_package_source() (
+  local repository="$1" destination="$2" filter="${3:-}" package_root file
+  repository="$(cd "${repository}" && pwd -P)" || exit 1
+  package_root="${repository}/src/folderview.plus"
+  [[ "$(realpath -e -- "${package_root}")" == "${package_root}" ]] \
+    || fvplus::fail 'The package source directory must be inside the checkout.'
+  [[ -z "$(git -C "${repository}" ls-files --unmerged -- "${FVPLUS_SHIPPED_PATHS[0]}")" ]] \
+    || fvplus::fail 'Resolve source conflicts before building the package.'
+  cd "${package_root}" || exit 1
+  git -C "${repository}" ls-files -z --error-unmatch -- "${FVPLUS_SHIPPED_PATHS[0]}" |
+    while IFS= read -r -d '' file; do
+      file="./${file#"${FVPLUS_SHIPPED_PATHS[0]}"}"
+      if [[ -n "${filter}" ]] && ! "${filter}" "${file}"; then continue; fi
+      [[ -f "${file}" && "$(realpath -e -- "${file}")" == "${package_root}/${file#./}" ]] \
+        || fvplus::fail "The indexed package source is missing or redirected: ${file}"
+      cp --parents -f -- "${file}" "${destination}/" || exit 1
+    done
+)
 
 fvplus::resolve_platform_command() {
   local requested="${1:-}"

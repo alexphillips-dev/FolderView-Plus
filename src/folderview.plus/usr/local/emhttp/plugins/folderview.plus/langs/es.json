@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4796,
-        "total-source-messages": 4796,
+        "translated-messages": 4792,
+        "total-source-messages": 4792,
         "content-revision": "9270911c6029a13aa6fb1d2100dae7f96d2880ed137f92fd7f89dbd4785cc33d",
-        "locale-content-revision": "585bc5efcf057884c1f4f7addbcf02e072425fd202278435e7c5f55286a55627"
+        "locale-content-revision": "f9904d39dcb9029b851c07f2b1c93b9ed1eba460d3f070110c610423642f65b0"
     },
     "add-folder": "Agregar carpeta",
     "up-to-date": "actualizado",

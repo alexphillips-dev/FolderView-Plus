@@ -79,6 +79,9 @@ if (empty($request['skipSeed'])) {
             $raw['folderGroups'][0]['folders'][0]['icon'] = $request['reference'];
             writeJsonObjectWithLastGood(getTypePrefsPath($type), $raw);
         }
+        if (($request['type'] ?? 'docker') === $type && ($request['kind'] ?? '') === 'template') {
+            writeFolderTemplates($type, [['id' => 'fixture-template', 'name' => 'Fixture template', 'icon' => $request['reference']]]);
+        }
     }
     syncCustomIconMetadataIndex($customDir);
     syncCustomIconPublicRuntime();
@@ -100,7 +103,11 @@ if (!empty($request['corrupt'])) file_put_contents(getTypePrefsPath('vm'), '{bro
 
 if (($request['policyAction'] ?? '') === 'recoverable') {
     $type = $request['type'];
-    $path = $request['kind'] === 'folder' ? getFolderFilePath($type) : getTypePrefsPath($type);
+    $path = match ($request['kind']) {
+        'folder' => getFolderFilePath($type),
+        'template' => getTemplatePath($type),
+        default => getTypePrefsPath($type)
+    };
     if (($request['unavailable'] ?? 'missing') === 'malformed') file_put_contents($path, '{broken');
     else unlink($path);
     $mirrorPath = getLastGoodJsonPath($path);

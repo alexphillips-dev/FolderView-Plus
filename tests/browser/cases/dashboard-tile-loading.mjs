@@ -114,6 +114,33 @@ const checkIndependentTile = async (page, baseUrl, readyType) => {
     assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
 };
 export const registerDashboardTileLoadingFixtureCases = ({ test, baseUrl }) => {
+    test('Dashboard lifecycle Reset view keeps configured expansion on native refresh', async ({ page }) => {
+        const fixture = await installDashboardLoadingFixture(page, baseUrl);
+        const widget = fixture.widget('docker');
+        const toggle = widget.locator('[data-fv-dashboard-folder-toggle]').first();
+        const options = widget.locator('[data-fv-quick-action="view-options"]');
+        const reset = page.locator('[data-fv-view-action="reset-view"]');
+        const loadTiles = async index => {
+            await fixture.load();
+            fixture.settle('docker', index, 1);
+            fixture.settle('vm', index, 1);
+            await fixture.waitForState('docker', 'ready');
+            await fixture.waitForState('vm', 'ready');
+        };
+        await loadTiles(0);
+        assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+        await options.click();
+        assert.equal(await reset.isEnabled(), false, 'a folder open by default is already at its default');
+        await page.keyboard.press('Escape');
+        await toggle.click();
+        await options.click();
+        assert.equal(await reset.isEnabled(), true);
+        await reset.click();
+        assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+        await loadTiles(1);
+        assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+    });
+
     test('Dashboard lifecycle renders docker full-width folders while the other tile is delayed', ({ page }) => checkIndependentTile(page, baseUrl, 'docker'));
     test('Dashboard lifecycle renders vm full-width folders while the other tile is delayed', ({ page }) => checkIndependentTile(page, baseUrl, 'vm'));
     test('Dashboard lifecycle ignores old widget data after a newer native refresh', async ({ page }) => {

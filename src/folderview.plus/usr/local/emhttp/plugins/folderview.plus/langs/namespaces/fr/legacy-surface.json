@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "legacy-surface",
-        "content-revision": "11569f4722f88b05803d7981eec4d2828488cf3f85d640994118783758273789"
+        "content-revision": "99adb660a94b19b3b8276177bdc8ee08e8f8b6f0992e4d31e5bdf565ed5c2783"
     },
     "legacy.surface.0008eb7acd3f7a56": "Déplacement groupé indisponible",
     "legacy.surface.0012950979762d8c": "Choisissez un instantané à restaurer, télécharger ou supprimer.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Les détails de l'exécution de Docker étaient partiellement indisponibles",
     "legacy.surface.a9ff80bb0824fdc2": "Sauvegarde prête.",
     "legacy.surface.aa1897c8cf834c13": "Attribut rejeté par la construction DOM sécurisée : $1",
-    "legacy.surface.aa2181b424db8468": "Sauvegarde prête : $1",
     "legacy.surface.aa3090909390156a": "Basculer $1",
     "legacy.surface.aa3d3ea5337856c8": "Le fichier d'importation doit contenir un objet JSON.",
     "legacy.surface.aa54cbf3d0764800": "La restauration par restauration a échoué.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Membres directs/nombre total de membres, y compris les dossiers imbriqués",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus a gardé la page Paramètres ouverte, mais certaines données ou modules avancés n'ont pas pu être chargés.",
     "legacy.surface.c3ba312a7f9ba04e": "Attribution automatique des faits saillants : $1",
-    "legacy.surface.c3d9b0b812065b73": "point de restauration créé",
     "legacy.surface.c3f148bfdf3af882": "Placer dans le dossier",
     "legacy.surface.c3fc3cce1b150b2f": "Erreur de requête inconnue",
     "legacy.surface.c42210be655c49df": "FolderView Plus n'a pas pu terminer le chargement de $1",

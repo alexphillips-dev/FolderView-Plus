@@ -605,17 +605,12 @@
             return allExpanded;
         };
 
-        const hasExpandedDashboardFoldersForType = (type) => {
-            let hasExpanded = false;
-            getDashboardFolderCardsForType(type).each((_, node) => {
-                if (jq(node).attr('expanded') === 'true') {
-                    hasExpanded = true;
-                    return false;
-                }
-                return true;
+        const hasNonDefaultExpansionForType = (type) =>
+            getDashboardFolderCardsForType(type).toArray().some(node => {
+                const $card = jq(node);
+                const id = deps.resolveFolderIdFromCard?.($card);
+                return ($card.attr('expanded') === 'true') !== (deps.isFolderExpandedByDefault?.(type, id) === true);
             });
-            return hasExpanded;
-        };
 
         const readDashboardQuickStateForType = (type) => {
             const resolvedType = normalizeDashboardType(type);
@@ -634,7 +629,7 @@
                     ? deps.readDashboardCompactDensityStateForType(resolvedType)
                     : false,
                 allExpanded: areAllDashboardFoldersExpandedForType(resolvedType),
-                anyExpanded: hasExpandedDashboardFoldersForType(resolvedType),
+                nonDefaultExpansion: hasNonDefaultExpansionForType(resolvedType),
                 folderCount: getDashboardFolderCardsForType(resolvedType).length
             };
         };
@@ -644,7 +639,7 @@
             return quickState.startedOnlyEnabled !== true
                 && quickState.healthEnabled !== true
                 && quickState.compactDensityEnabled !== true
-                && quickState.anyExpanded !== true;
+                && quickState.nonDefaultExpansion !== true;
         };
 
         const syncDashboardViewPopoverForType = (type) => {

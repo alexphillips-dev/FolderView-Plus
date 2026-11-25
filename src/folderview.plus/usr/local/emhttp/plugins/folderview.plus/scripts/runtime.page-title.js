@@ -33,19 +33,23 @@
         element.style.color = prefs.color === 'theme' ? '' : prefs.color;
     };
     const createController = ({ window: win = globalThis.window, document: doc = win?.document, resolveHost = () => null, getPrefs = () => ({}) } = {}) => {
-        let host = null, title = null, observer = null, frame = 0, disposed = false;
+        let host = null, title = null, observer = null, directionObserver = null, frame = 0, disposed = false;
         const measure = () => {
             if (!host || !title) return;
             const bounds = host.getBoundingClientRect();
-            let left = bounds.right;
+            const rtl = win.getComputedStyle(host).direction === 'rtl';
+            let available = bounds.width;
             // Include native text nodes as well as the plugin's search and toggle shells.
             for (const node of host.childNodes) {
                 if (node === title || (node.nodeType === 3 && !node.textContent.trim())) continue;
                 const range = doc.createRange();
                 range.selectNode(node);
-                for (const rect of range.getClientRects()) if (rect.width > 0 && rect.height > 0) left = Math.min(left, rect.left);
+                for (const rect of range.getClientRects()) {
+                    if (rect.width <= 0 || rect.height <= 0) continue;
+                    available = Math.min(available, rtl ? bounds.right - rect.right : rect.left - bounds.left);
+                }
             }
-            title.style.width = `${Math.max(0, win.matchMedia('(max-width: 600px)').matches ? bounds.width : left - bounds.left - 12)}px`;
+            title.style.width = `${Math.max(0, win.matchMedia('(max-width: 600px)').matches ? bounds.width : available - 12)}px`;
         };
         const queueMeasure = () => {
             if (disposed || frame) return;
@@ -53,6 +57,7 @@
         };
         const unmount = () => {
             observer?.disconnect(); observer = null;
+            directionObserver?.disconnect(); directionObserver = null;
             title?.remove(); title = null;
             host?.classList.remove('fvplus-page-title-host');
             host?.style.removeProperty('--fv-page-title-height');
@@ -70,6 +75,10 @@
                 title.className = 'fvplus-docker-page-title';
                 host.classList.add('fvplus-page-title-host');
                 host.prepend(title);
+                if (typeof win.MutationObserver === 'function' && doc.documentElement) {
+                    directionObserver = new win.MutationObserver(queueMeasure);
+                    directionObserver.observe(doc.documentElement, { attributes: true, attributeFilter: ['dir'] });
+                }
             }
             applyAppearance(title, prefs);
             host.style.setProperty('--fv-page-title-height', `${Math.ceil(prefs.size * 1.2)}px`);

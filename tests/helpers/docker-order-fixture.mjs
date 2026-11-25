@@ -17,19 +17,20 @@ export const phpOrder = (input) => {
         $prefs = $input['prefs'];
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders, $prefs);
         if (!isset($input['names'])) { echo json_encode(array_keys($orderedFolders)); return; }
-        $page = buildDockerPageOrderModel($input['native'], $orderedFolders, $prefs, $input['names']);
+        $tail = dockerPageUnslottedNames($input['nativeRows'] ?? [], $input['native'], $input['hasNativeOrderFile'] ?? false);
+        $page = buildDockerPageOrderModel($input['native'], $orderedFolders, $prefs, $input['names'], $tail);
         $info = array_fill_keys($input['names'], []);
         $snapshot = fvplusBuildMembershipSnapshot('docker', $orderedFolders, [], $info, $page['names'], $page['displayFolderIds']);
         $members = [];
         foreach ($snapshot['byFolder'] as $id => $entry) $members['folder-' . $id] = $entry['displayMembers'];
         $context = [
-            'pageFolderIds' => $page['pageFolderIds'], 'pageContainerNames' => $page['names'],
+            'pageFolderIds' => $page['pageFolderIds'], 'pageContainerNames' => $page['names'], 'pageOrder' => $page['pageOrder'],
             'folderContainers' => $members, 'assignedContainers' => array_keys($snapshot['primaryOwnerByName']),
             'allContainerNames' => $input['names'], 'autoStartMap' => array_combine($input['names'], $input['names']),
-            'prefs' => array_merge($prefs, ['dockerStartOrder' => ['mode' => 'docker-page']])
+            'prefs' => array_merge($prefs, ['dockerStartOrder' => $input['startOrder'] ?? ['mode' => 'docker-page']])
         ];
         $plan = buildDockerStartOrderPlan($context);
-        $plan['savedOrder'] = composeDockerSavedOrder($input['native'], $orderedFolders, $prefs);
+        $plan['savedOrder'] = composeDockerSavedOrder($input['native'], $orderedFolders, $prefs, $input['names']);
         $plan['folders'] = $orderedFolders;
         echo json_encode($plan, JSON_THROW_ON_ERROR);
     `;

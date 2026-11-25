@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "legacy-surface",
-        "content-revision": "cd489714753f47e2fc5bb04608844d6656411528e1daffa470c05192a25cf058"
+        "content-revision": "0cff8b0cfbae465ad39c4ce0e4331c39c0e419dd0652c07a278552c91bf7c702"
     },
     "legacy.surface.0008eb7acd3f7a56": "无法批量移动",
     "legacy.surface.0012950979762d8c": "选择要恢复、下载或删除的快照。",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker 运行时详细信息部分不可用",
     "legacy.surface.a9ff80bb0824fdc2": "备份准备好了。",
     "legacy.surface.aa1897c8cf834c13": "安全 DOM 构造拒绝属性：$1",
-    "legacy.surface.aa2181b424db8468": "备份就绪：$1",
     "legacy.surface.aa3090909390156a": "切换 $1",
     "legacy.surface.aa3d3ea5337856c8": "导入文件必须包含 JSON 对象。",
     "legacy.surface.aa54cbf3d0764800": "回滚恢复失败。",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "直接成员/总成员（包括嵌套文件夹）",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus 保持“设置”页面打开，但某些数据或高级模块无法加载。",
     "legacy.surface.c3ba312a7f9ba04e": "自动分配突出显示：$1",
-    "legacy.surface.c3d9b0b812065b73": "已创建回滚点",
     "legacy.surface.c3f148bfdf3af882": "放入文件夹中",
     "legacy.surface.c3fc3cce1b150b2f": "未知的请求错误",
     "legacy.surface.c42210be655c49df": "FolderView Plus 无法完成加载 $1",

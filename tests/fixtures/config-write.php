@@ -118,7 +118,9 @@ namespace {
     $old = ['old' => ['name' => 'Old fixture', 'containers' => ['fixture-member']]];
     if (($request['operation'] ?? '') === 'bulk') $old['target'] = ['name' => 'Target fixture', 'containers' => []];
     if (($request['operation'] ?? '') === 'reorder') $old['second'] = ['name' => 'Second fixture'];
-    $prefs = normalizeTypePrefs(['sortMode' => 'manual', 'manualOrder' => array_keys($old), 'backupSchedule' => ['enabled' => false]]);
+    $checkpointBatch = !empty($request['checkpointBatch']);
+    $prefs = normalizeTypePrefs(['sortMode' => 'manual', 'manualOrder' => array_keys($old),
+        'backupSchedule' => ['enabled' => false, 'retention' => $checkpointBatch ? 1 : 25]]);
     $operation = $request['operation'] ?? 'writer';
     if (empty($request['first']) && empty($request['skipSeed'])) {
         foreach (['docker', 'vm'] as $seedType) {
@@ -128,6 +130,7 @@ namespace {
     }
     if (!empty($request['seedOnly'])) { echo '{}'; exit; }
     $backupName = '';
+    if ($checkpointBatch) $backupName = createBackupSnapshot($type, 'before-folder-editor-bulk-move')['name'];
     if ($operation === 'backup') {
         $backupName = createBackupSnapshot($type, 'fixture')['name'];
         \ConfigWriteFault\writeRawFolderMap($type, ['current' => ['name' => 'Current fixture']]);
@@ -153,7 +156,9 @@ namespace {
     $errorMessage = ''; $previous = ''; $errorClass = '';
     try {
         if ($operation === 'batch') {
-            \ConfigWriteFault\applyFolderBatchOperations($type, ['deletes' => ['old'], 'creates' => [], 'upserts' => []]);
+            $operations = ['deletes' => ['old'], 'creates' => [], 'upserts' => []];
+            if ($checkpointBatch) $operations['backupReason'] = 'before-delete-old';
+            \ConfigWriteFault\applyFolderBatchOperations($type, $operations, $checkpointBatch ? readConfigMetadata($type, true)['folderRevision'] : '');
         } elseif (in_array($operation, ['create', 'delete', 'reorder'], true)) {
             \ConfigWriteFault\withConfigMutationLock(static function () use ($operation, $type): void {
                 if ($operation === 'create') {
@@ -200,5 +205,6 @@ namespace {
         'mirrorDirectoriesIntact' => !empty($request['mirrorDirectories']) && is_dir(getFolderFilePath($type) . '.lastgood')
             && is_dir(getTypePrefsPath($type) . '.lastgood') && is_dir(getConfigMetadataPath($type) . '.lastgood'),
         'otherUnchanged' => $other === \ConfigWriteFault\fixtureState($root, $type === 'vm' ? 'docker' : 'vm'),
+        'checkpointBatch' => $checkpointBatch ? ['original' => $backupName, 'retained' => array_column(listBackupSnapshots($type), 'name')] : null,
         'temps' => glob("$root/config/*.tmp.*") ?: [], 'sentinel' => file_get_contents("$root/rename-denied/sentinel")]);
 }

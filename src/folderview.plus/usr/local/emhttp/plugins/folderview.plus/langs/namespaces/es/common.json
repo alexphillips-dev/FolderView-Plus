@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "content-revision": "54053ccafab0c7307e5336023199bb3d119ca1e46c51f312086efd76956d4c44"
+        "content-revision": "2bd504a2267136a407bf6f1feb6e48aedc117361d200f1db6c58588f97987009"
     },
     "common.unassigned-group.title": "Elementos sin asignar",
     "runtime.action.requests-result": "$1 aceptadas · $2 fallidas",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Importación completa.",
     "common.repair.delete-failed-8727e2": "Error al eliminar",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Crear un punto de reversión antes de eliminar cualquier cosa.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Copia de seguridad omitida: no hay carpetas que proteger.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "No se creó ningún archivo de copia de seguridad porque el mapa de carpetas está vacío.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Actualización de la tabla de configuración y copias de seguridad.",
     "common.repair.folder-deleted-048562": "Carpeta eliminada.",
     "common.repair.all-folders-cleared-a7b85c": "Todas las carpetas borradas.",

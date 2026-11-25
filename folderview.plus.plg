@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.02">
-<!ENTITY md5 "641e8de6d8ce851e29b35360656fe4fa">
-<!ENTITY sha256 "d3f18af17bb67805a49132c64d0fe6b5d3788108e48c3c588d94cb017baac381">
+<!ENTITY version "2026.11.25.03">
+<!ENTITY md5 "693d1ba8201f387f41fa8672c8e794a6">
+<!ENTITY sha256 "8c185f7bd11b50c7f2a7254c45094a9f0b5f973bb158e70294ac97ab932fdc1f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.03
+- Reliability: Retain recovery state across failed upgrades and interrupted native installs from local manifests. Report uninstall cleanup failures and let a later removal finish the cleanup safely.
+- Fix: Check the reviewed folder revision before bulk changes, imports, or deletes. Preserve existing recovery points when an operation is rejected, and prevent moves from dropping items when a target folder is full.
+- Fix: Keep Settings controls active after browser Back. Recover saved templates from their last-good copy, and protect custom icons referenced by templates.
+- Fix: Preserve long parent IDs, reject oversized Docker WebUI profiles before import, and let Rule Preview read rules without initializing unrelated storage.
+- Fix: Preserve concurrent Docker hidden-folder changes and distinguish native container names, folder slots, and container IDs when rendering Docker rows and update badges.
+- Fix: Keep managed Docker startup order in sync with saved mixed rows, member reordering, and native sorting resets.
+- Fix: Keep populated VM branches visible, attach native details to their VM, and preserve Dashboard expansion defaults after Reset view.
+- Fix: Keep Docker page titles visible in right-to-left toolbars and load remaining optional overrides when one script cannot be loaded.
+- Quality: Restrict package inputs to Git-indexed source paths, validate the exact dev commit, and keep the plugin version unchanged for documentation-only updates.
+
 
 ###2026.11.25.02
 - Fix: Choose Saved Docker order under Docker row placement to keep saved folder and standalone container positions after refreshing the Docker tab. Folders first is the default. Changing placement affects the display and leaves native Docker order and autostart settings intact.
@@ -10224,6 +10236,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             config_dir="/boot/config/plugins/&name;"
             registered_manifest="/boot/config/plugins/&name;.plg"
             staged_manifest="/tmp/plugins/&name;.plg"
+            input_manifest="${staged_manifest}"
             legacy_registration_dir="/run/folderview.plus-registration"
             registration_dir="${config_dir}/.native-registration"
             registration_pending="${registration_dir}.pending"
@@ -10231,7 +10244,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             registration_helper="&plugdir;/scripts/complete_native_registration.sh"
             registration_hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-registration"
             staged_method=""
-            # Both native update and installs of the shared download require a handoff.
+            # Only a direct boot replay already has its final registration.
             if [[ "$0" = /tmp/inline*-&name;.sh || "$0" = /tmp/inline.sh ]]; then
                 installer_pid="${PPID}"
                 for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
@@ -10253,7 +10266,8 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                                     /*) installer_path="${installer_arg}" ;;
                                     *) installer_path="/proc/${installer_pid}/cwd/${installer_arg}" ;;
                                 esac
-                                if [ "$(readlink -m -- "${installer_path}")" = "${staged_manifest}" ]; then
+                                input_manifest="$(readlink -e -- "${installer_path}")" || exit 1
+                                if [ "${input_manifest}" != "${registered_manifest}" ]; then
                                     staged_method=install
                                 fi
                                 ;;
@@ -10294,13 +10308,11 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             cron_backup=""
             cron_stage=""
             version_stage=""
-            version_backup=""
             registered_stage=""
             staged_repair=""
             registration_owned=0
             registration_work=""
             wrapper_stage=""
-            version_changed=0
             core_attempted=0
             cron_changed=0
 
@@ -10350,7 +10362,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             clear_registration_files() {
                 [ -d "$1" ] || return 0
                 [ ! -L "$1" ] &amp;&amp; \
-                    rm -f -- "$1"/{manifest,owner,report,boot-id,recover.sh,previous-version,cron,cron-mode,core-started,activated,committed} &amp;&amp; rmdir -- "$1"
+                    rm -f -- "$1"/{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,activated,committed,rollback} &amp;&amp; rmdir -- "$1"
             }
 
             prepare_registration_recovery() {
@@ -10363,6 +10375,20 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     printf '%s\n' "${previous_version}" > "${registration_work}/previous-version" &amp;&amp; \
                     extract_registration_helper > "${registration_work}/recover.sh" &amp;&amp; \
                     [ -s "${registration_work}/recover.sh" ] || return 1
+                [ ! -L "${registered_manifest}" ] || return 1
+                if [ -e "${registered_manifest}" ]; then
+                    [ -f "${registered_manifest}" ] &amp;&amp; \
+                        cp -- "${registered_manifest}" "${registration_work}/previous-manifest" || return 1
+                else
+                    touch "${registration_work}/manifest-absent" || return 1
+                fi
+                [ ! -L "${config_dir}/version" ] || return 1
+                if [ -e "${config_dir}/version" ]; then
+                    [ -f "${config_dir}/version" ] &amp;&amp; \
+                        cp -p -- "${config_dir}/version" "${registration_work}/saved-version" || return 1
+                else
+                    touch "${registration_work}/version-absent" || return 1
+                fi
                 if [ -n "${cron_backup}" ]; then
                     cp -- "${cron_backup}" "${registration_work}/cron" &amp;&amp; \
                         stat -c '%a' "${cron_backup}" > "${registration_work}/cron-mode" || return 1
@@ -10416,11 +10442,11 @@ FOLDER_VIEW_PLUS_RECOVERY
 
             prepare_native_registration() {
                 local candidate_url github_entity
-                if [ ! -f "${staged_manifest}" ] || [ -L "${staged_manifest}" ]; then
+                if [ ! -f "${input_manifest}" ] || [ -L "${input_manifest}" ]; then
                     return 1
                 fi
                 registered_stage="$(mktemp /boot/config/plugins/.folderview.plus.plg.XXXXXX)" || return 1
-                cp -- "${staged_manifest}" "${registered_stage}" || return 1
+                cp -- "${input_manifest}" "${registered_stage}" || return 1
                 github_entity="$(read_manifest_value github "${registered_stage}")"
                 candidate_url="$(read_manifest_value pluginURL "${registered_stage}")"
                 candidate_url="${candidate_url//\&amp;github\;/${github_entity}}"
@@ -10437,13 +10463,14 @@ FOLDER_VIEW_PLUS_RECOVERY
             commit_native_registration() {
                 # Native remove deletes the stage before it reaches our activation lock.
                 # Restore that missing input without replacing another downloaded manifest.
-                if [ ! -e "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ]; then
+                if [ "${input_manifest}" = "${staged_manifest}" ] &amp;&amp; \
+                    [ ! -e "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ]; then
                     staged_repair="$(mktemp /tmp/plugins/.folderview.plus.plg.XXXXXX)" || return 1
                     cp -- "${registered_stage}" "${staged_repair}" || return 1
                     ln -T -- "${staged_repair}" "${staged_manifest}" 2>/dev/null || true
                 fi
-                [ -f "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ] \
-                    &amp;&amp; cmp -s -- "${registered_stage}" "${staged_manifest}" || return 1
+                [ -f "${input_manifest}" ] &amp;&amp; [ ! -L "${input_manifest}" ] \
+                    &amp;&amp; cmp -s -- "${registered_stage}" "${input_manifest}" || return 1
                 # Keep the verified candidate on flash until the post-hook confirms
                 # Unraid's own copy. An interrupted native copy is repaired at boot.
                 [ -x "${registration_helper}" ] &amp;&amp; \
@@ -10497,22 +10524,22 @@ FOLDER_VIEW_PLUS_RECOVERY
             }
 
             install_failure() {
-                local exit_code=$? restored=1
+                local exit_code=$? restored=1 durable_rollback=0
                 trap - EXIT
-                if [ "${registration_owned}" -eq 1 ]; then
-                    if [ "$(readlink -- "${registration_hook}" 2>/dev/null || true)" = "${registration_helper}" ]; then
-                        rm -f -- "${registration_hook}" || restored=0
-                    fi
-                    if [ "$(readlink -- "${legacy_registration_dir}" 2>/dev/null || true)" = "${registration_dir}" ]; then
-                        rm -f -- "${legacy_registration_dir}" || restored=0
-                    fi
-                    clear_registration_files "${registration_dir}" &amp;&amp; \
-                        rm -f -- "${recovery_wrapper}" || restored=0
+                if [ "${registration_owned}" -eq 1 ] &amp;&amp; [ -f "${registration_dir}/recover.sh" ]; then
+                    durable_rollback=1
+                    touch "${registration_dir}/rollback" &amp;&amp; sync -f "${config_dir}" || restored=0
+                elif [ "${registration_owned}" -eq 1 ]; then
+                    rm -f -- "${recovery_wrapper}" || restored=0
                 fi
                 if [ -f "${install_report}" ]; then
                     /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
                 fi
-                if [ "${core_attempted}" -eq 1 ]; then
+                if [ "${durable_rollback}" -eq 1 ]; then
+                    if [ "${restored}" -eq 1 ]; then
+                        /bin/bash "${registration_dir}/recover.sh" rollback || restored=0
+                    fi
+                elif [ "${core_attempted}" -eq 1 ]; then
                     if [ -L "&plugdir;/images/third-party-icons" ]; then
                         rm -f -- "&plugdir;/images/third-party-icons" || restored=0
                     fi
@@ -10529,7 +10556,7 @@ FOLDER_VIEW_PLUS_RECOVERY
                         removepkg "&name;-&version;" 9>&amp;- || restored=0
                     fi
                 fi
-                if [ "${cron_changed}" -eq 1 ]; then
+                if [ "${durable_rollback}" -eq 0 ] &amp;&amp; [ "${cron_changed}" -eq 1 ]; then
                     if [ -n "${cron_backup}" ]; then
                         if ! mv -fT -- "${cron_backup}" "${cron_file}"; then
                             restored=0
@@ -10541,21 +10568,10 @@ FOLDER_VIEW_PLUS_RECOVERY
                     fi
                     /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || restored=0
                 fi
-                if [ "${version_changed}" -eq 1 ]; then
-                    if [ -n "${version_backup}" ]; then
-                        if ! mv -fT -- "${version_backup}" "${config_dir}/version"; then
-                            restored=0
-                            printf 'FolderView Plus kept the previous version file at %s.\n' "${version_backup}" >&amp;2
-                            version_backup=""
-                        fi
-                    else
-                        rm -f -- "${config_dir}/version" || restored=0
-                    fi
-                fi
                 if [ -d "${registration_work}" ]; then
                     clear_registration_files "${registration_work}" || restored=0
                 fi
-                rm -f -- "${version_stage}" "${version_backup}" "${registered_stage}" "${staged_repair}" "${cron_stage}" "${cron_backup}" "${wrapper_stage}" "${registration_work}" || restored=0
+                rm -f -- "${version_stage}" "${registered_stage}" "${staged_repair}" "${cron_stage}" "${cron_backup}" "${wrapper_stage}" "${registration_work}" || restored=0
                 cleanup_install_context || restored=0
                 if [ "${core_attempted}" -eq 1 ]; then
                     if [ "${restored}" -eq 1 ]; then
@@ -10630,6 +10646,7 @@ FOLDER_VIEW_PLUS_RECOVERY
                     exit 1
                 fi
                 touch "${registration_dir}/core-started"
+                sync -f "${config_dir}"
             fi
             install_stage="core package installation"
             core_attempted=1
@@ -10654,17 +10671,12 @@ FOLDER_VIEW_PLUS_RECOVERY
             install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
             install_stage="version metadata"
             if [ -n "${staged_method}" ]; then
-                if [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; then
-                    version_backup="$(mktemp "${config_dir}/.version.rollback.XXXXXX")"
-                    cp -pP -- "${config_dir}/version" "${version_backup}"
-                fi
                 printf '%s\n' "${install_summary}" > "${registration_dir}/report"
                 touch "${registration_dir}/activated"
             fi
             version_stage="$(mktemp "${config_dir}/.version.XXXXXX")"
             printf '%s\n' "&version;" > "${version_stage}"
             mv -fT -- "${version_stage}" "${config_dir}/version"
-            version_changed=1
             if [ -n "${staged_method}" ]; then
                 install_stage="native registration"
                 if ! commit_native_registration; then
@@ -10673,7 +10685,7 @@ FOLDER_VIEW_PLUS_RECOVERY
                 fi
             fi
             trap - EXIT
-            rm -f -- "${cron_backup}" "${version_backup}" "${staged_repair}" || true
+            rm -f -- "${cron_backup}" "${staged_repair}" || true
             cleanup_install_context || true
             if [ -z "${staged_method}" ]; then
                 printf '%s\n' "${install_summary}"
@@ -10731,13 +10743,19 @@ FOLDER_VIEW_PLUS_RECOVERY
             elif [ -d /run/folderview.plus-registration ]; then
                 /bin/bash "&plugdir;/scripts/complete_native_registration.sh" recover remove || exit 1
             fi
+            removal_state="/boot/config/plugins/.folderview.plus-removal"
+            removal_version=""
+            if [ -e "${removal_state}" ] || [ -L "${removal_state}" ]; then
+                [ -f "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ] || exit 1
+                removal_version="$(cat "${removal_state}")" || exit 1
+            fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
             if [ -n "${deployed_version}" ]; then
                 if [ "${deployed_version}" != "&version;" ]; then
                     printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
                     exit 1
                 fi
-            else
+            elif [ "${removal_version}" != "&version;" ] || [ -f "&plugdir;/FolderViewPlus.page" ]; then
                 for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
                     if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
                         &amp;&amp; [ "${package_record##*/}" != "&name;-&version;" ]; then
@@ -10746,13 +10764,50 @@ FOLDER_VIEW_PLUS_RECOVERY
                     fi
                 done
             fi
-            removepkg &name;-&version; 9>&amp;- || exit $?
-            rm -f /etc/cron.d/folderview.plus
-            /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || true
-            rm -rf &plugdir;
-            rm -rf /tmp/folderview.plus-assets
-            rm -rf /boot/config/plugins/&name;
-            rm -f /boot/config/plugins/00-folderview.plus-registration-recovery.plg
+            if [ "${removal_version}" != "&version;" ]; then
+                removal_stage="$(mktemp "${removal_state}.XXXXXX")" || exit 1
+                if ! printf '%s\n' "&version;" > "${removal_stage}" ||
+                    ! mv -fT -- "${removal_stage}" "${removal_state}" ||
+                    ! sync -f /boot/config/plugins; then
+                    rm -f -- "${removal_stage}"
+                    exit 1
+                fi
+            fi
+            cron_file="/etc/cron.d/folderview.plus"
+            cron_backup=""
+            restore_remove_scheduler() {
+                if [ -n "${cron_backup}" ]; then
+                    mv -fT -- "${cron_backup}" "${cron_file}" &amp;&amp; \
+                        /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1
+                fi
+            }
+            if [ -e "${cron_file}" ] || [ -L "${cron_file}" ]; then
+                [ -f "${cron_file}" ] &amp;&amp; [ ! -L "${cron_file}" ] || exit 1
+                cron_backup="$(mktemp /etc/cron.d/.folderview.plus.remove.XXXXXX)" || exit 1
+                if ! cp -p -- "${cron_file}" "${cron_backup}"; then
+                    rm -f -- "${cron_backup}"
+                    exit 1
+                fi
+            fi
+            if ! rm -f -- "${cron_file}" || ! /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1; then
+                restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                printf 'FolderView Plus could not disable scheduled backups. Retry removal.\n' >&amp;2
+                exit 1
+            fi
+            if [ -n "${deployed_version}" ] || [ "${removal_version}" != "&version;" ] ||
+                [ -f "&plugdir;/FolderViewPlus.page" ] ||
+                [ -f "/var/lib/pkgtools/packages/&name;-&version;" ] || [ -f "/var/log/packages/&name;-&version;" ]; then
+                if ! removepkg &name;-&version; 9>&amp;-; then
+                    restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                    exit 1
+                fi
+            fi
+            if ! rm -f -- "${cron_backup}" ||
+                ! rm -rf -- "&plugdir;" /tmp/folderview.plus-assets "/boot/config/plugins/&name;" ||
+                ! rm -f -- /boot/config/plugins/00-folderview.plus-registration-recovery.plg "${removal_state}"; then
+                printf 'FolderView Plus could not complete file cleanup. Retry removal.\n' >&amp;2
+                exit 1
+            fi
             }
         </INLINE>
     </FILE>

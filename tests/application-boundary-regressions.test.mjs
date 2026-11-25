@@ -70,6 +70,7 @@ test('deletion confirmations escape persisted folder markup and cancellation per
         let dialog, confirm, mutations = 0, refreshes = 0;
         const sandbox = { escapeHtml: utils.escapeHtml, swal: (options, callback) => { dialog = options; confirm = callback; },
             normalizeManagedType: type => type, ensureRuntimeConflictActionAllowed: () => true, getFolderMap: () => ({ fixture: { name } }),
+            readFolderConfigurationRevision: () => 7, requestFolderBatchMutation: async () => { mutations++; },
             ensureVmFolderUnlocked: () => true, globalFolders: { fixture: { name } },
             $: Object.assign(() => ({ show: () => {} }), { i18n: key => key }),
             pluginRequestClient: { postJson: async () => { mutations++; } }, setTimeout: () => { refreshes++; }, loadlist: () => {} };

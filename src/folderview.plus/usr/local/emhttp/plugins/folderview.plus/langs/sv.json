@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4796,
-        "total-source-messages": 4796,
+        "translated-messages": 4792,
+        "total-source-messages": 4792,
         "content-revision": "62144855c462b5e0a9c2b471145b5440445186bba847785db5155a2df088c8f0",
-        "locale-content-revision": "7fe54742461b8c9ead37d0220207d954ee5fa03933b8622d54dd9e11b84388be"
+        "locale-content-revision": "53f422aa7fec8b64b18dd9a91f73cc1de83967725ce1c56f1fba844687dce910"
     },
     "add-folder": "Lägg till mapp",
     "up-to-date": "uppdaterad",

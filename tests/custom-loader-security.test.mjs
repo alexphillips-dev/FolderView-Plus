@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { runInNewContext } from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -35,4 +36,27 @@ test('Docker native compatibility mode keeps legacy custom assets inert', () => 
     assert.match(customScriptLoader, /document\.createElement\('script'\)/);
     assert.doesNotMatch(scriptsCustomPhp, /document\.write/);
     assert.doesNotMatch(customScriptLoader, /document\.write/);
+});
+
+test('Docker loads later custom overrides in order after a missing file', async () => {
+    const appended = [], warnings = [];
+    const document = {
+        querySelector: () => ({ content: '["/first.js","/missing.js","/last.js"]' }),
+        createElement: () => ({
+            handlers: {}, dataset: {},
+            addEventListener(event, handler) { this.handlers[event] = handler; }
+        }),
+        head: { appendChild(script) {
+            appended.push(script.src);
+            queueMicrotask(script.handlers[script.src === '/missing.js' ? 'error' : 'load']);
+        } }
+    };
+    const window = { document, console: { warn: message => warnings.push(message) } };
+    runInNewContext(customScriptLoader, { window });
+    const promise = window.FolderViewPlusDockerLoadCustomScripts();
+    assert.equal(window.FolderViewPlusDockerLoadCustomScripts(), promise);
+    await promise;
+    assert.deepEqual(appended, ['/first.js', '/missing.js', '/last.js']);
+    assert.equal(warnings.length, 1);
+    assert.doesNotMatch(warnings[0], /missing\.js/);
 });

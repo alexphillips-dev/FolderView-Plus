@@ -22,7 +22,13 @@ for (const outputDirectory of ['archive', 'custom-output']) {
         for (const file of ['pkg_build.sh', 'scripts/lib.sh', 'folderview.plus.plg', 'folderview.plus.xml']) {
             write(path.join(dir, file), fs.readFileSync(path.join(root, file), 'utf8'));
         }
-        write(path.join(dir, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/fixture.txt'), 'Synthetic payload only\n');
+        const pluginRoot = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
+        const shippedFile = `${pluginRoot}/fixture.txt`;
+        write(path.join(dir, shippedFile), 'Synthetic payload only\n');
+        write(path.join(dir, '.gitignore'), 'tmp/\n');
+        write(path.join(dir, pluginRoot, 'tmp/ignored-sentinel.txt'), 'Untracked fixture data\n');
+        execFileSync('git', ['init', '-q'], { cwd: dir });
+        execFileSync('git', ['add', '--', shippedFile], { cwd: dir });
         for (const name of ['icon_asset_pack_guard', 'ensure_plg_changes_entry', 'release_guard']) {
             write(path.join(dir, `scripts/${name}.sh`), '#!/usr/bin/env bash\nexit 0\n');
         }
@@ -35,12 +41,16 @@ source scripts/lib.sh
 archive="$(fvplus::archive_file "$PWD" "$(fvplus::read_plg_version folderview.plus.plg)")"
 test -f "$archive"
 printf '%s' "$archive" > smoke-archive.txt
+tar -tf "$archive" > smoke-contents.txt
 `);
         bash(dir, ['pkg_build.sh', '--branch', 'dev', '--output-dir', outputDirectory, '--no-prune-archives', '--install-smoke'], {
             PATH: `${path.join(dir, 'fake-bin')}${path.delimiter}${process.env.PATH || ''}`,
             FVPLUS_HISTORICAL_REBUILD: '1', FVPLUS_VERSION_OVERRIDE: '2020.01.01.01', FVPLUS_ARCHIVE_DIR: ''
         });
         assert.equal(fs.readFileSync(path.join(dir, 'smoke-archive.txt'), 'utf8'), path.join(dir, outputDirectory, 'folderview.plus-2020.01.01.01.txz'));
+        const entries = fs.readFileSync(path.join(dir, 'smoke-contents.txt'), 'utf8').trim().split('\n');
+        assert.ok(entries.includes('./usr/local/emhttp/plugins/folderview.plus/fixture.txt'));
+        assert.ok(entries.every(entry => !entry.includes('ignored-sentinel.txt')));
     });
 }
 

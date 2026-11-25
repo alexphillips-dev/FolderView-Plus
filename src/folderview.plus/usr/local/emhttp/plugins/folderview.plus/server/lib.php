@@ -1145,7 +1145,7 @@
         }
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
         $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
-        $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
+        $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, folderNormalizationCollectionLimit('containers'));
         $normalized['hiddenPreviewMembers'] = array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000);
         unset($normalized['hidden_preview']);
         $rawMemberIdentities = is_array($normalized['memberIdentities'] ?? null)
@@ -1192,7 +1192,7 @@
         $normalized['memberIdentities'] = $normalizedMemberIdentities;
         unset($normalized['member_identities']);
         $rawParentId = $normalized['parentId'] ?? ($normalized['parent_id'] ?? ($normalized['parent'] ?? ''));
-        $normalized['parentId'] = truncateUtf8String(trim((string)$rawParentId), 64);
+        $normalized['parentId'] = normalizeFolderParentIdValue($rawParentId);
         unset($normalized['parent_id'], $normalized['parent']);
 
         if (!is_array($normalized['settings'] ?? null)) {
@@ -1372,7 +1372,7 @@
         if (!is_string($value) && !is_numeric($value)) {
             return '';
         }
-        return truncateUtf8String(trim((string)$value), 64);
+        return normalizeFolderIdValue($value);
     }
 
     function normalizeFolderParentLinks(array $folders): array {
@@ -1385,7 +1385,7 @@
                 $folder = [];
             }
             $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
-            if ($parentId === $id || $parentId === '' || !array_key_exists($parentId, $folders)) {
+            if ($parentId === (string)$id || $parentId === '' || !array_key_exists($parentId, $folders)) {
                 $parentId = '';
             }
             $folder['parentId'] = $parentId;
@@ -1408,7 +1408,7 @@
                     $folders[$cursor]['parentId'] = '';
                     break;
                 }
-                if ($parentId === $id || isset($seen[$parentId])) {
+                if ($parentId === (string)$id || isset($seen[$parentId])) {
                     $folders[$cursor]['parentId'] = '';
                     break;
                 }
@@ -2094,21 +2094,24 @@
         ];
     }
 
-    function readFolderTemplates(string $type): array {
-        $type = ensureType($type);
-        $path = getTemplatePath($type);
-        if (!file_exists($path)) {
-            return [];
+    function readFolderTemplateFile(string $path): ?array {
+        if (is_link($path) || !is_file($path) || !is_readable($path)) {
+            return null;
         }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            return [];
+        $decoded = readJsonObjectFile($path);
+        return $decoded !== null && count(array_filter($decoded, 'is_array')) === count($decoded) ? $decoded : null;
+    }
+
+    function readFolderTemplates(string $type, bool $requireAvailable = false): array {
+        $path = getTemplatePath($type);
+        $mirror = getLastGoodJsonPath($path);
+        $decoded = readFolderTemplateFile($path) ?? readFolderTemplateFile($mirror);
+        if ($decoded === null && $requireAvailable
+            && (file_exists($path) || is_link($path) || file_exists($mirror) || is_link($mirror))) {
+            throw new FVPlusStorageException('Unable to load saved templates.');
         }
         $rows = [];
-        foreach ($decoded as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
+        foreach ($decoded ?? [] as $row) {
             $normalized = normalizeTemplateEntry($row);
             if (!$normalized) {
                 continue;
@@ -2166,7 +2169,7 @@
             'createdAt' => gmdate('c')
         ];
 
-        $templates = readFolderTemplates($type);
+        $templates = readFolderTemplates($type, true);
         $templates[] = $template;
         $saved = writeFolderTemplates($type, $templates);
         try {
@@ -2190,7 +2193,7 @@
         if ($templateId === '') {
             throw new RuntimeException('Template ID is required.');
         }
-        $templates = readFolderTemplates($type);
+        $templates = readFolderTemplates($type, true);
         $next = array_values(array_filter($templates, function($template) use ($templateId) {
             return (string)($template['id'] ?? '') !== $templateId;
         }));
@@ -2215,7 +2218,7 @@
         if ($templateId === '' || $folderId === '') {
             throw new RuntimeException('Template ID and folder ID are required.');
         }
-        $templates = readFolderTemplates($type);
+        $templates = readFolderTemplates($type, true);
         $template = null;
         foreach ($templates as $row) {
             if ((string)($row['id'] ?? '') === $templateId) {

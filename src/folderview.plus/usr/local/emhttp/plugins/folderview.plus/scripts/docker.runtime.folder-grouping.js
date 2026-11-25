@@ -11,6 +11,16 @@
 
     const ENTRY_LIMIT = 64;
     const normalizeToken = (value) => String(value || '').trim().replace(/^\/+/, '');
+    const isSavedFolderToken = (value, containersInfo) =>
+        typeof value === 'string' && value.startsWith('folder-') && !Object.hasOwn(containersInfo || {}, value);
+    // A colliding folder has no unambiguous saved slot. The colon is reserved for its in-memory anchor.
+    const folderSlotToken = (id, containersInfo) => Object.hasOwn(containersInfo || {}, `folder-${id}`)
+        ? `folder-slot:${id}` : `folder-${id}`;
+    const readOrderFolderId = (value, containersInfo) => {
+        if (typeof value !== 'string') return '';
+        if (value.startsWith('folder-slot:')) return value.slice(12);
+        return isSavedFolderToken(value, containersInfo) ? value.slice(7) : '';
+    };
     const asObject = (value) => (
         value && typeof value === 'object' && !Array.isArray(value) ? value : {}
     );
@@ -32,11 +42,12 @@
     };
     const buildIdentityIndex = (containersInfo = {}) => {
         const index = new Map();
+        const idIndex = new Map();
         const canonicalNames = new Set();
-        const register = (token, canonicalName) => {
+        const register = (target, token, canonicalName) => {
             identityVariants(token).forEach((variant) => {
-                const existing = index.get(variant);
-                index.set(variant, index.has(variant) && existing !== canonicalName ? null : canonicalName);
+                const existing = target.get(variant);
+                target.set(variant, target.has(variant) && existing !== canonicalName ? null : canonicalName);
             });
         };
         Object.entries(asObject(containersInfo)).forEach(([rawName, rawEntry]) => {
@@ -46,9 +57,10 @@
             const entry = asObject(rawEntry);
             const info = asObject(entry.info);
             [rawName, entry.name, entry.id, entry.shortId, info.Name, info.Id]
-                .forEach((token) => register(token, canonicalName));
-            asArray(entry.names).forEach((token) => register(token, canonicalName));
-            asArray(info.Names).forEach((token) => register(token, canonicalName));
+                .forEach((token) => register(index, token, canonicalName));
+            [entry.id, entry.shortId, info.Id].forEach(token => register(idIndex, token, canonicalName));
+            asArray(entry.names).forEach((token) => register(index, token, canonicalName));
+            asArray(info.Names).forEach((token) => register(index, token, canonicalName));
         });
         const resolve = (value) => {
             const normalized = normalizeToken(value);
@@ -68,29 +80,53 @@
             }
             return '';
         };
-        return Object.freeze({ resolve });
+        const resolveId = (value) => {
+            for (const variant of identityVariants(value)) {
+                if (idIndex.has(variant)) return idIndex.get(variant);
+            }
+            return undefined;
+        };
+        return Object.freeze({ resolve, resolveId });
     };
-    const readRowCandidates = (row) => {
-        const candidates = [];
+    const readRowEvidence = (row) => {
+        const names = [];
+        const ids = [];
         const dataset = asObject(row?.dataset);
-        ['containerName', 'name', 'container', 'containerId', 'id'].forEach((key) => {
-            addUnique(candidates, dataset[key]);
-        });
+        ['containerName', 'name', 'container'].forEach(key => addUnique(names, dataset[key]));
+        ['containerId', 'id'].forEach(key => addUnique(ids, dataset[key]));
         ['[data-container-name]', '[data-container-id]', 'td.ct-name .appname a', 'td.ct-name .appname']
             .forEach((selector) => {
                 const node = row?.querySelector?.(selector);
-                addUnique(candidates, node?.dataset?.containerName);
-                addUnique(candidates, node?.dataset?.containerId);
-                addUnique(candidates, node?.textContent);
+                addUnique(names, node?.dataset?.containerName);
+                addUnique(ids, node?.dataset?.containerId);
+                if (!selector.startsWith('[')) addUnique(names, node?.textContent);
             });
         const rawId = String(row?.id || '').trim();
-        addUnique(candidates, rawId.startsWith('ct-') ? rawId.slice(3) : rawId);
-        return candidates;
+        addUnique(ids, rawId.startsWith('ct-') ? rawId.slice(3) : rawId);
+        return { names, ids };
+    };
+    const readRowCandidates = (row) => {
+        const { names, ids } = readRowEvidence(row);
+        return [...new Set([...names, ...ids])];
+    };
+    const readResolvedRowEvidence = (row, identityIndex) => {
+        const { names, ids } = readRowEvidence(row);
+        const resolvedNames = names.map(identityIndex.resolve).filter(Boolean);
+        for (const id of ids) {
+            // Stock row IDs contain a short container ID. Older rows may use the container name.
+            const resolvedId = identityIndex.resolveId(id);
+            if (resolvedId) resolvedNames.push(resolvedId);
+            else if (resolvedId === undefined && !resolvedNames.length) {
+                const fallback = identityIndex.resolve(id);
+                if (fallback) resolvedNames.push(fallback);
+            }
+        }
+        return { resolvedNames: [...new Set(resolvedNames)], fallbackName: names[0] || ids[0] || '' };
     };
     // Action targets must have one unambiguous identity in the accepted inventory.
     // Grouping retains its existing first-row/first-folder ownership policy below.
     const resolveRowName = (row, identityIndex) => {
-        const names = [...new Set(readRowCandidates(row).map(identityIndex.resolve).filter(Boolean))];
+        const { resolvedNames: names } = readResolvedRowEvidence(row, identityIndex);
         return names.length === 1 ? names[0] : '';
     };
     const createNativeRowIndex = (options = {}) => {
@@ -142,9 +178,7 @@
 
         Array.from(doc?.querySelectorAll?.(selector) || []).forEach((row) => {
             if (row?.classList?.contains?.('folder')) return;
-            const candidates = readRowCandidates(row);
-            const resolvedCandidates = candidates.map(identityIndex.resolve).filter(Boolean);
-            const distinctResolved = [...new Set(resolvedCandidates)];
+            const { resolvedNames: distinctResolved, fallbackName } = readResolvedRowEvidence(row, identityIndex);
             const canonicalName = distinctResolved[0] || '';
             if (distinctResolved.length > 1) conflictingCandidateRowCount++;
             if (canonicalName) {
@@ -154,7 +188,7 @@
             } else {
                 unresolvedRowCount++;
             }
-            rowRecords.push({ row, canonicalName, fallbackName: candidates[0] || '' });
+            rowRecords.push({ row, canonicalName, fallbackName });
         });
 
         const beginFolder = (folderId, matchCacheEntry = {}, combinedCandidateCount = 0) => {
@@ -181,12 +215,11 @@
         const resolveOrderRow = (identity) => {
             const token = normalizeToken(identity);
             if (!token || !listRoot) return null;
-            if (token.startsWith('folder-')) {
-                const folderId = token.slice(7);
-                const folderRow = Array.from(listRoot.children || []).find((row) => (
+            const folderId = readOrderFolderId(token, options.containersInfo);
+            if (folderId) {
+                return Array.from(listRoot.children || []).find((row) => (
                     normalizeToken(row?.dataset?.fvFolderId) === folderId
-                ));
-                if (folderRow) return folderRow;
+                )) || null;
             }
             const canonicalName = identityIndex.resolve(token) || token;
             return rowByCanonicalName.get(canonicalName) || null;
@@ -269,6 +302,7 @@
                 remainingRows.add(row);
             }
             for (const entry of asArray(order)) {
+                if (readOrderFolderId(entry, options.containersInfo)) continue;
                 const token = normalizeToken(entry);
                 const row = rowByCanonicalName.get(identityIndex.resolve(token) || token);
                 if (remainingRows.delete(row)) listRoot.appendChild(row);
@@ -328,5 +362,8 @@
         });
     };
 
-    return Object.freeze({ normalizeToken, buildIdentityIndex, readRowCandidates, resolveRowName, createNativeRowIndex, createSession });
+    return Object.freeze({
+        normalizeToken, isSavedFolderToken, folderSlotToken, readOrderFolderId,
+        buildIdentityIndex, readRowCandidates, resolveRowName, createNativeRowIndex, createSession
+    });
 }));

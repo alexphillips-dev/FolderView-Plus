@@ -24,6 +24,7 @@ const hydrateFixture = async (page, baseUrl) => {
     };
     const handlers = [
         extract('const dashboardTypeMeta =', 'let dashboardQuickRailController'),
+        extract('const isDashboardFolderExpandedByDefault =', 'const resetDashboardWidgetViewStateForType ='),
         extract('const getDashboardCard =', 'const applyFolderDashboardCardSettings'),
         extract('const getGlobalFoldersForType =', 'const scheduleDashboardLayoutApplyForType'),
         extract('const toggleFolderExpansion =', '// Global variables')

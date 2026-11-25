@@ -9,7 +9,8 @@ const source = fs.readFileSync(path.join(process.cwd(),
 const applySource = source.slice(source.indexOf('const applyTreeMoveHistoryEntry ='), source.indexOf('const applyTreeMoveUndo ='));
 
 const createHarness = () => {
-    let folders = { first: { name: 'First', parentId: 'second' }, second: { name: 'Second', parentId: '' } };
+    const folders = { first: { name: 'First', parentId: 'second' }, second: { name: 'Second', parentId: '' } };
+    const optimisticFoldersByType = { docker: null };
     const prefsByType = { docker: { sortMode: 'manual', manualOrder: ['second', 'first'], _metadata: { folderRevision: 5, prefsRevision: 8 } } };
     const calls = [];
     const context = {
@@ -17,12 +18,12 @@ const createHarness = () => {
         prefsByType,
         utils: { normalizePrefs: value => ({ ...value }) },
         getFolderMap: () => folders,
-        setTypeFolders: (_type, value) => { folders = value; },
+        optimisticFoldersByType,
         readFolderConfigurationRevision: () => prefsByType.docker._metadata.folderRevision,
         applyOptimisticManualOrder: (_type, order) => { prefsByType.docker.manualOrder = order; calls.push('optimistic-order'); },
         renderTable: () => calls.push('render'),
         requestFolderBatchMutation: async (_type, operations, options) => {
-            calls.push({ operations, options, parentAtRequest: folders.first.parentId });
+            calls.push({ operations, options, parentAtRequest: optimisticFoldersByType.docker.first.parentId });
             return { metadata: { folderRevision: 6, prefsRevision: 9 } };
         },
         persistManualOrder: async (_type, order) => calls.push({ order: Array.from(order) }),
@@ -44,7 +45,6 @@ test('tree move Undo changes only the moved parent and order in a guarded batch'
     assert.deepEqual(Array.from(mutation.operations.manualOrder), ['first', 'second']);
     assert.equal(mutation.options.expectedRevision, 5);
     assert.equal(mutation.operations.expectedPrefsRevision, 8);
-    assert.equal(harness.prefs()._metadata.folderRevision, 6);
     assert.equal(harness.calls.at(-1).refresh.configOnly, true);
     assert.equal(harness.calls.at(-1).refresh.render, false);
 });

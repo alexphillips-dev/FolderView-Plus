@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "content-revision": "13f22b50662e750a8d0138673fad38557ca8846b632465799a7d12df958cf191"
+        "content-revision": "72445b59afa074c3e8c92ce18ae8eb8b99129fbdd909a82e40baf334d9142bca"
     },
     "common.unassigned-group.title": "Hozzá nem rendelt elemek",
     "runtime.action.requests-result": "Elfogadva: $1 · Sikertelen: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Az importálás befejeződött.",
     "common.repair.delete-failed-8727e2": "A törlés nem sikerült",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Visszaállítási pont létrehozása, mielőtt bármit törölne.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Biztonsági mentés kihagyva: nincs védendő mappa.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Nem jött létre biztonsági másolat, mert a mappatérkép üres.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Beállítások táblázat és biztonsági mentések frissítése.",
     "common.repair.folder-deleted-048562": "Mappa törölve.",
     "common.repair.all-folders-cleared-a7b85c": "Minden mappa törölve.",

@@ -6,8 +6,8 @@ const plugin = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folder
 const utils = require(path.join(plugin, 'folderviewplus.utils.js'));
 const store = require(path.join(plugin, 'folderviewplus.prefs-store.js'));
 
-export const createPageTitleHost = async (page, nativeToolbar = true) => {
-    const host = createProductionPerfFixture(path.resolve('.'), { folders: 2, members: 4 });
+export const createPageTitleHost = async (page, nativeToolbar = true, locale = 'en') => {
+    const host = createProductionPerfFixture(path.resolve('.'), { folders: 2, members: 4 }, locale);
     let prefs = utils.normalizePrefs({ setupWizardCompleted: true, _metadata: { prefsRevision: 1 } });
     const snapshot = type => ({ ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type,
         folders: type === 'docker' ? host.folders : {}, runtime: type === 'docker' ? host.runtime : {}, runtimeIncluded: true,

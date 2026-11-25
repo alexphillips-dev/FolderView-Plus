@@ -320,6 +320,10 @@ test('repro guard builds from the same snapshot and preserves concurrent checkou
     fs.writeFileSync(path.join(directory, 'docs/sbom.cdx.json'), 'original SBOM\n');
     fs.writeFileSync(path.join(directory, 'package-lock.json'), '{}');
     fs.writeFileSync(path.join(directory, 'archive', `folderview.plus-${version}.txz`), 'synthetic archive\n');
+    fs.mkdirSync(path.join(directory, 'src/folderview.plus/tmp'), { recursive: true });
+    fs.writeFileSync(path.join(directory, '.gitignore'), 'tmp/\n');
+    fs.writeFileSync(path.join(directory, 'src/folderview.plus/runtime.js'), 'synthetic runtime\n');
+    fs.writeFileSync(path.join(directory, 'src/folderview.plus/tmp/ignored.txt'), 'ignored fixture\n');
     fs.copyFileSync(reproBuildGuardPath, path.join(directory, 'scripts', 'repro_build_guard.sh'));
     fs.copyFileSync(sharedLibPath, path.join(directory, 'scripts', 'lib.sh'));
     fs.writeFileSync(path.join(directory, 'pkg_build.sh'), `#!/bin/bash
@@ -328,6 +332,8 @@ test "$PWD" != "$FVPLUS_FIXTURE_REPRO_ROOT"
 test "$1 $2 $3 $5" = "--branch main --output-dir --no-validate"
 grep -q '2026.01.01.01' folderview.plus.plg
 grep -q '^original CA metadata$' folderview.plus.xml
+git ls-files --error-unmatch src/folderview.plus/runtime.js
+test ! -e src/folderview.plus/tmp/ignored.txt
 printf '%s\\n' "$PWD" >> "$FVPLUS_FIXTURE_REPRO_ROOT/build-paths"
 printf 'scratch manifest\\n' > folderview.plus.plg
 printf 'scratch CA metadata\\n' > folderview.plus.xml
@@ -342,6 +348,7 @@ fi
     const output = runBuildFixture(directory, `set -euo pipefail
 cd "$1"
 git -c init.defaultBranch=main init -q
+git add -- src/folderview.plus/runtime.js
 FVPLUS_REPRO_VERSION_OVERRIDE=2026.01.01.01 FVPLUS_FIXTURE_REPRO_ROOT="$PWD" bash scripts/repro_build_guard.sh
 `);
     assert.match(output, /Deterministic build guard passed/);
@@ -521,7 +528,8 @@ test('dev pushes that change shipped plugin files must bump the manifest version
     assert.match(devVersionBumpGuard, /FVPLUS_DEV_VERSION_BASE_REF/);
     assert.match(devVersionBumpGuard, /read_version_from_ref "\$\{CANDIDATE_REF\}"/);
     assert.match(devVersionBumpGuard, /git show "\$\{ref_name\}:folderview\.plus\.plg"/);
-    assert.match(devVersionBumpGuard, /src\/folderview\.plus\/ folderview\.plus\.plg folderview\.plus\.xml/);
+    assert.match(sharedLib, /FVPLUS_SHIPPED_PATHS=\(src\/folderview\.plus\/ folderview\.plus\.plg folderview\.plus\.xml\)/);
+    assert.match(devVersionBumpGuard, /FVPLUS_SHIPPED_PATHS/);
     assert.match(devVersionBumpGuard, /change shipped plugin files must bump folderview\.plus\.plg version/);
     assert.match(devVersionBumpGuard, /bash scripts\/dev_finalize\.sh --message/);
     assert.match(devVersionBumpGuard, /bash pkg_build\.sh/);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "legacy-surface",
-        "content-revision": "3e6c96e69b003ba3bb0cf655af85467ddf8567225ab3b837c1cca93267df5891"
+        "content-revision": "c9d2375ac898683860f1445a5f7750b610dc0ad9441be1ba892306898bb2d7a4"
     },
     "legacy.surface.0008eb7acd3f7a56": "Spostamento collettivo non disponibile",
     "legacy.surface.0012950979762d8c": "Scegli uno snapshot da ripristinare, scaricare o eliminare.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "I dettagli del runtime Docker erano parzialmente non disponibili",
     "legacy.surface.a9ff80bb0824fdc2": "Backup pronto.",
     "legacy.surface.aa1897c8cf834c13": "Attributo rifiutato per la costruzione DOM sicura: $1",
-    "legacy.surface.aa2181b424db8468": "Backup pronto: $1",
     "legacy.surface.aa3090909390156a": "Attiva/disattiva $1",
     "legacy.surface.aa3d3ea5337856c8": "Il file di importazione deve contenere un oggetto JSON.",
     "legacy.surface.aa54cbf3d0764800": "Ripristino rollback non riuscito.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Membri diretti/membri totali comprese le cartelle nidificate",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus ha mantenuto aperta la pagina Impostazioni, ma alcuni dati o moduli avanzati non sono stati caricati.",
     "legacy.surface.c3ba312a7f9ba04e": "Evidenziazioni assegnate automaticamente: $1",
-    "legacy.surface.c3d9b0b812065b73": "punto di rollback creato",
     "legacy.surface.c3f148bfdf3af882": "Inserisci nella cartella",
     "legacy.surface.c3fc3cce1b150b2f": "Errore di richiesta sconosciuto",
     "legacy.surface.c42210be655c49df": "FolderView Plus non è riuscito a completare il caricamento di $1",

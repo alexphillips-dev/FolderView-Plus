@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "legacy-surface",
-        "content-revision": "3e4c8329b0806782db0d455fe9d36d9b50cbd484187b6aa4ac9f222cd493ca85"
+        "content-revision": "2e2d6e99e48275d219e389783e3c36f38b8cb1da7851d045fd52f33dfbd5fcaa"
     },
     "legacy.surface.0008eb7acd3f7a56": "Bulkflyttning är inte tillgänglig",
     "legacy.surface.0012950979762d8c": "Välj en ögonblicksbild att återställa, ladda ner eller radera.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker runtime detaljer var delvis otillgängliga",
     "legacy.surface.a9ff80bb0824fdc2": "Säkerhetskopiering klar.",
     "legacy.surface.aa1897c8cf834c13": "Säker DOM-konstruktion avvisades attribut: $1",
-    "legacy.surface.aa2181b424db8468": "Säkerhetskopiering klar: $1",
     "legacy.surface.aa3090909390156a": "Växla $1",
     "legacy.surface.aa3d3ea5337856c8": "Importfilen måste innehålla ett JSON-objekt.",
     "legacy.surface.aa54cbf3d0764800": "Återställning av återställning misslyckades.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Direkta medlemmar / totalt antal medlemmar inklusive kapslade mappar",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus höll inställningssidan öppen, men vissa data eller avancerade moduler kunde inte laddas.",
     "legacy.surface.c3ba312a7f9ba04e": "Autotilldela höjdpunkter: $1",
-    "legacy.surface.c3d9b0b812065b73": "återställningspunkt skapad",
     "legacy.surface.c3f148bfdf3af882": "Lägg i mapp",
     "legacy.surface.c3fc3cce1b150b2f": "Okänt fel på begäran",
     "legacy.surface.c42210be655c49df": "FolderView Plus kunde inte avsluta inläsningen av $1",

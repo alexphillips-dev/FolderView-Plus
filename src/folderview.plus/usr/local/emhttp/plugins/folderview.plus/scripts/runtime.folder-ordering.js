@@ -14,8 +14,8 @@
      * @property {string[]} [completedFolderIds]
      * @property {string} [currentFolderId]
      * @property {(entry: string) => boolean} [isFolderToken]
+     * @property {(id: string) => string} [toFolderToken]
      */
-
     /** @param {*} value */
     const normalizeFolderToken = (value) => {
         const token = String(value || '').trim();
@@ -152,9 +152,9 @@
         };
     };
     /** @param {OrderOptions} [options] */
-    const buildCustomOrder = ({ order = [], completedFolderIds = [], currentFolderId = '', isFolderToken: matchesFolderToken = isFolderToken } = {}) => {
-        const completed = new Set((completedFolderIds || []).map(normalizeFolderToken).filter(Boolean));
-        const currentToken = normalizeFolderToken(currentFolderId);
+    const buildCustomOrder = ({ order = [], completedFolderIds = [], currentFolderId = '', isFolderToken: matchesFolderToken = isFolderToken, toFolderToken = normalizeFolderToken } = {}) => {
+        const completed = new Set((completedFolderIds || []).map(toFolderToken).filter(Boolean));
+        const currentToken = toFolderToken(currentFolderId);
         return (Array.isArray(order) ? order : []).filter((entry) => (
             entry && (completed.has(String(entry)) || !(matchesFolderToken(entry) && String(entry) !== currentToken))
         ));

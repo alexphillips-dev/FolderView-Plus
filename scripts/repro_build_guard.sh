@@ -9,7 +9,7 @@ ALLOW_STALE_STABLE_RAW="${FVPLUS_REPRO_ALLOW_STALE_STABLE:-0}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
-fvplus::require_commands bash mktemp cp sha256sum cmp date sed
+fvplus::require_commands bash git realpath mktemp cp sha256sum cmp date sed
 
 if [[ -z "${VERSION_OVERRIDE}" ]]; then
   fvplus::fail "Could not resolve release version for deterministic build guard."
@@ -51,11 +51,14 @@ if [[ ! -f "${published_archive}" ]]; then
 fi
 cp -- "${published_archive}" "${tmp_dir}/${archive_name}"
 
-mkdir -p "${snapshot}/docs" "${out_a}" "${out_b}"
+mkdir -p "${snapshot}/docs" "${snapshot}/src/folderview.plus" "${out_a}" "${out_b}"
 cp -a -- "${ROOT_DIR}/pkg_build.sh" "${PLG_FILE}" "${ROOT_DIR}/folderview.plus.xml" \
   "${ROOT_DIR}/package-lock.json" "${ROOT_DIR}/.github" "${ROOT_DIR}/asset-packs" \
-  "${ROOT_DIR}/scripts" "${ROOT_DIR}/src" "${snapshot}/"
+  "${ROOT_DIR}/scripts" "${snapshot}/"
 cp -a -- "${ROOT_DIR}/docs/releases" "${snapshot}/docs/"
+fvplus::copy_indexed_package_source "${ROOT_DIR}" "${snapshot}/src/folderview.plus"
+git -C "${snapshot}" init -q
+git -C "${snapshot}" add -f -- "${FVPLUS_SHIPPED_PATHS[0]}"
 
 branch_args=()
 if [[ -z "${FVPLUS_BUILD_BRANCH:-}" ]] && command -v git >/dev/null 2>&1; then

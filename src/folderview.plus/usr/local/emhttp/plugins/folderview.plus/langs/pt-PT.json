@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4796,
-        "total-source-messages": 4796,
+        "translated-messages": 4792,
+        "total-source-messages": 4792,
         "content-revision": "61fe167a9a5f0bf70b3f66304a3c79a0867cf93c170882984f2b54481d519f32",
-        "locale-content-revision": "6eeba7ae01684e2089b89bce331a2afe9472c4a89536d603d86a6d9769af74e3"
+        "locale-content-revision": "583d40f6e8b8bb03b7115f2700362c07747b710da13193232149b89e28dccbf7"
     },
     "add-folder": "Adicionar Pasta",
     "up-to-date": "atualizado",

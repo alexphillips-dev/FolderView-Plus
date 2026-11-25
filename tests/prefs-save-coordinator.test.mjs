@@ -347,6 +347,39 @@ test('concurrent rule saves preserve committed rules and still rebase over unrel
     }
 });
 
+test('folder visibility mutations rebase across tabs and a whole-list reset supersedes earlier queued changes', async () => {
+    const api = loadModule();
+    let stored = normalizePrefs({ hiddenFolderIds: [], _metadata: { prefsRevision: 11 } });
+    const writes = [];
+    const make = () => {
+        const coordinator = api.createPreferenceSaveCoordinator({
+            normalizePrefs, storage: createStorage(), debounceMs: 1000,
+            fetchPrefs: async () => stored,
+            writePrefs: async (_type, patch, { expectedRevision }) => {
+                writes.push({ patch: JSON.parse(JSON.stringify(patch)), expectedRevision });
+                if (expectedRevision !== stored._metadata.prefsRevision) throw Object.assign(new Error('Revision conflict'), { status: 409 });
+                stored = normalizePrefs({ ...api.mergePatch(stored, patch), _metadata: { prefsRevision: expectedRevision + 1 } });
+                return stored;
+            }
+        });
+        coordinator.reconcile('docker', stored);
+        return coordinator;
+    };
+    const first = make();
+    const second = make();
+    await first.save('docker', { hiddenFolderIdChanges: { one: true } }, { immediate: true });
+    await second.save('docker', { hiddenFolderIdChanges: { two: true } }, { immediate: true });
+    assert.deepEqual(writes.map(write => write.expectedRevision), [11, 11, 12]);
+    assert.deepEqual(stored.hiddenFolderIds, ['one', 'two']);
+    const pendingHide = second.save('docker', { hiddenFolderIdChanges: { three: true } });
+    const reset = second.save('docker', { hiddenFolderIds: [] });
+    const laterHide = second.save('docker', { hiddenFolderIdChanges: { four: true } }, { immediate: true });
+    await Promise.all([pendingHide, reset, laterHide]);
+    assert.deepEqual(writes.at(-1).patch, { hiddenFolderIds: [], hiddenFolderIdChanges: { four: true } });
+    assert.deepEqual(stored.hiddenFolderIds, ['four']);
+    assert.equal(Object.hasOwn(stored, 'hiddenFolderIdChanges'), false);
+});
+
 test('a rule save queued from an older view cannot use a newer broadcast revision', async () => {
     const api = loadModule();
     const writes = [];

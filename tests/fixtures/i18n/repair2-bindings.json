@@ -331,18 +331,6 @@
   },
   {
     "file": "scripts/folderviewplus.js",
-    "key": "common.repair.safety-backup-skipped-no-folders-to-protect-044e05",
-    "english": "Safety backup skipped: no folders to protect.",
-    "params": []
-  },
-  {
-    "file": "scripts/folderviewplus.js",
-    "key": "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a",
-    "english": "No backup file was created because the folder map is empty.",
-    "params": []
-  },
-  {
-    "file": "scripts/folderviewplus.js",
     "key": "common.repair.refreshing-settings-table-and-backups-e72473",
     "english": "Refreshing settings table and backups.",
     "params": []
@@ -1297,7 +1285,7 @@
     "key": "common.repair.folders-deleted-1-846e55",
     "english": "Folders deleted: $1.",
     "params": [
-      "deleteIds.length"
+      "deletedCount"
     ]
   },
   {

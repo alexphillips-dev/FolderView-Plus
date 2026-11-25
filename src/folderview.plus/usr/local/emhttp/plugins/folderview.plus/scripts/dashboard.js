@@ -663,6 +663,7 @@ const getDashboardQuickRailController = () => {
         isDashboardLegacyLayoutForType: (type) => isDashboardLegacyLayoutForType(type),
         isDashboardLayoutTransitionInFlightForType: (type) => isDashboardLayoutTransitionInFlightForType(type),
         resolveFolderIdFromCard: ($card) => resolveFolderIdFromCard($card),
+        isFolderExpandedByDefault: (type, id) => isDashboardFolderExpandedByDefault(type, id),
         updateExpandToggleIcon: ($card, expanded) => updateExpandToggleIcon($card, expanded),
         onLayoutCycle: (type, nextLayout) => handleDashboardWidgetLayoutQuickSwitch(type, nextLayout),
         onToggleExpandAll: (type) => toggleDashboardExpandAllForType(type),
@@ -949,6 +950,8 @@ const toggleDashboardExpandAllForType = (type) => {
 const openFolderViewPlusSettings = () => {
     window.location.href = '/Settings/FolderViewPlus';
 };
+const isDashboardFolderExpandedByDefault = (type, id) =>
+    globalFolders[type === 'vm' ? 'vms' : 'docker']?.[id]?.settings?.expand_dashboard === true;
 const resetDashboardWidgetViewStateForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     setDashboardStartedOnlyEnabledForType(resolvedType, false);
@@ -958,7 +961,7 @@ const resetDashboardWidgetViewStateForType = (type) => {
     const ids = getDashboardFolderIdsForType(resolvedType);
     for (const id of ids) {
         toggleFolderExpansion(resolvedType, id, {
-            forceExpanded: false,
+            forceExpanded: isDashboardFolderExpandedByDefault(resolvedType, id),
             persistExpandedState: false,
             suppressAccordion: true
         });
@@ -1434,7 +1437,7 @@ const renderDashboardDockerFolders = (prom) => {
         for (const [id, value] of Object.entries(foldersDone)) {
             const shouldExpand = Object.prototype.hasOwnProperty.call(dockerExpandedStateMap, id)
                 ? dockerExpandedStateMap[id] === true
-                : value.settings.expand_dashboard === true;
+                : isDashboardFolderExpandedByDefault('docker', id);
             value.status.expanded = shouldExpand === true;
             if (shouldExpand) {
                 expandFolderDocker(id, { persistExpandedState: false, suppressAccordion: true });
@@ -1605,7 +1608,7 @@ const renderDashboardVmFolders = (prom) => {
         for (const [id, value] of Object.entries(foldersDone)) {
             const shouldExpand = Object.prototype.hasOwnProperty.call(vmExpandedStateMap, id)
                 ? vmExpandedStateMap[id] === true
-                : value.settings.expand_dashboard === true;
+                : isDashboardFolderExpandedByDefault('vm', id);
             value.status.expanded = shouldExpand === true;
             if (shouldExpand) {
                 expandFolderVM(id, { persistExpandedState: false, suppressAccordion: true });

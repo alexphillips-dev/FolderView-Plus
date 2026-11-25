@@ -8,6 +8,7 @@ const root = '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/sc
 const require = createRequire(import.meta.url);
 const recovery = require(root + 'runtime.folder-render-recovery.js');
 const state = require(root + 'folder.runtime.state-observers.js');
+const dockerFolderGroupingModule = require(root + 'docker.runtime.folder-grouping.js');
 const { isDashboardFolderToken } = require(root + 'dashboard.folder-match-cache.js').createApi();
 const read = (file) => fs.readFileSync(new URL(root + file, import.meta.url), 'utf8');
 const createRecovery = () => recovery.create({
@@ -26,13 +27,15 @@ for (const [file, type, suffix, index] of [
         const wrapper = source.match(new RegExp('^const createFolder' + suffix + ' = \\(\\.\\.\\.args\\).*$', 'm'))?.[0];
         assert.ok(wrapper, 'Use the production recovery wrapper');
         const vmFolderToken = file === 'vm.js' ? source.match(/^const isVmSavedFolderToken = .*;$/m)?.[0] : '';
+        const dockerFolderToken = file === 'docker.js' ? source.match(/^const isKnownDockerFolderToken = [\s\S]*?;\r?$/m)?.[0] : '';
         if (file === 'vm.js') assert.ok(vmFolderToken, 'Use the production VM folder-token matcher');
+        if (file === 'docker.js') assert.ok(dockerFolderToken, 'Use the production Docker folder-token matcher');
         const controller = createRecovery();
         const attempts = [];
         const folders = { broken: { name: 'Private folder', status: { expanded: true } }, healthy: { name: 'Healthy' } };
         const broken = folders.broken;
         const context = {
-            folders, foldersDone: {}, order: ['folder-broken', 'folder-healthy'], folderRegex: /^folder-/, isDashboardFolderToken,
+            folders, foldersDone: {}, order: ['folder-broken', 'folder-healthy'], folderRegex: /^folder-/, isDashboardFolderToken, dockerFolderGroupingModule,
             captureDebug: false,
             containersInfo: {}, vmInfo: {}, newOnes: [], folderMatchCache: {}, folderDepthById: {},
             dockerChildrenByParent: {}, vmChildrenByParent: {}, dockerFullMatchCache: {}, dockerMatchCache: {},
@@ -45,10 +48,17 @@ for (const [file, type, suffix, index] of [
                 return 0;
             }
         };
-        vm.runInNewContext([vmFolderToken, wrapper, loop].join('\n'), context);
+        vm.runInNewContext([vmFolderToken, dockerFolderToken, wrapper, loop].join('\n'), context);
         assert.deepEqual(attempts, ['broken', 'healthy']);
         assert.deepEqual(Object.keys(context.foldersDone), ['healthy']);
         assert.deepEqual(context.order, ['folder-healthy']);
+
+        if (file === 'docker.js') {
+            controller.begin();
+            context.order = ['folder-slot:broken', 'folder-broken'];
+            vm.runInNewContext("createFolder({ status: { expanded: true } }, 'broken', 0, order, { 'folder-broken': {} });", context);
+            assert.deepEqual(context.order, ['folder-broken'], 'A failed folder render removes only the internal anchor and preserves a colliding native name');
+        }
 
         assert.equal(broken.status.expanded, true);
         assert.deepEqual(controller.snapshot(), { failedFolderCount: 1, recoveredFolderCount: 1 });

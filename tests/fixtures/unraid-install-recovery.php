@@ -61,7 +61,9 @@ $cases = $cliSource === null
         'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
-        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success'];
+        'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
+        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
+        'install-remove-stale-cleanup-retry-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -193,6 +195,10 @@ if [ "$#" -gt 1 ] && [ "$2" = "$FVPLUS_FIXTURE_DIR/downloads/folderview.plus.plg
 fi
 printf "offline fixture attempted a download\n" >&2; exit 4',
         "$dir/bin/upgradepkg" => 'archive="${@: -1}"
+if [ "${FVPLUS_FIXTURE_FAIL_PRIOR_PACKAGE:-}" = 1 ] && [[ "$archive" == *-2026.01.01.01.txz ]]; then
+    printf "Transient previous-package failure\n" >&2
+    exit 31
+fi
 if [ "$(cat "$FVPLUS_FIXTURE_CORE" 2>/dev/null)" = "$archive" ] && [[ " $* " != *" --reinstall "* ]]; then exit 0; fi
 package="${archive##*/}"
 if [ "$FVPLUS_FIXTURE_KEEP_STALE_RECORDS" != 1 ]; then
@@ -210,9 +216,10 @@ printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
 version="${package#folderview.plus-}"
 printf "{\n  \"packageVersion\": \"%s\",\n  \"sourceBranch\": \"dev\"\n}\n" "${version%.txz}" > "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json"
-if [ "$FVPLUS_FIXTURE_CASE" = update-early-activation-interrupted-success ]; then
+if [[ "$FVPLUS_FIXTURE_CASE" = update-early-activation-interrupted-success || "$FVPLUS_FIXTURE_CASE" = update-rollback-retry-success ]]; then
     printf "%s\n" "$package" >> "$FVPLUS_FIXTURE_DIR/package-history"
-    if [ "$package" = folderview.plus-2026.01.01.02.txz ] && [ "${FVPLUS_FIXTURE_INTERRUPT:-}" != 1 ]; then
+    if [ "$package" = folderview.plus-2026.01.01.02.txz ] && [ "${FVPLUS_FIXTURE_INTERRUPT:-}" != 1 ] &&
+        [ "${FVPLUS_FIXTURE_FAIL_VERSION_COMMIT:-}" != 1 ]; then
         cat "$FVPLUS_FIXTURE_DIR/cron.d/folderview.plus" > "$FVPLUS_FIXTURE_DIR/recovered-cron"
         stat -c "%a" "$FVPLUS_FIXTURE_DIR/cron.d/folderview.plus" > "$FVPLUS_FIXTURE_DIR/recovered-cron-mode"
     fi
@@ -224,6 +231,11 @@ if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; 
 fi
 [ -f "$FVPLUS_FIXTURE_PACKAGES/$1" ] || exit 29
 rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json" "$FVPLUS_FIXTURE_PACKAGES/$1"',
+        "$dir/bin/rm" => 'if [ "${FVPLUS_FIXTURE_FAIL_REMOVE_SCHEDULER:-}" = 1 ] &&
+    [[ "${@: -1}" == */cron.d/folderview.plus ]]; then exit 33; fi
+if [ "${FVPLUS_FIXTURE_FAIL_REMOVE_CONFIG:-}" = 1 ] &&
+    [[ "${@: -1}" == */boot/folderview.plus ]]; then exit 34; fi
+exec /bin/rm "$@"',
         "$dir/bin/flock" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-boot-contention-success ] && [ "$#" -eq 1 ] && [ "$1" = 9 ]; then
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
@@ -237,8 +249,13 @@ exec /usr/bin/flock "$@"',
     done
     exit 27
 fi
+if [ "${FVPLUS_FIXTURE_FAIL_MANIFEST_COMMIT:-}" = 1 ] &&
+    [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
+    exit 35
+fi
 if [[ "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
     [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ] && [ "${FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT:-}" != 1 ]; then
+    [ "${FVPLUS_FIXTURE_FAIL_VERSION_COMMIT:-}" != 1 ] || exit 25
     if [ "${FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION:-}" = 1 ]; then
         touch "$FVPLUS_FIXTURE_DIR/version-commit-paused"
         for ((attempt=0; attempt<200; attempt++)); do
@@ -257,7 +274,9 @@ if [[ "$FVPLUS_FIXTURE_CASE" == update-journal-interrupted-success && "${FVPLUS_
     exit 0
 fi
 if [[ "${FVPLUS_FIXTURE_INTERRUPT:-}" == 1 ]]; then
-    if [[ "$FVPLUS_FIXTURE_CASE" == update-early-activation-interrupted-success && "${@: -1}" == */cron.d/folderview.plus ]]; then
+    if [[ ( "$FVPLUS_FIXTURE_CASE" == update-early-activation-interrupted-success ||
+            "$FVPLUS_FIXTURE_CASE" == install-local-journal-interrupted-success ) &&
+            "${@: -1}" == */cron.d/folderview.plus ]]; then
         /bin/mv "$@" || exit $?
         kill -KILL "$PPID"
         exit 0
@@ -331,6 +350,98 @@ exec /bin/mv "$@"'
     }
     if ($case === 'update-missing-runtime-core') {
         rename($runtime, "$dir/missing-runtime");
+    }
+    if ($case === 'update-rollback-retry-success') {
+        [$failedStatus, $failedOutput] = $run($command, [
+            'FVPLUS_FIXTURE_FAIL_VERSION_COMMIT' => '1', 'FVPLUS_FIXTURE_FAIL_PRIOR_PACKAGE' => '1'
+        ]);
+        verifyInstallFixture($failedStatus !== 0 && str_contains($failedOutput, 'Transient previous-package failure')
+            && is_file("$journal/activated") && is_file("$journal/rollback") && is_file($recoveryWrapper)
+            && file_get_contents("$journal/previous-manifest") === $oldManifest
+            && file_get_contents("$journal/saved-version") === "$previous\n"
+            && file_get_contents($bootManifest) === $oldManifest && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$candidate.txz",
+            "$case lost recovery after the transient rollback failure: $failedOutput");
+        [$retryStatus, $retryOutput] = $run($command);
+        clearstatcache();
+        verifyInstallFixture($retryStatus === 0 && file_get_contents($bootManifest) === $newManifest
+            && trim(file_get_contents("$config/version")) === $candidate && !is_dir($journal) && !is_file($recoveryWrapper),
+            "$case did not finish the retry with an aligned registration: $retryOutput");
+        $packageHistory = file("$dir/package-history", FILE_IGNORE_NEW_LINES);
+        verifyInstallFixture($packageHistory === ["$pluginName-$candidate.txz", "$pluginName-$previous.txz", "$pluginName-$candidate.txz"],
+            "$case did not restore the previous package before reapplying the update: " . json_encode($packageHistory));
+        verifyInstallFixture(file_get_contents("$dir/recovered-cron") === $priorCron && trim(file_get_contents("$dir/recovered-cron-mode")) === '600',
+            "$case did not restore the previous scheduler before reapplying the update.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-rollback-before-boot-success') {
+        [$failedStatus, $failedOutput] = $run($command, [
+            'FVPLUS_FIXTURE_FAIL_MANIFEST_COMMIT' => '1', 'FVPLUS_FIXTURE_FAIL_PRIOR_PACKAGE' => '1'
+        ]);
+        verifyInstallFixture($failedStatus !== 0 && str_contains($failedOutput, 'Transient previous-package failure')
+            && is_file("$journal/committed") && is_file("$journal/rollback") && is_file($recoveryWrapper)
+            && trim(file_get_contents("$config/version")) === $candidate && file_get_contents($bootManifest) === $oldManifest,
+            "$case did not leave a durable rollback after marking the candidate committed: $failedOutput");
+
+        file_put_contents("$dir/boot-id", "synthetic boot two\n");
+        unlink($runningLink);
+        unlink("$dir/registration");
+        unlink($registrationHook);
+        unlink("$dir/core-installed");
+        unlink("$runtime/FolderViewPlus.page");
+        unlink("$runtime/build-metadata.json");
+        unlink("$packages/$pluginName-$candidate");
+        foreach ([$recoveryWrapper, $bootManifest] as $bootFile) {
+            [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootFile]);
+            verifyInstallFixture($bootStatus === 0, "$case could not boot from " . basename($bootFile) . ": $bootOutput");
+        }
+        clearstatcache();
+        verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$config/version")) === $previous && !is_dir($journal)
+            && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$previous.txz",
+            "$case boot favored the explicitly failed candidate over rollback.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'install-local-journal-interrupted-success') {
+        [$interruptedStatus, $interruptedOutput] = $run($command, ['FVPLUS_FIXTURE_INTERRUPT' => '1']);
+        verifyInstallFixture($interruptedStatus !== 0 && is_file("$journal/core-started") && !is_file("$journal/activated")
+            && file_get_contents("$journal/manifest") === file_get_contents("$dir/manual/$pluginName.plg")
+            && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$candidate.txz",
+            "$case did not journal the external local manifest before activation: $interruptedOutput");
+        [$removeStatus, $removeOutput] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        clearstatcache();
+        verifyInstallFixture($removeStatus === 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && !is_file($recoveryWrapper) && !is_dir($config) && !is_file($cronFile) && !is_file("$dir/core-installed")
+            && file_get_contents("$dir/manual/$pluginName.plg") === $newManifest,
+            "$case could not recover and remove the previous installation: $removeOutput");
+        $check[] = $case;
+        continue;
+    }
+    if (in_array($case, ['install-remove-scheduler-retry-success', 'install-remove-stale-cleanup-retry-success'], true)) {
+        // Exercise the current uninstall hook even when the rest of the matrix uses a historical manifest.
+        $oldManifest = $manifest($previous, $previousIcon);
+        file_put_contents($bootManifest, $oldManifest);
+        $schedulerError = $case === 'install-remove-scheduler-retry-success';
+        $failure = $schedulerError ? 'FVPLUS_FIXTURE_FAIL_REMOVE_SCHEDULER' : 'FVPLUS_FIXTURE_FAIL_REMOVE_CONFIG';
+        $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+        [$removeStatus, $removeOutput] = $run($remove, [$failure => '1']);
+        $removalMarker = "$boot/.folderview.plus-removal";
+        verifyInstallFixture($removeStatus !== 0 && !str_contains($removeOutput, "$pluginName.plg removed")
+            && trim(file_get_contents($removalMarker)) === $previous && file_get_contents($bootManifest) === $oldManifest
+            && readlink($runningLink) === $bootManifest && file_get_contents("$config/docker.json") === '{"previous":"Docker"}'
+            && is_file("$packages/$pluginName-$previous") === $schedulerError,
+            "$case falsely succeeded or lost retry state: $removeOutput");
+        verifyInstallFixture($schedulerError ? file_get_contents($cronFile) === $priorCron && (fileperms($cronFile) & 0777) === 0600 : !is_file($cronFile),
+            "$case did not preserve the scheduler on its failed removal path.");
+        [$retryStatus, $retryOutput] = $run($remove);
+        clearstatcache();
+        verifyInstallFixture($retryStatus === 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && !is_dir($config) && !is_dir($runtime) && !is_file($cronFile) && !is_file($removalMarker)
+            && ($schedulerError || is_file("$packages/$pluginName-2025.12.31.01")),
+            "$case could not finish removal without touching stale package records: $retryOutput");
+        $check[] = $case;
+        continue;
     }
     if ($case === 'install-native-remove-failure') {
         [$status, $output] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);

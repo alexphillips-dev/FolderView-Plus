@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "content-revision": "fa1c707f2588cf00068512431842ebd566e4cf75ba40d734d7da7577986b7036"
+        "content-revision": "03c57f2143b5cd36fa5fea85b04dca38146719ebd352f82f35003a2302854350"
     },
     "common.unassigned-group.title": "Неназначенные элементы",
     "runtime.action.requests-result": "Принято: $1 · Ошибок: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Импорт завершен.",
     "common.repair.delete-failed-8727e2": "Удаление не удалось",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Создание точки отката перед удалением чего-либо.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Безопасное резервное копирование пропущено: нет папок для защиты.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Файл резервной копии не создан, поскольку карта папок пуста.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Обновление таблицы настроек и резервных копий.",
     "common.repair.folder-deleted-048562": "Папка удалена.",
     "common.repair.all-folders-cleared-a7b85c": "Все папки очищены.",

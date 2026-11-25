@@ -35,6 +35,12 @@ echo "[pre-push] Running main branch history guard..."
 bash scripts/main_branch_history_guard.sh
 
 for index in "${!DEV_PUSH_SHAS[@]}"; do
+  checked_out_sha="$(git rev-parse HEAD)"
+  candidate_status="$(git status --porcelain --untracked-files=normal)"
+  if [[ "${DEV_PUSH_SHAS[index]}" != "${checked_out_sha}" || -n "${candidate_status}" ]]; then
+    echo 'Dev package validation requires a clean checkout of the exact commit being pushed.' >&2
+    exit 1
+  fi
   echo "[pre-push] Running dev version bump guard..."
   base_sha="${DEV_BASE_SHAS[index]}"
   if [[ "$base_sha" =~ ^0+$ ]]; then base_sha=""; fi

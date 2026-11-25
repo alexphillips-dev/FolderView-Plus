@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "content-revision": "02e262a6ee66a93ec43fe03d2b2a60d510e64beab1f1b9f23b06a33404410cb1"
+        "content-revision": "78570c21c99bc7afe92a7d7336d20b3cc75183efab3749045b75aa3fe8cc637b"
     },
     "common.unassigned-group.title": "Elemente nealocate",
     "runtime.action.requests-result": "Acceptate: $1 · Eșuate: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Import finalizat.",
     "common.repair.delete-failed-8727e2": "Ștergerea nu a reușit",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Crearea unui punct de rollback înainte de a șterge orice.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Backup de siguranță omis: nu există foldere de protejat.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Nu a fost creat niciun fișier de rezervă deoarece harta folderului este goală.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Se reîmprospătează tabelul cu setări și copiile de rezervă.",
     "common.repair.folder-deleted-048562": "Dosarul a fost șters.",
     "common.repair.all-folders-cleared-a7b85c": "Toate folderele au fost șters.",

@@ -122,6 +122,31 @@ test('Info caches row lookup for the accepted inventory, rejects conflicting can
     assert.equal(replacement.find('first'), null);
 }));
 
+test('Docker update evidence distinguishes a canonical name from another container short ID', async () => withDomGlobals(() => {
+    const first = 'b'.repeat(12);
+    let accepted = {
+        [first]: { id: 'a'.repeat(64), info: { State: { Updated: false } } },
+        second: { id: 'b'.repeat(64), info: { State: { Updated: true } } }
+    };
+    const rows = [new ElementFixture('ct-' + 'a'.repeat(12), first), new ElementFixture('ct-' + first, 'second')];
+    rows.forEach((row, index) => {
+        const query = row.querySelector.bind(row);
+        const cell = new ElementFixture();
+        cell.querySelector = selector => selector === (index ? '.fa-flash' : '.fa-check') ? {} : null;
+        row.querySelector = selector => selector === 'td.updatecolumn' ? cell : query(selector);
+    });
+    const api = infoModule.createApi({ window: {}, grouping,
+        document: { querySelectorAll: () => rows, getElementById: id => rows.find(row => row.id === id) || null },
+        getDockerRuntimeInfoMap: () => accepted, setDockerRuntimeInfoMap: next => { accepted = next; }
+    });
+    assert.deepEqual(rows.map(api.getDockerHostRowContainerName), [first, 'second']);
+    assert.equal(api.syncDockerHostRowUpdateStatesFromDom(), true);
+    assert.equal(accepted[first].info.State.Updated, true);
+    assert.equal(accepted.second.info.State.Updated, false);
+    assert.equal(api.getDockerNativeRowIndex().find(first), rows[0]);
+    assert.equal(api.getDockerNativeRowIndex().find('second'), rows[1]);
+}));
+
 test('direct-member recovery accepts short-ID rows without stealing another folder owner', () => {
     const row = new ElementFixture('ct-' + 'a'.repeat(12), 'first');
     row.className = 'folder-fixture-element folder-element';

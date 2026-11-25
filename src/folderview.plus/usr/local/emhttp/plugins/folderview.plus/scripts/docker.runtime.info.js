@@ -40,12 +40,19 @@
         const getFolderDescendants = typeof deps.getFolderDescendants === 'function' ? deps.getFolderDescendants : (() => []);
         const folderHasChildren = typeof deps.folderHasChildren === 'function' ? deps.folderHasChildren : (() => false);
         let hostIdentityMap = null, hostIdentityIndex = null;
-        const resolveHostIdentity = (token) => {
-            const map = getDockerRuntimeInfoMap();
+        const getHostIdentityIndex = (map = getDockerRuntimeInfoMap()) => {
             if (map !== hostIdentityMap) {
                 hostIdentityMap = map; hostIdentityIndex = deps.grouping?.buildIdentityIndex(map) || null;
             }
-            return hostIdentityIndex?.resolve(token) || (Object.prototype.hasOwnProperty.call(map, token) ? token : '');
+            return hostIdentityIndex;
+        };
+        const resolveHostIdentity = (token) =>
+            getHostIdentityIndex()?.resolve(token) || (Object.hasOwn(getDockerRuntimeInfoMap(), token) ? token : '');
+        const resolveDockerHostRowName = (row, inventory = getDockerRuntimeInfoMap()) => {
+            const index = getHostIdentityIndex(inventory);
+            if (index && deps.grouping?.resolveRowName) return deps.grouping.resolveRowName(row, index);
+            const name = String(row.dataset?.name || '').trim();
+            return Object.hasOwn(inventory, name) ? name : '';
         };
         let nativeRowsMap = null, nativeRowsIndex = null;
         const getDockerNativeRowIndex = () => {
@@ -99,16 +106,18 @@
             return labels;
         };
 
-        const readDockerHostRowUpdateEvidence = (name) => {
+        const readDockerHostRowUpdateEvidence = (name, inventory = getDockerRuntimeInfoMap()) => {
             const safeName = String(name || '').trim();
             if (!safeName || !doc) {
                 return null;
             }
-            const entry = getDockerRuntimeInfoMap()[safeName] || {};
+            const entry = inventory[safeName] || {};
             const id = String(entry.shortId || entry.id || entry.info?.Id || '').split(':').pop().slice(0, 12);
-            const row = doc.getElementById(`ct-${safeName}`) || (id ? doc.getElementById(`ct-${id}`) : null)
+            const directIds = id ? [id, safeName] : [safeName];
+            const row = directIds.map(value => doc.getElementById(`ct-${value}`))
+                .find(candidate => candidate && resolveDockerHostRowName(candidate, inventory) === safeName)
                 || Array.from(doc.querySelectorAll?.('#docker_list tr[id^="ct-"], #docker_view tr[id^="ct-"]') || [])
-                    .find(candidate => getDockerHostRowContainerName(candidate) === safeName);
+                    .find(candidate => resolveDockerHostRowName(candidate, inventory) === safeName);
             if (!(row instanceof HTMLElement)) {
                 return null;
             }
@@ -152,6 +161,10 @@
             if (typeof value === 'string') {
                 const raw = value.trim();
                 const token = raw.startsWith('ct-') ? raw.slice(3).trim() : raw;
+                if (raw.startsWith('ct-')) {
+                    const resolvedId = getHostIdentityIndex()?.resolveId?.(token);
+                    if (resolvedId !== undefined) return resolvedId || '';
+                }
                 return resolveHostIdentity(token) || token;
             }
             const node = value instanceof Node ? value : null;
@@ -165,9 +178,7 @@
             if (!(row instanceof HTMLElement)) {
                 return '';
             }
-            const candidates = deps.grouping?.readRowCandidates(row) || [row.dataset?.name, String(row.id || '').replace(/^ct-/, '')];
-            const names = [...new Set(candidates.map(token => resolveHostIdentity(String(token || '').trim())).filter(Boolean))];
-            return names.length === 1 ? names[0] : '';
+            return resolveDockerHostRowName(row);
         };
 
         const getDockerWindowRuntimeEntry = (name) => {
@@ -375,7 +386,7 @@
             }
         };
 
-        const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null) => {
+        const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null, inventory) => {
             const safeName = String(name || '').trim();
             const source = entry && typeof entry === 'object' ? entry : {};
             const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
@@ -403,7 +414,7 @@
             const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
             const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
             const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended()
-                ? readDockerHostRowUpdateEvidence(safeName)
+                ? readDockerHostRowUpdateEvidence(safeName, inventory)
                 : null;
             const rebuild = source.isRebuildReady === true || hostUpdated === 'rebuild' ? true
                 : (typeof source.isRebuildReady === 'boolean' ? source.isRebuildReady : null);
@@ -476,7 +487,7 @@
                 if (!safeName || !entry || typeof entry !== 'object') {
                     return;
                 }
-                normalized[safeName] = buildDockerRuntimeInfoRenderEntry(safeName, entry, fallbackMap?.[safeName] || null);
+                normalized[safeName] = buildDockerRuntimeInfoRenderEntry(safeName, entry, fallbackMap?.[safeName] || null, rawMap);
             });
             return normalized;
         };

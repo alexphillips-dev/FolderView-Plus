@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "legacy-surface",
-        "content-revision": "fb0389ee5cc3f0458a316cb40d5930d00ce2fae524bfbc92f6dc1160abbc162c"
+        "content-revision": "565354bdf3efbf42085e6a37fb21a0144b55655b3f8109b652238d94279f96e3"
     },
     "legacy.surface.0008eb7acd3f7a56": "Массовое перемещение недоступно.",
     "legacy.surface.0012950979762d8c": "Выберите снимок для восстановления, загрузки или удаления.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Сведения о времени выполнения Docker были частично недоступны.",
     "legacy.surface.a9ff80bb0824fdc2": "Резервная копия готова.",
     "legacy.surface.aa1897c8cf834c13": "Атрибут безопасной конструкции DOM отклонен: $1",
-    "legacy.surface.aa2181b424db8468": "Резервная копия готова: $1",
     "legacy.surface.aa3090909390156a": "Переключить $1",
     "legacy.surface.aa3d3ea5337856c8": "Файл импорта должен содержать объект JSON.",
     "legacy.surface.aa54cbf3d0764800": "Не удалось восстановить откат.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Прямые участники/всего участников, включая вложенные папки",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus оставил страницу настроек открытой, но некоторые данные или дополнительные модули не удалось загрузить.",
     "legacy.surface.c3ba312a7f9ba04e": "Автоматическое назначение основных моментов: $1",
-    "legacy.surface.c3d9b0b812065b73": "точка отката создана",
     "legacy.surface.c3f148bfdf3af882": "Поместить в папку",
     "legacy.surface.c3fc3cce1b150b2f": "Неизвестная ошибка запроса",
     "legacy.surface.c42210be655c49df": "FolderView Plus не удалось завершить загрузку $1",

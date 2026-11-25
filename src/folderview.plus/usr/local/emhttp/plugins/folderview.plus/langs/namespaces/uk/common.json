@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "content-revision": "be1387486800ac4148a1ed1bebb96e65b4e9366be9a821c847273b8c78ddaa1c"
+        "content-revision": "b076b07b8e1e969b6f0b9e844ad29cac453f20f0a610e34d0f6dcb1c5c9d78b8"
     },
     "common.unassigned-group.title": "Непризначені елементи",
     "runtime.action.requests-result": "Прийнято: $1 · Помилок: $2",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "Імпорт завершено.",
     "common.repair.delete-failed-8727e2": "Не вдалося видалити",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "Створення точки відкату перед видаленням.",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "Безпечне резервне копіювання пропущено: немає папок для захисту.",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "Файл резервної копії не створено, оскільки карта папок порожня.",
     "common.repair.refreshing-settings-table-and-backups-e72473": "Оновлення таблиці налаштувань і резервних копій.",
     "common.repair.folder-deleted-048562": "Папку видалено.",
     "common.repair.all-folders-cleared-a7b85c": "Усі папки очищено.",

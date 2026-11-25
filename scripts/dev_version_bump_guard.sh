@@ -83,7 +83,7 @@ if [[ -z "${BASE_VERSION}" ]]; then
 fi
 
 RELEASE_RELEVANT_FILES="$(git diff --name-only --no-renames "${BASE_REF}" "${CANDIDATE_REF}" -- \
-  src/folderview.plus/ folderview.plus.plg folderview.plus.xml)"
+  "${FVPLUS_SHIPPED_PATHS[@]}")"
 
 if [[ -z "${RELEASE_RELEVANT_FILES}" ]]; then
   echo "Dev version bump guard passed: no shipped plugin files changed."

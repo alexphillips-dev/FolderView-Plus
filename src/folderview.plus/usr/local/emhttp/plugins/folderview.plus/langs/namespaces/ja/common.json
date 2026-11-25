@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "content-revision": "697c06320cd30dde90f413f39c244b0f914c6a11794d6f6dee919daa5f1c84fc"
+        "content-revision": "c08b33a9401bc313cf5ddfe1f2a6bf638642e3e583abffa8b83123495e9f0a03"
     },
     "common.unassigned-group.title": "未割り当ての項目",
     "runtime.action.requests-result": "受付 $1 件 · 失敗 $2 件",
@@ -337,8 +337,6 @@
     "common.repair.import-complete-80e3a5": "インポートが完了しました。",
     "common.repair.delete-failed-8727e2": "削除に失敗しました",
     "common.repair.creating-a-rollback-point-before-deleting-anything-affbe8": "何かを削除する前にロールバック ポイントを作成します。",
-    "common.repair.safety-backup-skipped-no-folders-to-protect-044e05": "安全バックアップはスキップされました: 保護するフォルダーがありません。",
-    "common.repair.no-backup-file-was-created-because-the-folder-map-is-empty-e2f86a": "フォルダー マップが空であるため、バックアップ ファイルは作成されませんでした。",
     "common.repair.refreshing-settings-table-and-backups-e72473": "設定テーブルとバックアップを更新しています。",
     "common.repair.folder-deleted-048562": "フォルダーが削除されました。",
     "common.repair.all-folders-cleared-a7b85c": "すべてのフォルダーがクリアされました。",

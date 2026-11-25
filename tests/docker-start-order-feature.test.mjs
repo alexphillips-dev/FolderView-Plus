@@ -41,7 +41,7 @@ test('Docker start-order preferences are normalized and accepted', () => {
 
 test('server builds preview and sync order from Docker page or custom batches', () => {
     assert.match(libPhp, /function buildDockerStartOrderContext\(\?array \$verifiedInventory = null\): array/);
-    assert.match(libPhp, /function buildDockerPageStartOrder\(array \$context\): array/);
+    assert.match(libPhp, /function buildDockerPageStartOrder\(array \$context, bool \$followSavedLayout = true\): array/);
     assert.match(libPhp, /function buildDockerCustomStartOrder\(array \$context, array \$plan\): array/);
     assert.match(libPhp, /function buildDockerStartOrderPlan\(array \$context = null\): array/);
     assert.match(libPhp, /function dockerStartOrderPreview\(\): array/);
@@ -130,5 +130,6 @@ test('Docker page sync hook is guarded and triggers autostart sync after relevan
     assert.match(dockerJs, /scheduleFolderViewPlusDockerStartOrderSync/);
     assert.match(dockerJs, /server\/sync_order\.php/);
     assert.match(dockerJs, /ajaxComplete/);
-    assert.match(dockerJs, /action=\(autostart\|wait\)/);
+    assert.match(dockerJs, /data\.has\('names'\) \|\| data\.has\('reset'\)/);
+    assert.match(dockerJs, /\['autostart', 'wait'\]\.includes\(data\.get\('action'\)\)/);
 });

@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 314,
+    "scannedFiles": 315,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -102,7 +102,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
-      "line": 3376,
+      "line": 3378,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -122,7 +122,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 455,
+      "line": 456,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -132,7 +132,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 463,
+      "line": 464,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -142,7 +142,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js",
-      "line": 486,
+      "line": 487,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -352,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 5570,
+      "line": 5574,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

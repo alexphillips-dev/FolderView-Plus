@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "legacy-surface",
-        "content-revision": "848f47bd86cc08a79a693b3779eb7329f867a44e912678633fbb790f3b8ed4c4"
+        "content-revision": "2fe6679ee3e57854a8e41b746aa0ae27b4ef7ba17006eccdb5a69122090e7017"
     },
     "legacy.surface.0008eb7acd3f7a56": "Masseflytning er ikke tilgængelig",
     "legacy.surface.0012950979762d8c": "Vælg en sikkerhedskopi, du vil gendanne, downloade eller slette.",
@@ -1964,7 +1964,6 @@
     "legacy.surface.a9fecc2fa2a8e376": "Docker runtime detaljer var delvist utilgængelige",
     "legacy.surface.a9ff80bb0824fdc2": "Sikkerhedskopiering klar.",
     "legacy.surface.aa1897c8cf834c13": "Sikker DOM-konstruktion afvist attribut: $1",
-    "legacy.surface.aa2181b424db8468": "Sikkerhedskopiering klar: $1",
     "legacy.surface.aa3090909390156a": "Slå $1 til/fra",
     "legacy.surface.aa3d3ea5337856c8": "Importfilen skal indeholde et JSON-objekt.",
     "legacy.surface.aa54cbf3d0764800": "Gendannelse af tilbagerulning mislykkedes.",
@@ -2278,7 +2277,6 @@
     "legacy.surface.c37deead938d2eee": "Direkte medlemmer / samlede medlemmer inklusive indlejrede mapper",
     "legacy.surface.c3b1756abf78160d": "FolderView Plus holdt siden Indstillinger åben, men nogle data eller avancerede moduler kunne ikke indlæses.",
     "legacy.surface.c3ba312a7f9ba04e": "Auto-tildel højdepunkter: $1",
-    "legacy.surface.c3d9b0b812065b73": "tilbagerulningspunkt oprettet",
     "legacy.surface.c3f148bfdf3af882": "Læg i mappe",
     "legacy.surface.c3fc3cce1b150b2f": "Ukendt anmodningsfejl",
     "legacy.surface.c42210be655c49df": "FolderView Plus kunne ikke afslutte indlæsningen af $1",

@@ -21,10 +21,6 @@ Usage: prune_archives.sh [options]
 EOF
 }
 
-is_nonnegative_integer() {
-  [[ "${1:-}" =~ ^[0-9]+$ ]]
-}
-
 contains_exact() {
   local needle="${1:-}"
   shift || true
@@ -72,8 +68,12 @@ if [[ "${ARCHIVE_DIR}" != /* && ! "${ARCHIVE_DIR}" =~ ^[A-Za-z]:[\\/].* ]]; then
   ARCHIVE_DIR="${ROOT_DIR}/${ARCHIVE_DIR}"
 fi
 
-is_nonnegative_integer "${KEEP_COUNT}" || fvplus::fail "--keep must be a non-negative integer."
-KEEP_COUNT=$((10#${KEEP_COUNT}))
+[[ "${KEEP_COUNT}" =~ ^[0-9]+$ ]] || fvplus::fail "--keep must be a non-negative integer."
+# Strip leading zeroes before checking the round trip through Bash arithmetic.
+keep_digits="${KEEP_COUNT#"${KEEP_COUNT%%[!0]*}"}"
+keep_digits="${keep_digits:-0}"
+KEEP_COUNT=$((10#${keep_digits}))
+[[ "${KEEP_COUNT}" == "${keep_digits}" ]] || fvplus::fail "--keep is outside the supported integer range."
 
 if [[ -z "${CURRENT_VERSION}" && -f "${ROOT_DIR}/folderview.plus.plg" ]]; then
   CURRENT_VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"

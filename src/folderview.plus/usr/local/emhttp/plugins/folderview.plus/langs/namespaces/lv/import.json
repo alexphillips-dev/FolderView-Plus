@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "import",
-        "content-revision": "dcfeef4e33a419bb518e92f1fecd5af1ac04f1a5a45fdf47c5939059808fc7d8"
+        "content-revision": "636c96c7f2a789c606c6e495bd3150d3efea29e89bbbdd7a8fee2e8cd2cca1ab"
     },
     "import.subtitle": "Izvēlieties, kā rīkoties ar esošajām mapēm. Nekas nemainās, kamēr nav atlasīta opcija Lietot importēšanu.",
     "import.behavior.question": "Kā rīkoties ar esošajām mapēm?",
@@ -18,6 +18,7 @@
     "import.review.count": "Pārskatīt {{PLURAL:$1|$1 plānoto izmaiņu|$1 plānoto izmaiņu|$1 plānotās izmaiņas}}",
     "import.review.folders-fields": "Mapes un lauki",
     "import.review.choose": "Izvēlieties, kuras izmaiņas iekļaut",
+    "import.selection.parent-conflict": "Pārskatiet atlasi, lai saglabātu šīs vecāk saites: $1",
     "import.safety.title": "Drošības iespējas",
     "import.safety.summary": "Priekšskatījums un apstiprinājums",
     "import.safety.preview-only": "Tikai priekšskatījums",

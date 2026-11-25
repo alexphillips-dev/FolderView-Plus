@@ -185,6 +185,30 @@ $result['undoSkipsNoop'] = restoreLatestUndoBackupSnapshot($type)['name'] === $p
     && is_file(getBackupSnapshotPath($type, $interrupted['name']))
     && is_file(getBackupSnapshotPath($type, $bulkInterrupted['name'])) && readRawFolderMap($type) === $savedFolders;
 
+$undoPrefs = normalizeTypePrefs(['backupSchedule' => ['retention' => 10]]);
+seedFixture($type, $savedFolders, $undoPrefs);
+$beforeAlpha = applyFolderBatchOperations($type, ['deletes' => ['alpha'], 'backupReason' => 'before-delete-alpha'],
+    readConfigMetadata($type, false)['folderRevision'])['backup'];
+$beforeBeta = applyFolderBatchOperations($type, ['deletes' => ['beta'], 'backupReason' => 'before-delete-beta'],
+    readConfigMetadata($type, false)['folderRevision'])['backup'];
+createBackupSnapshot($type, 'before-import-unchanged');
+$result['undoProgresses'] = restoreLatestUndoBackupSnapshot($type)['name'] === $beforeBeta['name']
+    && array_keys(readRawFolderMap($type)) === ['beta']
+    && restoreLatestUndoBackupSnapshot($type)['name'] === $beforeAlpha['name']
+    && readRawFolderMap($type) === $savedFolders;
+$before = captureFixture($type);
+try { restoreLatestUndoBackupSnapshot($type); $result['undoExhausted'] = false; }
+catch (RuntimeException $failure) {
+    $result['undoExhausted'] = $failure->getMessage() === 'No undo-capable backups found.' && $before === captureFixture($type);
+}
+$newChange = createBackupSnapshot($type, 'before-delete-new-change');
+writeRawFolderMap($type, $currentFolders);
+$result['undoResumesAfterEdit'] = restoreLatestUndoBackupSnapshot($type)['name'] === $newChange['name']
+    && readRawFolderMap($type) === $savedFolders;
+writeJsonObjectAtomic(getFolderFilePath($type), fvplusJsonKeyedMap($currentFolders));
+$result['undoRechecksExternalChange'] = restoreLatestUndoBackupSnapshot($type)['name'] === $newChange['name']
+    && readRawFolderMap($type) === $savedFolders;
+
 foreach (['folders', 'prefs', 'docker-order'] as $stage) {
     if ($stage === 'docker-order' && $type !== 'docker') continue;
     seedFixture($type, $savedFolders, $savedPrefs);
@@ -270,7 +294,8 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.emptySafety, true, 'empty current state was not protected');
         assert.equal(result.latestSkipsEmpty, true, 'latest restore selected an empty snapshot');
         assert.deepEqual(result.skipsMalformed, { latest: true, undo: true }, 'a damaged backup blocked a valid older restore point');
-        for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement', 'globalRetainsUsable', 'failureLeavesHistory', 'undoSkipsNoop']) {
+        for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement', 'globalRetainsUsable',
+            'failureLeavesHistory', 'undoSkipsNoop', 'undoProgresses', 'undoExhausted', 'undoResumesAfterEdit', 'undoRechecksExternalChange']) {
             assert.equal(result[check], true, check);
         }
         assert.deepEqual(result.rejectsOnlyMalformed, { latest: true, undo: true }, 'restore mutated state without valid backup data');

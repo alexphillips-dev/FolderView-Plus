@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "import",
-        "content-revision": "a7a5df6a86bf79869e94e8812e73bb282518c00497ddee4e99bd97f61eb6973d"
+        "content-revision": "05b3ab83c85cdf08e25849005664c494376ff3132d6fed0593bcf935bea85153"
     },
     "import.subtitle": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করবেন তা চয়ন করুন। আপনি আমদানি প্রয়োগ করুন নির্বাচন না করা পর্যন্ত কিছুই পরিবর্তন হয় না।",
     "import.behavior.question": "বিদ্যমান ফোল্ডারগুলি কীভাবে পরিচালনা করা উচিত?",
@@ -18,6 +18,7 @@
     "import.review.count": "পর্যালোচনা করুন {{PLURAL:$1|$1টি পরিকল্পিত পরিবর্তন|$1টি পরিকল্পিত পরিবর্তন}}",
     "import.review.folders-fields": "ফোল্ডার এবং ক্ষেত্র",
     "import.review.choose": "কোন পরিবর্তনগুলি অন্তর্ভুক্ত করতে চান তা চয়ন করুন৷",
+    "import.selection.parent-conflict": "এই মূল লিঙ্কগুলিকে অক্ষত রাখতে নির্বাচন পর্যালোচনা করুন: $1",
     "import.safety.title": "নিরাপত্তা বিকল্প",
     "import.safety.summary": "পূর্বরূপ এবং নিশ্চিতকরণ",
     "import.safety.preview-only": "শুধুমাত্র পূর্বরূপ",

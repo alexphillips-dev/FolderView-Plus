@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDockerHideEmptyHost } from '../helpers/docker-hide-empty-host.mjs';
+import { exerciseRejectedDockerOrderWrites, registerDockerRowPlacementLifecycleCases } from './docker-row-placement-lifecycle.mjs';
 
 export const registerDockerRowPlacementCases = ({ test }) => {
     test('Docker row placement preserves a native name that collides with a folder slot', async ({ page }) => {
@@ -51,17 +52,15 @@ export const registerDockerRowPlacementCases = ({ test }) => {
             }), endpoint);
             await Promise.all([page.waitForResponse('**/server/sync_order.php'), reset()]);
             assert.equal(syncs, 1);
-            await page.clock.install();
-            await page.evaluate(url => window.jQuery(document).trigger('ajaxComplete', [
-                { status: 403 }, { url, data: 'reset=true' }
-            ]), endpoint);
-            await page.clock.runFor(350);
-            assert.equal(syncs, 1, 'a rejected Unraid write must not sync startup order');
+            await exerciseRejectedDockerOrderWrites(page, endpoint);
+            assert.equal(syncs, 1, 'only an acknowledged same-origin native write syncs startup order');
         } finally {
             await page.close();
             await host.close();
         }
     }, { skipAccessibility: true });
+
+    registerDockerRowPlacementLifecycleCases({ test });
 
     test('Docker row placement restores saved mixed slots after refresh without saving native order', async ({ page }) => {
         const savedOrder = ['fixture-app-4', 'folder-parent', 'fixture-app-0', 'folder-branch', 'folder-leaf',

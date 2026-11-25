@@ -724,9 +724,10 @@
                     );
                 lastFallback = graphReady ? 'none' : 'legacy-data';
                 return capabilities;
-            } catch (_error) {
+            } catch (error) {
                 graphReady = false;
                 lastFallback = 'legacy-data';
+                if (options.allowLegacyFallback === false) throw error;
                 return null;
             }
         };
@@ -735,9 +736,13 @@
             if (graphReady && capabilities) {
                 try {
                     return await graphql.listContainers(options);
-                } catch (_error) {
+                } catch (error) {
                     lastFallback = 'legacy-data';
+                    if (options.allowLegacyFallback === false) throw error;
                 }
+            }
+            if (options.allowLegacyFallback === false) {
+                throw unsupportedError('The authoritative Docker container query is unavailable.', 'capability-unavailable');
             }
             return legacy.listContainers(options);
         };
@@ -754,12 +759,16 @@
         };
         const reconcileContainer = async (identity, options = {}) => {
             const capabilities = await ready(options);
-            if (graphReady && capabilities?.query?.container === true) {
+            if (graphReady && (capabilities?.query?.container === true || options.allowLegacyFallback === false)) {
                 try {
                     return await graphql.reconcileContainer(identity, options);
-                } catch (_error) {
+                } catch (error) {
                     lastFallback = 'legacy-reconciliation';
+                    if (options.allowLegacyFallback === false) throw error;
                 }
+            }
+            if (options.allowLegacyFallback === false) {
+                throw unsupportedError('The authoritative Docker container query is unavailable.', 'capability-unavailable');
             }
             return legacy.getContainer(identity, options);
         };

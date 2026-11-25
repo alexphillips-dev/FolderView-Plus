@@ -196,6 +196,7 @@ test('dev version guard requires shipped changes to advance the published versio
     fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
     fs.copyFileSync(devVersionBumpGuardPath, path.join(directory, 'scripts', 'dev_version_bump_guard.sh'));
     fs.copyFileSync(sharedLibPath, path.join(directory, 'scripts', 'lib.sh'));
+    fs.copyFileSync(path.join(repoRoot, 'scripts/package-build-inputs.txt'), path.join(directory, 'scripts/package-build-inputs.txt'));
     const output = runBuildFixture(directory, `set -euo pipefail
 cd "$1"
 git -c init.defaultBranch=dev init -q
@@ -209,6 +210,11 @@ printf 'notes only\\n' > notes.md
 git add notes.md
 git commit -qm docs
 bash scripts/dev_version_bump_guard.sh
+printf 'changed package transform\n' > scripts/package_page_format.mjs
+git add scripts/package_page_format.mjs
+git commit -qm transform
+if bash scripts/dev_version_bump_guard.sh > result 2>&1; then exit 13; fi
+grep -F 'must bump folderview.plus.plg version' result
 for patch in 09 10 11; do
     printf '<!ENTITY version "2026.01.01.%s">\\n' "$patch" > folderview.plus.plg
     printf 'changed shipped source %s\\n' "$patch" > src/folderview.plus/fixture
@@ -228,8 +234,8 @@ if FVPLUS_DEV_VERSION_CANDIDATE_REF="$bad_candidate" bash scripts/dev_version_bu
 grep -F 'must bump folderview.plus.plg version' result
 FVPLUS_DEV_VERSION_CANDIDATE_REF="$(git rev-parse HEAD)" bash scripts/dev_version_bump_guard.sh
 `);
-    assert.match(output, /passed: no shipped plugin files changed/);
-    assert.equal(output.match(/must bump folderview\.plus\.plg version/g).length, 3);
+    assert.match(output, /passed: no package inputs changed/);
+    assert.equal(output.match(/must bump folderview\.plus\.plg version/g).length, 4);
     assert.match(output, /passed: 2026\.01\.01\.10 -> 2026\.01\.01\.11/);
 });
 
@@ -528,9 +534,9 @@ test('dev pushes that change shipped plugin files must bump the manifest version
     assert.match(devVersionBumpGuard, /FVPLUS_DEV_VERSION_BASE_REF/);
     assert.match(devVersionBumpGuard, /read_version_from_ref "\$\{CANDIDATE_REF\}"/);
     assert.match(devVersionBumpGuard, /git show "\$\{ref_name\}:folderview\.plus\.plg"/);
-    assert.match(sharedLib, /FVPLUS_SHIPPED_PATHS=\(src\/folderview\.plus\/ folderview\.plus\.plg folderview\.plus\.xml\)/);
-    assert.match(devVersionBumpGuard, /FVPLUS_SHIPPED_PATHS/);
-    assert.match(devVersionBumpGuard, /change shipped plugin files must bump folderview\.plus\.plg version/);
+    assert.match(sharedLib, /FVPLUS_PACKAGE_SOURCE_ROOT=src\/folderview\.plus\//);
+    assert.match(devVersionBumpGuard, /FVPLUS_PACKAGE_BUILD_PATHS/);
+    assert.match(devVersionBumpGuard, /change package inputs must bump folderview\.plus\.plg version/);
     assert.match(devVersionBumpGuard, /bash scripts\/dev_finalize\.sh --message/);
     assert.match(devVersionBumpGuard, /bash pkg_build\.sh/);
     assert.match(prePushHook, /echo "\[pre-push\] Running dev version bump guard\.\.\."/);
@@ -765,18 +771,16 @@ test('release-on-main is the single authoritative release workflow', () => {
 });
 
 test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
+    const publisher = fs.readFileSync(path.join(repoRoot, 'scripts/publish_github_release.sh'), 'utf8');
     assert.match(releaseOnMainWorkflow, /name:\s*Release On Main/);
     assert.match(releaseOnMainWorkflow, /release_validation\.mjs wait/);
     assert.match(releaseOnMainWorkflow, /committed checksum is missing/);
     assert.doesNotMatch(releaseOnMainWorkflow, /Generated missing checksum|npm ci/);
-    assert.match(releaseOnMainWorkflow, /gh release create.*--target "\$GITHUB_SHA"/);
-    assert.match(releaseOnMainWorkflow, /gh release edit/);
-    assert.match(releaseOnMainWorkflow, /git rev-parse 'FETCH_HEAD\^\{commit\}'/);
-    assert.match(releaseOnMainWorkflow, /retry_command "Upload release package"/);
-    assert.match(releaseOnMainWorkflow, /retry_command "Upload release checksum"/);
-    assert.match(releaseOnMainWorkflow, /create_or_confirm_release\(\)/);
-    assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
-    assert.match(releaseOnMainWorkflow, /release not found\|HTTP 404\|Not Found/);
+    assert.match(releaseOnMainWorkflow, /bash scripts\/publish_github_release\.sh/);
+    assert.match(publisher, /gh release create.*--draft.*--target "\$\{candidate\}"/);
+    assert.match(publisher, /git rev-parse 'FETCH_HEAD\^\{commit\}'/);
+    assert.match(publisher, /retry 'Verify uploaded release package'[\s\S]*retry 'Verify uploaded release checksum'[\s\S]*gh release edit.*--draft=false/);
+    assert.doesNotMatch(publisher, /--clobber/);
 });
 
 test('back-merge workflow validates merged dev state before pushing', () => {
@@ -897,8 +901,7 @@ test('simulate main release uses a temporary worktree and shared release prepara
 
 test('release workflows keep checksum assets and metadata changes', () => {
     assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /bash scripts\/publish_github_release\.sh "\$TAG" "\$ARCHIVE" "\$CHECKSUM" release_notes\.md/);
 });
 
 test('CI includes shellcheck linting for repository shell scripts', () => {

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "import",
-        "content-revision": "ac7c14a97e33f2ff25186209fd67e66309213740304412bba06f65f0dcd22e75"
+        "content-revision": "babc0e7affebd64308b3c7a2129b4959255921e98811a8abdc72c7cb074522c7"
     },
     "import.subtitle": "选择如何处理现有文件夹。只有在您选择“应用导入”后，才会发生更改。",
     "import.behavior.question": "现有文件夹应如何处理？",
@@ -18,6 +18,7 @@
     "import.review.count": "检查 {{PLURAL:$1|$1 项计划更改|$1 项计划更改}}",
     "import.review.folders-fields": "文件夹和字段",
     "import.review.choose": "选择要包含的更改",
+    "import.selection.parent-conflict": "检查选择以保持这些父链接完好无损：$1",
     "import.safety.title": "安全选项",
     "import.safety.summary": "预览和确认",
     "import.safety.preview-only": "仅预览",

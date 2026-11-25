@@ -17,7 +17,6 @@
         const buildFolderHierarchyMeta = typeof deps.buildFolderHierarchyMeta === 'function'
             ? deps.buildFolderHierarchyMeta
             : (() => ({ childrenById: {}, depthById: {}, idSet: new Set() }));
-        const createBackup = typeof deps.createBackup === 'function' ? deps.createBackup : (async () => null);
         const offerUndoAction = typeof deps.offerUndoAction === 'function' ? deps.offerUndoAction : (async () => {});
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
@@ -201,7 +200,8 @@
             setTreeIntegrityBusy(resolvedType, true, repair ? 'repair' : 'scan');
             try {
                 const refreshedState = await refreshTreeIntegrityState(resolvedType, { reason: repair ? 'repair' : 'scan' });
-                const report = scan(resolvedType);
+                const folders = refreshedState.folders;
+                const report = scan(resolvedType, folders);
                 const counts = getCounts(report);
                 if (counts.repairableIssueCount + counts.advisoryIssueCount <= 0) {
                     swal({
@@ -244,7 +244,6 @@
                     });
                     return;
                 }
-                const folders = getFolderMap(resolvedType);
                 const toRepair = getRepairIds(report, folders);
                 if (!toRepair.length) return;
                 if (!ensureRuntimeConflictActionAllowed(`Repair ${resolvedType.toUpperCase()} nested tree integrity`)) return;
@@ -263,21 +262,18 @@
                     }, (ok) => resolve(ok === true));
                 });
                 if (!confirmed) return;
-                const backup = await createBackup(resolvedType, `before-tree-integrity-repair-${Date.now()}`);
-                if (!backup?.name) {
-                    throw new Error('A pre-repair backup could not be verified, so no folder links were changed.');
-                }
-                await requestFolderBatchMutation(resolvedType, {
+                const result = await requestFolderBatchMutation(resolvedType, {
                     deletes: [],
                     creates: [],
                     upserts: toRepair.map((id) => ({
                         id,
                         folder: { ...folders[id], parentId: '' }
                     }))
-                }, { expectedRevision });
-                await offerUndoAction(resolvedType, backup, 'Tree integrity repair');
+                }, { expectedRevision, backupReason: 'before-tree-integrity-repair' });
+                if (result?.backup?.name) await offerUndoAction(resolvedType, result.backup, 'Tree integrity repair');
+                let verifiedState;
                 try {
-                    await refreshTreeIntegrityState(resolvedType, { reason: 'verify' });
+                    verifiedState = await refreshTreeIntegrityState(resolvedType, { reason: 'verify' });
                 } catch (verificationError) {
                     showToastMessage({
                         title: 'Repair saved; verification unavailable',
@@ -287,7 +283,7 @@
                     });
                     return;
                 }
-                const verifiedCounts = getCounts(scan(resolvedType));
+                const verifiedCounts = getCounts(scan(resolvedType, verifiedState.folders));
                 swal({
                     title: verifiedCounts.repairableIssueCount > 0 ? 'Repair incomplete' : 'Repair complete',
                     text: surfaceT("common.counts.repair-result", "Folder links repaired: $1. Remaining link errors: $2. Advisory warnings: $3.", toRepair.length, verifiedCounts.repairableIssueCount, verifiedCounts.advisoryIssueCount),

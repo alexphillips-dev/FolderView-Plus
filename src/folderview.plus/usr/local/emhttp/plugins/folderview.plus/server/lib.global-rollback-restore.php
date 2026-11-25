@@ -1,25 +1,5 @@
 <?php
 
-function fvplusValidateGlobalRollbackPayload($decoded): array {
-    if (!is_array($decoded)) throw new RuntimeException('Rollback snapshot is not valid JSON.');
-    if (($decoded['rollbackSchemaVersion'] ?? null) !== FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION
-        || !is_array($decoded['types'] ?? null)) {
-        throw new RuntimeException('Rollback snapshot format or schema version is unsupported.');
-    }
-    foreach (FVPLUS_ALLOWED_TYPES as $type) {
-        $entry = $decoded['types'][$type] ?? null;
-        if (!is_array($entry) || !is_array($entry['folders'] ?? null)
-            || (array_key_exists('prefs', $entry) && !is_array($entry['prefs']))) {
-            throw new RuntimeException('Rollback snapshot is missing required type data.');
-        }
-        fvplusAssertSnapshotFolderMap($entry['folders'], 'Rollback snapshot is missing required type data.');
-    }
-    if (isset($decoded['themeWorkspace']) && !is_array($decoded['themeWorkspace'])) {
-        throw new RuntimeException('Rollback snapshot contains invalid Theme Workspace data.');
-    }
-    return $decoded;
-}
-
 function restoreGlobalRollbackSnapshot(string $name, array $options = []): array {
     return withConfigMutationLock(static function () use ($name, $options): array {
         $path = getGlobalRollbackSnapshotPath($name);
@@ -30,7 +10,8 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
         // Older checkpoints can omit Theme Workspace; retain its current state in that adapter.
         $target = ['types' => $types, 'themeWorkspace' => $decoded['themeWorkspace'] ?? readThemeWorkspace()];
         $transaction = applyEnvironmentSnapshotTransaction($target, $name,
-            array_merge($options, ['reason' => 'global-rollback', 'preserveRollbackNames' => [$name]]));
+            array_merge($options, ['reason' => 'global-rollback', 'preserveRollbackNames' => [$name],
+                'nativeAutostart' => $decoded['nativeDockerAutostart'] ?? null]));
         $counts = ['docker' => count($types['docker']['folders']), 'vm' => count($types['vm']['folders'])];
         try {
             appendDiagnosticsHistoryEvent('rollback_restore', null, [

@@ -47,6 +47,7 @@
     let pendingTranslationRoots = new Set();
     let translationFlushQueued = false;
     const lastAutoText = new WeakMap();
+    const lastAutoAttributes = new WeakMap();
     const earlyMessages = new Map();
     const ready = new Promise((resolve, reject) => {
         readyResolve = resolve;
@@ -209,19 +210,25 @@
         return Boolean(element.closest(AUTO_IGNORE_SELECTOR));
     };
 
+    const autoTranslationSource = (current, previous) => {
+        if (previous?.output !== current) return current;
+        return previous.locale === state.activeLocale ? null : previous.source;
+    };
+
     const translateAutoTextNode = (node) => {
         const parent = node?.parentElement;
         if (!parent || isAutoIgnored(parent) || parent.hasAttribute?.('data-i18n')) return false;
-        const source = String(node.nodeValue || '');
-        if (lastAutoText.get(node) === source) return false;
+        const current = String(node.nodeValue || '');
+        const source = autoTranslationSource(current, lastAutoText.get(node));
+        if (source === null) return false;
         const phrase = normalizeAutoPhrase(source);
         const localized = resolveAutoTranslation(phrase);
-        if (!localized || localized === phrase) return false;
         const leading = source.match(/^\s*/)?.[0] || '';
         const trailing = source.match(/\s*$/)?.[0] || '';
-        const output = `${leading}${localized}${trailing}`;
-        if (output === source) return false;
-        lastAutoText.set(node, output);
+        const output = localized && localized !== phrase ? `${leading}${localized}${trailing}` : source;
+        if (output === source) lastAutoText.delete(node);
+        else lastAutoText.set(node, { source, output, locale: state.activeLocale });
+        if (output === current) return false;
         node.nodeValue = output;
         state.autoTranslatedNodeCount += 1;
         return true;
@@ -230,15 +237,21 @@
     const translateAutoElementAttributes = (element) => {
         if (!element || isAutoIgnored(element)) return;
         const explicitBinding = String(element.getAttribute?.('data-i18n') || '');
+        let translatedAttributes = lastAutoAttributes.get(element);
         AUTO_TRANSLATABLE_ATTRIBUTES.forEach((attribute) => {
             if (attribute === 'value' && !element.matches?.('input[type="button"], input[type="submit"], input[type="reset"]')) return;
             if (explicitBinding.includes(`[${attribute}]`)) return;
-            const source = String(element.getAttribute?.(attribute) || '');
-            const phrase = normalizeAutoPhrase(source);
-            const localized = resolveAutoTranslation(phrase);
-            if (!localized || localized === source) return;
-            if (element.getAttribute(attribute) === localized) return;
-            element.setAttribute(attribute, localized);
+            const current = String(element.getAttribute?.(attribute) || '');
+            const source = autoTranslationSource(current, translatedAttributes?.get(attribute));
+            if (source === null) return;
+            const output = resolveAutoTranslation(normalizeAutoPhrase(source)) || source;
+            if (output === source) translatedAttributes?.delete(attribute);
+            else {
+                if (!translatedAttributes) lastAutoAttributes.set(element, translatedAttributes = new Map());
+                translatedAttributes.set(attribute, { source, output, locale: state.activeLocale });
+            }
+            if (output === current) return;
+            element.setAttribute(attribute, output);
             state.autoTranslatedNodeCount += 1;
         });
     };

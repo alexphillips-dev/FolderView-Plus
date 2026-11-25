@@ -82,6 +82,11 @@ export const createProductionPerfFixture = (rootDir, scenario, locale = 'en') =>
             if (endpoint === 'reconcile_member_identities.php' && req.method === 'POST') return send({ ok: true, result: {} });
             if (endpoint === 'read_order.php') return send(snapshot(type).order);
             if (endpoint === 'prefs.php') return send({ ok: true, prefs, metadata: {} });
+            if (endpoint === 'sync_order.php' && req.method === 'POST' && typeof scenario.syncOrder === 'function') {
+                const chunks = [];
+                for await (const chunk of req) chunks.push(chunk);
+                return send(scenario.syncOrder(new URLSearchParams(Buffer.concat(chunks).toString('utf8'))));
+            }
             if (endpoint === 'version.php') return send('benchmark', 'text/plain');
             if (endpoint === 'cpu.php') return send('8', 'text/plain');
             if (endpoint === 'update_check.php') return send({ ok: true, updateAvailable: false, currentVersion: 'benchmark' });

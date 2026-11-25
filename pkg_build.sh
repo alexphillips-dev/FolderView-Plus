@@ -161,10 +161,15 @@ cleanup_tmpdir() {
 }
 
 parse_nonnegative_integer() {
-    local raw="${1:-}"
+    local raw="${1:-}" value
     if [[ "$raw" =~ ^[0-9]+$ ]]; then
-        echo $((10#$raw))
-        return
+        raw="${raw#"${raw%%[!0]*}"}"
+        raw="${raw:-0}"
+        value=$((10#$raw))
+        if [[ "$value" = "$raw" ]]; then
+            printf '%s\n' "$value"
+            return
+        fi
     fi
     echo ""
 }

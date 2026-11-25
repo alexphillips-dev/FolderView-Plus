@@ -155,6 +155,32 @@ if ($input['mode'] === 'bootstrap' || $input['mode'] === 'repair') {
     return;
 }
 $before = writeThemeWorkspace(fixtureThemeWorkspace('Primary profile'));
+if ($input['mode'] === 'css-limit') {
+    $marker = '.fixture-css-limit { color: red; }';
+    $limit = FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES;
+    $bytes = $limit - strlen($marker) - 4;
+    $css = '/*' . str_repeat($input['character'], intdiv($bytes, strlen($input['character'])))
+        . str_repeat(' ', $bytes % strlen($input['character'])) . '*/' . $marker;
+    $saved = saveThemeWorkspaceProfileLayer('default', 'docker', [], $css)['workspace'];
+    $nativeAfterSave = fixtureThemeFilesystem($root);
+    $rejected = [];
+    $overBudget = $css . $input['character'];
+    foreach ([
+        'preview' => static fn() => prepareThemeWorkspaceProfileLayer('default', 'docker', [], $overBudget),
+        'save' => static fn() => saveThemeWorkspaceProfileLayer('default', 'docker', [], $overBudget),
+        'saveAs' => static fn() => createThemeWorkspaceProfile('Oversized copy', 'default', 'docker', [], $overBudget),
+        'legacySave' => static fn() => saveThemeWorkspaceCustomize([], $overBudget)
+    ] as $action => $write) {
+        try { $write(); } catch (RuntimeException $error) { $rejected[$action] = $error->getMessage(); }
+    }
+    echo json_encode([
+        'exactBytes' => strlen($saved['profiles'][0]['layers']['docker']['customCss']),
+        'hasEndingRule' => str_contains(file_get_contents("$root/config/styles/fvplus-managed.theme.docker.css"), $marker),
+        'rejected' => $rejected,
+        'unchanged' => fixtureThemeFilesystem($root) === $nativeAfterSave
+    ], JSON_THROW_ON_ERROR);
+    return;
+}
 $replacement = $before;
 $replacement['themes'][0]['files'][0]['content'] = '.remote { color: blue; }';
 $GLOBALS['themeFixtureBefore'] = $before;

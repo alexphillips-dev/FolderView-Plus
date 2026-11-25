@@ -8,6 +8,7 @@ const scriptsRoot = path.resolve(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts'
 );
 const coordinatorModule = require(path.join(scriptsRoot, 'docker.runtime.api-coordinator.js'));
+const providersModule = require(path.join(scriptsRoot, 'docker.runtime.providers.js'));
 
 const runtimeEntry = (name, options = {}) => ({
     name,
@@ -231,6 +232,49 @@ test('transient failures use bounded cooldown and recover after the clock advanc
     assert.equal(recovered.applied, true);
     assert.equal(calls, 2);
     assert.equal(coordinator.status().state, 'ready');
+});
+
+test('hybrid GraphQL failures keep native runtime state and trigger inventory and targeted PHP fallback', async () => {
+    const capability = { endpointAvailable: true, query: { containers: true, container: true }, ...capabilities };
+    const transport = {
+        getCapabilitySnapshot: () => capability,
+        probeCapabilities: async () => capability,
+        query: async (_query, _variables, options) => {
+            assert.equal(['docker-containers', 'docker-container'].includes(options.operation), true);
+            throw Object.assign(new Error('Fixture GraphQL transport failed'), { category: 'rate-limited' });
+        }
+    };
+    let legacyReads = 0;
+    const provider = providersModule.createHybridProvider({ window: {}, transport,
+        listLegacyContainers: async () => {
+            legacyReads++;
+            return [{ name: 'app', id: 'app000000000', state: 'stopped' }];
+        }
+    });
+    assert.equal((await provider.listContainers())[0].source, 'legacy-runtime', 'direct consumers keep the existing provider fallback');
+    for (const operation of ['inventory', 'targeted']) {
+        const runtime = { app: runtimeEntry('app', { autostart: true }) };
+        let applications = 0;
+        const requests = [];
+        const coordinator = coordinatorModule.createCoordinator({
+            providerRegistry: { getDefault: () => provider },
+            getRuntimeMap: () => runtime,
+            applyRuntimeMap: () => { applications++; },
+            requestLegacyFallback: async details => { requests.push(details); }
+        });
+        const result = operation === 'inventory' ? await coordinator.refreshAll() : await coordinator.reconcileContainer('app');
+        assert.equal(result.applied, false);
+        assert.equal(result.errorCategory, 'rate-limited');
+        assert.deepEqual(requests, [operation === 'inventory' ? { reason: 'rate-limited' } : { reason: 'rate-limited', identity: 'app' }]);
+        assert.equal(applications, 0);
+        assert.equal(runtime.app.info.State.Autostart, true);
+        assert.equal(runtime.app.Labels['fixture.preserved'], 'yes');
+        assert.ok(runtime.app.id.length > 12);
+        assert.equal(coordinator.status().lastSuccessAt, null);
+        coordinator.dispose();
+    }
+    assert.equal(legacyReads, 1, 'authoritative reconciliation bypasses sparse legacy reads');
+    provider.dispose();
 });
 
 test('integration guards configuration revisions and schedules targeted lifecycle follow-up', async () => {

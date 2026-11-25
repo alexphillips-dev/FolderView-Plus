@@ -82,19 +82,20 @@ if [[ -z "${BASE_VERSION}" ]]; then
   exit 0
 fi
 
+fvplus::read_package_build_paths
 RELEASE_RELEVANT_FILES="$(git diff --name-only --no-renames "${BASE_REF}" "${CANDIDATE_REF}" -- \
-  "${FVPLUS_SHIPPED_PATHS[@]}")"
+  "${FVPLUS_PACKAGE_BUILD_PATHS[@]}")"
 
 if [[ -z "${RELEASE_RELEVANT_FILES}" ]]; then
-  echo "Dev version bump guard passed: no shipped plugin files changed."
+  echo "Dev version bump guard passed: no package inputs changed."
   exit 0
 fi
 
 if [[ -z "${CURRENT_VERSION}" || "${CURRENT_VERSION}" == "${BASE_VERSION}" ]] || \
     [[ "$(printf '%s\n%s\n' "${BASE_VERSION}" "${CURRENT_VERSION}" | sort -V | tail -n 1)" != "${CURRENT_VERSION}" ]]; then
-  echo "ERROR: dev pushes that change shipped plugin files must bump folderview.plus.plg version." >&2
+  echo "ERROR: dev pushes that change package inputs must bump folderview.plus.plg version." >&2
   echo "base=${BASE_REF} version=${BASE_VERSION} current=${CURRENT_VERSION}" >&2
-  echo "Changed shipped files:" >&2
+  echo "Changed package inputs:" >&2
   printf '%s\n' "${RELEASE_RELEVANT_FILES}" >&2
   echo "HINT: Run 'bash scripts/dev_finalize.sh --message \"...\"' or rebuild with 'bash pkg_build.sh', commit the updated manifest/archive artifacts, then push dev again." >&2
   exit 1

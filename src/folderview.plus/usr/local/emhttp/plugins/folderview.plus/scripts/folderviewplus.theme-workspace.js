@@ -38,6 +38,8 @@
         Object.freeze({ token: '--fvplus-graph-mem', label: 'Graph memory', fallback: '#6bd676' })
     ]);
     const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
+    const MAX_CUSTOM_CSS_BYTES = 65536;
+    const measureCssBytes = (css) => new TextEncoder().encode(css).byteLength;
     const normalizeWorkspace = (value) => {
         const source = value && typeof value === 'object' ? value : {};
         const rawThemes = Array.isArray(source.themes) ? source.themes : [];
@@ -232,7 +234,7 @@
                 return;
             }
             const activeTheme = getActiveTheme();
-            const customCssBytes = String(workspace.customCss || '').length;
+            const customCssBytes = measureCssBytes(String(workspace.customCss || ''));
             const overrideCount = Object.keys(workspace.variables || {}).length;
             const activeFiles = Array.isArray(activeTheme?.files) ? activeTheme.files : [];
             const targets = ['docker', 'vm', 'dashboard'].filter((target) => activeFiles.some((file) => Array.isArray(file.tabs) && file.tabs.includes(target)));
@@ -356,19 +358,19 @@
             `;
         };
 
-        const variableLabel = (token, hasOverride) => token + (hasOverride
-            ? translate('settings.theme.override-suffix', ' · customized')
-            : translate('settings.theme.default-suffix', ' · default'));
-
-        const syncVariableControl = (input) => {
+        const syncVariableControl = (input, resolvedVariables = themeProfiles.resolveLayer(workspace, activeScope).variables) => {
             const token = input.getAttribute('data-fv-theme-token');
             const hasOverride = Object.prototype.hasOwnProperty.call(workspace.variables || {}, token);
-            const value = hasOverride ? workspace.variables[token] : input.getAttribute('data-fv-theme-fallback');
+            const inherited = !hasOverride && Object.hasOwn(resolvedVariables, token);
+            const value = resolvedVariables[token] || input.getAttribute('data-fv-theme-fallback');
             if (input.value !== value) input.value = value;
             const row = input.closest('.fv-theme-variable-row');
             if (row) {
                 row.classList.toggle('has-override', hasOverride);
-                row.querySelector('code').textContent = variableLabel(token, hasOverride);
+                const suffix = hasOverride ? translate('settings.theme.override-suffix', ' · customized')
+                    : inherited ? ` · ${translate('settings.theme.preset-inherited', 'Inherited')}`
+                        : translate('settings.theme.default-suffix', ' · default');
+                row.querySelector('code').textContent = token + suffix;
             }
         };
 
@@ -380,24 +382,20 @@
             if (!host) {
                 return;
             }
-            if (host.firstElementChild) {
-                host.querySelectorAll('[data-fv-theme-token]').forEach(syncVariableControl);
-                return;
-            }
-            host.innerHTML = TOKEN_DEFINITIONS.map((definition) => {
-                const hasOverride = Object.prototype.hasOwnProperty.call(workspace.variables || {}, definition.token);
-                const value = String(hasOverride ? workspace.variables?.[definition.token] : (definition.fallback || '')).trim();
-                return `
-                    <label class="fv-theme-variable-row${hasOverride ? ' has-override' : ''}">
+            if (!host.firstElementChild) {
+                host.innerHTML = TOKEN_DEFINITIONS.map((definition) => `
+                    <label class="fv-theme-variable-row">
                         <span class="fv-theme-variable-copy">
                             <span>${escapeHtml(definition.label)}</span>
-                            <code>${escapeHtml(variableLabel(definition.token, hasOverride))}</code>
+                            <code></code>
                         </span>
-                        <input type="color" data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback || '')}" value="${escapeHtml(value)}">
+                        <input type="color" data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback)}">
                         <button type="button" class="fv-theme-token-reset" data-fv-theme-token-reset="${escapeHtml(definition.token)}" title="${escapeHtml(translate("settings.theme.reset-token", "Reset $1", definition.label))}"><i class="fa fa-undo"></i></button>
                     </label>
-                `;
-            }).join('');
+                `).join('');
+            }
+            const { variables } = themeProfiles.resolveLayer(workspace, activeScope);
+            host.querySelectorAll('[data-fv-theme-token]').forEach(input => syncVariableControl(input, variables));
         };
 
         const renderThemeList = () => {
@@ -594,9 +592,19 @@
             return { ...(workspace.variables || {}) };
         };
 
+        const readCustomCssForSave = () => {
+            const css = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
+            if (measureCssBytes(css) > MAX_CUSTOM_CSS_BYTES) {
+                const message = translate('common.server.request-payload-is-too-large-b65633', 'Request payload is too large.');
+                const limit = translate('legacy.surface.8a36f1c826a82414', 'Custom CSS $1 bytes', MAX_CUSTOM_CSS_BYTES);
+                throw new Error(`${message} ${limit}`);
+            }
+            return css;
+        };
+
         const saveCustomize = () => {
             if (!workspaceLoaded) return null;
-            const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
+            const customCss = readCustomCssForSave();
             const profileId = workspace.activeProfileId;
             const scope = activeScope;
             const submittedDraft = getEditingDraft();
@@ -647,7 +655,7 @@
             const payload = {
                 action: 'create_profile', name, sourceProfileId: workspace.activeProfileId, scope: activeScope,
                 variables: JSON.stringify(collectVariablesFromUi()),
-                customCss: String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss)
+                customCss: readCustomCssForSave()
             };
             return queueWorkspaceMutation(async () => {
                 const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', payload);

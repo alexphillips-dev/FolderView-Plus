@@ -20,6 +20,28 @@ const runtimeFolderOrdering = require(path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.folder-ordering.js'
 ));
 const utils = require(path.join(serverRoot, '../scripts/folderviewplus.utils-ordering.js'));
+
+test('browser and native startup share accent, digit, ID tie, and pin ordering in both name modes', () => {
+    const labels = {
+        '08': 'Équipe 2', '8': 'E\u0301quipe 02', ten: 'Équipe 10',
+        zebra: 'Zebra', unicode: '日本', icon: '🎬'
+    };
+    const folders = Object.fromEntries(Object.entries(labels).map(([id, name]) => [id, { name, containers: ['member-' + id] }]));
+    const names = Object.keys(folders).map(id => 'member-' + id);
+    const native = Object.keys(folders).map(id => 'folder-' + id);
+    for (const [sortMode, order] of [
+        ['alpha', ['08', '8', 'ten', 'zebra', 'unicode', 'icon']],
+        ['name_desc', ['icon', 'unicode', 'zebra', 'ten', '8', '08']]
+    ]) {
+        for (const pinnedFolderIds of [[], ['ten']]) {
+            const prefs = { sortMode, pinnedFolderIds };
+            const expected = pinnedFolderIds.length ? ['ten', ...order.filter(id => id !== 'ten')] : order;
+            assert.deepEqual(utils.orderFolderIdsByPrefs(folders, prefs), expected);
+            assert.deepEqual(phpOrder({ folders, prefs, native, names }).order, expected.map(id => 'member-' + id));
+        }
+    }
+});
+
 const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders, folderRegex = /^folder-/) => (
     runtimeFolderOrdering.reconcileOrderWithFolderSlots(liveOrder, savedOrder, folders, {
         folderTokenPrefix: 'folder-',

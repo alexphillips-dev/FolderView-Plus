@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "import",
-        "content-revision": "ab58a1b3fe237b17700a56f9997db45dcc47c640b54ddf0c1a1279d8f28c42de"
+        "content-revision": "b47947bd22ebb0139a6fdfa2f814f393c4a0a6091deba9fc4031f36abaeb27ad"
     },
     "import.subtitle": "Válassza ki a meglévő mappák kezelésének módját. Semmi sem változik, amíg ki nem választja az Importálás alkalmazása lehetőséget.",
     "import.behavior.question": "Hogyan kell kezelni a meglévő mappákat?",
@@ -18,6 +18,7 @@
     "import.review.count": "Tekintse át az {{PLURAL:$1|egy tervezett módosítást|$1 tervezett módosítást}}",
     "import.review.folders-fields": "Mappák és mezők",
     "import.review.choose": "Válassza ki, hogy mely változtatásokat kívánja belefoglalni",
+    "import.selection.parent-conflict": "Tekintse át a kijelölést, hogy érintetlenül hagyja ezeket a szülőlinkeket: $1",
     "import.safety.title": "Biztonsági lehetőségek",
     "import.safety.summary": "Előnézet és megerősítés",
     "import.safety.preview-only": "Csak előnézet",

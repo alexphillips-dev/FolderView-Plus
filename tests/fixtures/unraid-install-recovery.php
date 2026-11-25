@@ -63,7 +63,8 @@ $cases = $cliSource === null
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
         'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
-        'install-remove-stale-cleanup-retry-success'];
+        'install-remove-stale-cleanup-retry-success', 'install-renamed-local-success',
+        'install-fresh-extract-success', 'install-fresh-extract-retry-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -211,6 +212,13 @@ fi
 if [[ "$archive" == *-2026.01.01.02.txz ]]; then
     cp "$FVPLUS_FIXTURE_DIR/recovery-script" "$FVPLUS_FIXTURE_RUNTIME/scripts/complete_native_registration.sh"
 fi
+if [ -n "${FVPLUS_FIXTURE_STOP_EXTRACTION:-}" ]; then
+    printf "Partial extraction\n" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
+    if [ "$FVPLUS_FIXTURE_STOP_EXTRACTION" = after-metadata ]; then
+        printf "{\n  \"packageVersion\": \"2026.01.01.02\"\n}\n" > "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json"
+    fi
+    exit 36
+fi
 printf "PACKAGE NAME: %s\n" "${package%.txz}" > "$FVPLUS_FIXTURE_PACKAGES/${package%.txz}"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
@@ -235,6 +243,8 @@ rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$
     [[ "${@: -1}" == */cron.d/folderview.plus ]]; then exit 33; fi
 if [ "${FVPLUS_FIXTURE_FAIL_REMOVE_CONFIG:-}" = 1 ] &&
     [[ "${@: -1}" == */boot/folderview.plus ]]; then exit 34; fi
+if [ "${FVPLUS_FIXTURE_FAIL_FRESH_CLEANUP:-}" = 1 ] &&
+    [ "${@: -1}" = "$FVPLUS_FIXTURE_RUNTIME" ]; then exit 37; fi
 exec /bin/rm "$@"',
         "$dir/bin/flock" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-boot-contention-success ] && [ "$#" -eq 1 ] && [ "$1" = 9 ]; then
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
@@ -340,7 +350,8 @@ exec /bin/mv "$@"'
     } else {
         $command = $activateHook;
     }
-    if ($case === 'update-missing-runtime-core' || $case === 'install-remove-reinstall-stale-success') {
+    if ($case === 'update-missing-runtime-core' || $case === 'install-remove-reinstall-stale-success'
+        || str_starts_with($case, 'install-fresh-extract-')) {
         mkdir("$dir/package-scripts");
         foreach (glob("$runtime/scripts/*.sh") as $script) {
             $packagedScript = "$dir/package-scripts/" . basename($script);
@@ -350,6 +361,45 @@ exec /bin/mv "$@"'
     }
     if ($case === 'update-missing-runtime-core') {
         rename($runtime, "$dir/missing-runtime");
+    }
+    if ($case === 'install-renamed-local-success') {
+        $alias = "$dir/manual/$pluginName-copy.plg";
+        file_put_contents($alias, $newManifest);
+        [$rejectedStatus, $rejectedOutput] = $run([PHP_BINARY, $cli, 'install', $alias, 'forced']);
+        verifyInstallFixture($rejectedStatus !== 0 && str_contains($rejectedOutput, "requires the native manifest filename $pluginName.plg")
+            && file_get_contents($bootManifest) === $oldManifest && !file_exists("$boot/$pluginName-copy.plg")
+            && !is_link("$dir/running/$pluginName-copy.plg") && trim(file_get_contents("$config/version")) === $previous
+            && !is_dir($journal), "$case let a renamed manifest change native registration: $rejectedOutput");
+        $command = [PHP_BINARY, $cli, 'update', "$pluginName.plg"];
+    }
+    if (str_starts_with($case, 'install-fresh-extract-')) {
+        rename($runtime, "$dir/prepared-runtime");
+        $sibling = "$dir/emhttp/plugins/sibling-marker";
+        file_put_contents($sibling, 'unrelated');
+        $needsRetry = $case === 'install-fresh-extract-retry-success';
+        [$failedStatus, $failedOutput] = $run($command, [
+            'FVPLUS_FIXTURE_STOP_EXTRACTION' => $needsRetry ? 'after-metadata' : 'before-metadata',
+            'FVPLUS_FIXTURE_FAIL_FRESH_CLEANUP' => $needsRetry ? '1' : '0'
+        ]);
+        clearstatcache();
+        verifyInstallFixture($failedStatus !== 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && !is_file("$packages/$pluginName-$candidate") && !is_file("$config/version") && !is_file($cronFile)
+            && file_get_contents($sibling) === 'unrelated', "$case changed native registration during partial extraction: $failedOutput");
+        verifyInstallFixture(is_dir($runtime) === $needsRetry && is_dir($journal) === $needsRetry && is_file($recoveryWrapper) === $needsRetry,
+            "$case did not clean the partial runtime or retain recovery on failure: $failedOutput");
+        if ($needsRetry) {
+            verifyInstallFixture(is_file("$journal/runtime-absent") && is_file("$journal/rollback")
+                && str_contains($failedOutput, 'could not fully restore'), "$case falsely reported successful cleanup: $failedOutput");
+            // Retry replays the retained cleanup even though pkgtools never registered the package.
+            [$recoveredStatus, $recoveredOutput] = $run($command, ['FVPLUS_FIXTURE_STOP_EXTRACTION' => 'before-metadata']);
+            clearstatcache();
+            verifyInstallFixture($recoveredStatus !== 0 && !is_dir($runtime) && !is_dir($journal) && !is_file($recoveryWrapper)
+                && str_contains($recoveredOutput, 'restored the previous installation state'),
+                "$case could not clean the partial runtime on retry: $recoveredOutput");
+        } else {
+            verifyInstallFixture(str_contains($failedOutput, 'restored the previous installation state'),
+                "$case did not report verified rollback: $failedOutput");
+        }
     }
     if ($case === 'update-rollback-retry-success') {
         [$failedStatus, $failedOutput] = $run($command, [
@@ -797,11 +847,11 @@ exec /bin/mv "$@"'
             && str_contains($output, 'restored the previous installation state') && !str_contains($output, 'Upgrade complete'),
             "$case reported the wrong operation, previous version, or recovery outcome: $output");
     }
-    verifyInstallFixture(is_file("$config/$pluginName-2025.01.01.01.txz") === ($failed || $case === 'hook-unknown'), "$case pruned unexpectedly.");
-    verifyInstallFixture(is_file("$config/$pluginName-icons-0.9.0.txz") === ($failed || $case === 'hook-unknown'), "$case pruned an icon pack unexpectedly.");
+    verifyInstallFixture(is_file("$config/$pluginName-2025.01.01.01.txz") === ($failed || $fresh), "$case pruned unexpectedly.");
+    verifyInstallFixture(is_file("$config/$pluginName-icons-0.9.0.txz") === ($failed || $fresh), "$case pruned an icon pack unexpectedly.");
 
     if ($cliSource !== null) {
-        if ($fresh) {
+        if ($fresh && $failed) {
             verifyInstallFixture(!file_exists($bootManifest) && !is_link($runningLink), "$case registered a failed first installation.");
             $check[] = $case;
             continue;

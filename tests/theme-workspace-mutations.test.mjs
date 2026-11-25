@@ -42,6 +42,17 @@ for (const [scenario, name] of [
     });
 }
 
+for (const character of ['a', 'ä']) {
+    test(`Appearance rejects source CSS beyond the UTF-8 byte limit (${character}) and preserves saved files`, () => {
+        const result = run({ mode: 'css-limit', character });
+        assert.equal(result.exactBytes, 65536);
+        assert.equal(result.hasEndingRule, true);
+        assert.deepEqual(result.rejected, Object.fromEntries(['preview', 'save', 'saveAs', 'legacySave']
+            .map(action => [action, 'Request payload is too large.'])));
+        assert.equal(result.unchanged, true);
+    });
+}
+
 for (const scenario of ['missing', 'corrupt']) {
     test(`Managed theme update preview uses last-good when primary is ${scenario}`, () => {
         const result = run({ mode: 'endpoint', action: 'preview_theme_updates', scenario });

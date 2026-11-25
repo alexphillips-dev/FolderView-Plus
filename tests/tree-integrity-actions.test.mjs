@@ -77,24 +77,24 @@ const createHarness = ({
         ensureRuntimeConflictActionAllowed: () => true,
         refreshTreeIntegrityState: async (...args) => {
             refreshCount += 1;
-            if (typeof refreshImpl === 'function') {
-                return refreshImpl({ args, folders, revision, setFolders: (value) => { folders = value; } });
-            }
-            return { expectedRevision: revision };
+            const state = typeof refreshImpl === 'function'
+                ? await refreshImpl({ args, folders, revision, setFolders: (value) => { folders = value; } })
+                : { expectedRevision: revision };
+            return { folders, ...state };
         },
         setTreeIntegrityBusy: (...args) => busy.push(args),
-        createBackup: createBackupImpl,
         requestFolderBatchMutation: async (...args) => {
             mutations.push(args);
             if (typeof requestMutationImpl === 'function') {
                 return requestMutationImpl({ args, folders, revision });
             }
             const [, operations] = args;
+            const backup = await createBackupImpl();
             for (const entry of operations.upserts || []) {
                 folders[entry.id] = structuredClone(entry.folder);
             }
             revision += 1;
-            return { updatedIds: (operations.upserts || []).map((entry) => entry.id) };
+            return { backup, updatedIds: (operations.upserts || []).map((entry) => entry.id) };
         },
         offerUndoAction: async (...args) => undo.push(args),
         showToastMessage: (options) => toasts.push(options),
@@ -200,6 +200,7 @@ test('tree repair submits the refreshed revision, creates undo, and verifies sav
     assert.equal(harness.getRefreshCount(), 2, 'repair should refresh before scanning and after saving');
     assert.equal(harness.mutations.length, 1);
     assert.equal(harness.mutations[0][2].expectedRevision, 12);
+    assert.equal(harness.mutations[0][2].backupReason, 'before-tree-integrity-repair');
     assert.deepEqual(harness.mutations[0][1].upserts.map((entry) => entry.id).sort(), ['cycleA', 'orphan']);
     assert.equal(harness.getFolders().orphan.parentId, '');
     assert.equal(harness.getFolders().cycleA.parentId, '');
@@ -214,7 +215,8 @@ test('tree repair stops safely when backup or mutation fails', async () => {
         createBackupImpl: async () => { throw new Error('backup unavailable'); }
     });
     await backupFailure.api.run('docker', { repair: true });
-    assert.equal(backupFailure.mutations.length, 0);
+    assert.equal(backupFailure.mutations.length, 1);
+    assert.equal(backupFailure.getFolders().orphan.parentId, 'missing');
     assert.equal(backupFailure.errors.at(-1)?.[0], 'Tree integrity repair failed');
 
     const mutationFailure = createHarness({

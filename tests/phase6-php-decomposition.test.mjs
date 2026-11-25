@@ -42,7 +42,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 68);
+    assert.equal(architecture.serverModuleContracts.length, 69);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -85,7 +85,10 @@ test('decomposition preserves every historical public PHP function name', () => 
             'fvplusThemeWorkspaceWriteGithubChange']) additions.add(name);
         for (const name of ['dockerPageHasFolderSort', 'composeDockerSavedOrder', 'orderFolderBranchIds',
             'buildDockerPageOrderModel', 'fvplusRespondToDockerOrderSync', 'readDockerNativePageOrder',
-            'dockerPageUnslottedNames']) additions.add(name);
+            'dockerPageUnslottedNames', 'dockerPageStartOrderUsesSavedLayout', 'fvplusFolderNameSortKey',
+            'fvplusCompareFolderNameSortKeys']) additions.add(name);
+        additions.add('readFolderMapForTreeIntegrity');
+        additions.add('createFolderBatchSafetyBackup');
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ['fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences', 'fvplusRegexBackreferencesArePortable']) additions.add(name);
         for (const name of ["fvplusApplyRulePreview", "fvplusBuildRulePreview", "fvplusReadRulePreviewSource", "fvplusValidateRuleChanges"]) additions.add(name);
@@ -98,7 +101,8 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['backupConfigurationFingerprint', 'latestBackupConfiguration', 'backupScheduleStatePath',
             'readBackupScheduleState', 'backupScheduleSettingsFingerprint', 'readBackupScheduleRuntime',
             'backupScheduleCoverageAge', 'recordBackupScheduleCheck', 'backupScheduleHistoryEvents',
-            'fvplusRestoreSafetyBackupMatchesCurrent']) additions.add(name);
+            'fvplusRestoreSafetyBackupMatchesCurrent', 'fvplusBackupTemplateRecords',
+            'fvplusWriteBackupTemplateRecords', 'fvplusBackupUndoCurrentState']) additions.add(name);
         for (const name of ['customIconUploadStageDirectory', 'stageCustomIconUploadChunk', 'resolveCustomIconUploadSource']) additions.add(name);
         for (const name of ['fvplusRuntimeInventoryFailure', 'fvplusReadRuntimeEntityList', 'fvplusReadVmInfoState',
             'fvplusReadRepairInventory', 'fvplusAssertRepairMembersNotRenamed', 'renameCustomIconUnlocked']) additions.add(name);
@@ -108,6 +112,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('writeFolderMapAndManualOrder');
         additions.add('fvplusRestoreSelectedGlobalRollbackSnapshot');
         additions.add('fvplusValidateGlobalRollbackPayload');
+        additions.add('fvplusVerifyNativeAutostartTarget');
         for (const name of ['diagnosticsProjectBackupRecord', 'diagnosticsProjectHistoryEvents', 'diagnosticsProjectTimeline',
             'diagnosticsRedactIntegrityIdentifiers', 'diagnosticsRedactReportFolderReferences', 'diagnosticsSanitizeReport']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {

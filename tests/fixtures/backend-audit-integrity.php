@@ -20,6 +20,14 @@ if ($scenario === 'rule-get') {
     eval(substr(str_replace('/usr/local/emhttp/plugins/folderview.plus/server/lib.php', "$server/lib.php", $body), 5));
     exit;
 }
+if ($scenario === 'tree-get') {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_SERVER['SCRIPT_FILENAME'] = "$server/read.php";
+    $_GET = ['type' => 'vm', 'treeIntegrity' => '1'];
+    $body = file_get_contents($_SERVER['SCRIPT_FILENAME']);
+    eval(substr(str_replace('/usr/local/emhttp/plugins/folderview.plus/server/lib.php', "$server/lib.php", $body), 5));
+    exit;
+}
 if ($scenario === 'seed-rule-get') define('FVPLUS_READ_ONLY_REQUEST', true);
 require "$server/lib.php";
 
@@ -34,6 +42,43 @@ if ($scenario === 'seed-rule-get') {
         ['id' => 'fixture-rule', 'kind' => 'name_regex', 'pattern' => '^fixture$', 'folderId' => 'fixture']
     ]]);
     outputAuditFixture(['seeded' => true]);
+}
+
+if ($scenario === 'seed-tree-get') {
+    writeRawFolderMap('vm', [0 => ['name' => 'Zero'], 'a' => ['name' => 'A'], 'b' => ['name' => 'B']]);
+    $path = getFolderFilePath('vm');
+    $folders = readJsonObjectFile($path);
+    $folders[0]['parentId'] = 'missing-parent';
+    $folders['a']['parentId'] = 'b';
+    $folders['b']['parentId'] = 'a';
+    writeJsonObjectAtomic($path, fvplusJsonKeyedMap($folders));
+    $visibleFolders = json_decode(readFolder('vm'), true);
+    outputAuditFixture(['visibleOrphanParent' => $visibleFolders[0]['parentId'], 'storedOrphanParent' => readJsonObjectFile($path)[0]['parentId']]);
+}
+
+if ($scenario === 'repair-tree') {
+    $type = 'vm';
+    $path = getFolderFilePath($type);
+    $snapshot = readFolderMapForTreeIntegrity($type);
+    $revision = readConfigMetadata($type, true, false)['folderRevision'];
+    $operations = ['backupReason' => 'before-tree-integrity-repair', 'upserts' => [
+        ['id' => '0', 'folder' => array_replace($snapshot[0], ['parentId' => ''])],
+        ['id' => 'a', 'folder' => array_replace($snapshot['a'], ['parentId' => ''])]
+    ]];
+    $before = file_get_contents($path);
+    $rejected = false;
+    try {
+        applyFolderBatchOperations($type, $operations, (string)($revision - 1));
+    } catch (FVPlusConfigConflictException $error) {
+        $rejected = file_get_contents($path) === $before && listBackupSnapshots($type) === [];
+    }
+    $result = applyFolderBatchOperations($type, $operations, (string)$revision);
+    $archive = readJsonObjectFile(getBackupSnapshotPath($type, $result['backup']['name']));
+    $repaired = readFolderMapForTreeIntegrity($type);
+    restoreBackupSnapshot($type, $result['backup']['name'], ['createSafetyBackup' => true]);
+    outputAuditFixture(['rejected' => $rejected, 'backupParent' => $archive['folders'][0]['parentId'],
+        'backupCycle' => $archive['folders']['a']['parentId'], 'repaired' => $repaired,
+        'restored' => readFolderMapForTreeIntegrity($type)]);
 }
 
 if ($scenario === 'capacity') {

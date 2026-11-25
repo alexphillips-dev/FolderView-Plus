@@ -715,6 +715,19 @@
         });
     };
 
+    const prepareKeepalive = async (url, data = {}, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) => {
+        const token = getOptionalRequestToken();
+        if (!token) throw Object.assign(new Error(), { reasonCode: 'plugin-token-missing' });
+        transport.requireMutationContext(url);
+        const nonce = await requestMutationNonce(url, data, token, null, newTraceId(), timeoutMs);
+        let used = false;
+        return () => {
+            if (used) return false;
+            used = true;
+            return sendKeepalive(url, data, { nonce });
+        };
+    };
+
     window.FolderViewPlusRequest = Object.freeze({
         configureSecurityHeaders,
         newTraceId,
@@ -726,6 +739,7 @@
         postJson,
         postBlob,
         uploadJson,
+        prepareKeepalive,
         sendKeepalive,
         diagnostics: getDiagnostics,
         failureDiagnostics,

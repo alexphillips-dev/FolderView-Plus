@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "import",
-        "content-revision": "76a4859257b58254cee1d1fc982c9a87c2e876c850c0fc3313d81bb7a5ec6f63"
+        "content-revision": "3178fbc9976a3f747c3bbfef599b00bd7f7e1f7342ffe6dd63a3a435694f6b69"
     },
     "import.subtitle": "Wybierz, jak obsługiwać istniejące foldery. Nic się nie zmieni, dopóki nie wybierzesz Zastosuj import.",
     "import.behavior.question": "Jak należy obsługiwać istniejące foldery?",
@@ -18,6 +18,7 @@
     "import.review.count": "Przejrzyj {{PLURAL:$1|jedną planowaną zmianę|$1 planowane zmiany|$1 planowanych zmian}}",
     "import.review.folders-fields": "Foldery i pola",
     "import.review.choose": "Wybierz, które zmiany uwzględnić",
+    "import.selection.parent-conflict": "Przejrzyj wybór, aby zachować te linki nadrzędne nienaruszone: $1",
     "import.safety.title": "Opcje bezpieczeństwa",
     "import.safety.summary": "Podgląd i potwierdzenie",
     "import.safety.preview-only": "Tylko podgląd",

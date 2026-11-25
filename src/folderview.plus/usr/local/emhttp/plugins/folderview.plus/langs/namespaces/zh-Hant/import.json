@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "import",
-        "content-revision": "d5b4a57219e82845786b5e473c4cce08a7a282ed139c9cf063510c49052a874b"
+        "content-revision": "30923fc487213b7bae2f7461063ae12f45c9f476213497fc07a5728db4004290"
     },
     "import.subtitle": "選擇如何處理現有資料夾。按下「套用匯入」前，不會變更任何資料。",
     "import.behavior.question": "現有的資料夾應該如何處理？",
@@ -18,6 +18,7 @@
     "import.review.count": "檢視{{PLURAL:$1|$1 項計畫變更|$1 項計畫變更}}",
     "import.review.folders-fields": "資料夾和欄位",
     "import.review.choose": "選取要套用的變更",
+    "import.selection.parent-conflict": "檢查選擇以保持這些父連結完好無損：$1",
     "import.safety.title": "安全選項",
     "import.safety.summary": "預覽及確認",
     "import.safety.preview-only": "僅預覽",

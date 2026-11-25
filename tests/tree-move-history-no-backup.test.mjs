@@ -17,16 +17,17 @@ const createHarness = () => {
         normalizeManagedType: value => value,
         prefsByType,
         utils: { normalizePrefs: value => ({ ...value }) },
-        getFolderMap: () => folders,
+        fetchSettingsCoreSnapshot: async () => ({ folders, folderRevision: 5, prefs: prefsByType.docker }),
         optimisticFoldersByType,
-        readFolderConfigurationRevision: () => prefsByType.docker._metadata.folderRevision,
+        buildFolderHierarchyMeta: () => ({ descendantsById: {} }),
+        surfaceT: (_key, fallback) => fallback,
         applyOptimisticManualOrder: (_type, order) => { prefsByType.docker.manualOrder = order; calls.push('optimistic-order'); },
         renderTable: () => calls.push('render'),
         requestFolderBatchMutation: async (_type, operations, options) => {
             calls.push({ operations, options, parentAtRequest: optimisticFoldersByType.docker.first.parentId });
             return { metadata: { folderRevision: 6, prefsRevision: 9 } };
         },
-        persistManualOrder: async (_type, order) => calls.push({ order: Array.from(order) }),
+        persistManualOrder: async (_type, order, options) => calls.push({ order: Array.from(order), options }),
         refreshType: async (_type, options) => calls.push({ refresh: options })
     };
     vm.runInNewContext(`${applySource}\nglobalThis.applyChange = applyTreeMoveHistoryEntry;`, context);
@@ -54,8 +55,34 @@ test('reorder Undo persists the previous order without restoring a backup', asyn
     await harness.apply('docker', {
         kind: 'order', beforeOrder: ['first', 'second'], afterOrder: ['second', 'first']
     }, 'undo');
-    assert.deepEqual(harness.calls.find(call => call.order), { order: ['first', 'second'] });
+    const persisted = harness.calls.find(call => call.order);
+    assert.deepEqual(persisted.order, ['first', 'second']);
+    assert.equal(persisted.options.expectedRevision, 5);
+    assert.equal(persisted.options.expectedPrefsRevision, 8);
     assert.equal(harness.calls.some(call => call.operations), false);
     assert.equal(harness.calls.at(-1).refresh.configOnly, true);
     assert.equal(harness.calls.at(-1).refresh.render, false);
+});
+
+test('tree Undo and Redo fail before a write when the committed parent no longer matches history', async () => {
+    for (const direction of ['undo', 'redo']) {
+        const harness = createHarness();
+        harness.folders().first.parentId = 'peer-parent';
+        await assert.rejects(harness.apply('docker', {
+            kind: 'parent', folderId: 'first', beforeParentId: '', afterParentId: 'second'
+        }, direction), /Folder configuration changed/);
+        assert.deepEqual(harness.calls, []);
+    }
+});
+
+test('history replay preserves a peer change to order and accepts unrelated folder edits', async () => {
+    const harness = createHarness();
+    const entry = { kind: 'order', beforeOrder: ['first', 'second'], afterOrder: ['second', 'first'] };
+    harness.prefs().manualOrder = ['first', 'second'];
+    await assert.rejects(harness.apply('docker', entry, 'undo'), /Folder configuration changed/);
+    assert.deepEqual(harness.calls, []);
+    harness.folders().first.name = 'Renamed by another tab';
+    harness.prefs().manualOrder = ['second', 'first'];
+    await harness.apply('docker', { ...entry, kind: 'parent', folderId: 'first', beforeParentId: '', afterParentId: 'second' }, 'undo');
+    assert.equal(harness.calls.find(call => call.operations).operations.upserts[0].folder.name, 'Renamed by another tab');
 });

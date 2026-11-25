@@ -1667,6 +1667,7 @@ $fvplusSettingsWorkspaceAssets = [
         '/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js',
         '/plugins/folderview.plus/scripts/folderviewplus.wizard.js',
         '/plugins/folderview.plus/scripts/folderviewplus.download-status.js',
+        '/plugins/folderview.plus/scripts/folderviewplus.import-selection.js',
         '/plugins/folderview.plus/scripts/folderviewplus.import.js',
         '/plugins/folderview.plus/scripts/folderviewplus.updates.js',
         '/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',

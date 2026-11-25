@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "import",
-        "content-revision": "1ce9ba5277acb145aa62031f6d14a8d3ac05d92a995e7e38265fcc912a6607d6"
+        "content-revision": "31cf276f1cb0c765ceb70d7fb52a7c94b43d6a4dba0612820d2dcf22f450a865"
     },
     "import.subtitle": "기존 폴더를 처리할 방법을 선택하십시오. '가져오기 적용'을 선택할 때까지 아무 것도 변경되지 않습니다.",
     "import.behavior.question": "기존 폴더를 어떻게 처리해야 합니까?",
@@ -18,6 +18,7 @@
     "import.review.count": "{{PLURAL:$1|계획된 변경 사항 $1개 검토|계획된 변경 사항 $1개 검토}}",
     "import.review.folders-fields": "폴더 및 필드",
     "import.review.choose": "포함할 변경 사항 선택",
+    "import.selection.parent-conflict": "선택 사항을 검토하여 상위 링크를 그대로 유지하세요: $1",
     "import.safety.title": "안전 옵션",
     "import.safety.summary": "미리보기 및 확인",
     "import.safety.preview-only": "미리보기만",

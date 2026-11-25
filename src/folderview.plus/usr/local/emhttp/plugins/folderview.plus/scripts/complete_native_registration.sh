@@ -97,7 +97,7 @@ clear_state() {
         retired="${pending_dir}"
         mv -T -- "${state_dir}" "${retired}" || fail_registration
     fi
-    rm -f -- "${retired}/"{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,activated,committed,rollback} || fail_registration
+    rm -f -- "${retired}/"{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,runtime-absent,activated,committed,rollback} || fail_registration
     rmdir -- "${retired}" || fail_registration
     # The native boot CLI still rereads the wrapper's noInstall attribute.
     if [ "${1:-}" != boot ]; then
@@ -165,6 +165,7 @@ restore_interrupted_activation() {
     local previous_version previous_icon previous_icon_sha icon_archive restored_version
     local previous_manifest="${state_dir}/previous-manifest"
     [ ! -f "${state_dir}/core-started" ] && return 0
+    [ ! -L "${runtime_dir}" ] || return 1
     previous_version="$(cat "${state_dir}/previous-version")" || return 1
     # A different deployed package could belong to a later installation.
     if [[ -n "${deployed_version}" && "${deployed_version}" != "${previous_version}" &&
@@ -199,8 +200,16 @@ restore_interrupted_activation() {
         else
             has_package_record "${previous_version}" || return 1
         fi
-    elif [ "${deployed_version}" = "${owner_version}" ] || has_package_record "${owner_version}"; then
-        removepkg "folderview.plus-${owner_version}" 9>&- || return 1
+    else
+        if has_package_record "${owner_version}" || { [ "${deployed_version}" = "${owner_version}" ] && [ ! -f "${state_dir}/runtime-absent" ]; }; then
+            removepkg "folderview.plus-${owner_version}" 9>&- || return 1
+        fi
+        if [ -f "${state_dir}/runtime-absent" ] && { [ -e "${runtime_dir}" ] || [ -L "${runtime_dir}" ]; }; then
+            # pkgtools registers a package after extraction. A fresh installation
+            # can leave files in its previously absent runtime before that point.
+            [ ! -L "${runtime_dir}" ] && rm -rf -- "${runtime_dir}" && \
+                [ ! -e "${runtime_dir}" ] && [ ! -L "${runtime_dir}" ] || return 1
+        fi
         [ -z "$(read_deployed_version)" ] && ! has_package_record "${owner_version}" || return 1
     fi
     restore_scheduler

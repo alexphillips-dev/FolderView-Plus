@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "import",
-        "content-revision": "3324a155357129702f16b2b85edb6c7176a63b0d20e1adff16f942320ceb8fd1"
+        "content-revision": "0b1256294e072e47149d468597d5f409236d44b416a17b7f8f0f5eb4b43a5b45"
     },
     "import.subtitle": "اختر كيفية التعامل مع المجلدات الموجودة. لن يتغير أي شيء حتى تقوم بتحديد تطبيق الاستيراد.",
     "import.behavior.question": "كيف ينبغي التعامل مع المجلدات الموجودة؟",
@@ -18,6 +18,7 @@
     "import.review.count": "مراجعة {{PLURAL:$1|لا تغييرات مخططة|تغيير واحد مخطط|تغييران مخططان|$1 تغييرات مخططة|$1 تغييرًا مخططًا|$1 تغيير مخطط}}",
     "import.review.folders-fields": "المجلدات والحقول",
     "import.review.choose": "اختر التغييرات التي تريد تضمينها",
+    "import.selection.parent-conflict": "راجع التحديد للحفاظ على الروابط الأصلية سليمة: $1",
     "import.safety.title": "خيارات السلامة",
     "import.safety.summary": "المعاينة والتأكيد",
     "import.safety.preview-only": "معاينة فقط",

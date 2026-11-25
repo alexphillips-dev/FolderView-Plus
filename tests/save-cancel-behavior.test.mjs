@@ -50,7 +50,7 @@ test('folder reordering remains instant-persist and outside staged save/cancel d
     assert.ok(!/captureSettingsBaseline\(\)/.test(moveBlock), 'moveFolderRow should stay instant-persist.');
     assert.ok(!/await createBackup\(/.test(moveBlock), 'moveFolderRow should not create backups inline.');
     assert.ok(!/await persistManualOrder\(/.test(moveBlock), 'moveFolderRow should not persist order inline.');
-    const persistBlockMatch = settingsRuntimeJs.match(/const persistManualOrder = async \(type, order, \{ refresh = true \} = \{\}\) => \{([\s\S]*?)\n\};/);
+    const persistBlockMatch = settingsRuntimeJs.match(/const persistManualOrder = async \(type, order, \{ refresh = true, expectedRevision, expectedPrefsRevision \} = \{\}\) => \{([\s\S]*?)\n\};/);
     assert.ok(persistBlockMatch, 'Expected persistManualOrder function block to exist.');
     const persistBlock = persistBlockMatch?.[1] || '';
     assert.match(persistBlock, /const persistedOrder = sanitizeManualOrderList\(/);

@@ -44,7 +44,7 @@ test('advanced import controls and destructive review safeguards remain availabl
     }
     assert.doesNotMatch(page, /id="import-preset-(?:select|save|default|delete)"/);
     assert.match(runtime, /reviewAckRow\.css\('display', requireAck \? 'flex' : 'none'\)/);
-    assert.match(runtime, /applyButton\.prop\('disabled', selectedCount <= 0 \|\| \(requireAck && !isImportReviewAcked\(\)\)\)/);
+    assert.match(runtime, /applyButton\.prop\('disabled', selectedCount <= 0 \|\| selectionHierarchyConflicts\.length > 0\s+\|\| \(requireAck && !isImportReviewAcked\(\)\)\)/);
 });
 
 test('secondary information is hidden behind clear progressive-disclosure sections', () => {

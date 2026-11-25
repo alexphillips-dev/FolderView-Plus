@@ -91,6 +91,7 @@ tar --sort=name \
   --owner=0 \
   --group=0 \
   --numeric-owner \
+  --mode='a=r,u+w,a+X' \
   -C "${STAGE_DIR}" \
   -cJf "${ARCHIVE_PATH}" asset-pack.json third-party-icons
 

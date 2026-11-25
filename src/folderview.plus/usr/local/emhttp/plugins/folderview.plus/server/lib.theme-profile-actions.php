@@ -39,9 +39,12 @@ function prepareThemeWorkspaceProfileLayer(string $profileId, string $scope, $va
     if ($expectedLayer !== null && $previous !== null && fvplus_security_canonicalize($previous) !== fvplus_security_canonicalize(fvplusThemeProfileNormalizeLayer($expectedLayer))) {
         throw new FVPlusConfigConflictException('The preview changed. Run the preview again before applying.');
     }
+    if (strlen($customCss) > FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES) {
+        throw new RuntimeException('Request payload is too large.');
+    }
     $scan = fvplusThemeWorkspaceScanCss($customCss);
-    if (count((array)($scan['severe'] ?? [])) > 0) {
-        throw new RuntimeException(implode(' ', (array)$scan['severe']));
+    if (!empty($scan['severe'])) {
+        throw new RuntimeException(implode(' ', $scan['severe']));
     }
     $proposed = fvplusThemeProfileUpdateLayer($workspace, $profileId, $scope, $variables, $customCss);
     return ['workspace' => $proposed, 'plan' => fvplusThemeWorkspaceBuildUpdatePlan($workspace, $proposed)];

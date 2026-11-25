@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHideEmptySettingsHost } from '../helpers/settings-hide-empty-host.mjs';
 import { checkNumericSettingsOrder } from '../helpers/settings-numeric-order.mjs';
+import { checkSettingsFolderLabels } from '../helpers/settings-folder-labels.mjs';
 
 export const registerSettingsTreePersistenceCases = ({ test }) => {
     test('Basic nested settings renders numeric folders in saved, alphabetical, and pinned order',
         ({ page }) => checkNumericSettingsOrder(page), { skipAccessibility: true });
+
+    test('Basic nested Settings search preserves stored names and highlights literal punctuation in German', ({ page }) => checkSettingsFolderLabels(page), { skipAccessibility: true });
 
     for (const type of ['docker', 'vm']) {
         test(`Basic nested ${type} expansion survives reload while storage is pending`, async ({ page }) => {

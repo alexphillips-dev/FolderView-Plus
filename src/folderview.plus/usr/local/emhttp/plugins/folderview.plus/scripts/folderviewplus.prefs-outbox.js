@@ -19,7 +19,7 @@
         const status = Number(error?.status || error?.httpStatus || 0);
         const isConflict = isPreferenceRevisionConflict(status, error);
         const recoveredConflict = isConflict && alreadySubmitted;
-        const rejected = recoveredConflict || error?.rulesConflict === true
+        const rejected = recoveredConflict || error?.collectionConflict === true
             || ((status === 400 || status === 422) && (!error?.phase || error.phase === 'request'));
         return { isConflict, recoveredConflict, rejected };
     };
@@ -170,33 +170,44 @@
             state.externalPatch = externalPatch(state);
         };
 
+        const guardedCollections = ['autoRules', 'folderGroups'];
         const pendingOperation = state => ({
             patch: state.pendingPatch,
-            ...(state.pendingAutoRulesBase !== null ? { autoRulesBase: state.pendingAutoRulesBase } : {}),
+            ...Object.fromEntries(guardedCollections
+                .filter(key => Object.hasOwn(state.pendingCollectionBases, key))
+                .map(key => [`${key}Base`, state.pendingCollectionBases[key]])),
             generation: state.generation,
             mutationId: mutationIdFor(state.generation),
             expectedRevision: readRevision(state.confirmedPrefs)
         });
 
-        const hasRulesPatch = (patch) => Object.prototype.hasOwnProperty.call(patch, 'autoRules');
-        const rulesChangedSinceEdit = (batch, state) => Array.isArray(batch.autoRulesBase)
-            && JSON.stringify(batch.autoRulesBase) !== JSON.stringify(state.confirmedPrefs?.autoRules || []);
-        const rulesConflictBeforeWrite = (batch, state, alreadySubmitted) =>
+        const collectionChangedSinceEdit = (batch, state) => guardedCollections.some(key => {
+            const baseline = batch[`${key}Base`];
+            return Array.isArray(baseline) && JSON.stringify(baseline) !== JSON.stringify(state.confirmedPrefs?.[key] || []);
+        });
+        const collectionConflictBeforeWrite = (batch, state, alreadySubmitted) =>
             // A previously submitted operation can have committed despite a missing response.
             // Its original revision and mutation ID must reach the server receipt check.
             (!alreadySubmitted || batch.expectedRevision === readRevision(state.confirmedPrefs))
-            && rulesChangedSinceEdit(batch, state);
+            && collectionChangedSinceEdit(batch, state);
 
         const queuePatch = (state, patch, baseline) => {
-            if (hasRulesPatch(patch) && !hasRulesPatch(state.pendingPatch)) {
-                state.pendingAutoRulesBase = baseline ? cloneValue(baseline.autoRules || []) : null;
+            for (const key of guardedCollections) {
+                if (baseline && Object.hasOwn(patch, key) && !Object.hasOwn(state.pendingPatch, key)) {
+                    state.pendingCollectionBases[key] = cloneValue(baseline[key] || []);
+                }
             }
             state.pendingPatch = mergePatch(state.pendingPatch, patch);
         };
 
         const requeue = (state, batch) => {
             state.pendingPatch = mergePatch(batch.patch, state.pendingPatch);
-            if (hasRulesPatch(batch.patch)) state.pendingAutoRulesBase = batch.autoRulesBase ?? null;
+            for (const key of guardedCollections) {
+                if (!Object.hasOwn(batch.patch, key)) continue;
+                const baseline = batch[`${key}Base`];
+                if (Array.isArray(baseline)) state.pendingCollectionBases[key] = baseline;
+                else delete state.pendingCollectionBases[key];
+            }
         };
 
         const beginRebase = (state, batch) => {
@@ -228,7 +239,7 @@
             if (retry) state.retryBatch = null;
             if (!restored && !retry) {
                 state.pendingPatch = {};
-                state.pendingAutoRulesBase = null;
+                state.pendingCollectionBases = {};
             }
             state.inFlightBatch = restored ? null : batch;
             return { batch, retry };
@@ -244,7 +255,7 @@
 
         return Object.freeze({
             key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit,
-            queuePatch, requeue, rulesChangedSinceEdit, rulesConflictBeforeWrite, beginRebase, completeRebase
+            queuePatch, requeue, collectionChangedSinceEdit, collectionConflictBeforeWrite, beginRebase, completeRebase
         });
     };
 

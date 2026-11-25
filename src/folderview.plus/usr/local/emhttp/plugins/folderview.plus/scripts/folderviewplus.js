@@ -3530,17 +3530,22 @@ const readFolderConfigurationRevision = (type) => {
     return optimisticFoldersByType[resolvedType] === null ? folderSnapshotsByType[resolvedType].revision : null;
 };
 
-const refreshTreeIntegrityState = async (type) => {
+const refreshTreeIntegrityState = async (type, { reason } = {}) => {
     const resolvedType = normalizeManagedType(type);
-    const result = await refreshType(resolvedType, { configOnly: true });
-    if (result?.hasErrors) {
-        throw new Error((result.degradedReasons || []).join(' ') || 'Unable to refresh the current folder configuration.');
+    if (reason === 'verify') {
+        const result = await refreshType(resolvedType, { configOnly: true });
+        if (result?.hasErrors) {
+            throw new Error((result.degradedReasons || []).join(' ') || surfaceT('legacy.surface.d23addee127033e3', 'Unable to refresh the current folder configuration.'));
+        }
     }
-    const expectedRevision = readFolderConfigurationRevision(resolvedType);
+    const snapshot = await apiGetJson('/plugins/folderview.plus/server/read.php', {
+        data: { type: resolvedType, treeIntegrity: '1' }
+    });
+    const expectedRevision = readSettingsFolderRevision(snapshot?.metadata);
     if (expectedRevision === null) {
         throw new Error('The current folder configuration revision is unavailable.');
     }
-    return { expectedRevision };
+    return { expectedRevision, folders: utils.normalizeFolderMap(snapshot.folders) };
 };
 
 const setTreeIntegrityBusy = (type, busy, operation = 'scan') => {
@@ -5305,19 +5310,36 @@ const applyTreeMoveHistoryEntry = async (type, entry, direction) => {
     const resolvedType = normalizeManagedType(type);
     const restoringBefore = direction === 'undo';
     const order = restoringBefore ? entry.beforeOrder : entry.afterOrder;
+    const expectedOrder = restoringBefore ? entry.afterOrder : entry.beforeOrder;
+    const latest = await fetchSettingsCoreSnapshot(resolvedType, { configOnly: true });
+    const expectedRevision = latest.folderRevision;
+    const currentPrefs = utils.normalizePrefs(latest.prefs);
+    const expectedPrefsRevision = currentPrefs?._metadata?.prefsRevision;
+    if (expectedRevision === null || (order && !Number.isSafeInteger(expectedPrefsRevision))) {
+        throw new Error(surfaceT('legacy.surface.84d5e5d264943e57', 'Unable to verify the current folder configuration revision. Refresh and try again.'));
+    }
+    const changed = () => new Error(surfaceT('docker.folder.move-reload', 'Folder configuration changed. Refresh before moving the folder again.'));
+    if (order && (currentPrefs.sortMode !== 'manual' || JSON.stringify(currentPrefs.manualOrder) !== JSON.stringify(expectedOrder))) {
+        throw changed();
+    }
     if (entry.kind === 'order') {
-        applyOptimisticManualOrder(resolvedType, order);
-        await persistManualOrder(resolvedType, order, { refresh: false });
+        optimisticFoldersByType[resolvedType] = latest.folders;
+        try {
+            applyOptimisticManualOrder(resolvedType, order);
+            await persistManualOrder(resolvedType, order, { refresh: false, expectedRevision, expectedPrefsRevision });
+        } finally {
+            optimisticFoldersByType[resolvedType] = null;
+        }
     } else {
         const folderId = String(entry.folderId || '').trim();
-        const folders = getFolderMap(resolvedType);
+        const folders = latest.folders;
         const folder = folders[folderId];
         if (!folder) throw new Error(surfaceT('legacy.surface.f5800c37a77aca60', 'Folder no longer exists.'));
         const parentId = restoringBefore ? entry.beforeParentId : entry.afterParentId;
-        const expectedRevision = readFolderConfigurationRevision(resolvedType);
-        const expectedPrefsRevision = Number(prefsByType[resolvedType]?._metadata?.prefsRevision);
-        if (expectedRevision === null || (order && !Number.isInteger(expectedPrefsRevision))) {
-            throw new Error(surfaceT('legacy.surface.84d5e5d264943e57', 'Unable to verify the current folder configuration revision. Refresh and try again.'));
+        const expectedParentId = restoringBefore ? entry.afterParentId : entry.beforeParentId;
+        if (String(folder.parentId || '') !== expectedParentId
+            || (parentId && (!Object.hasOwn(folders, parentId) || (buildFolderHierarchyMeta(folders).descendantsById[folderId] || []).includes(parentId)))) {
+            throw changed();
         }
         optimisticFoldersByType[resolvedType] = { ...folders, [folderId]: { ...folder, parentId } };
         try {
@@ -5529,8 +5551,11 @@ const highlightSearchText = (text, query) => {
     if (!rawQuery) {
         return escapeHtml(rawText);
     }
-    const pattern = new RegExp(`(${escapeRegexForSearch(rawQuery)})`, 'ig');
-    return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
+    const pattern = new RegExp(`(${escapeRegexForSearch(rawQuery)})`, 'igu');
+    return rawText.split(pattern).map((part, index) => {
+        const escaped = escapeHtml(part);
+        return index % 2 === 0 ? escaped : `<mark class="fv-filter-hit">${escaped}</mark>`;
+    }).join('');
 };
 
 const formatBasicSummaryPercent = (count, total) => {
@@ -5973,7 +5998,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const showBreadcrumb = folderDepth > 0 || Boolean(filter);
         const breadcrumbTitle = `Path: ${pathLabel}`;
         const breadcrumbHtml = showBreadcrumb
-            ? `<span class="name-cell-breadcrumb" title="${escapeHtml(breadcrumbTitle)}">${highlightSearchText(pathLabel, filter)}</span>`
+            ? `<span class="name-cell-breadcrumb" data-fvplus-user-content title="${escapeHtml(breadcrumbTitle)}">${highlightSearchText(pathLabel, filter)}</span>`
             : '';
         const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
         if (runtimeReady && !folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
@@ -6275,7 +6300,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" data-fv-onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass} fv-folder-depth-${folderDepth}">${treeToggleHtml}<img src="${safeIcon}" alt="" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass} fv-folder-depth-${folderDepth}">${treeToggleHtml}<img src="${safeIcon}" alt="" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text" data-fvplus-user-content>${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}">${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
@@ -6359,12 +6384,14 @@ const sanitizeManualOrderList = (type, order) => {
     return out;
 };
 
-const persistManualOrder = async (type, order, { refresh = true } = {}) => {
+const persistManualOrder = async (type, order, { refresh = true, expectedRevision, expectedPrefsRevision } = {}) => {
     const resolvedType = normalizeManagedType(type);
     const safeOrder = sanitizeManualOrderList(resolvedType, order);
     const reorderResponse = await apiPostJson('/plugins/folderview.plus/server/reorder.php', {
         type: resolvedType,
-        order: JSON.stringify(safeOrder)
+        order: JSON.stringify(safeOrder),
+        ...(Number.isSafeInteger(expectedRevision) ? { expectedRevision } : {}),
+        ...(Number.isSafeInteger(expectedPrefsRevision) ? { expectedPrefsRevision } : {})
     });
 
     if (!reorderResponse.ok) {
@@ -8949,7 +8976,7 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
     }
     try {
         const savedPrefs = await postPrefs(resolvedType, partial, {
-            currentPrefs: next,
+            currentPrefs: current,
             immediate: options.immediate === true
         });
         prefsByType[resolvedType] = utils.normalizePrefs(savedPrefs);
@@ -9767,6 +9794,12 @@ const previewFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().p
 const applyFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().applyFolderRuntimeAction(...args);
 const invalidateFolderRuntimePreview = (...args) => getSettingsRuntimeActionsApi().invalidateFolderRuntimePreview(...args);
 
+const refreshRestoredConfiguration = (type, restore) => Promise.all([
+    refreshType(type),
+    refreshBackups(type),
+    ...(restore?.templatesRestored === true ? [refreshTemplates(type, { quiet: true })] : [])
+]);
+
 const undoLatestChange = (type) => {
     let resolvedType;
     try {
@@ -9790,7 +9823,7 @@ const undoLatestChange = (type) => {
         await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} undo restore`, async () => {
             try {
                 const restore = await restoreLatestUndo(resolvedType);
-                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                await refreshRestoredConfiguration(resolvedType, restore);
                 await refreshChangeHistory();
                 swal({
                     title: 'Undo complete',
@@ -9865,7 +9898,7 @@ const restoreBackupEntry = (type, name) => {
         await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup restore`, async () => {
             try {
                 const restore = await restoreBackupByName(resolvedType, name, true);
-                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                await refreshRestoredConfiguration(resolvedType, restore);
                 await offerUndoAction(resolvedType, restore.backup, 'Backup restore');
             } catch (error) {
                 showError('Restore failed', error);
@@ -9926,7 +9959,7 @@ const restoreLatestBackup = async (type) => {
 
                 setProgress(2, 'Restored latest backup snapshot.');
 
-                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                await refreshRestoredConfiguration(resolvedType, restore);
                 setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
                 setProgress(progressTotal, surfaceT("common.repair.restore-complete-8f83d9", "Restore complete."));
                 await new Promise((resolve) => setTimeout(resolve, 180));
@@ -10569,6 +10602,7 @@ settingsActionSupportModule.registerActions(window, {
     createManualBackup,
     createActiveRecoveryBackup,
     refreshBackups,
+    refreshTemplates,
     runScheduledBackupNow,
     runActiveRecoveryScheduler,
     restoreLatestBackup,

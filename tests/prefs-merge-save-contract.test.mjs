@@ -298,7 +298,7 @@ echo json_encode(compact('before', 'after', 'otherBefore', 'otherAfter', 'respon
     assert.equal(utils.normalizePrefs({ groupUnassignedItems: 'true' }).groupUnassignedItems, false);
 });
 
-test('Docker row placement round trips through guarded preferences and snapshot reads without syncing native order', () => {
+test('Docker row placement and Unassigned preferences sync only when startup follows the Docker page', () => {
     const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
     assert.notEqual(endpoint, prefsEndpoint);
     assert.equal(utils.normalizePrefs({}).dockerRowPlacement, 'folders-first');
@@ -313,7 +313,7 @@ putenv('FVPLUS_TEST_DOCKER_AUTOSTART_FILE=' . $nativeOrder);
 $result = [];
 if ($stage === 'seed') {
     writeRawFolderMap('docker', ['example' => ['name' => 'Example', 'containers' => ['fixture-a']]]);
-    writeTypePrefs('docker', ['sortMode' => 'manual', 'manualOrder' => ['example'], 'dockerStartOrder' => ['mode' => 'unmanaged']]);
+    writeTypePrefs('docker', ['sortMode' => 'manual', 'manualOrder' => ['example'], 'dockerStartOrder' => ['mode' => $argv[2] ?? 'unmanaged']]);
     writeTypePrefs('vm', defaultTypePrefs());
     file_put_contents($nativeOrder, "fixture-b\nfixture-a\n");
 } elseif ($stage === 'save') {
@@ -328,12 +328,14 @@ if ($stage === 'seed') {
     $fixture = <<<'STUB'
 namespace DockerRowPlacementFixture;
 function syncContainerOrder(string $type): array {
-    throw new \\LogicException('A presentation setting must not sync native order.');
+    $GLOBALS['fixtureSyncTypes'][] = $type;
+    return ['syncOutcome' => 'synced'];
 }
 STUB;
     ob_start();
     eval($fixture . "\n" . ${phpQuote(endpoint)});
-    $result = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true)];
+    $result = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true),
+        'syncTypes' => $GLOBALS['fixtureSyncTypes'] ?? []];
     releaseConfigMutationLock();
 } elseif ($stage === 'backup') {
     $backup = createBackupSnapshot('docker', 'manual');
@@ -348,8 +350,8 @@ echo json_encode($result + ['prefs' => $prefs, 'meta' => $meta, 'vmRevision' => 
     invoke => {
         const initial = invoke('seed');
         assert.equal(initial.prefs.dockerRowPlacement, 'folders-first');
-        const save = (previous, value) => invoke('save', String(previous.meta.prefsRevision), JSON.stringify({ dockerRowPlacement: value }));
-        const saved = save(initial, 'saved-order');
+        const save = (previous, prefs) => invoke('save', String(previous.meta.prefsRevision), JSON.stringify(prefs));
+        const saved = save(initial, { dockerRowPlacement: 'saved-order' });
         assert.equal(saved.status, 200, JSON.stringify(saved.body));
         assert.equal(saved.prefs.dockerRowPlacement, 'saved-order');
         assert.equal(saved.body.prefs.dockerRowPlacement, 'saved-order');
@@ -358,11 +360,11 @@ echo json_encode($result + ['prefs' => $prefs, 'meta' => $meta, 'vmRevision' => 
         assert.equal(saved.meta.prefsRevision, initial.meta.prefsRevision + 1);
         const backup = invoke('backup');
         assert.equal(backup.backupPlacement, 'saved-order');
-        const malformed = save(saved, ['folders-first']);
+        const malformed = save(saved, { dockerRowPlacement: ['folders-first'] });
         assert.equal(malformed.status, 400);
         assert.equal(malformed.prefs.dockerRowPlacement, 'saved-order');
         assert.equal(malformed.meta.prefsRevision, saved.meta.prefsRevision);
-        const restored = save(saved, 'folders-first');
+        const restored = save(saved, { dockerRowPlacement: 'folders-first' });
         assert.equal(restored.status, 200, JSON.stringify(restored.body));
         assert.equal(restored.prefs.dockerRowPlacement, 'folders-first');
         for (const state of [saved, malformed, restored]) {
@@ -371,6 +373,22 @@ echo json_encode($result + ['prefs' => $prefs, 'meta' => $meta, 'vmRevision' => 
             assert.deepEqual(state.prefs.manualOrder, initial.prefs.manualOrder);
             assert.deepEqual(state.prefs.dockerStartOrder, initial.prefs.dockerStartOrder);
             assert.equal(state.nativeOrder, initial.nativeOrder);
+            assert.deepEqual(state.syncTypes, []);
+        }
+        for (const mode of ['docker-page', 'custom-batches']) {
+            const baseline = invoke('seed', mode);
+            assert.equal(baseline.prefs.dockerStartOrder.mode, mode);
+            const placement = save(baseline, { dockerRowPlacement: 'saved-order' });
+            const grouping = save(placement, { groupUnassignedItems: true });
+            const sameGrouping = save(grouping, { groupUnassignedItems: true });
+            const placementWhileGrouped = save(sameGrouping, { dockerRowPlacement: 'folders-first' });
+            const expected = mode === 'docker-page' ? ['docker'] : [];
+            assert.equal(placement.status, 200, JSON.stringify(placement.body));
+            assert.equal(grouping.status, 200, JSON.stringify(grouping.body));
+            assert.deepEqual(placement.syncTypes, expected);
+            assert.deepEqual(grouping.syncTypes, expected);
+            assert.deepEqual(sameGrouping.syncTypes, []);
+            assert.deepEqual(placementWhileGrouped.syncTypes, []);
         }
     });
 });

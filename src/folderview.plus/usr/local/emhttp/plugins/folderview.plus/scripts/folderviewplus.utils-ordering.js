@@ -15,6 +15,55 @@
         normalizePrefs
     } = utilityDependencies;
 
+    // Keep this fold and numeric comparison in sync with PHP's folder name order.
+    const latinFold = new Map(Object.entries({
+        a: 'ÀÁÂÃÄÅàáâãäåĀāĂăĄą',
+        c: 'ÇçĆćĈĉĊċČč',
+        d: 'ĎďĐđ',
+        e: 'ÈÉÊËèéêëĒēĔĕĖėĘęĚě',
+        g: 'ĜĝĞğĠġĢģ',
+        h: 'ĤĥĦħ',
+        i: 'ÌÍÎÏìíîïĨĩĪīĬĭĮįİı',
+        j: 'Ĵĵ',
+        k: 'Ķķ',
+        l: 'ĹĺĻļĽľĿŀŁł',
+        n: 'ÑñŃńŅņŇň',
+        o: 'ÒÓÔÕÖØòóôõöøŌōŎŏŐő',
+        r: 'ŔŕŖŗŘř',
+        s: 'ŚśŜŝŞşŠš',
+        t: 'ŢţŤťŦŧ',
+        u: 'ÙÚÛÜùúûüŨũŪūŬŭŮůŰűŲų',
+        w: 'Ŵŵ',
+        y: 'ÝýÿŶŷŸ',
+        z: 'ŹźŻżŽž',
+        ae: 'Ææ',
+        oe: 'Œœ',
+        ss: 'ẞß',
+    }).flatMap(([replacement, group]) => Array.from(group, letter => [letter, replacement])));
+
+    const nameSortKey = (value) => String(value).trim()
+        .replace(/[A-Z]/g, letter => letter.toLowerCase())
+        .replace(/[\u00c0-\u017f\u1e9e]/g, letter => latinFold.get(letter) ?? letter)
+        .replace(/([a-z])[\u0300-\u036f]+/g, '$1')
+        .split(/([0-9]+)/)
+        .map((part, index) => index % 2 === 0 ? part : part.replace(/^0+(?=[0-9])/, ''));
+
+    const compareNameSortKeys = (left, right) => {
+        for (let index = 0; index < Math.min(left.length, right.length); index++) {
+            const a = left[index], b = right[index];
+            if (a === b) continue;
+            if (index % 2) return a.length - b.length || (a < b ? -1 : 1);
+            const bChars = b[Symbol.iterator]();
+            for (const aChar of a) {
+                const bChar = bChars.next().value;
+                if (bChar === undefined) return 1;
+                if (aChar !== bChar) return aChar.codePointAt(0) - bChar.codePointAt(0);
+            }
+            return -1;
+        }
+        return left.length - right.length;
+    };
+
     const orderNormalizedFolderIds = (normalizedFolders, prefs) => {
         const normalizedPrefs = normalizePrefs(prefs);
         const baseOrderIds = Object.keys(normalizedFolders);
@@ -73,23 +122,14 @@
                 pinned.size ? [...pinnedIds, ...orderedIds.filter(id => !pinned.has(id))] : orderedIds);
         };
 
-        if (normalizedPrefs.sortMode === 'alpha') {
-            const keys = sortKeysWithComparator((a, b) => {
-                const nameA = String(normalizedFolders[a]?.name ?? a).toLowerCase();
-                const nameB = String(normalizedFolders[b]?.name ?? b).toLowerCase();
-                const cmp = nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
-                return cmp !== 0 ? cmp : a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-            });
-            return applyNestedPinnedOrder(keys);
-        }
-
-        if (normalizedPrefs.sortMode === 'name_desc') {
-            const keys = sortKeysWithComparator((a, b) => {
-                const nameA = String(normalizedFolders[a]?.name ?? a).toLowerCase();
-                const nameB = String(normalizedFolders[b]?.name ?? b).toLowerCase();
-                const cmp = nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' });
-                return cmp !== 0 ? cmp : b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
-            });
+        if (normalizedPrefs.sortMode === 'alpha' || normalizedPrefs.sortMode === 'name_desc') {
+            const names = new Map(baseOrderIds.map(id => [id, nameSortKey(normalizedFolders[id]?.name ?? id)]));
+            const ids = new Map(baseOrderIds.map(id => [id, nameSortKey(id)]));
+            const direction = normalizedPrefs.sortMode === 'alpha' ? 1 : -1;
+            const keys = sortKeysWithComparator((a, b) => direction * (
+                compareNameSortKeys(names.get(a), names.get(b)) || compareNameSortKeys(ids.get(a), ids.get(b))
+                || (a === b ? 0 : a < b ? -1 : 1)
+            ));
             return applyNestedPinnedOrder(keys);
         }
 

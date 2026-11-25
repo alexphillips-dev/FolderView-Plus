@@ -10,7 +10,16 @@ header('Expires: 0');
 try {
     fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-    [$foldersJson, $metadata] = withConfigMutationLock(static function () use ($type): array {
+    $treeIntegrity = (string)($_GET['treeIntegrity'] ?? '') === '1';
+    [$foldersJson, $metadata] = withConfigMutationLock(static function () use ($type, $treeIntegrity): array {
+        if ($treeIntegrity) {
+            $metadata = readConfigMetadata($type, true, false);
+            unset($metadata['prefsMutationReceipt']);
+            return [
+                json_encode(fvplusJsonKeyedMap(readFolderMapForTreeIntegrity($type)), JSON_THROW_ON_ERROR),
+                $metadata
+            ];
+        }
         return [readFolder($type), readConfigMetadata($type, true)];
     });
     if (!headers_sent()) {
@@ -18,7 +27,7 @@ try {
         header('X-FV-Folder-Revision: ' . (string)($metadata['folderRevision'] ?? 0));
         header('X-FV-Prefs-Revision: ' . (string)($metadata['prefsRevision'] ?? 0));
     }
-    $includeMetadata = (string)($_GET['includeMetadata'] ?? '') === '1';
+    $includeMetadata = $treeIntegrity || (string)($_GET['includeMetadata'] ?? '') === '1';
     if ($includeMetadata) {
         $folders = json_decode($foldersJson);
         echo json_encode([

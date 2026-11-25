@@ -5103,7 +5103,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
     const pinnedIndicator = pinned ? buildDockerFolderPinnedIndicatorHtml() : '';
     const advancedVisibleClass = advanced ? ' fv-advanced-visible' : '';
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" data-fvplus-style="fv-u-569beu"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced${advancedVisibleClass}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced${advancedVisibleClass}"><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" data-fvplus-style="fv-u-sfjn3c"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" data-fvplus-style="fv-u-uydnfn"><div data-fvplus-style="fv-u-1gl0zeh"></div></td><td></td></tr>`;
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" data-fvplus-style="fv-u-569beu"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" type="button" aria-label="${safeFolderName}" aria-expanded="false" data-fv-onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced${advancedVisibleClass}"><a class="exec" data-fv-onclick="forceUpdateFolder('${id}');"><span data-fvplus-style="fv-u-6oi7h7"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced${advancedVisibleClass}"><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" data-fvplus-style="fv-u-sfjn3c"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" data-fvplus-style="fv-u-uydnfn"><div data-fvplus-style="fv-u-1gl0zeh"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     const $createdFolderRow = $(fld);
@@ -5961,7 +5961,7 @@ const forceCollapseFolderRow = (id, syncStatus = true) => {
     const element = $(`[class~="dropDown-${id}"]`);
     if (element.length) {
         element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        element.attr('active', 'false');
+        element.attr('active', 'false').attr('aria-expanded', 'false');
     }
     const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     $folderRow.addClass('sortable');
@@ -7861,39 +7861,82 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     }
 });
 
-let folderViewPlusDockerStartOrderSyncTimer = null;
-const scheduleFolderViewPlusDockerStartOrderSync = () => {
-    clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
-    folderViewPlusDockerStartOrderSyncTimer = setTimeout(() => {
-        const payload = { type: 'docker' };
-        const request = window.FolderViewPlusRequest;
-        if (request && typeof request.postJson === 'function') {
-            request.postJson('/plugins/folderview.plus/server/sync_order.php', payload, {
-                retries: 0,
-                timeoutMs: 8000
-            }).catch(() => {});
-            return;
+const dockerOrderSyncPath = '/plugins/folderview.plus/server/sync_order.php';
+const dockerOrderSyncStorageKey = 'fvplus.docker-order-sync.pending';
+const dockerOrderSyncPayload = Object.freeze({ type: 'docker' });
+let dockerOrderSyncTimer = null;
+let pendingDockerOrderSync = '';
+let dockerSyncKeepalive = null;
+let dockerSyncKeepaliveRequest = null;
+const readPendingDockerOrderSync = () => {
+    try {
+        return window.localStorage.getItem(dockerOrderSyncStorageKey) || '';
+    } catch (_error) {
+        return '';
+    }
+};
+const prepareDockerOrderSyncKeepalive = () => {
+    if (dockerSyncKeepaliveRequest || dockerSyncKeepalive?.expiresAt > Date.now()) return;
+    const now = Date.now();
+    const preparation = pluginRequestClient?.prepareKeepalive?.(dockerOrderSyncPath, dockerOrderSyncPayload, { timeoutMs: 8000 });
+    if (!preparation) return;
+    dockerSyncKeepaliveRequest = preparation
+        .then(send => { dockerSyncKeepalive = { send, expiresAt: now + 90000 }; })
+        .catch(() => {})
+        .finally(() => { dockerSyncKeepaliveRequest = null; });
+};
+const scheduleDockerOrderSync = () => {
+    clearTimeout(dockerOrderSyncTimer);
+    dockerOrderSyncTimer = setTimeout(async () => {
+        const mutation = pendingDockerOrderSync || readPendingDockerOrderSync();
+        if (!mutation) return;
+        try {
+            const result = await pluginRequestClient.postJson(dockerOrderSyncPath, dockerOrderSyncPayload, {
+                retries: 0, timeoutMs: 8000
+            });
+            if (['synced', 'unmanaged'].includes(result?.syncOutcome)) {
+                if (pendingDockerOrderSync === mutation) pendingDockerOrderSync = '';
+                if (readPendingDockerOrderSync() === mutation) window.localStorage.removeItem(dockerOrderSyncStorageKey);
+            }
+        } catch (_error) {
+            // Retry the pending sync when Docker is next opened.
         }
-        pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', payload, {
-            retries: 0,
-            timeoutMs: 8000
-        }).catch(() => {});
     }, 250);
 };
-
-$(document).ajaxComplete((event, xhr, settings = {}) => {
-    if (!(xhr?.status >= 200 && xhr.status < 300)) return;
-    const url = String(settings.url || '').split('?')[0];
-    const isUserPrefs = url.endsWith('/plugins/dynamix.docker.manager/include/UserPrefs.php');
-    const isNativeConfig = url.endsWith('/plugins/dynamix.docker.manager/include/UpdateConfig.php');
-    if (!isUserPrefs && !isNativeConfig) return;
-    const data = new URLSearchParams(settings.data);
-    const isOrderSave = isUserPrefs && (data.has('names') || data.has('reset'));
-    const isAutostartSave = isNativeConfig && ['autostart', 'wait'].includes(data.get('action'));
-    if (isOrderSave || isAutostartSave) {
-        scheduleFolderViewPlusDockerStartOrderSync();
+const isNativeDockerOrderWrite = (settings = {}) => {
+    if (String(settings.type || settings.method).toUpperCase() !== 'POST') return false;
+    let url;
+    try {
+        url = new URL(settings.url, window.location.href);
+    } catch (_error) {
+        return false;
     }
+    if (url.origin !== window.location.origin) return false;
+    const isUserPrefs = url.pathname === '/plugins/dynamix.docker.manager/include/UserPrefs.php';
+    const isNativeConfig = url.pathname === '/plugins/dynamix.docker.manager/include/UpdateConfig.php';
+    if (!isUserPrefs && !isNativeConfig) return false;
+    const data = new URLSearchParams(settings.data);
+    return (isUserPrefs && (data.has('names') || data.has('reset')))
+        || (isNativeConfig && ['autostart', 'wait'].includes(data.get('action')));
+};
+$(document).on('ajaxSend.fvDockerOrderSync', (_event, _xhr, settings) => {
+    if (isNativeDockerOrderWrite(settings)) prepareDockerOrderSyncKeepalive();
+}).on('ajaxComplete.fvDockerOrderSync', (_event, xhr, settings) => {
+    if (!(xhr?.status >= 200 && xhr.status < 300) || !isNativeDockerOrderWrite(settings)) return;
+    pendingDockerOrderSync = pluginRequestClient.newTraceId();
+    try {
+        window.localStorage.setItem(dockerOrderSyncStorageKey, pendingDockerOrderSync);
+    } catch (_error) { /* Keep the pending work in memory when storage is blocked. */ }
+    scheduleDockerOrderSync();
 });
+prepareDockerOrderSyncKeepalive();
+if (readPendingDockerOrderSync()) scheduleDockerOrderSync();
+const resumeDockerOrderSync = (event) => {
+    if (!event.persisted) return;
+    prepareDockerOrderSyncKeepalive();
+    if (pendingDockerOrderSync || readPendingDockerOrderSync()) scheduleDockerOrderSync();
+};
+window.addEventListener('pageshow', resumeDockerOrderSync);
 
 window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('docker');
 
@@ -7914,12 +7957,23 @@ window.addEventListener('pagehide', function releaseDockerPage(event) {
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(dockerPinnedFolderServerReconcileTimer);
     clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
-    clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
     dockerFolderRowActionsController.destroy();
     dockerRuntimeColumnControllerApi.dispose();
     dockerDeferredPreviewController.destroy();
     dockerProviderHealthController?.dispose?.();
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
+});
+
+window.addEventListener('pagehide', function flushPendingDockerOrderSync(event) {
+    clearTimeout(dockerOrderSyncTimer);
+    if (pendingDockerOrderSync && dockerSyncKeepalive?.expiresAt > Date.now()) {
+        dockerSyncKeepalive.send();
+        dockerSyncKeepalive = null;
+    }
+    if (event?.persisted) return;
+    window.removeEventListener('pagehide', flushPendingDockerOrderSync);
+    window.removeEventListener('pageshow', resumeDockerOrderSync);
+    $(document).off('.fvDockerOrderSync');
 });
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');

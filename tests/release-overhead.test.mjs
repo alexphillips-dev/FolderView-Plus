@@ -3,6 +3,7 @@ import test from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { prepareDevPreview } from '../scripts/dev_release_preview.mjs';
 import { makeOsvEvidence, osvDigest, osvIdentity } from '../scripts/lib/osv-evidence.mjs';
@@ -45,11 +46,11 @@ test('detached release qualification enforces main merge history from the exact 
 });
 
 test('workflow-only publication keeps the package unchanged and rejects shipped changes', shellOnly, async t => {
-    for (const changed of ['.github/workflows/fixture.yml', 'src/runtime.js', 'folderview.plus.plg', 'docs/sbom.cdx.json']) {
+    for (const changed of ['.github/workflows/fixture.yml', 'src/runtime.js', 'folderview.plus.plg', 'docs/sbom.cdx.json', 'scripts/package_page_format.mjs']) {
         await t.test(changed, t => {
             const f = fixture(t);
             f.git('config', 'core.filemode', 'true');
-            f.copy('scripts/lib.sh'); f.copy('scripts/release_prepare.sh');
+            f.copy('scripts/lib.sh'); f.copy('scripts/release_prepare.sh'); f.copy('scripts/package-build-inputs.txt');
             const source = fs.readFileSync(path.join(root, 'scripts/release_prepare.sh'), 'utf8');
             for (const name of new Set([...source.matchAll(/scripts\/[\w]+\.sh/g)].map(match => match[0]))) {
                 if (!['scripts/release_prepare.sh', 'scripts/lib.sh'].includes(name)) f.write(name, `echo ${name}\n`, 0o644);
@@ -93,10 +94,10 @@ execFileSync('git', ['push', 'origin', 'HEAD:refs/tags/fvplus-release-candidate-
 });
 
 test('dev finalization verifies the generated and staged SBOM before committing', shellOnly, async t => {
-    for (const scenario of ['matching SBOM', 'stale SBOM', 'mismatched staged SBOM']) {
+    for (const scenario of ['matching SBOM', 'matching SBOM with a package-transform change', 'stale SBOM', 'mismatched staged SBOM']) {
         await t.test(scenario, t => {
             const f = fixture(t);
-            for (const file of ['scripts/lib.sh', 'scripts/dev_finalize.sh', 'scripts/generate_sbom.mjs']) f.copy(file);
+            for (const file of ['scripts/lib.sh', 'scripts/dev_finalize.sh', 'scripts/generate_sbom.mjs', 'scripts/package-build-inputs.txt']) f.copy(file);
             f.write('.github/workflows/fixture.yml', 'name: Fixture\n');
             f.write('package-lock.json', '{}\n');
             const include = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/.keep';
@@ -118,13 +119,14 @@ test('dev finalization verifies the generated and staged SBOM before committing'
             execFileSync(process.execPath, ['scripts/generate_sbom.mjs'], { cwd: f.directory, stdio: 'pipe' });
             const base = f.commit('Published fixture');
             f.git('branch', '-M', 'dev');
-            f.write('src/folderview.plus/runtime.js', 'fixture source update\n');
-            f.git('add', 'src/folderview.plus/runtime.js');
+            const changed = scenario.includes('transform') ? 'scripts/package_channel_messages.mjs' : 'src/folderview.plus/runtime.js';
+            f.write(changed, 'fixture source update\n');
+            f.git('add', changed);
 
             const result = spawnSync('bash', ['scripts/dev_finalize.sh', '--no-push', '--message', 'Finalize fixture'], {
                 cwd: f.directory, encoding: 'utf8'
             });
-            if (scenario !== 'matching SBOM') {
+            if (!scenario.startsWith('matching SBOM')) {
                 assert.notEqual(result.status, 0);
                 assert.match(result.stderr, scenario === 'stale SBOM'
                     ? /docs\/sbom\.cdx\.json is stale/
@@ -144,6 +146,7 @@ test('documentation-only dev finalization retains the published package and vers
     const f = fixture(t);
     f.copy('scripts/lib.sh');
     f.copy('scripts/dev_finalize.sh');
+    f.copy('scripts/package-build-inputs.txt');
     f.write('folderview.plus.plg', '<!ENTITY version "2026.10.05.01">\n');
     f.write('archive/fixture.txz', 'existing package bytes\n');
     f.write('pkg_build.sh', 'echo unexpected-build >&2\nexit 55\n');
@@ -158,6 +161,156 @@ test('documentation-only dev finalization retains the published package and vers
     assert.match(result.stdout, /keeping the current package/);
     assert.equal(f.git('diff', '--name-only', base, 'HEAD'), 'README.md');
     assert.equal(f.git('show', 'HEAD:archive/fixture.txz'), 'existing package bytes');
+});
+
+test('release publication verifies both assets before making a draft public and resumes missing uploads', shellOnly, t => {
+    const f = fixture(t);
+    const tag = 'v2026.10.05.06';
+    const packageName = 'folderview.plus-2026.10.05.06.txz';
+    const checksumName = packageName + '.sha256';
+    const checksum = createHash('sha256').update('archive bytes\n').digest('hex') + '  ' + packageName + '\n';
+    for (const file of ['scripts/lib.sh', 'scripts/publish_github_release.sh']) f.copy(file);
+    f.write(packageName, 'archive bytes\n');
+    f.write(checksumName, checksum);
+    f.write('release_notes.md', 'Preview notes\n');
+    f.write('bin/git', '#!/bin/bash\ncase "$1" in\nls-remote) [ -f public-tag ] || exit 2 ;;\nfetch) : ;;\nrev-parse) cat public-tag ;;\n*) exit 88 ;;\nesac\n', 0o755);
+    f.write('bin/gh', `#!/usr/bin/env node
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const args = process.argv.slice(2);
+const [area, action, tag, asset] = args;
+if (area !== 'release' || tag !== 'v2026.10.05.06') process.exit(90);
+const read = () => JSON.parse(fs.readFileSync('remote-release.json', 'utf8'));
+const save = value => fs.writeFileSync('remote-release.json', JSON.stringify(value));
+const record = value => fs.appendFileSync('mutations', value + '\\n');
+if (action === 'create') {
+    if (!args.includes('--draft') || fs.existsSync('remote-release.json')) process.exit(91);
+    save({ isDraft: true, targetCommitish: args[args.indexOf('--target') + 1], assets: [] });
+    record('create draft');
+    process.exit(0);
+}
+if (!fs.existsSync('remote-release.json')) {
+    console.error('release not found');
+    process.exit(1);
+}
+const release = read();
+if (action === 'view') {
+    console.log(JSON.stringify(release));
+} else if (action === 'upload') {
+    if (args.includes('--clobber') || release.assets.some(entry => entry.name === asset)) process.exit(92);
+    record('upload ' + asset);
+    if (process.env.FVPLUS_FIXTURE_STOP_CHECKSUM === '1' && asset.endsWith('.sha256')) {
+        release.assets.push({ name: asset, state: 'starter' });
+        save(release);
+        process.exit(93);
+    }
+    const content = fs.readFileSync(asset, 'utf8');
+    const digest = asset.endsWith('.sha256') ? 'sha256:' + crypto.createHash('sha256').update(content).digest('hex') : null;
+    release.assets.push({ name: asset, state: 'uploaded', content, digest });
+    save(release);
+} else if (action === 'download') {
+    const name = args[args.indexOf('--pattern') + 1];
+    fs.writeFileSync(args[args.indexOf('--output') + 1], release.assets.find(entry => entry.name === name).content);
+} else if (action === 'delete-asset') {
+    if (!release.isDraft || release.assets.find(entry => entry.name === asset)?.state !== 'starter') process.exit(94);
+    release.assets = release.assets.filter(entry => entry.name !== asset);
+    save(release);
+    record('remove starter ' + asset);
+} else if (action === 'edit' && args.includes('--draft=false')) {
+    if (!release.isDraft || release.assets.filter(entry => entry.state === 'uploaded').length !== 2) process.exit(95);
+    release.isDraft = false;
+    save(release);
+    fs.writeFileSync('public-tag', release.targetCommitish + '\\n');
+    record('publish');
+} else if (action === 'edit') {
+    record('metadata');
+} else {
+    process.exit(96);
+}
+`, 0o755);
+    const candidate = 'a'.repeat(40);
+    const execute = (stopChecksum = false) => spawnSync('bash', ['scripts/publish_github_release.sh', tag, packageName, checksumName, 'release_notes.md'], {
+        cwd: f.directory, encoding: 'utf8', timeout: 20000,
+        env: { ...process.env, PATH: path.join(f.directory, 'bin') + path.delimiter + process.env.PATH,
+            GITHUB_SHA: candidate, FVPLUS_GITHUB_RELEASE_ATTEMPTS: '2', FVPLUS_GITHUB_RELEASE_DELAY_SEC: '0',
+            FVPLUS_FIXTURE_STOP_CHECKSUM: stopChecksum ? '1' : '0' }
+    });
+    const read = name => fs.readFileSync(path.join(f.directory, name), 'utf8');
+    const remote = () => JSON.parse(read('remote-release.json'));
+    const mutations = () => read('mutations').trim().split('\n');
+    const failed = execute(true);
+    assert.notEqual(failed.status, 0);
+    assert.match(failed.stderr, /Upload release checksum failed/);
+    assert.equal(remote().isDraft, true);
+    assert.deepEqual(remote().assets.map(entry => entry.state), ['uploaded', 'starter']);
+    assert.ok(!fs.existsSync(path.join(f.directory, 'public-tag')));
+    const recovered = execute();
+    assert.equal(recovered.status, 0, recovered.stderr);
+    assert.equal(remote().isDraft, false);
+    assert.equal(read('public-tag').trim(), candidate);
+    assert.deepEqual(remote().assets.map(entry => entry.state), ['uploaded', 'uploaded']);
+    assert.equal(mutations().filter(value => value === 'upload ' + packageName).length, 1);
+    const completedMutations = mutations();
+    const rerun = execute();
+    assert.equal(rerun.status, 0, rerun.stderr);
+    assert.deepEqual(mutations(), [...completedMutations, 'metadata']);
+    const missingChecksum = remote();
+    missingChecksum.assets = missingChecksum.assets.filter(entry => entry.name !== checksumName);
+    f.write('remote-release.json', JSON.stringify(missingChecksum));
+    const legacyRetry = execute();
+    assert.equal(legacyRetry.status, 0, legacyRetry.stderr);
+    const recoveredMutations = [...completedMutations, 'metadata', 'upload ' + checksumName, 'metadata'];
+    assert.deepEqual(mutations(), recoveredMutations);
+    const badRelease = remote();
+    badRelease.assets[0].content = 'different archive';
+    f.write('remote-release.json', JSON.stringify(badRelease));
+    const conflict = execute();
+    assert.notEqual(conflict.status, 0);
+    assert.match(conflict.stderr, /Could not verify release asset/);
+    assert.deepEqual(mutations(), recoveredMutations);
+});
+
+test('archive pruning rejects out-of-range retention before removing fixture files', shellOnly, t => {
+    const f = fixture(t);
+    for (const file of ['scripts/lib.sh', 'scripts/prune_archives.sh']) f.copy(file);
+    for (const suffix of ['.txz', '.txz.sha256']) {
+        for (const revision of ['01', '02', '03']) f.write('archive/folderview.plus-2026.01.01.' + revision + suffix, 'fixture');
+    }
+    const run = value => spawnSync('bash', ['scripts/prune_archives.sh', '--keep', value, '--current-version', '2026.01.01.03'],
+        { cwd: f.directory, encoding: 'utf8' });
+    for (const entry of ['9223372036854775808', '18446744073709551617', '1'.repeat(40)]) {
+        const invalid = run(entry);
+        assert.notEqual(invalid.status, 0);
+        assert.match(invalid.stderr, /outside the supported integer range/);
+        assert.equal(fs.readdirSync(path.join(f.directory, 'archive')).length, 6);
+    }
+    assert.match(run('000000099').stdout, /nothing to remove/);
+    assert.match(run('000001').stdout, /removed 4 file/);
+    assert.equal(fs.readdirSync(path.join(f.directory, 'archive')).length, 2);
+});
+
+test('icon pack output is independent of the caller umask and staged source modes', shellOnly, t => {
+    const f = fixture(t);
+    f.copy('scripts/build_icon_asset_pack.sh');
+    const asset = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/sample/fixture.svg';
+    f.write(asset, '<svg xmlns="http://www.w3.org/2000/svg"/>\n', 0o600);
+    const build = (umask, outputDir) => spawnSync('bash', ['-c', 'umask "$1"; exec bash scripts/build_icon_asset_pack.sh', '--', umask], {
+        cwd: f.directory, encoding: 'utf8',
+        env: { ...process.env, FVPLUS_ICON_PACK_VERSION: '1.2.3', FVPLUS_ICON_PACK_OUTPUT_DIR: outputDir }
+    });
+    const normal = build('022', 'normal');
+    assert.equal(normal.status, 0, normal.stderr);
+    fs.chmodSync(path.join(f.directory, asset), 0o755);
+    const privateBuild = build('077', 'private');
+    assert.equal(privateBuild.status, 0, privateBuild.stderr);
+    const archive = 'folderview.plus-icons-1.2.3.txz';
+    for (const suffix of ['', '.sha256']) {
+        assert.deepEqual(fs.readFileSync(path.join(f.directory, 'normal', archive + suffix)),
+            fs.readFileSync(path.join(f.directory, 'private', archive + suffix)));
+    }
+    const modeReport = execFileSync('tar', ['-tvf', 'private/' + archive], { cwd: f.directory, encoding: 'utf8' });
+    assert.match(modeReport, /^drwxr-xr-x.*third-party-icons\/sample\/$/m);
+    assert.match(modeReport, /^-rw-r--r--.*fixture\.svg$/m);
 });
 
 test('pre-push rejects a dev candidate other than the clean checked-out commit', shellOnly, t => {

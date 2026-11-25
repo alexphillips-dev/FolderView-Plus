@@ -23,6 +23,11 @@ if (($request['seed'] ?? true) !== false) {
 if (isset($request['workspace'])) writeJsonObjectWithLastGood(getThemeWorkspacePath(), $request['workspace']);
 if (!empty($request['corruptWorkspace'])) file_put_contents(getThemeWorkspacePath(), '{invalid');
 if (!empty($request['missingWorkspacePrimary'])) unlink(getThemeWorkspacePath());
+$nativePath = fvplusEnvironmentDockerAutostartPath();
+if (isset($request['originalNativeBase64'])) {
+    file_put_contents($nativePath, base64_decode($request['originalNativeBase64'], true));
+    chmod($nativePath, 0640);
+}
 $before = migrationFiles($root . '/config');
 $operation = $request['operation'] ?? 'plan'; $bundle = $request['bundle'];
 try {
@@ -56,6 +61,42 @@ try {
         writeRawFolderMap('docker', ['concurrent' => ['name' => 'Concurrent fixture']]);
         $before = migrationFiles($root . '/config');
         applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest']);
+    } elseif ($operation === 'native-checkpoint') {
+        $capture = static function () use ($nativePath): array {
+            $state = fvplusTransactionCaptureFile($nativePath);
+            return ['exists' => $state['exists'], 'contentBase64' => base64_encode($state['content']), 'mode' => $state['mode']];
+        };
+        $result['originalNative'] = $capture();
+        $includeNative = ($request['includeNative'] ?? true) === true;
+        $options = ['afterStage' => static function(string $stage) use ($request, $nativePath): void {
+            if ($stage === 'external' && !empty($request['breakNativeVerification'])) {
+                file_put_contents($nativePath, 'synthetic changed bytes');
+            }
+        }];
+        $applied = applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest'], $includeNative, $options);
+        $checkpoint = $applied['transaction']['rollback']['name'];
+        $payload = readJsonObjectFile(getGlobalRollbackSnapshotPath($checkpoint));
+        $result['checkpointNative'] = $payload['nativeDockerAutostart'] ?? null;
+        $result['appliedNative'] = $capture();
+        if ($includeNative) {
+            $snapshotPath = getGlobalRollbackSnapshotPath($checkpoint);
+            $invalid = $payload;
+            $invalid['nativeDockerAutostart']['contentBase64'] = '*';
+            writeJsonObjectAtomic($snapshotPath, $invalid);
+            $result['corruptCheckpointRejected'] = false;
+            try {
+                restoreGlobalRollbackSnapshot($checkpoint);
+            } catch (RuntimeException $error) {
+                $result['corruptCheckpointRejected'] = str_contains($error->getMessage(), 'Rollback snapshot format')
+                    && $capture() === $result['appliedNative'] && listGlobalRollbackSnapshots()[0]['restorable'] === false;
+            }
+            writeJsonObjectAtomic($snapshotPath, $payload);
+            $result['restore'] = restoreGlobalRollbackSnapshot($checkpoint);
+            $result['restoredFolders'] = array_keys(readRawFolderMap('docker'));
+            $result['restoredNative'] = $capture();
+            $result['undo'] = restoreGlobalRollbackSnapshot($result['restore']['undoSnapshot']);
+            $result['undoNative'] = $capture();
+        }
     } elseif (in_array($operation, ['apply', 'repeat', 'failure', 'editor', 'verification-failure', 'rollback-failure', 'diagnostics-failure', 'observer-failure'], true)) {
         $options = ['afterStage' => static function(string $stage) use ($operation): void {
             if ($operation === 'verification-failure' && $stage === 'theme-workspace') writeRawFolderMap('docker', []);

@@ -90,6 +90,8 @@ plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plu
 
 Replace `<commit>` with the requested commit SHA. The referenced package artifacts must still exist on the branch encoded by that manifest. Return to the normal `main` or `dev` URL after the test.
 
+Keep the filename `folderview.plus.plg` when installing a local copy of the manifest. Unraid uses the filename for registration, so FolderView Plus rejects a renamed copy before activating the package.
+
 Do not edit the installed version file to bypass Unraid's version comparison. That produces an installation state that diagnostics and update checks cannot identify reliably.
 
 ## Versioned icon asset pack

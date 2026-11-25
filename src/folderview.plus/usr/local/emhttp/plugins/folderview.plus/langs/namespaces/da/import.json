@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "import",
-        "content-revision": "09aa063508567045844ef4bca97d44a05f4afa42310a2b45dc95cc69da1f25fa"
+        "content-revision": "6d93fb86931fc8c9405946e6ddf8a2d32ea2b9ea7d0827e9a0ab8f3622b934f1"
     },
     "import.subtitle": "Vælg, hvordan eksisterende mapper skal håndteres. Intet ændres, før du vælger Anvend import.",
     "import.behavior.question": "Hvordan skal eksisterende mapper håndteres?",
@@ -18,6 +18,7 @@
     "import.review.count": "Gennemgå {{PLURAL:$1|én planlagt ændring|$1 planlagte ændringer}}",
     "import.review.folders-fields": "Mapper og felter",
     "import.review.choose": "Vælg, hvilke ændringer der skal medtages",
+    "import.selection.parent-conflict": "Gennemgå valget for at holde disse overordnede links intakte: $1",
     "import.safety.title": "Sikkerhedsmuligheder",
     "import.safety.summary": "Forhåndsvisning og bekræftelse",
     "import.safety.preview-only": "Kun forhåndsvisning",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "import",
-        "content-revision": "d3ac20df701a5c07209a7805fb21ae617c21584b7435c71c13b603706cc1edae"
+        "content-revision": "57ffbbd74927f5079b7957db76cfe3ead4b3954a61686cf474d4deb89ad839e9"
     },
     "import.subtitle": "Odaberite način rukovanja postojećim mapama. Ništa se ne mijenja dok ne odaberete Primijeni uvoz.",
     "import.behavior.question": "Kako treba postupati s postojećim mapama?",
@@ -18,6 +18,7 @@
     "import.review.count": "Pregledajte {{PLURAL:$1|$1 planiranu promjenu|$1 planirane promjene|$1 planiranih promjena}}",
     "import.review.folders-fields": "Mape i polja",
     "import.review.choose": "Odaberite koje promjene želite uključiti",
+    "import.selection.parent-conflict": "Pregledajte odabir kako biste ove nadređene veze zadržali netaknutima: $1",
     "import.safety.title": "Sigurnosne mogućnosti",
     "import.safety.summary": "Pregled i potvrda",
     "import.safety.preview-only": "Samo pregled",

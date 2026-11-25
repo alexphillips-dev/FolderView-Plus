@@ -12,6 +12,16 @@ import {
     resolveChangedPaths
 } from '../scripts/classify_ci_changes.mjs';
 
+test('a package transform triggers dev preview without widening the indexed payload path', () => {
+    for (const file of ['scripts/package_page_format.mjs', 'scripts/package_channel_messages.mjs', 'scripts/generate_runtime_integrity_manifest.mjs']) {
+        const result = classifyPaths([file]);
+        assert.equal(result.outputs.preview_changed, true, file);
+    }
+    for (const file of ['scripts/test_runner_contract_guard.mjs', 'scripts/publish_github_release.sh', 'docs/guide.md', 'src/unrelated/tool.sh']) {
+        assert.equal(classifyPaths([file]).outputs.preview_changed, false, file);
+    }
+});
+
 test('path matching supports exact, subtree, and wildcard workflow patterns', () => {
     assert.equal(matchesPattern('README.md', 'README.md'), true);
     assert.equal(matchesPattern('docs/releases/2026.07.27.01.md', 'docs/**'), true);
@@ -101,13 +111,13 @@ test('Git comparisons classify deletions from runtime paths even when Git detect
     git('config', 'user.name', 'Fixture');
     git('config', 'user.email', 'fixture@example.invalid');
     git('config', 'diff.renames', 'true');
-    fs.mkdirSync(path.join(cwd, 'src'));
+    fs.mkdirSync(path.join(cwd, 'src', 'folderview.plus'), { recursive: true });
     fs.mkdirSync(path.join(cwd, 'docs'));
-    fs.writeFileSync(path.join(cwd, 'src', 'fixture.js'), 'const fixture = true;\n');
-    git('add', 'src/fixture.js');
+    fs.writeFileSync(path.join(cwd, 'src', 'folderview.plus', 'fixture.js'), 'const fixture = true;\n');
+    git('add', 'src/folderview.plus/fixture.js');
     git('commit', '--no-verify', '-qm', 'Add runtime fixture');
     const base = git('rev-parse', 'HEAD');
-    git('mv', 'src/fixture.js', 'docs/fixture.js');
+    git('mv', 'src/folderview.plus/fixture.js', 'docs/fixture.js');
     git('commit', '--no-verify', '-qm', 'Archive runtime fixture');
     assert.equal(git('diff', '--name-only', base, 'HEAD'), 'docs/fixture.js');
 

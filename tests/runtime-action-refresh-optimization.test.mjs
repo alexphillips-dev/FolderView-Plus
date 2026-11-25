@@ -265,7 +265,6 @@ test('Docker named actions suppress duplicate clicks, allow independent actions 
         queuedLoadlistTimer: null,
         dockerPinnedFolderServerReconcileTimer: null,
         dockerRuntimePrivacyServerReconcileTimer: null,
-        folderViewPlusDockerStartOrderSyncTimer: null,
         dockerFolderRowActionsController: { destroy: noop },
         dockerRuntimeColumnControllerApi: { dispose: noop },
         dockerDeferredPreviewController: { destroy: noop },

@@ -750,7 +750,7 @@
                 if (hasChildren) {
                     syncParentFolderVisualState(id, false);
                 }
-                element.attr('active', 'false');
+                element.attr('active', 'false').attr('aria-expanded', 'false');
                 debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
             } else {
                 element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
@@ -784,7 +784,7 @@
                     syncDockerFolderMemberRows(id, directRuntimeContainers);
                     debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
                 }
-                element.attr('active', 'true');
+                element.attr('active', 'true').attr('aria-expanded', 'true');
             }
             const globalFolders = getGlobalFolders();
             if (globalFolders[id]) {

@@ -5,6 +5,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ZERO_SHA = /^0+$/;
+const PACKAGE_INPUT_PATTERNS = fs.readFileSync(new URL('./package-build-inputs.txt', import.meta.url), 'utf8')
+    .trim().split(/\r?\n/).map(entry => entry.endsWith('/') ? entry + '**' : entry);
 const WORKFLOW_COMPANION_PATTERNS = Object.freeze([
     'docs/sbom.cdx.json'
 ]);
@@ -41,6 +43,8 @@ export const FILTERS = Object.freeze({
         'scripts/simulate_main_release.sh',
         'scripts/sync_main_to_dev.sh',
         'scripts/prepare_backmerge_dev_package.sh',
+        'scripts/package-build-inputs.txt',
+        'scripts/publish_github_release.sh',
         'scripts/lib/release-evidence.mjs',
         'scripts/lib/github-release-validation.mjs',
         '.githooks/pre-push',
@@ -101,12 +105,7 @@ export const FILTERS = Object.freeze({
         'scripts/theme_scope_guard.sh',
         'scripts/run_ci_suite.sh'
     ],
-    preview: [
-        'src/**',
-        'pkg_build.sh',
-        'folderview.plus.plg',
-        'folderview.plus.xml'
-    ],
+    preview: PACKAGE_INPUT_PATTERNS,
     performance: [
         'scripts/runtime_performance_benchmarks.*', 'scripts/runtime_perf_*.json',
         'scripts/production_performance_benchmarks.mjs', 'scripts/production_perf_*.json',

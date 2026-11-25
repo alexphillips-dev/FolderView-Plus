@@ -374,13 +374,10 @@ require_once __DIR__ . '/lib.theme-css.php';
     }
 
     function saveThemeWorkspaceCustomize($variables, string $customCss): array {
-        $scan = fvplusThemeWorkspaceScanCss($customCss);
-        if ($scan['severe']) {
-            throw new RuntimeException(implode(' ', (array)$scan['severe']));
-        }
         return withConfigMutationLock(static function () use ($variables, $customCss): array {
             $workspace = readThemeWorkspace(false);
-            return writeThemeWorkspace(fvplusThemeProfileUpdateLayer($workspace, $workspace['activeProfileId'], 'global', $variables, $customCss));
+            $prepared = prepareThemeWorkspaceProfileLayer($workspace['activeProfileId'], 'global', $variables, $customCss, $workspace);
+            return writeThemeWorkspace($prepared['workspace']);
         });
     }
 

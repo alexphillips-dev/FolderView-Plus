@@ -100,6 +100,31 @@ test('workflow waits reject failure and timeout and do not accept an earlier fai
     assert.equal(accepted.id, 42);
 });
 
+test('ordinary evidence lookup skips unreadable receipts and explicit verification fails closed', async () => {
+    const fresh = makeReleaseEvidence(identity, results, { repository, runId: 42 });
+    const api = endpoint => {
+        if (endpoint.includes('/artifacts')) return { artifacts: [{ name: `release-validation-${identity.commit}` }] };
+        if (endpoint.endsWith('/runs/43')) return run({ id: 43 });
+        return { workflow_runs: [run({ id: 45 }), run({ id: 44 }), run({ id: 43 }), run()] };
+    };
+    const calls = [];
+    const command = args => {
+        const runId = Number(args[2]);
+        const receipt = path.join(args.at(-1), 'release-validation.json');
+        calls.push(runId);
+        if (runId === 45) throw new Error('Artifact was removed during download');
+        if (runId === 44) return;
+        fs.writeFileSync(receipt, runId === 43 ? '{' : JSON.stringify(fresh));
+    };
+    assert.deepEqual(await findReleaseEvidence(identity, repository, { api, command }), fresh);
+    assert.deepEqual(calls, [45, 44, 43, 42]);
+    await assert.rejects(findReleaseEvidence(identity, repository, { api, command, runId: 43 }), SyntaxError);
+    const withCancelledRun = endpoint => endpoint.includes('/artifacts') ? api(endpoint)
+        : { workflow_runs: [run({ id: 45 }), run({ id: 44, conclusion: 'cancelled' }), run()] };
+    assert.equal(await findReleaseEvidence(identity, repository, { api: withCancelledRun, command }), null);
+    assert.deepEqual(calls, [45, 44, 43, 42, 43, 45]);
+});
+
 test('candidate identity uses committed canonical inputs and rejects altered package bytes', t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-evidence-fixture-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -123,10 +148,10 @@ test('release-note guard rejects disagreement between curated notes and the publ
     fs.mkdirSync(path.join(directory, 'scripts'), { recursive: true });
     fs.mkdirSync(path.join(directory, 'docs/releases'), { recursive: true });
     fs.mkdirSync(path.join(directory, '.github/workflows'), { recursive: true });
-    for (const name of ['lib.sh', 'build_release_notes.sh', 'release_notes_consistency_guard.sh']) {
+    for (const name of ['lib.sh', 'build_release_notes.sh', 'release_notes_consistency_guard.sh', 'publish_github_release.sh']) {
         fs.copyFileSync(path.join(process.cwd(), 'scripts', name), path.join(directory, 'scripts', name));
     }
-    fs.writeFileSync(path.join(directory, '.github/workflows/release-on-main.yml'), 'bash scripts/build_release_notes.sh\ngh release create --notes-file release_notes.md\n');
+    fs.writeFileSync(path.join(directory, '.github/workflows/release-on-main.yml'), 'bash scripts/build_release_notes.sh\nbash scripts/publish_github_release.sh "$TAG" "$ARCHIVE" "$CHECKSUM" release_notes.md\n');
     const notes = path.join(directory, 'docs/releases/2026.10.05.03.md');
     fs.writeFileSync(notes, '- Fix: Current behavior.\n');
     fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), '<!ENTITY version "2026.10.05.03">\n<CHANGES><![CDATA[\n###2026.10.05.03\n- Fix: Current behavior.\n]]></CHANGES>\n');

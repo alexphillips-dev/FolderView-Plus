@@ -301,7 +301,7 @@ test('preference coordinator rebases and retries a revision conflict without rol
     assert.equal(coordinator.getDiagnostics().types.docker.status, 'saved');
 });
 
-test('concurrent rule saves preserve committed rules and still rebase over unrelated preferences', async () => {
+for (const collection of ['autoRules', 'folderGroups']) test(`concurrent ${collection} saves preserve the committed collection and still rebase over unrelated preferences`, async () => {
     const api = loadModule();
     const incoming = [{ id: 'rule-from-this-tab' }];
     const otherRule = [{ id: 'rule-from-another-tab' }];
@@ -310,7 +310,7 @@ test('concurrent rule saves preserve committed rules and still rebase over unrel
         let resolveWriteStarted;
         const allowWrite = new Promise(resolve => { releaseWrite = resolve; });
         const writeStarted = new Promise(resolve => { resolveWriteStarted = resolve; });
-        let stored = normalizePrefs({ autoRules: [], _metadata: { prefsRevision: 1 } });
+        let stored = normalizePrefs({ [collection]: [], _metadata: { prefsRevision: 1 } });
         const writes = [];
         const storage = createStorage();
         const writer = api.createPreferenceSaveCoordinator({
@@ -330,18 +330,18 @@ test('concurrent rule saves preserve committed rules and still rebase over unrel
             }
         });
         writer.reconcile('docker', stored);
-        const save = writer.save('docker', { autoRules: incoming });
+        const save = writer.save('docker', { [collection]: incoming });
         const settlement = sameField ? assert.rejects(save, /Review and save your changes again/) : save;
         await writeStarted;
         stored = normalizePrefs({
-            autoRules: sameField ? otherRule : [], groupUnassignedItems: true,
+            [collection]: sameField ? otherRule : [], groupUnassignedItems: true,
             _metadata: { prefsRevision: 2 }
         });
         releaseWrite();
         await settlement;
         assert.deepEqual(writes, sameField ? [1] : [1, 2]);
-        assert.deepEqual(stored.autoRules, sameField ? otherRule : incoming);
-        assert.deepEqual(writer.getOptimisticPrefs('docker').autoRules, stored.autoRules);
+        assert.deepEqual(stored[collection], sameField ? otherRule : incoming);
+        assert.deepEqual(writer.getOptimisticPrefs('docker')[collection], stored[collection]);
         assert.equal(writer.getOptimisticPrefs('docker').groupUnassignedItems, true);
         assert.deepEqual(storage.snapshot(), {});
     }

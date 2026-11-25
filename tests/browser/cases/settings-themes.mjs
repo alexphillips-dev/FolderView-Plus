@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { registerSettingsAppearanceValidationCases } from './settings-appearance-validation.mjs';
 
 const settingsSource = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js', 'utf8');
 const functions = ['getSettingsSectionRegistrySignature', 'buildSettingsSections', 'getVisibleSections', 'renderAdvancedNav', 'readSettingsLaunchOverrides']
@@ -271,6 +272,8 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await page.locator('#fv-theme-github-source').fill('fixture/another-theme');
         assert.equal(await apply.isDisabled(), true);
     });
+
+    registerSettingsAppearanceValidationCases({ test, baseUrl, mount, chooseTab });
 
     test('Appearance keeps scoped preview, profile saves and errors visible after the tab split', async ({ page }) => {
         await mount(page, baseUrl);

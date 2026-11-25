@@ -71,7 +71,9 @@ avoid adding synonym aliases such as `Enhancement`, `Testing`, or `Documentation
    The publisher waits for required
    results, verifies release notes and raw package publication, then publishes
    the archive, checksum, provenance and SBOM attestations. Existing release tags
-   must point to the qualified commit. The successful candidate tag is removed.
+  must point to the qualified commit. The GitHub release stays in draft until
+  the publisher verifies both attached assets. A retry preserves matching
+  assets and resumes missing uploads. The successful candidate tag is removed.
 
 Do not bypass protection or fabricate evidence. A successful unrelated dev run,
 fork PR, different package, failed/cancelled job or expired receipt is insufficient.

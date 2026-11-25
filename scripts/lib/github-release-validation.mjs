@@ -28,11 +28,16 @@ export async function findReleaseEvidence(identity, repository, { api = githubAp
             .find(item => item.name === `release-validation-${identity.commit}` && !item.expired);
         if (!artifact) continue;
         const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-validation-'));
+        let phase = 'download';
         try {
             command(['run', 'download', String(run.id), '--repo', repository, '--name', artifact.name, '--dir', directory]);
+            phase = 'read';
             const evidence = JSON.parse(fs.readFileSync(path.join(directory, 'release-validation.json'), 'utf8'));
-            try { return verifyReleaseEvidence(evidence, identity, { repository, runId: run.id, runAttempt: run.run_attempt || 1, comparisonBase }); }
-            catch (error) { if (runId) throw error; console.log(`[release-validation] Ignoring unusable evidence from run ${run.id}: ${error.message}`); }
+            phase = 'verify';
+            return verifyReleaseEvidence(evidence, identity, { repository, runId: run.id, runAttempt: run.run_attempt || 1, comparisonBase });
+        } catch (error) {
+            if (runId) throw error;
+            console.log(`[release-validation] Ignoring unusable evidence from run ${run.id} (could not ${phase} receipt).`);
         } finally {
             assert.equal(path.dirname(directory), os.tmpdir());
             assert.ok(path.basename(directory).startsWith('fvplus-validation-'));

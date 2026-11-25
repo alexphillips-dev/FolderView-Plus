@@ -130,8 +130,9 @@ if [[ "${#UNTRACKED_FILES[@]}" -gt 0 ]]; then
     exit 1
 fi
 
-if git diff --cached --quiet --no-renames -- "${FVPLUS_SHIPPED_PATHS[@]}"; then
-    echo 'No shipped plugin files changed; keeping the current package.'
+fvplus::read_package_build_paths
+if git diff --cached --quiet --no-renames -- "${FVPLUS_PACKAGE_BUILD_PATHS[@]}"; then
+    echo 'No package inputs changed; keeping the current package.'
 else
     bash pkg_build.sh --branch "${CURRENT_BRANCH}"
     "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_sbom.mjs")" --check

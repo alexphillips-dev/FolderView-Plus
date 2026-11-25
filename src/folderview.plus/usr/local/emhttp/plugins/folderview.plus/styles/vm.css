@@ -43,6 +43,10 @@ body[data-fvplus-vm-app-width="wide"] {
     --fvplus-vm-app-column-width-mobile: 232px;
 }
 
+#kvm_list > tr.fv-vm-empty-inventory-hidden {
+    display: none;
+}
+
 .fv-runtime-health-badge {
     margin: 0.35rem 0 0.5rem 0;
     padding: 0.26rem 0.58rem;

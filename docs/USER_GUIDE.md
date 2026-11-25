@@ -201,7 +201,7 @@ The import dialog begins with one behavior decision:
 - **Add new only** creates missing folders and leaves existing folders unchanged.
 - **Replace exactly** makes the destination match the export and can delete folders that are absent from it.
 
-The dialog then shows change totals and optional detailed review. A live import creates an automatic safety backup. `Preview only` calculates the result without saving. See [Migration Guide](MIGRATION_GUIDE.md) for legacy exports and [Installation and Upgrades](INSTALLATION_AND_UPGRADES.md) for backup planning.
+The dialog shows totals and details for the selected changes. If a partial selection would detach a kept child or omit an imported child's parent, the dialog lists the affected links and asks you to revise the selection before applying. A live import creates an automatic safety backup. `Preview only` calculates the result without saving. See [Migration Guide](MIGRATION_GUIDE.md) for legacy exports and [Installation and Upgrades](INSTALLATION_AND_UPGRADES.md) for backup planning.
 
 ## Backups and recovery
 

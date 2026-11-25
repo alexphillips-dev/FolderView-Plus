@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { checkDashboardPrivacyScope } from '../helpers/dashboard-privacy-scope.mjs';
 
 export const registerRuntimePrivacyDiagnosticsCases = ({ test, baseUrl }) => {
+    test('Privacy classifier scopes Dashboard Docker links, VM links, and detached Docker previews independently', ({ page }) => checkDashboardPrivacyScope(page, baseUrl));
+
     test('Privacy classifier honors each secondary masking preference independently', async ({ page }) => {
         await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
         await page.evaluate(() => window.FolderViewPlusRuntimePrivacy.apply('docker', true, {

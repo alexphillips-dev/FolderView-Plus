@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "import",
-        "content-revision": "332da481211137b8b6214e4df9a077f0d7c692fe4526a884e9ca2acae862af3e"
+        "content-revision": "4b46312ee4467896bc28b6bbe6e081e31d7b7d6185f6615118c7e24ca170019f"
     },
     "import.subtitle": "Välj hur befintliga mappar ska hanteras. Inget ändras förrän du väljer Använd import.",
     "import.behavior.question": "Hur ska befintliga mappar hanteras?",
@@ -18,6 +18,7 @@
     "import.review.count": "Granska {{PLURAL:$1|en planerad ändring|$1 planerade ändringar}}",
     "import.review.folders-fields": "Mappar och fält",
     "import.review.choose": "Välj vilka ändringar som ska inkluderas",
+    "import.selection.parent-conflict": "Granska valet för att behålla dessa överordnade länkar intakta: $1",
     "import.safety.title": "Säkerhetsalternativ",
     "import.safety.summary": "Förhandsgranskning och bekräftelse",
     "import.safety.preview-only": "Endast förhandsgranskning",

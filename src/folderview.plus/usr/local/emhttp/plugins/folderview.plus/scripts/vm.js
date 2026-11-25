@@ -1652,6 +1652,19 @@ const createFolders = async (currentBundle) => {
         }
     }
 
+    if (Object.keys(vmInfo).length === 0) {
+        const vmList = document.getElementById('kvm_list');
+        const hasVisibleFolders = Boolean(vmList?.querySelector(':scope > tr.folder'));
+        for (const row of vmList?.rows || []) {
+            // Unraid renders a full-width, centered cell when no VMs exist.
+            const cell = row.cells[0];
+            if (!row.id && row.cells.length === 1 && cell.colSpan === 8 && !cell.children.length
+                && cell.style.textAlign === 'center' && cell.style.paddingTop === '12px') {
+                row.classList.toggle('fv-vm-empty-inventory-hidden', hasVisibleFolders);
+            }
+        }
+    }
+
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     const expandedStateById = buildVmExpandedStateMap(
         { ...vmFolderRenderRecovery.failedFolders(), ...foldersDone },
@@ -1767,7 +1780,11 @@ const queueCreateFoldersRender = () => {
 
 // Render one folder transactionally and return the number of earlier order entries moved.
 // The recovery controller restores native rows if rendering fails.
-const createFolder = (...args) => vmFolderRenderRecovery.render(args[0], args[1], args[3], () => renderVmFolder(...args));
+const createFolder = (folder, id, position, order, vmInfo, ...options) => vmFolderRenderRecovery.render(
+    folder, id, order,
+    () => renderVmFolder(folder, id, position, order, vmInfo, ...options),
+    isVmSavedFolderToken(`folder-${id}`, vmInfo)
+);
 
 const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
@@ -1850,13 +1867,22 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" data-fvplus-style="fv-u-uydnfn"></td></tr><tr child-id="${id}" id="name-${id}" data-fv-vm-folder-detail data-fvplus-style="fv-u-uydnfn"><td colspan="${totalCols}" data-fvplus-style="fv-u-lwesut"></td></tr>`;
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" data-fv-onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" data-fv-onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" type="button" aria-label="${safeFolderName}" aria-expanded="false" data-fv-onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" data-fvplus-style="fv-u-uydnfn"></td></tr><tr child-id="${id}" data-fv-vm-folder-detail data-fvplus-style="fv-u-uydnfn"><td colspan="${totalCols}" data-fvplus-style="fv-u-lwesut"></td></tr>`;
 
-    // insertion at position of the folder
-    if (position === 0) {
-        $('#kvm_list > tr.sortable').eq(position).before($(fld));
+    // Keep the preceding native Info row and its owner together when inserting.
+    const $vmList = $('#kvm_list');
+    const $sortable = $vmList.children('tr.sortable');
+    const $folderRows = $(fld);
+    if (!$sortable.length) {
+        $vmList.prepend($folderRows);
+    } else if (position === 0) {
+        $sortable.first().before($folderRows);
     } else {
-        $('#kvm_list > tr.sortable').eq(position - 1).next().after($(fld));
+        const previousRow = $sortable.get(Math.min(position, $sortable.length) - 1);
+        const detailRow = previousRow.matches('tr.folder')
+            ? (previousRow.nextElementSibling?.matches('[data-fv-vm-folder-detail]') ? previousRow.nextElementSibling : null)
+            : collectExistingVmDetailRowsForVmRow(previousRow).at(-1);
+        $(detailRow || previousRow).after($folderRows);
     }
     const $createdFolderRow = $(`tr[class~="folder-id-${id}"]`).first();
     vmFolderRowActionsController.decorate($createdFolderRow, id);
@@ -2173,6 +2199,7 @@ const dropDownButton = (id, persistState = true) => {
         $(`[class~="folder-${id}-element"] > td > i.fa-arrows-v`).remove();
         element.attr('active', 'true');
     }
+    element.attr('aria-expanded', String(!state));
     if(globalFolders[id]) {
         globalFolders[id].status.expanded = !state;
     }

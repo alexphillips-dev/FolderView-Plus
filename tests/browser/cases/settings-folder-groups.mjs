@@ -77,6 +77,22 @@ export const registerSettingsFolderGroupCases = ({ test, baseUrl }) => {
         await page.evaluate(() => window.fixtureGroups.failCreate(true)); await action(page, 'create').click();
         assert.match(await page.locator('.fv-group-feedback').textContent(), /Synthetic transaction conflict/); assert.equal(await page.locator('[data-fv-group-name="1"]').inputValue(), 'Second');
     });
+    test('Basic group editor preserves a peer change to its selected saved group', async ({ page }) => {
+        await setup(page, baseUrl);
+        await action(page, 'mode-custom').click();
+        await page.locator('[data-fv-group-title]').fill('Shared group');
+        await page.locator('[data-fv-group-name]').fill('Original');
+        await action(page, 'save').click();
+        await saved(page);
+        await page.locator('[data-fv-group-name]').fill('Local edit');
+        await page.evaluate(() => { window.fixtureGroups.store.docker[0].folders[0].name = 'Peer edit'; });
+        for (const operation of ['save', 'delete']) {
+            await action(page, operation).click();
+            await page.locator('.fv-group-feedback.is-error').waitFor();
+            assert.equal(await page.locator('[data-fv-group-name]').inputValue(), 'Local edit');
+            assert.equal(await page.evaluate(() => window.fixtureGroups.store.docker[0].folders[0].name), 'Peer edit');
+        }
+    });
     test('Basic group popup fits mobile and desktop themes with fixed actions, focus restoration and escaped names', async ({ page }) => {
         await setup(page, baseUrl); await action(page, 'mode-custom').click();
         await page.locator('[data-fv-group-title]').fill('<img src=x onerror=alert(1)>'); await page.locator('[data-fv-group-name]').fill('<script>bad</script>'); await action(page, 'save').click(); await saved(page);

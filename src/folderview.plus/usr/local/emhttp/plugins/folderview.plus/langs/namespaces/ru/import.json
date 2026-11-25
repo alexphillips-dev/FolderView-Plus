@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "import",
-        "content-revision": "ef8d7082e4a32e2f85d8d53dfba41386373305429d8dda898bca72bf9b2a3096"
+        "content-revision": "3a38bbdb89cded657c9567f56ec97afc2aea3c93e5eb4a5ef4f7411a4b36b270"
     },
     "import.subtitle": "Выберите, как обрабатывать существующие папки. Ничего не изменится, пока вы не выберете Применить импорт.",
     "import.behavior.question": "Как следует обрабатывать существующие папки?",
@@ -18,6 +18,7 @@
     "import.review.count": "Просмотрите {{PLURAL:$1|$1 запланированное изменение|$1 запланированных изменения|$1 запланированных изменений}}",
     "import.review.folders-fields": "Папки и поля",
     "import.review.choose": "Выберите, какие изменения включить",
+    "import.selection.parent-conflict": "Проверьте выбор, чтобы сохранить нетронутыми родительские ссылки: $1.",
     "import.safety.title": "Параметры безопасности",
     "import.safety.summary": "Предварительный просмотр и подтверждение",
     "import.safety.preview-only": "Только предварительный просмотр",

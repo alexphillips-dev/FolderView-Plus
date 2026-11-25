@@ -120,9 +120,9 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
     assert.match(libPhp, /function fvplusBootstrapCustomIconStorage\(\): void/);
     assert.match(libPhp, /fvplusBootstrapCustomIconStorage\(\);/);
     assert.match(libPhp, /function fvplusRepairMissingCustomIconReferences\(\): array/);
-    assert.match(libPhp, /fvplusVisitCustomIconReferences\(\$type, \&?\$folders, \&?\$prefs,/);
+    assert.match(libPhp, /fvplusVisitCustomIconReferences\(\$type, \&?\$folders, \&?\$prefs, \&?\$templates,/);
     assert.match(libPhp, /\$record\['icon'\] = '';/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons', false\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons', false, \$backupOptions\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_missing_custom_icons'/);
     assert.match(libPhp, /\$customIconDir = fvplusCustomIconDirPath\(\);/);
     assert.match(libPhp, /if \(is_dir\(\$customIconDir\)\) \{/);

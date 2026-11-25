@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "import",
-        "content-revision": "c212cc8d1f1c822cd938838fe4275ad69f96b40d6f1d098f721f2d9298559a66"
+        "content-revision": "ddbb6a03a3b8c74e88f4125c64f1d627d50eabfb364c1d4e5833b64a983d804d"
     },
     "import.subtitle": "Wählen Sie aus, wie mit vorhandenen Ordnern umgegangen werden soll. Es ändert sich nichts, bis Sie „Import anwenden“ auswählen.",
     "import.behavior.question": "Wie soll mit vorhandenen Ordnern umgegangen werden?",
@@ -18,6 +18,7 @@
     "import.review.count": "Überprüfen Sie {{PLURAL:$1|eine geplante Änderung|$1 geplante Änderungen}}",
     "import.review.folders-fields": "Ordner und Felder",
     "import.review.choose": "Wählen Sie aus, welche Änderungen einbezogen werden sollen",
+    "import.selection.parent-conflict": "Überprüfen Sie die Auswahl, um diese übergeordneten Links intakt zu halten: $1",
     "import.safety.title": "Sicherheitsoptionen",
     "import.safety.summary": "Vorschau und Bestätigung",
     "import.safety.preview-only": "Nur Vorschau",

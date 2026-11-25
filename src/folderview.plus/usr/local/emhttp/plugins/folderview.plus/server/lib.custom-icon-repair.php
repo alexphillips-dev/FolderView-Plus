@@ -14,6 +14,10 @@ function fvplusRepairMissingCustomIconReferences(): array {
             }
         }
         $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false));
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $templatePath = getTemplatePath($type);
+            array_push($paths, $templatePath, getLastGoodJsonPath($templatePath));
+        }
         $snapshots = fvplusEnvironmentCaptureFiles($paths);
         $repaired = []; $missing = []; $backups = []; $typeCounts = ['docker' => 0, 'vm' => 0];
         try {
@@ -22,21 +26,24 @@ function fvplusRepairMissingCustomIconReferences(): array {
                 $storedPrefs = readJsonObjectFile(getTypePrefsPath($type));
                 $prefs = $storedPrefs === null ? readTypePrefs($type)
                     : (migrateLegacyTypeDataIfNeeded($type, 'prefs', $storedPrefs) ?? $storedPrefs);
-                $foldersChanged = false; $prefsChanged = false;
-                fvplusVisitCustomIconReferences($type, $folders, $prefs,
+                $originalTemplates = readFolderTemplates($type, requireAvailable: true, normalize: false);
+                $templates = $originalTemplates;
+                $changed = [];
+                fvplusVisitCustomIconReferences($type, $folders, $prefs, $templates,
                     static function (string $name, array $reference, array &$record) use (&$repaired, &$missing,
-                        &$typeCounts, &$foldersChanged, &$prefsChanged, $existingIcons, $type): void {
+                        &$typeCounts, &$changed, $existingIcons, $type): void {
                         if (isset($existingIcons[$name])) return;
                         $record['icon'] = '';
                         $repaired[] = array_merge($reference, ['missingIcon' => $name]);
                         $missing[$name] = true; $typeCounts[$type]++;
-                        if ($reference['scope'] === 'folder') $foldersChanged = true;
-                        else $prefsChanged = true;
+                        $changed[$reference['scope']] = true;
                     });
-                if (!$foldersChanged && !$prefsChanged) continue;
-                $backups[$type] = createBackupSnapshot($type, 'before-repair-missing-custom-icons', false);
-                if ($foldersChanged) writeRawFolderMap($type, $folders);
-                if ($prefsChanged) writeTypePrefs($type, $prefs);
+                if ($changed === []) continue;
+                $backupOptions = isset($changed['template']) ? ['templateRecords' => $originalTemplates] : [];
+                $backups[$type] = createBackupSnapshot($type, 'before-repair-missing-custom-icons', false, $backupOptions);
+                if (isset($changed['folder'])) writeRawFolderMap($type, $folders);
+                if (isset($changed['defaults']) || isset($changed['group'])) writeTypePrefs($type, $prefs);
+                if (isset($changed['template'])) fvplusWriteBackupTemplateRecords($type, $templates);
             }
         } catch (Throwable $error) {
             fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "import",
-        "content-revision": "f6d3eefe7c945c4d9efe38ec4cbb20b7e8c1b7a11e33e9607e63f769d02ebd8a"
+        "content-revision": "089771e87b7ef3fc95a80ce67608d928754b7f0ab895894e4b84ae263d3c564d"
     },
     "import.subtitle": "Виберіть, як обробляти існуючі папки. Нічого не змінюється, поки ви не натиснете Застосувати імпорт.",
     "import.behavior.question": "Як слід обробляти існуючі папки?",
@@ -18,6 +18,7 @@
     "import.review.count": "Перегляньте {{PLURAL:$1|$1 заплановану зміну|$1 заплановані зміни|$1 запланованих змін}}",
     "import.review.folders-fields": "Папки та поля",
     "import.review.choose": "Виберіть, які зміни включити",
+    "import.selection.parent-conflict": "Перегляньте вибір, щоб зберегти ці батьківські посилання недоторканими: $1",
     "import.safety.title": "Параметри безпеки",
     "import.safety.summary": "Попередній перегляд та підтвердження",
     "import.safety.preview-only": "Тільки попередній перегляд",

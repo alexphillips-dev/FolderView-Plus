@@ -57,6 +57,9 @@ if [[ "$WORKFLOW_ONLY" == 1 ]]; then
   [[ "$PUSH_MAIN" == 1 ]] || fvplus::fail '--workflow-only requires --push-main.'
   git fetch --no-tags origin main
   git merge-base --is-ancestor origin/main HEAD || fvplus::fail 'Workflow-only publication must preserve published main ancestry.'
+  fvplus::read_package_build_paths
+  git diff --quiet --no-renames origin/main HEAD -- "${FVPLUS_PACKAGE_BUILD_PATHS[@]}" ':(exclude)scripts/package_channel_messages.mjs' \
+    || fvplus::fail 'Workflow-only publication cannot change package or runtime files.'
   while IFS= read -r changed_path; do
     case "$changed_path" in
       docs/sbom.cdx.json) fvplus::fail 'Workflow-only publication cannot change the packaged dependency inventory.' ;;

@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const scripts = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
 const utils = require(path.join(scripts, 'folderviewplus.utils.js'));
+const { reviewImportSelection } = require(path.join(scripts, 'folderviewplus.import-selection.js'));
 const folder = (name, parentId = '') => ({ name, parentId, icon: '', containers: [], settings: {}, actions: [] });
 const loadFunction = (file, name, nextName, sandbox) => {
     const source = fs.readFileSync(path.join(scripts, file), 'utf8');
@@ -14,6 +15,53 @@ const loadFunction = (file, name, nextName, sandbox) => {
     assert.ok(start >= 0 && end > start);
     return vm.runInNewContext(source.slice(start, end) + '\n' + name, sandbox);
 };
+
+test('partial import reviews only selected changes and blocks implicit reparenting', () => {
+    const current = { parent: folder('Original parent'), child: folder('Keep child', 'parent'), other: folder('Keep elsewhere') };
+    const replace = utils.buildImportPlan(current, { mode: 'full', folders: { other: folder('Keep elsewhere') } }, 'replace').operations;
+    const selectedDelete = { ...replace, deletes: ['parent'] };
+    const reviewReplace = reviewImportSelection(current, replace, selectedDelete);
+    assert.deepEqual(reviewReplace.diffRows.map(row => row.id), ['parent', 'other']);
+    assert.deepEqual(reviewReplace.hierarchyConflicts, [{ folderName: 'Keep child', parentName: 'Original parent' }]);
+    assert.deepEqual(reviewImportSelection(current, replace, { ...replace, upserts: [] }).hierarchyConflicts, []);
+
+    const merge = utils.buildImportPlan({}, { mode: 'full', folders: {
+        nested: folder('Nested child', 'incoming'), incoming: folder('Import parent')
+    } }, 'merge').operations;
+    const selectedChild = { ...merge, upserts: merge.upserts.filter(row => row.id === 'nested') };
+    const reviewMerge = reviewImportSelection({}, merge, selectedChild);
+    assert.deepEqual(reviewMerge.diffRows.map(row => row.id), ['nested']);
+    assert.deepEqual(reviewMerge.hierarchyConflicts, [{ folderName: 'Nested child', parentName: 'Import parent' }]);
+    assert.deepEqual(reviewImportSelection({}, merge, merge).hierarchyConflicts, []);
+});
+
+test('starter application replans from authoritative folder names and fences competing creates', async () => {
+    const folderGroupApi = require(path.join(scripts, 'folderviewplus.folder-groups.js'));
+    let folders = { first: folder('Media') }, revision = 8;
+    const requests = [];
+    const apply = loadFunction('folderviewplus.starter-templates.js', 'createSelectedStarterTemplates', 'quickCreateStarterTemplates', {
+        window: { FolderViewPlusFoundationModules: { folderGroups: folderGroupApi } },
+        DEFAULT_STARTER_FOLDER_ICON: 'fixture.png',
+        starterTemplateT: (_key, fallback) => fallback,
+        buildStarterFolderPayload: (name, icon) => ({ name, icon }),
+        fetchFolders: async () => ({ folders: { ...folders }, folderRevision: revision }),
+        requestFolderBatchMutation: async (type, operations, { expectedRevision }) => {
+            requests.push({ type, expectedRevision });
+            if (expectedRevision !== revision) throw new Error('Revision conflict');
+            for (const { folder: input } of operations.creates) folders[input.name] = input;
+            revision++;
+        }
+    });
+    const blueprint = [{ name: 'Media' }, { name: 'Books' }];
+    const competing = await Promise.allSettled([apply('docker', blueprint), apply('docker', blueprint)]);
+    assert.equal(competing[0].status, 'fulfilled');
+    assert.deepEqual(Array.from(competing[0].value.createdNames), ['Books']);
+    assert.equal(competing[0].value.skipped, 1);
+    assert.match(competing[1].reason.message, /Revision conflict/);
+    assert.equal((await apply('docker', blueprint)).createdNames.length, 0);
+    assert.deepEqual(Object.values(folders).map(entry => entry.name), ['Media', 'Books']);
+    assert.deepEqual(requests, [{ type: 'docker', expectedRevision: 8 }, { type: 'docker', expectedRevision: 8 }]);
+});
 
 test('explicit incoming IDs are reserved before path inference for every insertion order and import mode', () => {
     for (const mode of ['merge', 'replace', 'skip']) {

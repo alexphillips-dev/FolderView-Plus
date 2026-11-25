@@ -59,6 +59,44 @@ test('environment import preserves full parent IDs alongside prefix siblings and
     assert.equal(result.numericChild, '0');
 });
 
+test('tree integrity GET preserves raw parent links and a reviewed repair backs up the same state', () => {
+    withFixture(({ root, run }) => {
+        assert.deepEqual(run('seed-tree-get'), { visibleOrphanParent: '', storedOrphanParent: 'missing-parent' });
+        const config = path.join(root, 'config');
+        const recorded = fs.readdirSync(config, { withFileTypes: true }).filter(entry => entry.isFile())
+            .map(entry => [entry.name, fs.readFileSync(path.join(config, entry.name))]);
+        const preview = run('tree-get');
+        assert.equal(preview.ok, true);
+        assert.equal(preview.folders['0'].parentId, 'missing-parent');
+        assert.equal(preview.folders.a.parentId, 'b');
+        assert.equal(preview.folders.b.parentId, 'a');
+        for (const [name, bytes] of recorded) assert.deepEqual(fs.readFileSync(path.join(config, name)), bytes);
+        const repair = run('repair-tree');
+        assert.equal(repair.rejected, true);
+        assert.equal(repair.backupParent, 'missing-parent');
+        assert.equal(repair.backupCycle, 'b');
+        assert.equal(repair.repaired['0'].parentId, '');
+        assert.equal(repair.repaired.a.parentId, '');
+        assert.equal(repair.repaired.b.parentId, 'a');
+        assert.equal(repair.restored['0'].parentId, 'missing-parent');
+        assert.equal(repair.restored.a.parentId, 'b');
+        assert.equal(repair.restored.b.parentId, 'a');
+    });
+});
+
+test('tree integrity cannot report healthy from a missing primary when a recovery mirror exists', () => {
+    withFixture(({ root, run }) => {
+        run('seed-tree-get');
+        const primary = path.join(root, 'config', 'vm.json');
+        const mirror = primary + '.lastgood';
+        const bytes = fs.readFileSync(mirror);
+        fs.unlinkSync(primary);
+        assert.equal(run('tree-get').ok, false);
+        assert.equal(fs.existsSync(primary), false);
+        assert.deepEqual(fs.readFileSync(mirror), bytes);
+    });
+});
+
 test('Operations template listing and creation preserve existing rows through last-good recovery', () => {
     const result = withFixture(({ run }) => run('templates'));
     assert.deepEqual(result.onCorrupt, ['Saved template']);

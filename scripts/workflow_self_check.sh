@@ -53,6 +53,7 @@ for (const relativePath of [
   'scripts/unraid_compatibility_monitor.mjs',
   'docs/unraid-compatibility-baseline.json',
   'scripts/build_release_notes.sh',
+  'scripts/publish_github_release.sh',
   'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
   'scripts/release_notes_consistency_guard.sh',
@@ -241,7 +242,10 @@ if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
 if (!/Skip release publish for non-release main pushes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must explicitly skip publishing for workflow-only main pushes.');
 }
-if (!/gh release create/.test(releaseOnMainWorkflow) || !/gh release edit/.test(releaseOnMainWorkflow)) {
+const githubReleasePublisher = read('scripts/publish_github_release.sh');
+if (!/bash scripts\/publish_github_release\.sh/.test(releaseOnMainWorkflow)
+    || !/gh release create.*--draft/.test(githubReleasePublisher)
+    || !/gh release edit.*--draft=false/.test(githubReleasePublisher)) {
   fail('Release On Main workflow must own GitHub release publishing.');
 }
 if (!/push:\s*\n\s*branches:\s*\n\s*-\s*main/.test(releaseOnMainWorkflow) ||

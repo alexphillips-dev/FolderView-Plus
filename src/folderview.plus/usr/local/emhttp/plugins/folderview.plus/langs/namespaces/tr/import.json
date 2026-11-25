@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "import",
-        "content-revision": "f51cf8b7086b99b67dfac10d6414a3276926eb600c2219ea8bc37984508780cc"
+        "content-revision": "442416490441120b8a8783c1061cc7eddca04611502ad46d17616a94a9b47196"
     },
     "import.subtitle": "Mevcut klasörleri nasıl yöneteceğinizi seçin. Uygula içe aktarılmasını seçene kadar hiçbir şey değişmez.",
     "import.behavior.question": "Mevcut klasörler nasıl yönetilmeli?",
@@ -18,6 +18,7 @@
     "import.review.count": "{{PLURAL:$1|$1 planlanan değişikliği|$1 planlanan değişikliği}} gözden geçir",
     "import.review.folders-fields": "Klasörler ve alanlar",
     "import.review.choose": "Hangi değişikliklerin dahil edileceğini seç",
+    "import.selection.parent-conflict": "Bu ana bağlantıların bozulmamasını sağlamak için seçimi inceleyin: $1",
     "import.safety.title": "Güvenlik seçenekleri",
     "import.safety.summary": "Önizleme ve onay",
     "import.safety.preview-only": "Sadece önizleme",

@@ -43,7 +43,7 @@ Legacy overflow `0/default`, `1/expand`, and `2/scroll` become `default`, `expan
 
 Malformed required sections, unsupported versions, duplicate JSON keys or ambiguous folder names are rejected before writes. Intentional empty maps are supported. Safe limits are 5 MiB per full export, 5,000 folders per type, 5,000 members/hidden members/identity hints/action targets per folder, 200 actions per folder, 2,000 startup sequence entries, 160 UTF-8 bytes per folder name, 255 bytes per member name and 1,024 bytes per regex. Appearance permits at most 32 total profiles, 128 stylesheet files/2 MiB aggregate input and 64 KiB per compiled profile layer. Inputs beyond a supported limit are rejected rather than silently truncated. Unsafe or unscoped CSS is excluded with warnings. Correct rejected input in a copy and keep the original for recovery.
 
-If apply fails normally, captured configuration and assets are restored automatically and recovery evidence is retained. A process kill or power loss cannot provide a multi-file atomic commit: after restart, use the pre-migration global checkpoint in Recovery and verify both types and appearance together. Do not publish a raw backup or migration report as a sanitized support bundle.
+If apply fails normally, captured configuration and assets are restored automatically and recovery evidence is retained. After a power loss or process kill, use the pre-migration global checkpoint in Recovery and verify both folder types and appearance together. When native Docker autostart was included, that checkpoint also restores its previous entries and waits, or removes the file if it did not exist before migration. Do not publish a raw backup or migration report as a sanitized support bundle.
 
 ## Setup Assistant migration route
 

@@ -359,6 +359,9 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
     let dialogResult = null;
     let activePresetId = '';
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
+    let currentSummary = null;
+    let selectedOperations = currentOperations;
+    let selectionHierarchyConflicts = [];
     let currentDryRunOnly = false;
     let currentTrustInfo = { level: 'trusted', label: 'Trusted', reason: '' };
     let dialogLayoutObserver = null;
@@ -509,7 +512,6 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         };
     };
     const syncImportSafetyUi = () => {
-        const selectedOperations = filterOperationsBySelection(currentOperations);
         const selectedCount = countImportOperations(selectedOperations);
         const previewFirstEnabled = isPreviewFirstEnabled();
         const riskInfo = getImportRiskInfo(selectedOperations);
@@ -524,7 +526,8 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         }
         const applyButton = getImportApplyButton();
         if (applyButton.length) {
-            applyButton.prop('disabled', selectedCount <= 0 || (requireAck && !isImportReviewAcked()));
+            applyButton.prop('disabled', selectedCount <= 0 || selectionHierarchyConflicts.length > 0
+                || (requireAck && !isImportReviewAcked()));
         }
     };
     const isImportDryRunOnly = () => {
@@ -538,7 +541,19 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         }
     };
     const updateSelectionSummary = () => {
-        const selectedOperations = filterOperationsBySelection(currentOperations);
+        selectedOperations = filterOperationsBySelection(currentOperations);
+        const { diffRows, hierarchyConflicts } = window.FolderViewPlusFoundationModules.importSelection
+            .reviewImportSelection(folders, currentOperations, selectedOperations);
+        selectionHierarchyConflicts = hierarchyConflicts;
+        setImportReviewAcked(false);
+        renderImportDiffTable(diffRows, { resetPage: true });
+        previewText.val(formatImportSummary({
+            ...currentSummary,
+            creates: diffRows.filter(row => row.action === 'create'),
+            updates: diffRows.filter(row => row.action === 'update'),
+            unchanged: diffRows.filter(row => row.action === 'unchanged'),
+            deletes: diffRows.filter(row => row.action === 'delete')
+        }));
         const selectedCount = countImportOperations(selectedOperations);
         const selectedCreates = selectedOperations.creates.length;
         const selectedUpdates = selectedOperations.upserts.length;
@@ -549,6 +564,10 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         let statusLevel = 'normal';
         if (selectedCount === 0) {
             statusMessage = importT("common.audit.select-change", "Select at least one change to continue.");
+            statusLevel = 'warning';
+        } else if (hierarchyConflicts.length) {
+            statusMessage = importT('import.selection.parent-conflict', 'Review the selection to keep these parent links intact: $1',
+                hierarchyConflicts.map(({ folderName, parentName }) => `${folderName} → ${parentName}`).join(', '));
             statusLevel = 'warning';
         } else if (currentDryRunOnly) {
             statusMessage = importT("common.audit.preview-only", "Preview only is enabled. No changes will be saved.");
@@ -659,17 +678,16 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
 
     const renderPreview = () => {
         const mode = modeSelect.val();
-        const { summary, operations, diffRows } = utils.buildImportPlan(folders, parsed, mode);
+        const { summary, operations } = utils.buildImportPlan(folders, parsed, mode);
         const trust = resolveImportTrustInfo(parsed);
         const dryRunOnly = isImportDryRunOnly();
         currentOperations = operations;
+        currentSummary = summary;
         currentDryRunOnly = dryRunOnly;
         currentTrustInfo = trust;
         importSelectionState = buildOperationSelectionState(operations, folders);
         setImportReviewAcked(false);
         renderOperationSelection(updateSelectionSummary);
-        renderImportDiffTable(diffRows, { resetPage: true });
-        previewText.val(formatImportSummary(summary));
         syncModeChoiceUi();
 
         const metaItems = [
@@ -851,8 +869,9 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         buttons: {
             'Apply Import': function() {
                 const mode = modeSelect.val();
-                const operations = filterOperationsBySelection(currentOperations);
+                const operations = selectedOperations;
                 const dryRunOnly = isImportDryRunOnly();
+                if (!countImportOperations(operations) || selectionHierarchyConflicts.length) return;
                 const riskInfo = getImportRiskInfo(operations);
                 const requireAck = dryRunOnly !== true && (isPreviewFirstEnabled() === true || riskInfo.requiresReview === true);
                 if (requireAck && !isImportReviewAcked()) {

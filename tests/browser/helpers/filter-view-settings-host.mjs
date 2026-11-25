@@ -63,13 +63,18 @@ export const mountFilterViewVmHost = async (page, host, { nativeDetails = false 
     });
     const langs = fs.readFileSync(path.join(plugin, 'langs/script.php'), 'utf8');
     const langScripts = [...langs.matchAll(/<script[^>]*src="[^"\n]*?fvplus_asset\('([^']+)'\)[^"\n]*"[^>]*><\/script>/g)].map(m => script(m[1])).join('');
-    const buildRows = () => host.names.map((name, index) => {
-        const { uuid } = host.runtime.vm[name];
-        const toggle = nativeDetails ? ` <a href="#" onclick="toggle_id('name-${index}'); return false">Info</a>` : '';
-        const detail = nativeDetails && index === 0
-            ? `<tr child-id="${index}" id="name-${index}" hidden><td colspan="5">VM details</td></tr>` : '';
-        return `<tr class="sortable" id="${uuid}"${nativeDetails ? ` parent-id="${index}"` : ''}><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span>${toggle}</td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>${detail}`;
-    }).join('');
+    const buildRows = () => {
+        if (host.names.length === 0) {
+            return '<tr><td colspan="8" style="text-align:center;padding-top:12px">No Virtual Machines installed</td></tr>';
+        }
+        return host.names.map((name, index) => {
+            const { uuid } = host.runtime.vm[name];
+            const toggle = nativeDetails ? ` <a href="#" onclick="toggle_id('name-${index}'); return false">Info</a>` : '';
+            const detail = nativeDetails && index === 0
+                ? `<tr child-id="${index}" id="name-${index}" hidden><td colspan="5">VM details</td></tr>` : '';
+            return `<tr class="sortable" id="${uuid}"${nativeDetails ? ` parent-id="${index}"` : ''}><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span>${toggle}</td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>${detail}`;
+        }).join('');
+    };
     const native = `<table id="kvm_table"><thead><tr><th>Name</th><th>OS</th><th>CPU</th><th>RAM</th><th>Autostart</th></tr></thead><tbody id="kvm_list">${buildRows()}</tbody></table>`;
     const config = { requestedLocale: 'en', resolvedLocale: 'en', direction: 'ltr', namespaces: ['common', 'legacy-surface', 'vm', 'diagnostics'], assets: [
         { locale: 'en', namespace: 'legacy', url: prefix + 'langs/en.json' },

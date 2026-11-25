@@ -58,7 +58,7 @@ cp -a -- "${ROOT_DIR}/pkg_build.sh" "${PLG_FILE}" "${ROOT_DIR}/folderview.plus.x
 cp -a -- "${ROOT_DIR}/docs/releases" "${snapshot}/docs/"
 fvplus::copy_indexed_package_source "${ROOT_DIR}" "${snapshot}/src/folderview.plus"
 git -C "${snapshot}" init -q
-git -C "${snapshot}" add -f -- "${FVPLUS_SHIPPED_PATHS[0]}"
+git -C "${snapshot}" add -f -- "${FVPLUS_PACKAGE_SOURCE_ROOT}"
 
 branch_args=()
 if [[ -z "${FVPLUS_BUILD_BRANCH:-}" ]] && command -v git >/dev/null 2>&1; then

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { registerEditorMemberLifecycleCases } from './editor-member-lifecycle.mjs';
 
 const scripts = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
 const source = fs.readFileSync(path.join(scripts, 'folder.js'), 'utf8');
@@ -10,6 +11,7 @@ const serializerStart = source.indexOf('const buildFolderPayloadFromForm =');
 const serializer = source.slice(serializerStart, source.indexOf('const buildFolderSettingsSummaryHtml =', serializerStart));
 
 export const registerEditorMemberRoundtripCases = ({ test }) => {
+    registerEditorMemberLifecycleCases({ test });
     test('Folder editor retains unavailable explicit members and identity until deliberately removed', async ({ page }) => {
         await page.setContent('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Folder member fixture</title></head><body><table class="sortable"><tbody></tbody></table></body></html>');
         await page.addStyleTag({ path: path.join(scripts, '../styles/csp.utilities.css') });

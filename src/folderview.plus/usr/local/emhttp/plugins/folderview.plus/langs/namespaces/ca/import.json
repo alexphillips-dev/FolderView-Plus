@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "import",
-        "content-revision": "0a7f8a12f5f5425492475b532680c17200d8a9a30460cdfb78136eda3244d485"
+        "content-revision": "eb5363e3a312cabc1558c27177e97eae9a956a9b166ab0e84d134eb0ed626cb6"
     },
     "import.subtitle": "Trieu com gestionar les carpetes existents. No canvia res fins que seleccioneu Aplica la importació.",
     "import.behavior.question": "Com s'han de gestionar les carpetes existents?",
@@ -18,6 +18,7 @@
     "import.review.count": "Revisa {{PLURAL:$1|un canvi previst|$1 canvis planificats}}",
     "import.review.folders-fields": "Carpetes i camps",
     "import.review.choose": "Trieu quins canvis voleu incloure",
+    "import.selection.parent-conflict": "Revisa la selecció per mantenir intactes aquests enllaços parentals: $1",
     "import.safety.title": "Opcions de seguretat",
     "import.safety.summary": "Vista prèvia i confirmació",
     "import.safety.preview-only": "Només previsualització",

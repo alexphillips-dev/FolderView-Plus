@@ -47,8 +47,18 @@ function getBackupSnapshotPath(string $type, string $name): string {
             || strpos($normalized, 'rollback') !== false;
     }
 
+    function createFolderBatchSafetyBackup(string $type, string $reason, array $before, array $after, bool $preserveHierarchy): ?array {
+        $backup = $reason !== '' && jsonObjectsDiffer($before, $after)
+            ? createBackupSnapshot($type, $reason, false, ['preserveHierarchy' => $preserveHierarchy]) : null;
+        if ($preserveHierarchy && empty($backup['name'])) {
+            throw new RuntimeException('A pre-repair backup could not be verified, so no folder links were changed.');
+        }
+        return $backup;
+    }
+
     function getBackupPayloadFolderCount(array $decoded, string $type): ?int {
         try {
+            fvplusBackupTemplateRecords($decoded);
             return count(normalizeImportedFoldersPayload($decoded, $type));
         } catch (RuntimeException $error) {
             // Keep malformed backups visible for inspection and deletion.
@@ -56,10 +66,12 @@ function getBackupSnapshotPath(string $type, string $name): string {
         }
     }
 
-    function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true): array {
-        return withConfigMutationLock(static function () use ($type, $reason, $prune): array {
+    function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true, array $options = []): array {
+        return withConfigMutationLock(static function () use ($type, $reason, $prune, $options): array {
             $type = ensureType($type);
-            $folders = readRawFolderMap($type);
+            $folders = ($options['preserveHierarchy'] ?? false)
+                ? readFolderMapForTreeIntegrity($type)
+                : readRawFolderMap($type);
             $folderCount = count($folders);
             if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
                 try {
@@ -110,6 +122,8 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 'folders' => $folders,
                 'prefs' => $prefs
             ];
+            if (($options['preserveHierarchy'] ?? false) === true) $payload['preserveHierarchy'] = true;
+            if (isset($options['templateRecords'])) $payload['templates'] = $options['templateRecords'];
             writeJsonObjectAtomic("$backupDir/$filename", fvplusJsonTypeConfig($payload));
             $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type), [$filename]) : [];
             try {
@@ -239,11 +253,15 @@ function getBackupSnapshotPath(string $type, string $name): string {
         }
         $folders = normalizeImportedFoldersPayload($decoded, $type);
         $prefs = is_array($decoded['prefs'] ?? null) ? normalizeTypePrefs($decoded['prefs']) : null;
+        $templates = fvplusBackupTemplateRecords($decoded);
+        $reason = (string)($decoded['reason'] ?? '');
+        $preserveHierarchy = ($decoded['preserveHierarchy'] ?? false) === true
+            && ($reason === 'before-tree-integrity-repair' || preg_match('/^before-restore-[a-f0-9]{12}$/D', $reason));
 
         return [
             'name' => $safeName,
             'createdAt' => gmdate('c', (int)@filemtime($path)),
-            'reason' => (string)($decoded['reason'] ?? ''),
+            'reason' => $reason,
             'schemaVersion' => array_key_exists('schemaVersion', $decoded) ? $decoded['schemaVersion'] : null,
             'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
             'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
@@ -254,7 +272,9 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 ? normalizeConfigMetadata($decoded['configurationMetadata'], $type)
                 : null,
             'prefs' => $prefs,
-            'folders' => $folders
+            'folders' => $folders,
+            ...($preserveHierarchy ? ['preserveHierarchy' => true] : []),
+            ...($templates === null ? [] : ['templates' => $templates])
         ];
     }
 
@@ -349,19 +369,32 @@ function getBackupSnapshotPath(string $type, string $name): string {
         }
     }
 
-    function fvplusRestoreSafetyBackupMatchesCurrent(string $type, array $snapshot): bool {
-        // Interrupted transactions and unchanged imports can leave identical safety copies.
-        $reason = strtolower(trim((string)$snapshot['reason']));
-        if ($reason !== 'before-folder-editor-bulk-move'
-            && !str_starts_with($reason, 'transaction-')
-            && !preg_match('/^before-restore-[0-9a-f]{12}$/D', $reason)) {
-            return false;
+    function fvplusBackupTemplateRecords(array $payload): ?array {
+        if (!array_key_exists('templates', $payload)) return null;
+        $templates = $payload['templates'];
+        if (!is_array($templates) || count(array_filter($templates, 'is_array')) !== count($templates)) {
+            throw new RuntimeException('Unable to load saved templates.');
         }
-        $safety = readBackupSnapshot($type, $snapshot['name']);
-        $folders = normalizeFolderMapPayload($safety['folders']);
+        return $templates;
+    }
+
+    function fvplusWriteBackupTemplateRecords(string $type, array $templates): void {
+        $path = getTemplatePath($type);
+        writeJsonObjectWithLastGood($path, $templates);
+        if ($templates !== readFolderTemplateFile($path) || $templates !== readFolderTemplateFile(getLastGoodJsonPath($path))) {
+            throw new FVPlusStorageException('Unable to load saved templates.');
+        }
+    }
+
+    function fvplusRestoreSafetyBackupMatchesCurrent(string $type, array $safety): bool {
+        $preserveHierarchy = ($safety['preserveHierarchy'] ?? false) === true;
+        $folders = normalizeFolderMapPayload($safety['folders'], !$preserveHierarchy);
+        $currentFolders = $preserveHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
         $prefs = readTypePrefs($type);
-        return !jsonObjectsDiffer($folders, readRawFolderMap($type))
-            && !jsonObjectsDiffer(reconcileManualOrderPrefs($safety['prefs'] ?? $prefs, $folders), $prefs);
+        return !jsonObjectsDiffer($folders, $currentFolders)
+            && !jsonObjectsDiffer(reconcileManualOrderPrefs($safety['prefs'] ?? $prefs, $folders), $prefs)
+            && (!isset($safety['templates']) || !jsonObjectsDiffer($safety['templates'],
+                readFolderTemplates($type, requireAvailable: true, normalize: false)));
     }
 
     require_once __DIR__ . '/lib.backup-restore.php';

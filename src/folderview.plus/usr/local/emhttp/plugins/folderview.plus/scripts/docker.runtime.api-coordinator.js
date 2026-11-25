@@ -275,6 +275,7 @@
             try {
                 const containers = await provider().listContainers({
                     signal,
+                    allowLegacyFallback: false,
                     timeoutMs: Math.max(1000, Number(options.timeoutMs) || 6000),
                     staleKey: String(options.staleKey || 'docker-api-coordinator-list')
                 });
@@ -299,6 +300,7 @@
                 const entry = typeof activeProvider.reconcileContainer === 'function'
                     ? await activeProvider.reconcileContainer(identity, {
                         signal,
+                        allowLegacyFallback: false,
                         timeoutMs: Math.max(1000, Number(options.timeoutMs) || 6000),
                         staleKey: `docker-api-coordinator-container:${String(identity || '')}`
                     })

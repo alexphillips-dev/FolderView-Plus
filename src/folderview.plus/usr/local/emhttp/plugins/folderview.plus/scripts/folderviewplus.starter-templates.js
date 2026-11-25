@@ -809,6 +809,22 @@ const quickCreateStarterFolder = async (type) => {
     }
 };
 
+const createSelectedStarterTemplates = async (type, selectedBlueprints) => {
+    const { folders, folderRevision } = await fetchFolders(type);
+    if (!Number.isSafeInteger(folderRevision) || folderRevision < 0) {
+        throw new Error(starterTemplateT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
+    }
+    const { creates, skipped } = window.FolderViewPlusFoundationModules.folderGroups.planCreates(selectedBlueprints, folders);
+    if (creates.length) {
+        await requestFolderBatchMutation(type, {
+            creates: creates.map(blueprint => ({
+                folder: buildStarterFolderPayload(String(blueprint.name).trim(), String(blueprint.icon || DEFAULT_STARTER_FOLDER_ICON))
+            }))
+        }, { expectedRevision: folderRevision });
+    }
+    return { createdNames: creates.map(blueprint => String(blueprint.name).trim()), skipped };
+};
+
 const quickCreateStarterTemplates = async (type) => {
     const resolvedType = normalizeManagedType(type);
     const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
@@ -827,33 +843,8 @@ const quickCreateStarterTemplates = async (type) => {
     }
 
     try {
-        const existingNames = new Set(
-            Object.values(getFolderMap(resolvedType) || {}).map((folder) => String(folder?.name || '').trim().toLowerCase()).filter((name) => name !== '')
-        );
-        const createdNames = [];
-        const creates = [];
-        let skippedCount = 0;
-
-        for (const blueprint of selectedBlueprints) {
-            const folderName = String(blueprint?.name || '').trim();
-            if (!folderName) {
-                continue;
-            }
-            const normalizedName = folderName.toLowerCase();
-            if (existingNames.has(normalizedName)) {
-                skippedCount += 1;
-                continue;
-            }
-            existingNames.add(normalizedName);
-            const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
-            creates.push({ folder: payload });
-            createdNames.push(folderName);
-        }
-
-        if (createdNames.length > 0) {
-            await requestFolderBatchMutation(resolvedType, { deletes: [], upserts: [], creates });
-            await refreshType(resolvedType);
-        }
+        const { createdNames, skipped: skippedCount } = await createSelectedStarterTemplates(resolvedType, selectedBlueprints);
+        await refreshType(resolvedType);
 
         const createdCount = createdNames.length;
         const createdFolderId = createdCount > 0 ? (resolveFolderIdsByNames(resolvedType, createdNames)[0] || '') : '';

@@ -120,7 +120,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $upserts = $operations['upserts'] ?? [];
         $creates = $operations['creates'] ?? [];
         $backupReason = $operations['backupReason'] ?? '';
-        if (!is_string($backupReason) || ($backupReason !== '' && (!preg_match('/^before-(?:import-transaction-(?:merge|skip|replace)|clear-all|delete-[a-zA-Z0-9._:-]{1,128})$/D', $backupReason)
+        if (!is_string($backupReason) || ($backupReason !== '' && (!preg_match('/^before-(?:import-transaction-(?:merge|skip|replace)|clear-all|tree-integrity-repair|delete-[a-zA-Z0-9._:-]{1,128})$/D', $backupReason)
             || trim((string)$expectedRevision) === ''))) {
             throw new RuntimeException('Invalid folder batch safety backup request.');
         }
@@ -190,7 +190,8 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $startedAt = microtime(true);
             assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             assertBatchManualOrderRevision($type, $manualOrder, $expectedPrefsRevision);
-            $originalFolders = readRawFolderMap($type);
+            $repairingHierarchy = $backupReason === 'before-tree-integrity-repair';
+            $originalFolders = $repairingHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
             $originalPrefs = readTypePrefs($type);
             $nextFolders = $originalFolders;
             $deletedIds = [];
@@ -257,8 +258,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
             }
             $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
-            $backup = $backupReason !== '' && jsonObjectsDiffer($originalFolders, $nextFolders)
-                ? createBackupSnapshot($type, $backupReason, false) : null;
+            $backup = createFolderBatchSafetyBackup($type, $backupReason, $originalFolders, $nextFolders, $repairingHierarchy);
             try {
                 writeRawFolderMap($type, $nextFolders);
                 if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);

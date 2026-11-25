@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4792,
-        "total-source-messages": 4792,
+        "translated-messages": 4793,
+        "total-source-messages": 4793,
         "content-revision": "7c764dd2894b72427eb83096263356771c02cc82ebc78f7da031afea06c1d6ec",
-        "locale-content-revision": "f4b656405542f79a0d7a9b0621ea2790b46cf18eb0579189c44606685290a4e3"
+        "locale-content-revision": "829bbde2aa6656861a3935e4181035fcb649fa992337cf650d48af521b4db146"
     },
     "add-folder": "إضافة مجلد",
     "up-to-date": "محدثة",

@@ -59,7 +59,7 @@ test('self-heal JSON helpers exist and are used in folder/prefs readers', () => 
     assert.match(libPhp, /function getLastGoodJsonPath\(string \$path\): string/);
     assert.match(libPhp, /function writeJsonObjectWithLastGood\(string \$path, array \$payload\): void/);
     assert.match(libPhp, /function recoverJsonObjectFromLastGood\(string \$path, \?callable \$verify = null\): \?array/);
-    assert.match(libPhp, /function normalizeFolderMapPayload\(\$value\): array/);
+    assert.match(libPhp, /function normalizeFolderMapPayload\(\$value, bool \$repairHierarchy = true\): array/);
     assert.match(libPhp, /function readRawFolderMap\(string \$type, bool \$requireVerified = false\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path, \$verify\)/);
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
     assert.match(libPrefsPhp, /function readTypePrefs\(string \$type\): array[\s\S]*readJsonObjectFile\(getLastGoodJsonPath\(\$path\)\)[\s\S]*writeTypePrefs\(\$type, \$lastGood\)[\s\S]*migrateLegacyTypeDataIfNeeded/);

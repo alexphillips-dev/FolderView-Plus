@@ -131,6 +131,24 @@ test('beacon rejection or exception uses one authenticated fetch fallback', asyn
     }
 });
 
+test('a prepared startup sync uses an endpoint-bound nonce once and keeps token checks at dispatch', async () => {
+    const h = load();
+    const url = '/plugins/folderview.plus/server/sync_order.php';
+    const send = await h.api.prepareKeepalive(url, { type: 'docker' });
+    assert.equal(h.ajax.length, 1);
+    assert.equal(h.ajax[0].data.endpoint, 'sync_order.php');
+    assert.equal(h.beacons.length, 0);
+    assert.equal(send(), true);
+    assert.equal(send(), false);
+    assert.equal(h.beacons[0].body.get('_fv_nonce'), nonce);
+    assert.equal(h.beacons[0].body.get('type'), 'docker');
+    const lostSession = load();
+    const sendAfterSessionChanged = await lostSession.api.prepareKeepalive(url);
+    lostSession.context.window.csrf_token = '';
+    assert.equal(sendAfterSessionChanged(), false);
+    assert.equal(lostSession.beacons.length, 0);
+});
+
 test('missing CSRF, missing plugin token, missing nonce and foreign URLs never queue a mutation', () => {
     for (const [options, url, credentials] of [
         [{ csrf: '' }, endpoint, { nonce }], [{ token: '' }, endpoint, { nonce }],
@@ -231,6 +249,30 @@ test('Docker editor awaits one nonce-protected synchronization and propagates fa
     assert.equal(calls.length, 2, 'a member-order-only edit resynchronizes the managed planner');
     complete({ ok: true });
     await reordered;
+});
+
+test('Docker editor syncs hierarchy edits and recognizes structured backend outcomes', async () => {
+    const calls = [];
+    let outcome = 'synced';
+    const api = dockerEditor.createApi({ securePost: async (_url, body) => {
+        calls.push(body);
+        return { ok: true, syncOutcome: outcome };
+    } });
+    const previousFolder = { name: 'Folder', containers: [], parentId: 'parent-a',
+        settings: { child_folder_order: ['first', 'second'], chevron_color: '#ff0000' } };
+    const sync = folder => api.flushPostSaveSync({ folder, folderId: 'current', previousFolder });
+    await sync({ ...previousFolder, settings: { ...previousFolder.settings, chevron_color: '#ffee00' } });
+    assert.equal(calls.length, 0);
+    await sync({ ...previousFolder, parentId: 'parent-b' });
+    await sync({ ...previousFolder, settings: { childFolderOrder: ['second', 'first'] } });
+    assert.equal(calls.length, 2);
+    for (const status of ['queued', 'unmanaged']) {
+        outcome = status;
+        await sync({ ...previousFolder, parentId: 'parent-b' });
+    }
+    outcome = 'failed';
+    await assert.rejects(sync({ ...previousFolder, parentId: 'parent-b' }), /Docker start order sync failed/);
+    assert.equal(calls.length, 5);
 });
 
 function iconApiFor(h) {

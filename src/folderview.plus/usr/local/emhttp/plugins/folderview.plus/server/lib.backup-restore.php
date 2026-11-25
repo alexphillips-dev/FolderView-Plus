@@ -10,25 +10,49 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
             throw new FVPlusConfigConflictException('Undo failed.');
         }
         if ($editorUndo) assertExpectedConfigRevision($type, 'folder', $options['expectedFolderRevision']);
-        $folders = normalizeFolderMapPayload($snapshot['folders']);
-        $before = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+        $preserveHierarchy = !$editorUndo && ($snapshot['preserveHierarchy'] ?? false) === true;
+        $folders = normalizeFolderMapPayload($snapshot['folders'], !$preserveHierarchy);
+        $templates = $editorUndo ? null : ($snapshot['templates'] ?? null);
+        $templatePath = getTemplatePath($type);
+        $undoPath = getBackupsDirPath() . "/.$type-undo.json";
+        $undoBackups = $options['undoBackups'] ?? null;
+        $paths = fvplusTypeTransactionPaths($type);
+        if ($templates !== null) array_push($paths, $templatePath, getLastGoodJsonPath($templatePath));
+        if ($undoBackups !== null) $paths[] = $undoPath;
+        $before = fvplusEnvironmentCaptureFiles($paths);
         try {
             $prefs = $editorUndo ? readTypePrefs($type) : reconcileManualOrderPrefs($snapshot['prefs'] ?? readTypePrefs($type), $folders);
-            $backup = $editorUndo || ($options['createSafetyBackup'] ?? false) === true
-                ? createBackupSnapshot($type, 'before-restore-' . bin2hex(random_bytes(6)), false)
-                : null;
-            writeRawFolderMap($type, $folders);
+            $backup = null;
+            if ($editorUndo || ($options['createSafetyBackup'] ?? false) === true) {
+                $backupOptions = ['preserveHierarchy' => $preserveHierarchy];
+                if ($templates !== null) {
+                    $backupOptions['templateRecords'] = readFolderTemplates($type, requireAvailable: true, normalize: false);
+                }
+                $backup = createBackupSnapshot($type, 'before-restore-' . bin2hex(random_bytes(6)), false, $backupOptions);
+            }
+            if ($preserveHierarchy) fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), $folders);
+            else writeRawFolderMap($type, $folders);
             fvplusEnvironmentTransactionStage($options, 'folders');
             if (!$editorUndo) {
                 writeTypePrefs($type, $prefs);
                 fvplusEnvironmentTransactionStage($options, 'prefs');
             }
+            if ($templates !== null) {
+                fvplusWriteBackupTemplateRecords($type, $templates);
+                fvplusEnvironmentTransactionStage($options, 'templates');
+            }
             if ($type === 'docker') {
                 syncContainerOrder('docker');
                 fvplusEnvironmentTransactionStage($options, 'docker-order');
             }
-            if (jsonObjectsDiffer($folders, readRawFolderMap($type)) || jsonObjectsDiffer($prefs, readTypePrefs($type))) {
+            $savedFolders = $preserveHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
+            if (jsonObjectsDiffer($folders, $savedFolders) || jsonObjectsDiffer($prefs, readTypePrefs($type))
+                || ($templates !== null && ($templates !== readFolderTemplateFile($templatePath)
+                    || $templates !== readFolderTemplateFile(getLastGoodJsonPath($templatePath))))) {
                 throw new RuntimeException('Restore failed.');
+            }
+            if ($undoBackups !== null) {
+                writeJsonObjectAtomic($undoPath, ['state' => fvplusBackupUndoCurrentState($type), 'checkpoints' => $undoBackups]);
             }
         } catch (Throwable $error) {
             fvplusTransactionRestoreAfterFailure($before, $error, static function(array $files): void { fvplusEnvironmentRestoreFiles($files); });
@@ -49,38 +73,10 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         }
         return [
             'name' => $snapshot['name'], 'restoredAt' => gmdate('c'), 'count' => count($folders),
-            'prefsRestored' => !$editorUndo && $snapshot['prefs'] !== null, 'backup' => $backup
+            'prefsRestored' => !$editorUndo && $snapshot['prefs'] !== null, 'backup' => $backup,
+            ...($templates === null ? [] : ['templatesRestored' => true])
         ];
     });
 }
 
-function restoreLatestBackupSnapshot(string $type, ?string $expectedName = null, ?string $reviewHash = null): array {
-    $type = ensureType($type);
-    return withConfigMutationLock(static function () use ($type, $expectedName, $reviewHash): array {
-        $snapshots = listBackupSnapshots($type, $reviewHash !== null);
-        foreach ($snapshots as $snapshot) {
-            if (($snapshot['count'] ?? 0) <= 0) continue;
-            if (($expectedName !== null && $snapshot['name'] !== $expectedName)
-                || ($reviewHash !== null && !hash_equals($snapshot['reviewHash'], $reviewHash))) {
-                throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
-            }
-            return restoreBackupSnapshot($type, (string)$snapshot['name'], ['createSafetyBackup' => true]);
-        }
-        throw new RuntimeException($snapshots === [] ? 'No backups available.' : 'No non-empty backups available.');
-    });
-}
-
-function isUndoBackupReason(string $reason): bool {
-    return preg_match('/^(before|pre|undo|transaction)-/', strtolower(trim($reason))) === 1;
-}
-function restoreLatestUndoBackupSnapshot(string $type): array {
-    $type = ensureType($type);
-    return withConfigMutationLock(static function () use ($type): array {
-        foreach (listBackupSnapshots($type) as $snapshot) {
-            if (!isset($snapshot['count']) || !isUndoBackupReason((string)($snapshot['reason'] ?? ''))) continue;
-            if (fvplusRestoreSafetyBackupMatchesCurrent($type, $snapshot)) continue;
-            return restoreBackupSnapshot($type, (string)$snapshot['name']);
-        }
-        throw new RuntimeException('No undo-capable backups found.');
-    });
-}
+require_once __DIR__ . '/lib.backup-restore-selection.php';

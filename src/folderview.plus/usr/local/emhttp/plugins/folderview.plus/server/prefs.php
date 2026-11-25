@@ -88,12 +88,16 @@ fvplus_json_try(function (): array {
     $saved = $configChanged ? writeTypePrefs($type, $next, $receipt) : $current;
     $metadata = readConfigMetadata($type, false);
     unset($metadata['prefsMutationReceipt']);
+    $currentDockerStartOrder = normalizeDockerStartOrderPrefs($current['dockerStartOrder'] ?? []);
+    $savedDockerStartOrder = normalizeDockerStartOrderPrefs($saved['dockerStartOrder'] ?? []);
+    $followsDockerPage = $savedDockerStartOrder['mode'] === 'docker-page';
     $dockerOrderChanged = $type === 'docker' && (
         $current['autoRules'] !== $saved['autoRules'] ||
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
         || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
         || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
-        || json_encode(normalizeDockerStartOrderPrefs($current['dockerStartOrder'] ?? []), JSON_UNESCAPED_SLASHES) !== json_encode(normalizeDockerStartOrderPrefs($saved['dockerStartOrder'] ?? []), JSON_UNESCAPED_SLASHES)
+        || $currentDockerStartOrder !== $savedDockerStartOrder
+        || ($followsDockerPage && dockerPageStartOrderUsesSavedLayout($current) !== dockerPageStartOrderUsesSavedLayout($saved))
     );
     if ($dockerOrderChanged) {
         syncContainerOrder('docker');

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "import",
-        "content-revision": "7c1732c6bde39f895308ab2f43e895014d9acc94bdc748a0a0f14693a15004d8"
+        "content-revision": "e26ff4d5fc535a8f2f0a51a335a45c56d7c26f2df63597214748b8724f3551a7"
     },
     "import.subtitle": "Scegli come gestire le cartelle esistenti. Nulla cambia finché non selezioni Applica importazione.",
     "import.behavior.question": "Come devono essere gestite le cartelle esistenti?",
@@ -18,6 +18,7 @@
     "import.review.count": "Rivedi {{PLURAL:$1|una modifica pianificata|$1 modifiche pianificate}}",
     "import.review.folders-fields": "Cartelle e campi",
     "import.review.choose": "Scegli quali modifiche includere",
+    "import.selection.parent-conflict": "Rivedi la selezione per mantenere intatti questi collegamenti principali: $1",
     "import.safety.title": "Opzioni di sicurezza",
     "import.safety.summary": "Anteprima e conferma",
     "import.safety.preview-only": "Solo anteprima",

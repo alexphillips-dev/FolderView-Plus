@@ -39,15 +39,17 @@
 
         const buildComparableFolder = (folderRecord) => {
             const normalized = normalizeFolderRecordForEditor(folderRecord || {});
-            const containers = Array.from(new Set(
-                (Array.isArray(normalized.containers) ? normalized.containers : [])
-                    .map((entry) => String(entry || '').trim())
+            const orderedStrings = (items) => Array.from(new Set(
+                (Array.isArray(items) ? items : [])
+                    .map((entry) => String(entry ?? '').trim())
                     .filter(Boolean)
             ));
             return {
                 name: String(normalized.name || '').trim(),
                 regex: String(normalized.regex || ''),
-                containers
+                containers: orderedStrings(normalized.containers),
+                parentId: String(normalized.parentId ?? normalized.parent_id ?? '').trim(),
+                childOrder: orderedStrings(normalized.settings?.child_folder_order ?? normalized.settings?.childFolderOrder)
             };
         };
 
@@ -69,6 +71,8 @@
             const nextComparable = buildComparableFolder(nextFolder || {});
             return previousComparable.name !== nextComparable.name
                 || previousComparable.regex !== nextComparable.regex
+                || previousComparable.parentId !== nextComparable.parentId
+                || JSON.stringify(previousComparable.childOrder) !== JSON.stringify(nextComparable.childOrder)
                 || JSON.stringify(previousComparable.containers) !== JSON.stringify(nextComparable.containers);
         };
 
@@ -76,7 +80,12 @@
             if (!shouldSyncAfterSave(options.folder, options)) {
                 return;
             }
-            await securePost(SYNC_ORDER_PATH, { type: syncType });
+            const result = await securePost(SYNC_ORDER_PATH, { type: syncType });
+            if (result?.syncOutcome === 'failed') {
+                throw new Error(globalThis.FolderViewPlusI18n?.t?.(
+                    'common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed'
+                ) || 'Docker start order sync failed');
+            }
         };
 
         const mapRuntimeMember = (entry = {}) => {

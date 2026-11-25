@@ -14,8 +14,8 @@ export const openDockerToolsAfterRefresh = async page => {
     await page.evaluate(() => { const sync = window.FolderViewPlusDockerRuntimeInternals.renderDockerRuntimeActionBar; sync('host'); sync('folderview'); });
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fvplus-docker-tool')), 'toggle-empty', 'open menu keeps its focused item after refresh');
 };
-export const createDockerHideEmptyHost = async (page, deep = false, { members = deep ? 2 : 29, order } = {}) => {
-    const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members });
+export const createDockerHideEmptyHost = async (page, deep = false, { members = deep ? 2 : 29, order, syncOrder } = {}) => {
+    const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members, syncOrder });
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
         icon: '/plugins/folderview.plus/images/folder-icon.png',
         settings: { preview: 1, preview_hover: false, expand_tab: false }, actions: [] });

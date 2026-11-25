@@ -154,6 +154,11 @@ if (($request['policyAction'] ?? '') === 'usage') {
     echo json_encode(['usage' => $map['before.png'] ?? [], 'diagnostics' => $diagnostics['before.png'] ?? []]); exit;
 }
 if (($request['policyAction'] ?? '') === 'repair') {
+    $type = $request['type'] ?? 'docker';
+    $templatePath = getTemplatePath($type);
+    $templatePaths = [$templatePath, getLastGoodJsonPath($templatePath)];
+    if (!empty($request['corruptTemplatePrimary'])) file_put_contents($templatePath, '{broken');
+    $originalTemplates = readFolderTemplateFile($templatePath) ?? readFolderTemplateFile($templatePaths[1]);
     unlink(customIconDirPath() . '/before.png');
     if (!is_link(fvplusCustomIconRuntimeDirPath())) unlink(fvplusCustomIconRuntimeDirPath() . '/before.png');
     $beforeUsage = customIconUsageMap();
@@ -178,9 +183,13 @@ if (($request['policyAction'] ?? '') === 'repair') {
                 $saved = \\writeTypePrefs($type, $prefs);
                 if ($GLOBALS["icon_policy_fault"] === "prefs") throw new \\RuntimeException("Injected icon preference failure.");
                 return $saved;
+            }
+            function fvplusWriteBackupTemplateRecords(string $type, array $records): void {
+                \\fvplusWriteBackupTemplateRecords($type, $records);
+                if ($GLOBALS["icon_policy_fault"] === "templates") throw new \\RuntimeException("Injected icon template failure.");
             }');
         eval('namespace IconPolicyFault; use \\RuntimeException; use \\Throwable;' . substr(file_get_contents($server . '/lib.custom-icon-repair.php'), 5));
-        $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false));
+        $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false), $templatePaths);
         $before = fvplusEnvironmentCaptureFiles($paths); $error = '';
         try { IconPolicyFault\fvplusRepairMissingCustomIconReferences(); }
         catch (Throwable $failure) { $error = $failure->getMessage(); }
@@ -191,15 +200,35 @@ if (($request['policyAction'] ?? '') === 'repair') {
         echo json_encode(['error' => $error, 'exactRestored' => $before === fvplusEnvironmentCaptureFiles($paths),
             'archivesRetained' => $archivesRetained]); exit;
     }
-    $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false));
+    $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false), $templatePaths);
     $before = fvplusEnvironmentCaptureFiles($paths);
     [$status, $response] = iconFixtureMutation($server, 'diagnostics.php', 'repair_missing_custom_icons', ['type' => $request['type']]);
     $result = $response['repair'] ?? null;
     $afterUsage = customIconUsageMap();
-    echo json_encode(['beforeCount' => count($beforeUsage['before.png'] ?? []), 'result' => $result, 'response' => $response,
+    $output = ['beforeCount' => count($beforeUsage['before.png'] ?? []), 'result' => $result, 'response' => $response,
         'status' => $status, 'configUnchanged' => $before === fvplusEnvironmentCaptureFiles($paths),
         'afterCount' => count($afterUsage['before.png'] ?? []),
-        'archiveCounts' => array_column(listBackupSnapshots($request['type'] ?? 'docker'), 'count')]); exit;
+        'archiveCounts' => array_column(listBackupSnapshots($type), 'count')];
+    if (!empty($request['verifyTemplateRepair'])) {
+        $output['retainedTemplateFields'] = readFolderTemplateFile($templatePath) === array_replace($originalTemplates,
+            [0 => array_replace($originalTemplates[0], ['icon' => ''])]);
+        $output['mirrorMatches'] = readFolderTemplateFile($templatePath) === readFolderTemplateFile($templatePaths[1]);
+        $output['repeatCount'] = fvplusRepairMissingCustomIconReferences()['repairedFolderCount'];
+        $restore = restoreLatestUndoBackupSnapshot($type);
+        $output['undoRestoredTemplates'] = ($restore['templatesRestored'] ?? false)
+            && $originalTemplates === readFolderTemplateFile($templatePath)
+            && $originalTemplates === readFolderTemplateFile($templatePaths[1]);
+        $modified = $originalTemplates;
+        $modified[0]['name'] = 'Other fixture name';
+        writeJsonObjectWithLastGood($templatePath, $modified);
+        $output['undoRechecksTemplateChange'] = restoreLatestUndoBackupSnapshot($type)['name'] === $restore['name']
+            && $originalTemplates === readFolderTemplateFile($templatePath);
+        fvplusRepairMissingCustomIconReferences();
+        writeRawFolderMap($type, ['fixture' => ['name' => 'Fixture folder']]);
+        applyFolderTemplateToFolder($type, 'fixture-template', 'fixture');
+        $output['reapplyKeepsReferenceRemoved'] = !isset(customIconUsageMap()['before.png']);
+    }
+    echo json_encode($output); exit;
 }
 $before = iconFixtureState($root);
 $_POST = ['from' => 'before.png', 'to' => $request['to'] ?? 'after', 'selectedIcon' => $request['selectedIcon'] ?? '', 'name' => 'before.png'];

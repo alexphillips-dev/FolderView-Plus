@@ -6,10 +6,12 @@ import vm from 'node:vm';
 const root = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const settings = fs.readFileSync(`${root}/scripts/folderviewplus.js`, 'utf8');
 const diagnostics = fs.readFileSync(`${root}/scripts/folderviewplus.activity-diagnostics.js`, 'utf8');
-const extract = (source, name) => {
+const extract = (source, name, ending = '\n};') => {
     const start = source.indexOf(`const ${name} =`);
     assert.ok(start >= 0, name);
-    return source.slice(start, source.indexOf('\n};', start) + 3);
+    const end = source.indexOf(ending, start);
+    assert.ok(end > start, name);
+    return source.slice(start, end + ending.length);
 };
 
 for (const type of ['docker', 'vm']) {
@@ -38,17 +40,19 @@ for (const type of ['docker', 'vm']) {
                     apiPostJson: async (url, payload) => {
                         calls.push({ url, ...payload });
                         if (failure) throw new Error('Synthetic restore failure');
-                        return { ok: true, restore: { name: `${type}-selected.json`, backup } };
+                        return { ok: true, restore: { name: `${type}-selected.json`, backup, templatesRestored: !latest } };
                     },
                     refreshType: async value => calls.push(`refresh:${value}`),
                     refreshBackups: async value => calls.push(`backups:${value}`),
+                    refreshTemplates: async value => calls.push(`templates:${value}`),
                     offerUndoAction: async (value, returned) => calls.push(`undo:${value}:${returned.name}`),
                     showError: (_title, error) => errors.push(error.message),
                     openImportApplyProgressDialog: () => calls.push('progress-open'),
                     closeImportApplyProgressDialog: () => calls.push('progress-close'),
                     updateImportApplyProgressDialog() {}, setTimeout: handler => handler()
                 });
-                const code = [extract(settings, 'restoreBackupByName'), extract(diagnostics, 'restoreLatest'),
+                const code = [extract(settings, 'refreshRestoredConfiguration', '\n]);'),
+                    extract(settings, 'restoreBackupByName'), extract(diagnostics, 'restoreLatest'),
                     extract(settings, latest ? 'restoreLatestBackup' : 'restoreBackupEntry')].join('\n');
                 await vm.runInContext(`${code}\n${latest ? 'restoreLatestBackup' : 'restoreBackupEntry'}('${type}', '${type}-selected.json');`, context);
                 assert.equal(calls.length, 0, 'confirmation must precede all mutations');
@@ -71,6 +75,7 @@ for (const type of ['docker', 'vm']) {
                 }
                 assert.equal(calls.includes(`undo:${type}:${backup.name}`), !failure);
                 assert.equal(calls.includes(`refresh:${type}`), !failure);
+                assert.equal(calls.includes(`templates:${type}`), !failure && !latest);
                 assert.deepEqual(errors, failure ? ['Synthetic restore failure'] : []);
                 if (latest) assert.equal(calls.at(-1) === 'progress-close' || calls.includes('progress-close'), true);
             });

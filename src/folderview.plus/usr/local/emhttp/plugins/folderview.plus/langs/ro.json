@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4792,
-        "total-source-messages": 4792,
+        "translated-messages": 4793,
+        "total-source-messages": 4793,
         "content-revision": "bc7d34a8c3d6dc573e932f977a4a3006a79d0a98255069863bba9a684a6ce96f",
-        "locale-content-revision": "b61a604789cf06ab5a5976bffcabb629ca550399c116c0cc52b5602674ff0079"
+        "locale-content-revision": "b3622b36e976f10da58c0bd36ae951f47b14ae80ae6ac7f73e58ad3f9dadf34a"
     },
     "add-folder": "Adaugă folder",
     "up-to-date": "actualizat",

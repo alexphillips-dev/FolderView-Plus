@@ -1422,38 +1422,14 @@ const applySetupAssistantTemplatesForType = async (type) => {
         };
     }
 
-    const existingNames = new Set(
-        Object.values(getFolderMap(resolvedType) || {})
-            .map((folder) => String(folder?.name || '').trim().toLowerCase())
-            .filter(Boolean)
-    );
-    const createdNames = [];
-    const creates = [];
-    for (const blueprint of plan.selectedBlueprints) {
-        const folderName = String(blueprint?.name || '').trim();
-        if (!folderName) {
-            continue;
-        }
-        const normalizedName = folderName.toLowerCase();
-        if (existingNames.has(normalizedName)) {
-            continue;
-        }
-        existingNames.add(normalizedName);
-        const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
-        creates.push({ folder: payload });
-        createdNames.push(folderName);
-    }
-
-    if (createdNames.length > 0) {
-        await requestFolderBatchMutation(resolvedType, { deletes: [], upserts: [], creates });
-        await refreshType(resolvedType);
-    }
+    const { createdNames, skipped } = await createSelectedStarterTemplates(resolvedType, plan.selectedBlueprints);
+    await refreshType(resolvedType);
 
     const assignment = await applySetupAssistantTemplateAssignmentsForType(resolvedType, plan);
     return {
         selected: plan.selectedCount,
         created: createdNames.length,
-        skippedExisting: plan.skippedExisting,
+        skippedExisting: skipped,
         assignment
     };
 };

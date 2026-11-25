@@ -41,6 +41,11 @@ function dockerSyncOrderLockPath(): string {
         return $delay > 0 ? $name . ' ' . $delay : $name;
     }
 
+    function dockerPageStartOrderUsesSavedLayout(array $prefs): bool {
+        return ($prefs['dockerRowPlacement'] ?? 'folders-first') === 'saved-order'
+            && ($prefs['groupUnassignedItems'] ?? false) !== true;
+    }
+
     function buildDockerStartOrderContext(?array $verifiedInventory = null): array {
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $currentOrder = readDockerNativePageOrder();
@@ -69,7 +74,7 @@ function dockerSyncOrderLockPath(): string {
 
         $unlistedNativeNames = [];
         if (($prefs['dockerStartOrder']['mode'] ?? '') === 'docker-page'
-            && ($prefs['dockerRowPlacement'] ?? '') === 'saved-order' && empty($prefs['groupUnassignedItems'])
+            && dockerPageStartOrderUsesSavedLayout($prefs)
             && count(array_diff($allContainerNames, $currentOrder)) > 1) {
             if ($verifiedInventory !== null) {
                 // Only this mode needs the native tiebreaker for multiple unsaved rows.
@@ -137,8 +142,7 @@ function dockerSyncOrderLockPath(): string {
         $folderContainers = (array)($context['folderContainers'] ?? []);
         $assignedContainers = array_fill_keys($context['assignedContainers'], true);
         $prefs = $context['prefs'] ?? [];
-        $useMixedOrder = $followSavedLayout && ($prefs['dockerRowPlacement'] ?? 'folders-first') === 'saved-order'
-            && ($prefs['groupUnassignedItems'] ?? false) !== true && isset($context['pageOrder']);
+        $useMixedOrder = $followSavedLayout && dockerPageStartOrderUsesSavedLayout($prefs) && isset($context['pageOrder']);
         $entries = $useMixedOrder ? $context['pageOrder'] : array_merge(
             array_map(static fn($id) => ['folder', $id], $context['pageFolderIds']),
             array_map(static fn($name) => ['container', $name], $context['pageContainerNames'])

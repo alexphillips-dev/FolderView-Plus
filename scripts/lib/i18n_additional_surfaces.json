@@ -1777,7 +1777,7 @@
     "phrase": "A pre-repair backup could not be verified, so no folder links were changed.",
     "locations": [
       {
-        "file": "scripts/folderviewplus.tree-integrity.js",
+        "file": "server/lib.backup-snapshots.php",
         "anchor": "'A pre-repair backup could not be verified, so no folder links were changed.'"
       }
     ]

@@ -127,7 +127,7 @@ test('Docker start-order workspace uses shared Settings dark-mode tokens', () =>
 
 test('Docker page sync hook is guarded and triggers autostart sync after relevant saves', () => {
     assert.match(dockerJs, /if \(!data\.has\('names'\)\)/);
-    assert.match(dockerJs, /scheduleFolderViewPlusDockerStartOrderSync/);
+    assert.match(dockerJs, /scheduleDockerOrderSync/);
     assert.match(dockerJs, /server\/sync_order\.php/);
     assert.match(dockerJs, /ajaxComplete/);
     assert.match(dockerJs, /data\.has\('names'\) \|\| data\.has\('reset'\)/);

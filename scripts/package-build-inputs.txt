@@ -1,0 +1,7 @@
+src/folderview.plus/
+folderview.plus.plg
+folderview.plus.xml
+pkg_build.sh
+scripts/package_page_format.mjs
+scripts/package_channel_messages.mjs
+scripts/generate_runtime_integrity_manifest.mjs

@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 
-FVPLUS_SHIPPED_PATHS=(src/folderview.plus/ folderview.plus.plg folderview.plus.xml)
+FVPLUS_PACKAGE_SOURCE_ROOT=src/folderview.plus/
 
 fvplus::fail() {
   echo "ERROR: $*" >&2
   exit 1
+}
+
+fvplus::read_package_build_paths() {
+  local inputs
+  inputs="$(dirname "${BASH_SOURCE[0]}")/package-build-inputs.txt"
+  [[ -s "${inputs}" ]] || fvplus::fail "Package build input list is missing: ${inputs}"
+  # Read by package guards after this function returns.
+  # shellcheck disable=SC2034
+  mapfile -t FVPLUS_PACKAGE_BUILD_PATHS < "${inputs}"
 }
 
 fvplus::copy_indexed_package_source() (
@@ -13,12 +22,12 @@ fvplus::copy_indexed_package_source() (
   package_root="${repository}/src/folderview.plus"
   [[ "$(realpath -e -- "${package_root}")" == "${package_root}" ]] \
     || fvplus::fail 'The package source directory must be inside the checkout.'
-  [[ -z "$(git -C "${repository}" ls-files --unmerged -- "${FVPLUS_SHIPPED_PATHS[0]}")" ]] \
+  [[ -z "$(git -C "${repository}" ls-files --unmerged -- "${FVPLUS_PACKAGE_SOURCE_ROOT}")" ]] \
     || fvplus::fail 'Resolve source conflicts before building the package.'
   cd "${package_root}" || exit 1
-  git -C "${repository}" ls-files -z --error-unmatch -- "${FVPLUS_SHIPPED_PATHS[0]}" |
+  git -C "${repository}" ls-files -z --error-unmatch -- "${FVPLUS_PACKAGE_SOURCE_ROOT}" |
     while IFS= read -r -d '' file; do
-      file="./${file#"${FVPLUS_SHIPPED_PATHS[0]}"}"
+      file="./${file#"${FVPLUS_PACKAGE_SOURCE_ROOT}"}"
       if [[ -n "${filter}" ]] && ! "${filter}" "${file}"; then continue; fi
       [[ -f "${file}" && "$(realpath -e -- "${file}")" == "${package_root}/${file#./}" ]] \
         || fvplus::fail "The indexed package source is missing or redirected: ${file}"

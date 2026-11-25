@@ -30,7 +30,7 @@
             const blueprints = getBlueprints(type);
             const categories = [...new Set(blueprints.flatMap(folder => folder.categories || []))];
             const smart = getSmartIndexes(type, blueprints);
-            const state = { mode: 'single', single: { name: '', icon: defaultIcon }, category: 'smart', selected: new Set(smart), id: '', name: '', folders: [{ name: '', icon: defaultIcon }] };
+            const state = { mode: 'single', single: { name: '', icon: defaultIcon }, category: 'smart', selected: new Set(smart), id: '', savedBaseline: '', name: '', folders: [{ name: '', icon: defaultIcon }] };
             const modal = ui.openModal({
                 title: starterTemplateT('settings.groups.add', 'Add folder/group'),
                 eyebrow: type === 'docker' ? 'Docker' : 'VM', size: 'lg', className: 'fv-folder-create-modal',
@@ -111,6 +111,7 @@
                 if (field.matches('[data-fv-group-saved]')) {
                     const saved = getGroups(type).find(group => group.id === field.value);
                     state.id = saved?.id || ''; state.name = saved?.name || '';
+                    state.savedBaseline = saved ? JSON.stringify(saved) : '';
                     state.folders = saved ? saved.folders.map(folder => ({ ...folder })) : [{ name: '', icon: defaultIcon }];
                     render('[data-fv-group-title]');
                 }
@@ -137,16 +138,31 @@
                         modal.close('created'); deps.onCreated(type, result); return;
                     }
                     const groups = getGroups(type);
+                    const saved = groups.find(group => group.id === state.id);
+                    if (state.id && (!saved || JSON.stringify(saved) !== state.savedBaseline)) {
+                        throw new Error(starterTemplateT('settings.operations.preview-retry', 'Refresh the folder data and try again.'));
+                    }
                     if (action === 'delete') {
                         await saveGroups(type, groups.filter(group => group.id !== state.id));
-                        state.id = ''; state.name = ''; state.folders = [{ name: '', icon: defaultIcon }];
+                        state.id = ''; state.savedBaseline = ''; state.name = ''; state.folders = [{ name: '', icon: defaultIcon }];
                     } else {
                         if (!state.id && groups.length >= 30) throw new Error(starterTemplateT('settings.groups.limit', 'You can save up to 30 groups. Edit or delete a saved group first.'));
                         const name = state.name.trim();
                         if (groups.some(group => group.id !== state.id && group.name.toLowerCase() === name.toLowerCase())) throw new Error(starterTemplateT('settings.groups.name-exists', 'A saved group already has this name. Choose another name.'));
                         const id = state.id || `custom:${utils.createSecureRuntimeId('group')}`;
+                        const candidate = { id, name, folders };
+                        try {
+                            await saveGroups(type, [...groups.filter(group => group.id !== id), candidate]);
+                        } catch (error) {
+                            const latest = getGroups(type).find(group => group.id === id);
+                            if (!state.id && latest && JSON.stringify(latest) === JSON.stringify(utils.normalizeFolderGroups([candidate])[0])) {
+                                state.id = id;
+                                state.savedBaseline = JSON.stringify(latest);
+                            }
+                            throw error;
+                        }
                         state.id = id;
-                        await saveGroups(type, [...groups.filter(group => group.id !== id), { id, name, folders }]);
+                        state.savedBaseline = JSON.stringify(getGroups(type).find(group => group.id === id));
                     }
                     if (!modal.element.isConnected) return;
                     render('[data-fv-group-saved]');

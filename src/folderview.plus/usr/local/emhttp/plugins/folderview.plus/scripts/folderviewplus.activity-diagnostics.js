@@ -1746,7 +1746,12 @@ const repairDiagnostics = async (action, type = '') => {
                     : window.FolderViewPlusI18n?.serverMessage?.(response) || response?.message || (!syncDeferred && diagnosticsT('diagnostics.repair.finished', 'Repair action finished successfully.')) || ''),
             type: syncDeferred ? 'info' : 'success'
         });
-        await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
+        const repairedRows = response?.repair?.repairedFolders;
+        const repairedTemplates = new Set((Array.isArray(repairedRows) ? repairedRows : [])
+            .filter(entry => entry?.scope === 'template' && (entry.type === 'docker' || entry.type === 'vm'))
+            .map(entry => entry.type));
+        await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm'),
+            ...Array.from(repairedTemplates, repairedType => window.refreshTemplates?.(repairedType, { quiet: true }))]);
     } catch (error) {
         diagnosticsShowError(diagnosticsT('diagnostics.repair.failed', 'Repair failed'), error);
     }

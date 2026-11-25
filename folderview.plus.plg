@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.03">
-<!ENTITY md5 "693d1ba8201f387f41fa8672c8e794a6">
-<!ENTITY sha256 "8c185f7bd11b50c7f2a7254c45094a9f0b5f973bb158e70294ac97ab932fdc1f">
+<!ENTITY version "2026.11.25.04">
+<!ENTITY md5 "2a3d99e732e73463272efa051e69c266">
+<!ENTITY sha256 "73f5c618dd50e0385fa48702ec0521e87ef7a58419fee9a61c189cfa9a975caf">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.04
+- Reliability: Tree Integrity reports saved parent links before changing them, and confirmed repairs create a recoverable checkpoint. Undo and Redo protect newer hierarchy and ordering changes.
+- Fix: FolderView3 migration checkpoints restore native Docker autostart entries and waits when that import option is selected. Recovery Undo advances through earlier changes, and missing-icon repair includes saved templates.
+- Fix: Settings protects concurrent group edits, prevents duplicate starter folders, reviews the selected import hierarchy, and keeps folder editor controls active after browser Back.
+- Fix: Appearance preserves drafts when custom CSS exceeds the limit and shows inherited colors accurately. Settings preserves saved names and highlights punctuation correctly in translated views.
+- Fix: Managed Docker startup order follows hierarchy and layout changes, survives navigation through a guarded sync or retry, and uses the same name order as the Docker page. Failed Docker reads retain authoritative runtime data.
+- Fix: VM folders remain visible on an empty inventory, native Info reaches the correct row, and folder toggles expose their names and expansion state. Dashboard privacy masks stay within the selected workload type.
+- Reliability: Plugin Manager rejects renamed local manifests before activation and cleans up partially extracted fresh installs. Package changes trigger the appropriate dev rebuild, and stable release publication verifies both assets before going public.
+
 
 ###2026.11.25.03
 - Reliability: Retain recovery state across failed upgrades and interrupted native installs from local manifests. Report uninstall cleanup failures and let a later removal finish the cleanup safely.
@@ -10245,7 +10255,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             registration_hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-registration"
             staged_method=""
             # Only a direct boot replay already has its final registration.
-            if [[ "$0" = /tmp/inline*-&name;.sh || "$0" = /tmp/inline.sh ]]; then
+            if [[ "$0" = /tmp/inline*.sh ]]; then
                 installer_pid="${PPID}"
                 for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
                     if ! readarray -d '' -t installer_args 2>/dev/null &lt; "/proc/${installer_pid}/cmdline"; then
@@ -10270,6 +10280,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                                 if [ "${input_manifest}" != "${registered_manifest}" ]; then
                                     staged_method=install
                                 fi
+                                ;;
+                            install:*|update:*)
+                                printf 'FolderView Plus requires the native manifest filename &name;.plg. Rename the manifest or use the official install URL, then retry.\n' >&amp;2
+                                exit 1
                                 ;;
                         esac
                         if [ -n "${staged_method}" ]; then
@@ -10314,6 +10328,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             registration_work=""
             wrapper_stage=""
             core_attempted=0
+            runtime_was_absent=0
             cron_changed=0
 
             capture_install_context() {
@@ -10362,7 +10377,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             clear_registration_files() {
                 [ -d "$1" ] || return 0
                 [ ! -L "$1" ] &amp;&amp; \
-                    rm -f -- "$1"/{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,activated,committed,rollback} &amp;&amp; rmdir -- "$1"
+                    rm -f -- "$1"/{manifest,owner,report,boot-id,recover.sh,previous-version,previous-manifest,manifest-absent,saved-version,version-absent,cron,cron-mode,core-started,runtime-absent,activated,committed,rollback} &amp;&amp; rmdir -- "$1"
             }
 
             prepare_registration_recovery() {
@@ -10375,6 +10390,9 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     printf '%s\n' "${previous_version}" > "${registration_work}/previous-version" &amp;&amp; \
                     extract_registration_helper > "${registration_work}/recover.sh" &amp;&amp; \
                     [ -s "${registration_work}/recover.sh" ] || return 1
+                if [ "${runtime_was_absent}" -eq 1 ]; then
+                    touch "${registration_work}/runtime-absent" || return 1
+                fi
                 [ ! -L "${registered_manifest}" ] || return 1
                 if [ -e "${registered_manifest}" ]; then
                     [ -f "${registered_manifest}" ] &amp;&amp; \
@@ -10553,7 +10571,15 @@ FOLDER_VIEW_PLUS_RECOVERY
                             restored=0
                         fi
                     else
-                        removepkg "&name;-&version;" 9>&amp;- || restored=0
+                        if [ -f "/var/lib/pkgtools/packages/&name;-&version;" ] || [ -f "/var/log/packages/&name;-&version;" ]; then
+                            removepkg "&name;-&version;" 9>&amp;- || restored=0
+                        fi
+                        if [ "${restored}" -eq 1 ] &amp;&amp; [ "${runtime_was_absent}" -eq 1 ]; then
+                            [ ! -L "&plugdir;" ] &amp;&amp; rm -rf -- "&plugdir;" &amp;&amp; \
+                                [ ! -e "&plugdir;" ] &amp;&amp; [ ! -L "&plugdir;" ] || restored=0
+                        elif [ "${runtime_was_absent}" -eq 0 ] &amp;&amp; [ -e "&plugdir;/build-metadata.json" ]; then
+                            restored=0
+                        fi
                     fi
                 fi
                 if [ "${durable_rollback}" -eq 0 ] &amp;&amp; [ "${cron_changed}" -eq 1 ]; then
@@ -10638,6 +10664,14 @@ FOLDER_VIEW_PLUS_RECOVERY
             if [ -f "${cron_file}" ]; then
                 cron_backup="$(mktemp /etc/cron.d/.folderview.plus.rollback.XXXXXX)"
                 cp -p -- "${cron_file}" "${cron_backup}"
+            fi
+
+            if [ -L "&plugdir;" ]; then
+                printf 'FolderView Plus cannot activate a core package through a symbolic link at the runtime path.\n' >&amp;2
+                exit 1
+            fi
+            if [ ! -e "&plugdir;" ]; then
+                runtime_was_absent=1
             fi
 
             if [ -n "${staged_method}" ]; then

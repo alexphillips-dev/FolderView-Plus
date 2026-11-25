@@ -24,8 +24,11 @@ for (const [file, type, suffix, index] of [
         const source = read(file);
         const loop = [...source.matchAll(/^( {4}| {8})for \(let key = 0; key < order.length; key\+\+\) \{[\s\S]*?^\1\}/gm)][index]?.[0];
         assert.ok(loop, 'Extract the actual ordered render loop');
-        const wrapper = source.match(new RegExp('^const createFolder' + suffix + ' = \\(\\.\\.\\.args\\).*$', 'm'))?.[0];
-        assert.ok(wrapper, 'Use the production recovery wrapper');
+        const lines = source.split(/\r?\n/);
+        const start = lines.findIndex(line => line.startsWith(`const createFolder${suffix} = `));
+        const end = lines.findIndex((line, index) => index >= start && line.endsWith(';'));
+        assert.ok(start >= 0 && end >= start, 'Use the production recovery wrapper');
+        const wrapper = lines.slice(start, end + 1).join('\n');
         const vmFolderToken = file === 'vm.js' ? source.match(/^const isVmSavedFolderToken = .*;$/m)?.[0] : '';
         const dockerFolderToken = file === 'docker.js' ? source.match(/^const isKnownDockerFolderToken = [\s\S]*?;\r?$/m)?.[0] : '';
         if (file === 'vm.js') assert.ok(vmFolderToken, 'Use the production VM folder-token matcher');
@@ -79,7 +82,7 @@ for (const [file, type, suffix, index] of [
         assert.deepEqual(Object.keys(context.foldersDone), ['healthy']);
         assert.deepEqual(context.order, ['folder-healthy']);
 
-        if (file === 'dashboard.js') {
+        if (file === 'dashboard.js' || file === 'vm.js') {
             controller.begin();
             context.order = ['folder-broken'];
             vm.runInNewContext(`createFolder${suffix}({ status: { expanded: true } }, 'broken', 0, order, { 'folder-broken': {} });`, context);

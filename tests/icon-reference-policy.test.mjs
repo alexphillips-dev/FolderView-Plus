@@ -143,11 +143,31 @@ test('an icon used only by an Operations template is reported and protected from
     }
 });
 
-test('repair rejects an unavailable icon inventory and compensates folder or preference failures exactly', () => {
-    for (const type of ['docker', 'vm']) for (const [kind, policyFault] of [['folder', 'inventory'], ['folder', 'folders'], ['defaults', 'prefs'], ['group', 'prefs']]) {
+test('repair rejects an unavailable icon inventory and compensates folder, preference or template failures exactly', () => {
+    for (const type of ['docker', 'vm']) for (const [kind, policyFault] of [['folder', 'inventory'], ['folder', 'folders'], ['defaults', 'prefs'], ['group', 'prefs'], ['template', 'templates']]) {
         const result = run({ type, kind, reference: aliases[2], policyAction: 'repair', policyFault });
         assert.match(result.error, /references could not be verified|Injected icon/);
         assert.equal(result.exactRestored, true, `${type}/${kind}/${policyFault}`);
+    }
+});
+
+test('template-only missing icon repair reconciles diagnostics, repeat repair, reapply and Undo', () => {
+    for (const [type, corruptTemplatePrimary] of [['docker', false], ['vm', true]]) {
+        const repaired = run({ type, kind: 'template', reference: aliases[2], policyAction: 'repair',
+            corruptTemplatePrimary, verifyTemplateRepair: true });
+        assert.equal(repaired.status, 200);
+        assert.equal(repaired.beforeCount, 1);
+        assert.equal(repaired.result.repairedFolderCount, 1);
+        assert.deepEqual(repaired.result.repairedFolders, [{ type, scope: 'template', folderId: '',
+            folderName: 'Fixture template', missingIcon: 'before.png' }]);
+        assert.equal(repaired.afterCount, 0);
+        assert.deepEqual(repaired.archiveCounts, [0]);
+        assert.equal(repaired.retainedTemplateFields, true);
+        assert.equal(repaired.mirrorMatches, true);
+        assert.equal(repaired.repeatCount, 0);
+        assert.equal(repaired.undoRestoredTemplates, true);
+        assert.equal(repaired.undoRechecksTemplateChange, true);
+        assert.equal(repaired.reapplyKeepsReferenceRemoved, true);
     }
 });
 

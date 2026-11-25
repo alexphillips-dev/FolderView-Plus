@@ -34,6 +34,7 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
         'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
-        'install-remove-stale-cleanup-retry-success'
+        'install-remove-stale-cleanup-retry-success', 'install-renamed-local-success',
+        'install-fresh-extract-success', 'install-fresh-extract-retry-success'
     ]);
 });

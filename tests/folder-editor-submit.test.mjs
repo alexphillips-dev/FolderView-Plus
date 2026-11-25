@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { createSubmitHandler, recordSubmitDiagnostics } = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.submit.js');
+const dockerEditor = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js');
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 
 function fixture(overrides = {}) {
@@ -164,16 +165,17 @@ test('new folder and copy submits share a single save while a create is pending 
     }
 });
 
-test('sync failure after a create shows a warning and retries only the order sync', async () => {
+test('a structured sync failure after a create shows a warning and retries only the order sync', async () => {
     for (const retry of [false, true]) {
         let syncAttempts = 0;
         const warnings = [];
+        const editor = dockerEditor.createApi({
+            securePost: async () => ({ ok: true, syncOutcome: ++syncAttempts === 1 ? 'failed' : 'synced' })
+        });
         const f = fixture({
             folderId: '', activeFolderEditorFolderId: '',
             window: { swal: (message, respond) => warnings.push({ message, respond }) },
-            flushPostSaveTypeSync: async () => {
-                if (++syncAttempts === 1) throw Error('synthetic order sync failure');
-            }
+            flushPostSaveTypeSync: editor.flushPostSaveSync
         });
         const saving = f.run();
         await new Promise(setImmediate);

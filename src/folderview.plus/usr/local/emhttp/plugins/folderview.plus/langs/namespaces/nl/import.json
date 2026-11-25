@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "import",
-        "content-revision": "c304aedeb674be6c99eac567118bde21af6b0d747e1e2bd34ddcba8970b67c8d"
+        "content-revision": "fa0ad9b8be98db5a4bf486d1e69a1fcb6606d788cc23bf1e687d4f4a6939a258"
     },
     "import.subtitle": "Kies hoe bestaande mappen moeten worden behandeld. Er verandert niets totdat u Toepassen import selecteert.",
     "import.behavior.question": "Hoe moeten bestaande mappen worden behandeld?",
@@ -18,6 +18,7 @@
     "import.review.count": "Bekijk {{PLURAL:$1|één geplande wijziging|$1 geplande wijzigingen}}",
     "import.review.folders-fields": "Mappen en velden",
     "import.review.choose": "Kies welke wijzigingen worden opgenomen",
+    "import.selection.parent-conflict": "Controleer de selectie om deze bovenliggende links intact te houden: $1",
     "import.safety.title": "Veiligheidsopties",
     "import.safety.summary": "Voorbeeld en bevestiging",
     "import.safety.preview-only": "Alleen voorbeeld",

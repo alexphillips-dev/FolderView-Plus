@@ -286,7 +286,7 @@
             confirmedPrefs: null,
             optimisticPrefs: null,
             pendingPatch: {},
-            pendingAutoRulesBase: null,
+            pendingCollectionBases: {},
             inFlightBatch: null,
             retryBatch: null,
             restoring: [],
@@ -526,8 +526,8 @@
             const startedAt = now();
             const mutationPublicationGeneration = state.mutationPublicationGeneration;
             try {
-                if (outbox.rulesConflictBeforeWrite(batch, state, restored || retry)) {
-                    throw Object.assign(new Error(preferencesChangedMessage), { status: 409, rulesConflict: true });
+                if (outbox.collectionConflictBeforeWrite(batch, state, restored || retry)) {
+                    throw Object.assign(new Error(preferencesChangedMessage), { status: 409, collectionConflict: true });
                 }
                 state.stats.requests += 1;
                 const response = await writePrefs(state.type, batchPatch, {
@@ -581,7 +581,7 @@
                     emit(state);
                     try {
                         await hydrateFromServer(state.type, { restoreOutbox: false, replay: false, force: true });
-                        if (outbox.rulesChangedSinceEdit(batch, state)) {
+                        if (outbox.collectionChangedSinceEdit(batch, state)) {
                             rejected = true;
                             error = new Error(preferencesChangedMessage);
                         } else {

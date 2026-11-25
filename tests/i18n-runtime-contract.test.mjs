@@ -141,11 +141,54 @@ const createRuntime = (catalogs, globals = {}) => {
     });
     return {
         api: window.FolderViewPlusI18n,
+        document: window.document,
         documentElement,
         dispatchedEvents,
         getTranslatedDomCount: () => translatedDomCount
     };
 };
+
+test('pseudo locale restores automatic and explicit DOM text and attributes', async () => {
+    const english = { 'legacy.surface.fixture': 'Settings', 'legacy.surface.other': 'Export' };
+    const german = { 'legacy.surface.fixture': 'Einstellungen', 'legacy.surface.other': 'Exportieren' };
+    const runtime = createRuntime({ '/en.json': english, '/de.json': german });
+    const makeLabel = (text, binding = null) => {
+        const attrs = { title: text, ...(binding ? { 'data-i18n': binding } : {}) };
+        const element = {
+            nodeType: 1, textContent: text,
+            hasAttribute: key => Object.hasOwn(attrs, key),
+            getAttribute: key => attrs[key] ?? null,
+            setAttribute: (key, value) => { attrs[key] = value; },
+            childNodes: []
+        };
+        element.childNodes.push({ nodeType: 3, nodeValue: text, parentElement: element });
+        return element;
+    };
+    const auto = makeLabel('Settings');
+    const explicit = makeLabel('Settings', 'legacy.surface.fixture');
+    const elements = [auto, explicit];
+    runtime.document.body = { querySelectorAll: selector => selector === '[data-i18n]' ? [explicit] : elements };
+    await runtime.api.configure({ requestedLocale: 'de', resolvedLocale: 'de', assets: [
+        { locale: 'en', namespace: 'legacy-surface', url: '/en.json' },
+        { locale: 'de', namespace: 'legacy-surface', url: '/de.json' }
+    ] });
+    assert.equal(auto.childNodes[0].nodeValue, 'Einstellungen');
+    assert.equal(auto.getAttribute('title'), 'Einstellungen');
+    runtime.api.usePseudoLocale('en-XA');
+    assert.notEqual(auto.childNodes[0].nodeValue, 'Einstellungen');
+    assert.equal(auto.getAttribute('title'), auto.childNodes[0].nodeValue);
+    assert.equal(explicit.textContent, auto.childNodes[0].nodeValue);
+    auto.childNodes[0].nodeValue = 'Export';
+    auto.setAttribute('title', 'Export');
+    runtime.api.restoreLocale();
+    assert.equal(explicit.textContent, 'Einstellungen');
+    assert.equal(auto.childNodes[0].nodeValue, 'Exportieren');
+    assert.equal(auto.getAttribute('title'), 'Exportieren');
+    runtime.api.usePseudoLocale('ar-XB');
+    runtime.api.restoreLocale();
+    assert.equal(auto.childNodes[0].nodeValue, 'Exportieren');
+    assert.equal(auto.getAttribute('title'), 'Exportieren');
+});
 
 test('automatic translation avoids template scans for empty and repeated unknown DOM values', async () => {
     let scans = 0;

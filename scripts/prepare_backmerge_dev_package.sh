@@ -16,11 +16,9 @@ if ! git rev-parse -q --verify "${dev_base}^{commit}" >/dev/null 2>&1; then
   fvplus::fail "origin/dev is required to prepare a back-merge package."
 fi
 
-mapfile -t changed_source_paths < <(
-  git diff --name-only "${dev_base}" HEAD -- src
-)
-if [[ "${#changed_source_paths[@]}" -eq 0 ]]; then
-  echo "Synchronization changes no shipped plugin files; package preparation skipped."
+fvplus::read_package_build_paths
+if git diff --quiet --no-renames "${dev_base}" HEAD -- "${FVPLUS_PACKAGE_BUILD_PATHS[@]}"; then
+  echo "Synchronization changes no package inputs; package preparation skipped."
   exit 0
 fi
 

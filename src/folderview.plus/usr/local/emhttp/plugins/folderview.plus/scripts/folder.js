@@ -1703,13 +1703,15 @@ const registerBeforeUnloadGuard = () => {
     });
 };
 const registerFolderEditorModuleTeardown = () => {
-    window.addEventListener('pagehide', () => {
+    window.addEventListener('pagehide', function disposeEditorModules(event) {
+        if (event.persisted) return;
+        window.removeEventListener('pagehide', disposeEditorModules);
         folderThemeSurfaceBinding?.disconnect();
         folderEditorRegexSelectionApi?.dispose();
         folderEditorMemberListApi?.dispose();
         folderEditorMembersApi?.disposeAssignmentDetails?.();
         folderWebuiProfilesApi?.dispose();
-    }, { once: true });
+    });
 };
 
 const resetStatusColorDefaults = () => {

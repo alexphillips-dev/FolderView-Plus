@@ -2,6 +2,33 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { migrationFixture, runMigrationFixture } from './helpers/folderview3-fixture.mjs';
+
+test('FolderView3 opt-in checkpoint restores native bytes, absence and permissions and creates a matching Undo', () => {
+    const bundle = { ...migrationFixture, native_autostart: ['plex 15', 'arr-one'] };
+    const imported = Buffer.from('plex 15\narr-one\n').toString('base64');
+    for (const original of [null, Buffer.alloc(0), Buffer.from('previous 45\r\nkeep\r\n')]) {
+        const originalNativeBase64 = original === null ? null : original.toString('base64');
+        const result = runMigrationFixture({ bundle, operation: 'native-checkpoint', originalNativeBase64 });
+        assert.equal(result.error, '');
+        assert.deepEqual(result.checkpointNative, result.originalNative);
+        assert.equal(result.appliedNative.contentBase64, imported);
+        assert.equal(result.corruptCheckpointRejected, true);
+        assert.equal(result.restore.verified, true);
+        assert.deepEqual(result.restoredFolders, ['original']);
+        assert.deepEqual(result.restoredNative, result.originalNative);
+        assert.equal(result.undo.verified, true);
+        assert.deepEqual(result.undoNative, result.appliedNative);
+    }
+    const originalNativeBase64 = Buffer.from('original-member 45\r\n').toString('base64');
+    const optedOut = runMigrationFixture({ bundle, operation: 'native-checkpoint', originalNativeBase64, includeNative: false });
+    assert.equal(optedOut.error, '');
+    assert.equal(optedOut.checkpointNative, null);
+    assert.deepEqual(optedOut.originalNative, optedOut.appliedNative);
+
+    const failed = runMigrationFixture({ bundle, operation: 'native-checkpoint', originalNativeBase64, breakNativeVerification: true });
+    assert.match(failed.error, /Native Docker autostart verification failed.+All changed configuration was restored/);
+    assert.equal(failed.protectedUnchanged, true);
+});
 const require = createRequire(import.meta.url);
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 const identity = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.member-identity.js');

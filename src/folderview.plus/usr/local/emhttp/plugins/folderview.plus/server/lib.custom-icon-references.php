@@ -28,7 +28,7 @@ function fvplusCustomIconNameFromReference(string $value): string {
         && in_array(strtolower((string)pathinfo($name, PATHINFO_EXTENSION)), fvplusAllowedCustomIconExtensions(), true) ? $name : '';
 }
 
-function fvplusVisitCustomIconReferences(string $type, array &$folders, array &$prefs, callable $visitor): void {
+function fvplusVisitCustomIconReferences(string $type, array &$folders, array &$prefs, array &$templates, callable $visitor): void {
     $visit = static function (array &$record, array $reference) use ($type, $visitor): void {
         if (!is_string($record['icon'] ?? null)) return;
         $name = fvplusCustomIconNameFromReference($record['icon']);
@@ -39,6 +39,11 @@ function fvplusVisitCustomIconReferences(string $type, array &$folders, array &$
             'folderName' => trim((string)($folder['name'] ?? $id))]);
     }
     unset($folder);
+    foreach ($templates as &$template) {
+        $visit($template, ['scope' => 'template', 'folderId' => '',
+            'folderName' => is_string($template['name'] ?? null) ? trim($template['name']) : '']);
+    }
+    unset($template);
     if (is_array($prefs['folderDefaults']['profile'] ?? null)) {
         $visit($prefs['folderDefaults']['profile'], ['scope' => 'defaults', 'folderId' => '', 'folderName' => '']);
     }
@@ -94,13 +99,8 @@ function fvplusCustomIconUsageMap(bool $strict = false): array {
             $inputs = fvplusCustomIconReferenceInputs($type, $strict);
             foreach ($inputs['prefsSources'] as $index => $prefs) {
                 $folders = $index === 0 ? $inputs['folders'] : [];
-                fvplusVisitCustomIconReferences($type, $folders, $prefs, $appendUsage);
-            }
-            foreach ($inputs['templates'] as $template) {
-                $name = is_string($template['icon'] ?? null) ? fvplusCustomIconNameFromReference($template['icon']) : '';
-                if ($name === '') continue;
-                $usage[$name][] = ['type' => $type, 'scope' => 'template', 'folderId' => '',
-                    'folderName' => is_string($template['name'] ?? null) ? trim($template['name']) : ''];
+                $templates = $index === 0 ? $inputs['templates'] : [];
+                fvplusVisitCustomIconReferences($type, $folders, $prefs, $templates, $appendUsage);
             }
         }
         foreach ($usage as &$references) {

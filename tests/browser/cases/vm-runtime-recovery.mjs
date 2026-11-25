@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
+import { closeVmInfoFolder, mountAndOpenVmInfoFolder, registerVmRuntimeRowRecoveryCases } from './vm-runtime-row-recovery.mjs';
 
 export const registerVmRuntimeRecoveryCases = ({ test }) => {
     test('VM view preferences keep populated ancestors when empty folders are hidden', async ({ page }) => {
@@ -17,16 +18,12 @@ export const registerVmRuntimeRecoveryCases = ({ test }) => {
 
     test('VM view preferences keep stock info rows with members and settle dynamic detail adoption', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
-        host.folders['fixture-folder-0'].containers = [host.names[0]];
         try {
-            await mountFilterViewVmHost(page, host, { nativeDetails: true });
-            const info = page.locator('#name-0');
-            assert.equal(await info.evaluate(row => row.previousElementSibling.id), 'fixture-vm-0');
-            await page.locator('.dropDown-fixture-folder-0').click();
+            const { info, toggle } = await mountAndOpenVmInfoFolder(page, host);
             await page.locator('#fixture-vm-0').getByText('Info').click();
             assert.equal(await info.isVisible(), true);
             assert.equal(await info.evaluate(row => row.previousElementSibling.id), 'fixture-vm-0');
-            await page.locator('.dropDown-fixture-folder-0').click();
+            await closeVmInfoFolder(toggle);
             assert.equal(await info.evaluate(row => row.parentElement.classList.contains('folder-storage')), true);
 
             await page.evaluate(() => {
@@ -51,6 +48,8 @@ export const registerVmRuntimeRecoveryCases = ({ test }) => {
             assert.equal(await page.locator('#name-1').evaluate(row => row.previousElementSibling.id), 'fixture-vm-1');
         } finally { await closeHost(page, host); }
     }, { skipAccessibility: true });
+
+    registerVmRuntimeRowRecoveryCases({ test });
 
     test('VM view preferences keep the mounted group and native hooks through persisted navigation', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);

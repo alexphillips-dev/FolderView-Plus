@@ -9,7 +9,7 @@ export const waitForSettingsRuntimeHydration = async page => {
 };
 
 export const createHideEmptySettingsHost = async (page, type, overrides = {}) => {
-    const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, 'en');
+    const host = createProductionPerfFixture(path.resolve(process.cwd()), { folders: 0, members: 0 }, overrides.locale || 'en');
     const folder = (name, parentId = '', containers = []) => ({ name, parentId, containers,
         icon: '/plugins/folderview.plus/images/folder-icon.png', settings: {}, actions: [] });
     const folders = overrides.folders || {

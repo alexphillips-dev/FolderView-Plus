@@ -10,6 +10,8 @@ fvplus_json_try(function (): array {
         throw new RuntimeException('Invalid order payload.');
     }
 
+    assertExpectedConfigRevision($type, 'folder', $_POST['expectedRevision'] ?? '');
+    assertExpectedConfigRevision($type, 'prefs', $_POST['expectedPrefsRevision'] ?? '');
     $reordered = reorderFoldersByIdList($type, $order);
     return [
         'order' => array_keys($reordered)

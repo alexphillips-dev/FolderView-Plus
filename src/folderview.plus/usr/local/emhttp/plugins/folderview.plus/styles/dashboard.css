@@ -947,21 +947,21 @@ body.fvplus-performance-mode .tooltipster-content {
     color: var(--color-orange, #f0a30a);
 }
 /* Sensitive-value privacy classes preserve source text, making toggles instant and reversible. */
-body.fvplus-privacy-docker-sensitive-volumePaths .fvplus-sensitive-volume-path,
-body.fvplus-privacy-docker-sensitive-imageRegistry .fvplus-sensitive-image-registry,
-body.fvplus-privacy-docker-sensitive-publicIps .fvplus-sensitive-public-ip,
-body.fvplus-privacy-docker-sensitive-interfaces .fvplus-sensitive-interface,
-body.fvplus-privacy-docker-sensitive-externalUrls .fvplus-sensitive-external-url,
-body.fvplus-privacy-vm-sensitive-vmDiskPaths .fvplus-sensitive-vm-disk-path,
-body.fvplus-privacy-vm-sensitive-macAddresses .fvplus-sensitive-mac-address,
-body.fvplus-privacy-vm-sensitive-publicIps .fvplus-sensitive-public-ip,
-body.fvplus-privacy-vm-sensitive-interfaces .fvplus-sensitive-interface,
-body.fvplus-privacy-vm-sensitive-externalUrls .fvplus-sensitive-external-url {
+body.fvplus-privacy-docker-sensitive-volumePaths :is(#docker_view, .fv-dashboard-advanced-preview) .fvplus-sensitive-volume-path,
+body.fvplus-privacy-docker-sensitive-imageRegistry :is(#docker_view, .fv-dashboard-advanced-preview) .fvplus-sensitive-image-registry,
+body.fvplus-privacy-docker-sensitive-publicIps :is(#docker_view, .fv-dashboard-advanced-preview) .fvplus-sensitive-public-ip,
+body.fvplus-privacy-docker-sensitive-interfaces :is(#docker_view, .fv-dashboard-advanced-preview) .fvplus-sensitive-interface,
+body.fvplus-privacy-docker-sensitive-externalUrls :is(#docker_view, .fv-dashboard-advanced-preview) .fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-vmDiskPaths #vm_view .fvplus-sensitive-vm-disk-path,
+body.fvplus-privacy-vm-sensitive-macAddresses #vm_view .fvplus-sensitive-mac-address,
+body.fvplus-privacy-vm-sensitive-publicIps #vm_view .fvplus-sensitive-public-ip,
+body.fvplus-privacy-vm-sensitive-interfaces #vm_view .fvplus-sensitive-interface,
+body.fvplus-privacy-vm-sensitive-externalUrls #vm_view .fvplus-sensitive-external-url {
     filter: blur(7px) !important;
     user-select: none !important;
 }
 
-body.fvplus-privacy-docker-sensitive-externalUrls a.fvplus-sensitive-external-url,
-body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
+body.fvplus-privacy-docker-sensitive-externalUrls :is(#docker_view, .fv-dashboard-advanced-preview) a.fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-externalUrls #vm_view a.fvplus-sensitive-external-url {
     pointer-events: none !important;
 }

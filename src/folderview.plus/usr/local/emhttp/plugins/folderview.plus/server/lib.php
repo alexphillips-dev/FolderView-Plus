@@ -1482,7 +1482,7 @@
 
     require_once(__DIR__ . '/lib.theme-github.php'); require_once(__DIR__ . '/lib.theme-profile-actions.php'); require_once(__DIR__ . '/lib.theme-bulk-update.php');
 
-    function normalizeFolderMapPayload($value): array {
+    function normalizeFolderMapPayload($value, bool $repairHierarchy = true): array {
         if (!is_array($value)) {
             return [];
         }
@@ -1497,7 +1497,7 @@
             }
             $normalized[$safeId] = normalizeFolderContentPayload($folder);
         }
-        return normalizeFolderParentLinks($normalized);
+        return $repairHierarchy ? normalizeFolderParentLinks($normalized) : $normalized;
     }
 
     function resolveFolderEditorRequestedContext(string $type, string $requestedRef): array {
@@ -1663,6 +1663,16 @@
         return "$configDir/$type.json";
     }
 
+    function readFolderMapForTreeIntegrity(string $type): array {
+        $path = getFolderFilePath(ensureType($type));
+        $folders = readJsonObjectFile($path);
+        $mirror = getLastGoodJsonPath($path);
+        if ($folders === null && (file_exists($path) || is_link($path) || file_exists($mirror) || is_link($mirror))) {
+            throw new UnexpectedValueException('Unable to refresh the current folder configuration.');
+        }
+        return normalizeFolderMapPayload($folders, false);
+    }
+
     function readRawFolderMap(string $type, bool $requireVerified = false): array {
         $type = ensureType($type);
         return withConfigMutationLock(static function () use ($type, $requireVerified): array {
@@ -1700,11 +1710,12 @@
                 $decoded = [];
             }
 
-            $normalized = normalizeFolderMapPayload($decoded);
+            $normalized = normalizeFolderMapPayload($decoded, false);
             if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
-                writeRawFolderMap($type, $normalized);
+                // Keep original relationships available for inspection and reviewed repair.
+                fvplusWriteConfigPayload($type, 'folder', $path, $normalized);
             }
-            return $normalized;
+            return normalizeFolderParentLinks($normalized);
         });
     }
 
@@ -1747,6 +1758,63 @@
         }
 
         return $reordered;
+    }
+
+    // Keep this fold and numeric comparison in sync with folderviewplus.utils-ordering.js.
+    function fvplusFolderNameSortKey(string $value): array {
+        static $fold = null;
+        if ($fold === null) {
+            $fold = [];
+            foreach ([
+                'a' => 'ÀÁÂÃÄÅàáâãäåĀāĂăĄą',
+                'c' => 'ÇçĆćĈĉĊċČč',
+                'd' => 'ĎďĐđ',
+                'e' => 'ÈÉÊËèéêëĒēĔĕĖėĘęĚě',
+                'g' => 'ĜĝĞğĠġĢģ',
+                'h' => 'ĤĥĦħ',
+                'i' => 'ÌÍÎÏìíîïĨĩĪīĬĭĮįİı',
+                'j' => 'Ĵĵ',
+                'k' => 'Ķķ',
+                'l' => 'ĹĺĻļĽľĿŀŁł',
+                'n' => 'ÑñŃńŅņŇň',
+                'o' => 'ÒÓÔÕÖØòóôõöøŌōŎŏŐő',
+                'r' => 'ŔŕŖŗŘř',
+                's' => 'ŚśŜŝŞşŠš',
+                't' => 'ŢţŤťŦŧ',
+                'u' => 'ÙÚÛÜùúûüŨũŪūŬŭŮůŰűŲų',
+                'w' => 'Ŵŵ',
+                'y' => 'ÝýÿŶŷŸ',
+                'z' => 'ŹźŻżŽž',
+                'ae' => 'Ææ',
+                'oe' => 'Œœ',
+                'ss' => 'ẞß',
+            ] as $replacement => $group) {
+                foreach (preg_split('//u', $group, -1, PREG_SPLIT_NO_EMPTY) as $letter) {
+                    $fold[$letter] = $replacement;
+                }
+            }
+        }
+        $value = preg_replace('/^[\p{Zs}\x{0009}-\x{000D}\x{2028}\x{2029}\x{FEFF}]+|[\p{Zs}\x{0009}-\x{000D}\x{2028}\x{2029}\x{FEFF}]+$/u', '', $value) ?? trim($value);
+        $value = strtr(strtolower($value), $fold);
+        $value = preg_replace('/([a-z])[\x{0300}-\x{036f}]+/u', '$1', $value) ?? $value;
+        $parts = preg_split('/([0-9]+)/', $value, -1, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($parts as $index => &$part) {
+            if ($index % 2 === 1) $part = ltrim($part, '0') ?: '0';
+        }
+        unset($part);
+        return $parts;
+    }
+
+    function fvplusCompareFolderNameSortKeys(array $left, array $right): int {
+        $length = min(count($left), count($right));
+        for ($index = 0; $index < $length; $index++) {
+            $a = $left[$index];
+            $b = $right[$index];
+            if ($a === $b) continue;
+            $digits = $index % 2 === 1 ? strlen($a) <=> strlen($b) : 0;
+            return $digits ?: strcmp($a, $b);
+        }
+        return count($left) <=> count($right);
     }
 
     function reorderFolderMapByPrefs(string $type, array $folders, ?array $prefs = null): array {
@@ -1795,28 +1863,20 @@
             return $next;
         };
 
-        if ($sortMode === 'alpha') {
-            $keys = array_keys($folders);
-            $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders) {
-                $nameA = strtolower(trim((string)($folders[$a]['name'] ?? $a)));
-                $nameB = strtolower(trim((string)($folders[$b]['name'] ?? $b)));
-                $cmp = strnatcmp($nameA, $nameB);
-                return $cmp !== 0 ? $cmp : strnatcmp((string)$a, (string)$b);
-            });
-            $ordered = [];
-            foreach ($keys as $key) {
-                $ordered[$key] = $folders[$key];
+        if ($sortMode === 'alpha' || $sortMode === 'name_desc') {
+            $names = [];
+            $ids = [];
+            foreach ($folders as $id => $folder) {
+                $names[$id] = fvplusFolderNameSortKey((string)($folder['name'] ?? $id));
+                $ids[$id] = fvplusFolderNameSortKey((string)$id);
             }
-            return $applyPinnedOrder($ordered);
-        }
-
-        if ($sortMode === 'name_desc') {
-            $keys = array_keys($folders);
-            $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders) {
-                $nameA = strtolower(trim((string)($folders[$a]['name'] ?? $a)));
-                $nameB = strtolower(trim((string)($folders[$b]['name'] ?? $b)));
-                $cmp = strnatcmp($nameB, $nameA);
-                return $cmp !== 0 ? $cmp : strnatcmp((string)$b, (string)$a);
+            $direction = $sortMode === 'alpha' ? 1 : -1;
+            $keys = $sortKeysByComparator(array_keys($folders), static function ($a, $b) use ($names, $ids, $direction): int {
+                return $direction * (
+                    fvplusCompareFolderNameSortKeys($names[$a], $names[$b])
+                    ?: fvplusCompareFolderNameSortKeys($ids[$a], $ids[$b])
+                    ?: strcmp((string)$a, (string)$b)
+                );
             });
             $ordered = [];
             foreach ($keys as $key) {
@@ -2102,7 +2162,7 @@
         return $decoded !== null && count(array_filter($decoded, 'is_array')) === count($decoded) ? $decoded : null;
     }
 
-    function readFolderTemplates(string $type, bool $requireAvailable = false): array {
+    function readFolderTemplates(string $type, bool $requireAvailable = false, bool $normalize = true): array {
         $path = getTemplatePath($type);
         $mirror = getLastGoodJsonPath($path);
         $decoded = readFolderTemplateFile($path) ?? readFolderTemplateFile($mirror);
@@ -2110,6 +2170,7 @@
             && (file_exists($path) || is_link($path) || file_exists($mirror) || is_link($mirror))) {
             throw new FVPlusStorageException('Unable to load saved templates.');
         }
+        if (!$normalize) return $decoded ?? [];
         $rows = [];
         foreach ($decoded ?? [] as $row) {
             $normalized = normalizeTemplateEntry($row);

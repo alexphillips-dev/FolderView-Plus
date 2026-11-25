@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
-fvplus::require_commands git sed
+fvplus::require_commands git sed sort tail
 
 detect_branch() {
   local branch=""
@@ -102,7 +102,8 @@ if [[ "${#RELEASE_RELEVANT_FILES[@]}" -eq 0 ]]; then
   exit 0
 fi
 
-if [[ "${CURRENT_VERSION}" == "${BASE_VERSION}" ]]; then
+if [[ "${CURRENT_VERSION}" == "${BASE_VERSION}" ]] || \
+    [[ "$(printf '%s\n%s\n' "${BASE_VERSION}" "${CURRENT_VERSION}" | sort -V | tail -n 1)" != "${CURRENT_VERSION}" ]]; then
   echo "ERROR: dev pushes that change shipped plugin files must bump folderview.plus.plg version." >&2
   echo "base=${BASE_REF} version=${BASE_VERSION} current=${CURRENT_VERSION}" >&2
   echo "Changed shipped files:" >&2

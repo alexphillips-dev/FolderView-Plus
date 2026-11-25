@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "content-revision": "104b0ada650bff8868c0ddb2d984b9a60483ac1f78c43554f3267d525c414073"
+        "content-revision": "7fea7545963002743eada46dfc953960a2d23ae1429b119cdf39ac3ce8d196b3"
     },
     "settings.visibility.group-unassigned-items": "Grupēt nepiešķirtos vienumus",
     "settings.visibility.group-unassigned-items-help": "Attiecas arī uz atbilstošo informācijas paneļa elementu.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Rāda $1 no $2 kārtulām",
     "settings.rules.selected": "· $1 atlasīts ($2 parādīts)",
     "settings.rules.edit-missing": "Rediģētā kārtula vairs nepastāv. Atceliet rediģēšanu un atlasiet citu kārtulu.",
+    "settings.rules.edit-conflict": "Šī kārtula mainījās, kamēr jūs rediģējāt. Pirms atkārtotas saglabāšanas atceliet un atveriet to vēlreiz.",
     "settings.rules.docker-description": "Automātiski kārtojiet savus Docker konteinerus pareizajās mapēs, izmantojot elastīgus noteikumus.",
     "settings.rules.vm-description": "Automātiski kārtojiet savas virtuālās mašīnas pareizajās mapēs, izmantojot elastīgus noteikumus.",
     "settings.folder-defaults.edit": "Rediģēt mapju noklusējuma iestatījumus",

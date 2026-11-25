@@ -40,10 +40,11 @@ if (empty($request['skipSeed'])) {
     chmod("$customDir/before.png", 0640);
     if (!empty($request['collision'])) file_put_contents("$customDir/after.png", 'collision');
     foreach (['docker', 'vm'] as $type) {
-        $folders = $request['kind'] === 'folder' && ($request['type'] ?? 'docker') === $type
+        $folders = $request['kind'] === 'folder' && (($request['type'] ?? 'docker') === $type || !empty($request['bothRepairTypes']))
             ? ['fixture' => ['name' => 'Fixture folder', 'icon' => $request['reference'], 'containers' => []]] : [];
         writeRawFolderMap($type, $folders);
         $prefs = defaultTypePrefs();
+        if (!empty($request['retainPriorArchives'])) $prefs['backupSchedule']['retention'] = 1;
         if (($request['type'] ?? 'docker') === $type && ($request['kind'] ?? '') === 'defaults') {
             $prefs['folderDefaults']['profile']['icon'] = $request['reference'];
         }
@@ -132,13 +133,22 @@ if (($request['policyAction'] ?? '') === 'repair') {
     unlink(customIconDirPath() . '/before.png');
     if (!is_link(fvplusCustomIconRuntimeDirPath())) unlink(fvplusCustomIconRuntimeDirPath() . '/before.png');
     $beforeUsage = customIconUsageMap();
+    $priorArchives = [];
+    if (!empty($request['retainPriorArchives'])) {
+        foreach (['docker', 'vm'] as $sourceType) {
+            $archive = createBackupSnapshot($sourceType, 'before-import');
+            $archivePath = getBackupSnapshotPath($sourceType, $archive['name']);
+            $priorArchives[$archivePath] = hash_file('sha256', $archivePath);
+        }
+    }
     if (!empty($request['policyFault'])) {
         $GLOBALS['icon_policy_fault'] = $request['policyFault'];
+        $GLOBALS['icon_policy_fault_type'] = $request['policyFaultType'] ?? null;
         eval('namespace IconPolicyFault;
             function scandir(string $path) { return $GLOBALS["icon_policy_fault"] === "inventory" ? false : \\scandir($path); }
             function writeRawFolderMap(string $type, array $folders): void {
                 \\writeRawFolderMap($type, $folders);
-                if ($GLOBALS["icon_policy_fault"] === "folders") throw new \\RuntimeException("Injected icon folder failure.");
+                if ($GLOBALS["icon_policy_fault"] === "folders" && in_array($GLOBALS["icon_policy_fault_type"], [null, $type], true)) throw new \\RuntimeException("Injected icon folder failure.");
             }
             function writeTypePrefs(string $type, array $prefs): array {
                 $saved = \\writeTypePrefs($type, $prefs);
@@ -150,12 +160,18 @@ if (($request['policyAction'] ?? '') === 'repair') {
         $before = fvplusEnvironmentCaptureFiles($paths); $error = '';
         try { IconPolicyFault\fvplusRepairMissingCustomIconReferences(); }
         catch (Throwable $failure) { $error = $failure->getMessage(); }
-        echo json_encode(['error' => $error, 'exactRestored' => $before === fvplusEnvironmentCaptureFiles($paths)]); exit;
+        $archivesRetained = true;
+        foreach ($priorArchives as $path => $hash) {
+            $archivesRetained = $archivesRetained && is_file($path) && hash_file('sha256', $path) === $hash;
+        }
+        echo json_encode(['error' => $error, 'exactRestored' => $before === fvplusEnvironmentCaptureFiles($paths),
+            'archivesRetained' => $archivesRetained]); exit;
     }
     $result = fvplusRepairMissingCustomIconReferences();
     $afterUsage = customIconUsageMap();
     echo json_encode(['beforeCount' => count($beforeUsage['before.png'] ?? []), 'result' => $result,
-        'afterCount' => count($afterUsage['before.png'] ?? [])]); exit;
+        'afterCount' => count($afterUsage['before.png'] ?? []),
+        'archiveCounts' => array_column(listBackupSnapshots($request['type'] ?? 'docker'), 'count')]); exit;
 }
 $before = iconFixtureState($root);
 $_POST = ['from' => 'before.png', 'to' => $request['to'] ?? 'after', 'selectedIcon' => $request['selectedIcon'] ?? '', 'name' => 'before.png'];

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "editor",
-        "content-revision": "ec485715035b7c27c1e2eaf4697c012edfcc05be277931e360d56a1fc787b874"
+        "content-revision": "2ca0c7ffba31bdb2084721e6b0080be3cf37d169bfddbc0e606d6f41bd754b8c"
     },
     "editor.settings.information-about": "Informazioni su $1",
     "editor.actions.add-custom": "Aggiungi un'azione personalizzata",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Non disponibile in questa cartella",
     "editor.webui-profiles.no-members": "Non sono disponibili membri della cartella corrispondenti.",
     "editor.webui-profiles.error-name": "Ogni profilo WebUI necessita di un nome.",
+    "editor.webui-profiles.error-name-length": "I nomi dei profili WebUI possono contenere fino a $1 UTF-8 byte.",
     "editor.webui-profiles.error-duplicate": "I nomi dei profili WebUI devono essere univoci all'interno di questa cartella.",
     "editor.webui-profiles.error-members": "Ogni profilo WebUI deve selezionare almeno un membro della cartella.",
+    "editor.webui-profiles.error-member-limit": "Un profilo WebUI può selezionare fino a $1 membri.",
     "editor.webui-profiles.limit": "Questa cartella ha raggiunto il limite di sicurezza del profilo WebUI.",
     "editor.members.assignment-why": "Perché questa cartella?",
     "editor.members.assignment-elsewhere": "Assegnato ad altre cartelle",

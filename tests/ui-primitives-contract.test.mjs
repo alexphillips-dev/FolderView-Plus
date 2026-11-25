@@ -59,17 +59,65 @@ test('settings support actions use shared confirmation and alert primitives', as
             },
             alert: async (options) => calls.push(['alert', options])
         },
-        restorePreviousGlobalRollbackCheckpointApi: async () => ({ targetName: 'checkpoint-1' }),
+        globalRollbackApi: async (action, fields) => {
+            if (action === 'rollback_list') return { name: 'checkpoint-1' };
+            calls.push([action, fields.expectedName]);
+            return { targetName: fields.expectedName };
+        },
         refreshAll: async () => calls.push(['refresh']),
         setRollbackStatus: (status) => calls.push(['status', status]),
         showError: (title, error) => calls.push(['error', title, error])
     });
     await actions.rollbackLatestCheckpoint();
     assert.equal(calls[0][0], 'confirm');
+    assert.match(calls[0][1].message, /checkpoint-1/);
+    assert.deepEqual(calls[1], ['rollback_restore_previous', 'checkpoint-1']);
     assert.deepEqual(calls.filter(([kind]) => kind === 'refresh'), [['refresh']]);
     assert.deepEqual(calls.filter(([kind]) => kind === 'status'), [['status', 'Restored checkpoint-1']]);
     assert.equal(calls.at(-1)[0], 'alert');
     assert.equal(calls.at(-1)[1].tone, 'success');
+});
+
+test('manual global rollback requires a reviewed checkpoint and confirmation', async () => {
+    let checkpoint = null;
+    const calls = [];
+    const actions = actionSupport.createSupportActions({
+        globalRollbackApi: async (action) => action === 'rollback_list' ? checkpoint : calls.push('restore'),
+        ui: { confirm: async () => { calls.push('confirm'); return false; } },
+        showError: (_title, error) => calls.push(error.message)
+    });
+    await actions.rollbackLatestCheckpoint();
+    checkpoint = { name: 'fixture-rollback.json' };
+    await actions.rollbackLatestCheckpoint();
+    assert.deepEqual(calls, ['No previous rollback snapshot available.', 'confirm']);
+});
+
+test('global rollback API selects a restorable previous row and sends the reviewed or named checkpoint', async () => {
+    const source = fs.readFileSync(path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js'), 'utf8');
+    const calls = [];
+    const bind = new Function('apiGetJson', 'apiPostJson', 'assertRuntimeConflictActionAllowed', `
+        ${source.slice(source.indexOf('const globalRollbackApi ='), source.indexOf('const restoreLatest ='))}
+        return globalRollbackApi;
+    `);
+    const api = bind(async (_url, options) => {
+        assert.equal(options.cache, false);
+        return { ok: true, snapshots: [
+            { name: 'unreadable-newest', restorable: false },
+            { name: 'unreadable-previous', restorable: false },
+            { name: 'reviewed-checkpoint', restorable: true }
+        ] };
+    }, async (_url, fields) => {
+        calls.push(fields);
+        return { ok: true, restore: { verified: true } };
+    }, () => {});
+    const previous = await api('rollback_list');
+    assert.equal(previous.name, 'reviewed-checkpoint');
+    await api('rollback_restore_previous', { expectedName: previous.name });
+    await api('rollback_restore_named', { name: 'setup-checkpoint' });
+    assert.deepEqual(calls, [
+        { action: 'rollback_restore_previous', expectedName: 'reviewed-checkpoint' },
+        { action: 'rollback_restore_named', name: 'setup-checkpoint' }
+    ]);
 });
 
 test('settings support actions register through the declarative registry without broad window assignment', () => {

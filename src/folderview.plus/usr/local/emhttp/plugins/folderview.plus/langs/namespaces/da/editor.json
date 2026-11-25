@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "editor",
-        "content-revision": "c8c024657fc38a45e10becfefa1ae0b6201b1a4c13e6edba9b3b390f91010f68"
+        "content-revision": "ac2d615d222217b06f0ac72b3a54c5e8d185fb9a3437c772f817163c5e78b8e6"
     },
     "editor.settings.information-about": "Oplysninger om $1",
     "editor.actions.add-custom": "Tilføj en tilpasset handling",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Ikke tilgængelig i denne mappe",
     "editor.webui-profiles.no-members": "Ingen matchende mappemedlemmer er tilgængelige.",
     "editor.webui-profiles.error-name": "Hver WebUI-profil har brug for et navn.",
+    "editor.webui-profiles.error-name-length": "WebUI-profilnavne kan være op til $1 UTF-8 bytes.",
     "editor.webui-profiles.error-duplicate": "WebUI-profilnavne skal være unikke i denne mappe.",
     "editor.webui-profiles.error-members": "Hver WebUI-profil skal vælge mindst ét mappemedlem.",
+    "editor.webui-profiles.error-member-limit": "En WebUI-profil kan vælge op til $1 medlemmer.",
     "editor.webui-profiles.limit": "Denne mappe har nået sikkerhedsgrænsen for WebUI-profilen.",
     "editor.members.assignment-why": "Hvorfor denne mappe?",
     "editor.members.assignment-elsewhere": "Tildelt til andre mapper",

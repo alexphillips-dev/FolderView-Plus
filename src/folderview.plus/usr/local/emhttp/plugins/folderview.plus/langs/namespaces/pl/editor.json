@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "editor",
-        "content-revision": "b8984343b0e98f7f65f70dd405e2770c4798481673c1eef2b26ec393bb73cb0b"
+        "content-revision": "f0713482e6ef27583320c54f4ff9834ec2e7e66b418b5d54c3a40d6f6e5a3f45"
     },
     "editor.settings.information-about": "Informacje o $1",
     "editor.actions.add-custom": "Dodaj niestandardową akcję",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Niedostępne w tym folderze",
     "editor.webui-profiles.no-members": "Brak dostępnych pasujących członków folderu.",
     "editor.webui-profiles.error-name": "Każdy profil WebUI potrzebuje nazwy.",
+    "editor.webui-profiles.error-name-length": "Nazwy profili WebUI mogą mieć maksymalnie $1 bajtów UTF-8.",
     "editor.webui-profiles.error-duplicate": "Nazwy profili WebUI muszą być unikalne w tym folderze.",
     "editor.webui-profiles.error-members": "Każdy profil WebUI musi wybierać co najmniej jednego członka folderu.",
+    "editor.webui-profiles.error-member-limit": "Profil WebUI może wybrać maksymalnie $1 członków.",
     "editor.webui-profiles.limit": "Ten folder osiągnął limit bezpieczeństwa profilu WebUI.",
     "editor.members.assignment-why": "Dlaczego ten folder?",
     "editor.members.assignment-elsewhere": "Przypisane do innych folderów",

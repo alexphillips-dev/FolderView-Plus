@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "content-revision": "ad1cefbcfd35bb6128a668d778d2dec529615ddbf190f19b6b0ab2073ac05a0b"
+        "content-revision": "1e5d2e8e74983f6bd60e942515ee570a85d8598097575c744e53d20d92bfaa3f"
     },
     "settings.visibility.group-unassigned-items": "تجميع العناصر غير المعيّنة",
     "settings.visibility.group-unassigned-items-help": "ينطبق أيضًا على القسم المقابل في لوحة المعلومات.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "عرض $1 من قواعد $2",
     "settings.rules.selected": "· تم تحديد $1 ($2 معروض)",
     "settings.rules.edit-missing": "القاعدة التي يتم تحريرها لم تعد موجودة. قم بإلغاء التعديل وحدد قاعدة أخرى.",
+    "settings.rules.edit-conflict": "تغيرت هذه القاعدة أثناء قيامك بالتحرير. قم بإلغائه وإعادة فتحه قبل الحفظ مرة أخرى.",
     "settings.rules.docker-description": "قم بتنظيم حاويات Docker الخاصة بك تلقائيًا في المجلدات الصحيحة باستخدام قواعد مرنة.",
     "settings.rules.vm-description": "قم بتنظيم أجهزة VM الخاصة بك تلقائيًا في المجلدات الصحيحة باستخدام قواعد مرنة.",
     "settings.folder-defaults.edit": "تعديل الإعدادات الافتراضية للمجلدات",

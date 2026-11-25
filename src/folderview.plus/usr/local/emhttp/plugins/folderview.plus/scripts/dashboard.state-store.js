@@ -24,69 +24,72 @@
             return id ? [[id, expanded === true]] : [];
         }));
     };
+    const parseMap = (raw) => {
+        try { return raw ? normalizeExpandedStateMap(JSON.parse(raw)) : {}; }
+        catch (_error) { return {}; }
+    };
 
     const createStore = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const writer = deps.writer || null;
-        const maps = {}, stored = {};
+        const maps = {}, stored = {}, pending = {};
 
         const read = (type) => {
             const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
             try {
-                let raw = storage?.getItem?.(storageKey) ?? null;
-                if (maps[resolvedType] && raw !== stored[resolvedType]) {
-                    // Settle queued local writes before adopting current external storage.
-                    writer?.flush?.(storageKey);
-                    raw = storage?.getItem?.(storageKey) ?? null;
-                }
+                const raw = storage?.getItem?.(storageKey) ?? null;
                 if (!maps[resolvedType] || raw !== stored[resolvedType]) {
-                    try { maps[resolvedType] = raw ? normalizeExpandedStateMap(JSON.parse(raw)) : {}; }
-                    catch (_error) { maps[resolvedType] = {}; }
+                    maps[resolvedType] = parseMap(raw);
                     stored[resolvedType] = raw;
                 }
             } catch (_error) {
                 // Keep the current session usable when browser storage becomes unavailable.
             }
-            return { ...(maps[resolvedType] || {}) };
+            const draft = pending[resolvedType];
+            return { ...(draft?.replace ? {} : maps[resolvedType]), ...draft?.changes };
         };
 
-        const write = (type, map) => {
-            if (!storage) return false;
-            const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
-            read(resolvedType);
-            maps[resolvedType] = normalizeExpandedStateMap(map);
-            const payload = JSON.stringify(maps[resolvedType]);
+        const queue = (type, draft) => {
+            const storageKey = EXPANDED_STATE_STORAGE_KEYS[type];
+            pending[type] = draft;
+            const serialize = (raw) => JSON.stringify({ ...(draft.replace ? {} : parseMap(raw)), ...draft.changes });
+            const committed = (payload) => {
+                maps[type] = parseMap(payload);
+                stored[type] = payload;
+                if (pending[type] === draft) delete pending[type];
+            };
+            const options = { delayMs: 80, idle: true };
             try {
-                if (writer && typeof writer.setItem === 'function') {
-                    writer.setItem(storageKey, payload, { delayMs: 80, idle: true });
+                if (typeof writer?.updateItem === 'function') {
+                    writer.updateItem(storageKey, serialize, { ...options, onCommit: committed });
                 } else {
-                    storage?.setItem?.(storageKey, payload);
+                    const payload = serialize(storage.getItem(storageKey));
+                    if (typeof writer?.setItem === 'function') writer.setItem(storageKey, payload, options);
+                    else storage.setItem(storageKey, payload);
+                    committed(payload);
                 }
                 return true;
             } catch (_error) {
                 return false;
             }
         };
+        const write = (type, map) => storage ? queue(normalizeType(type), { replace: true, changes: normalizeExpandedStateMap(map) }) : false;
 
         const patch = (type, changes) => {
-            if (!changes || typeof changes !== 'object' || Array.isArray(changes)) return false;
-            const current = read(type);
-            let dirty = false;
-            Object.entries(changes).forEach(([rawId, expanded]) => {
-                const id = String(rawId || '').trim();
-                if (!id) return;
-                const nextValue = expanded === true;
-                if (current[id] === nextValue) return;
-                current[id] = nextValue;
-                dirty = true;
-            });
-            return dirty ? write(type, current) : false;
+            if (!storage) return false;
+            const resolvedType = normalizeType(type);
+            const current = read(resolvedType), draft = pending[resolvedType];
+            const dirty = Object.entries(normalizeExpandedStateMap(changes)).filter(([id, expanded]) => current[id] !== expanded);
+            return dirty.length ? queue(resolvedType, {
+                replace: draft?.replace === true, changes: { ...draft?.changes, ...Object.fromEntries(dirty) }
+            }) : false;
         };
 
         const clear = (type) => {
             if (!storage) return false;
             const resolvedType = normalizeType(type), storageKey = EXPANDED_STATE_STORAGE_KEYS[resolvedType];
+            delete pending[resolvedType];
             maps[resolvedType] = {};
             try {
                 writer?.removeItem?.(storageKey, { delayMs: 0, idle: false });

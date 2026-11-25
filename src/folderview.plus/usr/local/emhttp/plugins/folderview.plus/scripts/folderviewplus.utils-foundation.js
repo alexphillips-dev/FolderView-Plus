@@ -173,7 +173,9 @@
                 if (entry.remove === true) {
                     storage.removeItem(safeKey);
                 } else {
-                    storage.setItem(safeKey, String(entry.value));
+                    const value = String(entry.update ? entry.value(storage.getItem(safeKey)) : entry.value);
+                    storage.setItem(safeKey, value);
+                    entry.onCommit?.(value);
                 }
             } catch (_error) {
                 // Best effort: never break runtime flow on quota/privacy failures.
@@ -193,7 +195,7 @@
             }
             const next = {
                 value,
-                remove: remove === true,
+                remove: remove === true, update: settings.update === true, onCommit: settings.onCommit,
                 timer: null
             };
             pendingByKey.set(safeKey, next);
@@ -217,9 +219,9 @@
                 commit(safeKey);
             }, delayMs);
         };
-
         return {
             setItem: (key, value, settings = {}) => queueCommit(key, value, false, settings),
+            updateItem: (key, update, settings = {}) => queueCommit(key, update, false, { ...settings, update: true }),
             removeItem: (key, settings = {}) => queueCommit(key, '', true, settings),
             flush: (key = '') => {
                 const safeKey = String(key || '').trim();

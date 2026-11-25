@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.10">
-<!ENTITY md5 "0f4673163b2800cad3a42fa8e9d11e66">
-<!ENTITY sha256 "37cfad2a9641e4f799087f1b2f8ed05a575e3e41dc31ea34285510de97061632">
+<!ENTITY version "2026.11.24.11">
+<!ENTITY md5 "cd5360daffbc1e37533e6968811f02a0">
+<!ENTITY sha256 "39ffce2b6e9204fc53c2058514f86bbbd4132acb81fca6d251fdcaab4579b4d7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.11
+- Reliability: Keep the verified Unraid boot registration aligned with the running plugin when a native update check or removal overlaps an update or URL install.
+- Fix: Preserve existing Appearance profiles and folder IDs during FolderView3 migration, and validate converted rules for both PHP and the browser.
+- Reliability: Preserve older backups when editor bulk moves or repairs fail, protect newly created backups from pruning, and review the exact available checkpoint before restoring it.
+- Fix: Protect rule edits across tabs and prevent Folder Editor edits during a pending save.
+- Fix: Apply committed rule changes on Docker and VM pages, match native VM callbacks to the correct request, and preserve folder expansion across reloads and Dashboard tabs.
+- UX: Show accurate Recovery and Appearance status, preserve keyboard focus when resetting colors, and enforce WebUI profile limits before saving.
+- Quality: Reject dev version downgrades and stop cleanly when all release revisions for a date are used.
+
 
 ###2026.11.24.10
 - Reliability: Preserve newer folder changes, editor drafts, and preferences when undoing a bulk move. Conflicting rule saves now ask for a refresh instead of overwriting another tab's changes.
@@ -10194,23 +10204,36 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
 
     <FILE Run="/bin/bash">
         <INLINE>
+            { # Unraid 7.0 reuses one inline script path for concurrent commands.
             set -e
             config_dir="/boot/config/plugins/&name;"
             registered_manifest="/boot/config/plugins/&name;.plg"
             staged_manifest="/tmp/plugins/&name;.plg"
-            native_update=0
-            # Unraid runs this inline file through a shell. Locate its own CLI invocation
-            # so that a manual install or offline boot never consumes the update staging file.
-            if [[ "$0" = /tmp/inline*-&name;.sh ]]; then
+            registration_dir="/run/folderview.plus-registration"
+            registration_helper="&plugdir;/scripts/complete_native_registration.sh"
+            registration_hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-registration"
+            staged_method=""
+            # Native update and URL install both register from the shared staging file.
+            # Local installs and offline boot use their own manifest paths.
+            if [[ "$0" = /tmp/inline*-&name;.sh || "$0" = /tmp/inline.sh ]]; then
                 installer_pid="${PPID}"
                 for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
                     if ! readarray -d '' -t installer_args 2>/dev/null &lt; "/proc/${installer_pid}/cmdline"; then
                         break
                     fi
                     if [[ "${installer_args[1]##*/}" = plugin || "${installer_args[1]##*/}" = plugin.php ]]; then
-                        if [ "${installer_args[2]:-}" = update ] &amp;&amp; [ "${installer_args[3]:-}" = "&name;.plg" ]; then
-                            native_update=1
+                        installer_arg="${installer_args[3]:-}"
+                        if [[ "${installer_args[2]:-}" = remove ]]; then
+                            printf 'The native operation changed before FolderView Plus could start. Retry the operation.\n' >&amp;2
+                            exit 1
                         fi
+                        case "${installer_args[2]:-}:${installer_arg}" in
+                            update:&name;.plg|install:http://*/&name;.plg|install:https://*/&name;.plg)
+                                staged_method="${installer_args[2]}"
+                                installer_start="$(sed -E 's/^[0-9]+ \(.*\) //' "/proc/${installer_pid}/stat" | awk '{ print $20 }')"
+                                [[ "${installer_start}" =~ ^[0-9]+$ ]] || exit 1
+                                ;;
+                        esac
                         break
                     fi
                     installer_pid="$(awk '/^PPid:/ { print $2 }' "/proc/${installer_pid}/status")"
@@ -10218,13 +10241,16 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             fi
             lock_options=(-n)
             # Unraid quarantines the boot manifest if this hook fails during startup.
-            if [ "${native_update}" -eq 0 ] &amp;&amp; [ -r "${registered_manifest}" ] &amp;&amp; [ ! -L "/var/log/plugins/&name;.plg" ]; then
+            if [ -z "${staged_method}" ] &amp;&amp; [ -r "${registered_manifest}" ] &amp;&amp; [ ! -L "/var/log/plugins/&name;.plg" ]; then
                 lock_options=()
             fi
             exec 9>>/run/folderview.plus-install.lock
             if ! flock "${lock_options[@]}" 9; then
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
+            fi
+            if [ -d "${registration_dir}" ]; then
+                /bin/bash "${registration_helper}" recover || exit 1
             fi
             cron_file="/etc/cron.d/folderview.plus"
             candidate_archive="${config_dir}/&name;-&version;.txz"
@@ -10245,6 +10271,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             version_backup=""
             registered_stage=""
             staged_repair=""
+            registration_owned=0
             version_changed=0
             core_attempted=0
             cron_changed=0
@@ -10318,6 +10345,14 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 fi
                 [ -f "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ] \
                     &amp;&amp; cmp -s -- "${registered_stage}" "${staged_manifest}" || return 1
+                # Unraid runs our post-hook after its own copy, which may have read a
+                # different download from staging. Keep a private copy of the chosen manifest.
+                [ -x "${registration_helper}" ] &amp;&amp; mkdir -m 0700 -- "${registration_dir}" || return 1
+                registration_owned=1
+                cp -- "${registered_stage}" "${registration_dir}/manifest" &amp;&amp; \
+                    printf '%s %s %s %s\n' "${installer_pid}" "${installer_start}" "${staged_method}" "&version;" > "${registration_dir}/owner" &amp;&amp; \
+                    printf '%s\n' "${install_summary}" > "${registration_dir}/report" &amp;&amp; \
+                    ln -sT -- "${registration_helper}" "${registration_hook}" || return 1
                 # The native CLI ignores a failed final copy. Commit verified boot bytes
                 # atomically before returning so a later deleted stage cannot lose registration.
                 mv -fT -- "${registered_stage}" "${registered_manifest}"
@@ -10368,6 +10403,13 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_failure() {
                 local exit_code=$? restored=1
                 trap - EXIT
+                if [ "${registration_owned}" -eq 1 ]; then
+                    if [ "$(readlink -- "${registration_hook}" 2>/dev/null || true)" = "${registration_helper}" ]; then
+                        rm -f -- "${registration_hook}" || restored=0
+                    fi
+                    rm -f -- "${registration_dir}/manifest" "${registration_dir}/owner" "${registration_dir}/report" &amp;&amp; \
+                        rmdir -- "${registration_dir}" || restored=0
+                fi
                 if [ -f "${install_report}" ]; then
                     /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
                 fi
@@ -10455,9 +10497,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     fi
                 fi
             fi
-            if [ "${native_update}" -eq 1 ]; then
-                install_stage="native update registration"
-                if [ -n "${registered_version}" ] &amp;&amp; version_before "&version;" "${registered_version}"; then
+            if [ -n "${staged_method}" ]; then
+                install_stage="native registration"
+                if [ "${staged_method}" = update ] &amp;&amp; [ -n "${registered_version}" ] \
+                    &amp;&amp; version_before "&version;" "${registered_version}"; then
                     printf 'FolderView Plus cannot update from an older staged manifest. Check for the current release and retry.\n' >&amp;2
                     exit 1
                 fi
@@ -10498,7 +10541,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_stage="installation report"
             install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
             install_stage="version metadata"
-            if [ "${native_update}" -eq 1 ] &amp;&amp; { [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; }; then
+            if [ -n "${staged_method}" ] &amp;&amp; { [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; }; then
                 version_backup="$(mktemp "${config_dir}/.version.rollback.XXXXXX")"
                 cp -pP -- "${config_dir}/version" "${version_backup}"
             fi
@@ -10506,8 +10549,8 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             printf '%s\n' "&version;" > "${version_stage}"
             mv -fT -- "${version_stage}" "${config_dir}/version"
             version_changed=1
-            if [ "${native_update}" -eq 1 ]; then
-                install_stage="native update registration"
+            if [ -n "${staged_method}" ]; then
+                install_stage="native registration"
                 if ! commit_native_registration; then
                     printf 'FolderView Plus could not register the chosen update. The staged manifest may have changed.\n' >&amp;2
                     exit 1
@@ -10516,7 +10559,9 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             trap - EXIT
             rm -f -- "${cron_backup}" "${version_backup}" "${staged_repair}" || true
             cleanup_install_context || true
-            printf '%s\n' "${install_summary}"
+            if [ -z "${staged_method}" ]; then
+                printf '%s\n' "${install_summary}"
+            fi
 
             # Retain archives named by both the previous and incoming manifests.
             if [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
@@ -10537,15 +10582,36 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     rm -f -- "${local_archive}" || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
                 done
             fi
+            }
         </INLINE>
     </FILE>
 
     <FILE Run="/bin/bash" Method="remove">
         <INLINE>
+            { # Parse the whole hook before another Unraid 7.0 command can replace it.
+            if [ "$0" = /tmp/inline.sh ]; then
+                installer_pid="${PPID}"
+                for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
+                    if ! readarray -d '' -t installer_args 2>/dev/null &lt; "/proc/${installer_pid}/cmdline"; then
+                        break
+                    fi
+                    if [[ "${installer_args[1]##*/}" = plugin || "${installer_args[1]##*/}" = plugin.php ]]; then
+                        if [ "${installer_args[2]:-}" != remove ]; then
+                            printf 'The native operation changed before FolderView Plus could start. Retry the operation.\n' >&amp;2
+                            exit 1
+                        fi
+                        break
+                    fi
+                    installer_pid="$(awk '/^PPid:/ { print $2 }' "/proc/${installer_pid}/status")"
+                done
+            fi
             exec 9>>/run/folderview.plus-install.lock || exit 1
             if ! flock -n 9; then
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
+            fi
+            if [ -d /run/folderview.plus-registration ]; then
+                /bin/bash "&plugdir;/scripts/complete_native_registration.sh" recover remove || exit 1
             fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
             if [ -n "${deployed_version}" ]; then
@@ -10568,6 +10634,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             rm -rf &plugdir;
             rm -rf /tmp/folderview.plus-assets
             rm -rf /boot/config/plugins/&name;
+            }
         </INLINE>
     </FILE>
 

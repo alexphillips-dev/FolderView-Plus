@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "content-revision": "d460098033e312c72d4fcec225c3163a60e8d3a9113288f3f0ecd2b244622874"
+        "content-revision": "f14ebec4097cad83b360e311baceda3ab849361cac833f6a3cfd4a33645d7c69"
     },
     "settings.visibility.group-unassigned-items": "Grupează elementele nealocate",
     "settings.visibility.group-unassigned-items-help": "Se aplică și panoului corespunzător din tabloul de bord.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Se afișează $1 din $2 reguli",
     "settings.rules.selected": "· $1 selectat ($2 afișat)",
     "settings.rules.edit-missing": "Regula în curs de editare nu mai există. Anulați editarea și selectați o altă regulă.",
+    "settings.rules.edit-conflict": "Această regulă s-a schimbat în timp ce editați. Anulați și redeschideți-l înainte de a salva din nou.",
     "settings.rules.docker-description": "Organizați automat containerele Docker în folderele potrivite folosind reguli flexibile.",
     "settings.rules.vm-description": "Organizați-vă automat VM-urile în folderele potrivite folosind reguli flexibile.",
     "settings.folder-defaults.edit": "Editează setările implicite ale dosarelor",

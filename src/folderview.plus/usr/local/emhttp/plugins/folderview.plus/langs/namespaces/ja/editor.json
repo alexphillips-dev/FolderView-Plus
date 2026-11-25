@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "editor",
-        "content-revision": "6d91a923273df0b29c060b7fdc6a74e3d784c6b31e0c3b3bb96864d66426b802"
+        "content-revision": "298921f995457b8bcac6d1aada035984123ced9c7bcf63f0d29a26cf017ea7aa"
     },
     "editor.settings.information-about": "$1 に関する情報",
     "editor.actions.add-custom": "カスタムアクションを追加",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "このフォルダでは使用できません",
     "editor.webui-profiles.no-members": "一致するフォルダー メンバーがありません。",
     "editor.webui-profiles.error-name": "すべての WebUI プロファイルには名前が必要です。",
+    "editor.webui-profiles.error-name-length": "WebUI プロファイル名は最大 $1 UTF-8 バイトにすることができます。",
     "editor.webui-profiles.error-duplicate": "WebUI プロファイル名は、このフォルダー内で一意である必要があります。",
     "editor.webui-profiles.error-members": "すべての WebUI プロファイルは、少なくとも 1 つのフォルダー メンバーを選択する必要があります。",
+    "editor.webui-profiles.error-member-limit": "WebUI プロファイルは最大 $1 メンバーを選択できます。",
     "editor.webui-profiles.limit": "このフォルダーは WebUI プロファイルの安全制限に達しています。",
     "editor.members.assignment-why": "なぜこのフォルダなのでしょうか？",
     "editor.members.assignment-elsewhere": "他のフォルダーに割り当てられている",

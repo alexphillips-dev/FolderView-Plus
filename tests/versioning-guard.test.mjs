@@ -188,6 +188,69 @@ function runBuildFixture(directory, script, ...args) {
     ], { cwd: repoRoot, encoding: 'utf8', timeout: 30000, input: script });
 }
 
+test('dev version guard requires shipped changes to advance the published version', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-dev-version-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
+    fs.copyFileSync(devVersionBumpGuardPath, path.join(directory, 'scripts', 'dev_version_bump_guard.sh'));
+    fs.copyFileSync(sharedLibPath, path.join(directory, 'scripts', 'lib.sh'));
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+git -c init.defaultBranch=dev init -q
+git config user.name 'Synthetic Fixture'
+git config user.email fixture@example.invalid
+printf '<!ENTITY version "2026.01.01.10">\\n' > folderview.plus.plg
+git add .
+git commit -qm base
+export FVPLUS_DEV_VERSION_BASE_REF="$(git rev-parse HEAD)"
+printf 'notes only\\n' > notes.md
+git add notes.md
+git commit -qm docs
+bash scripts/dev_version_bump_guard.sh
+for patch in 09 10 11; do
+    printf '<!ENTITY version "2026.01.01.%s">\\n' "$patch" > folderview.plus.plg
+    printf 'changed shipped source %s\\n' "$patch" > src/folderview.plus/fixture
+    git add .
+    git commit -qm "fixture $patch"
+    if [ "$patch" = 11 ]; then
+        bash scripts/dev_version_bump_guard.sh
+    else
+        if bash scripts/dev_version_bump_guard.sh > result 2>&1; then exit 11; fi
+        grep -F 'must bump folderview.plus.plg version' result
+    fi
+done
+`);
+    assert.match(output, /passed: no shipped plugin files changed/);
+    assert.equal(output.match(/must bump folderview\.plus\.plg version/g).length, 2);
+    assert.match(output, /passed: 2026\.01\.01\.10 -> 2026\.01\.01\.11/);
+});
+
+test('package version resolution stops when the two-digit revision is exhausted', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-version-limit-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    fs.mkdirSync(path.join(directory, 'archive'));
+    for (const file of ['folderview.plus.plg', 'folderview.plus.xml', 'scripts/ensure_plg_changes_entry.sh', 'scripts/generate_runtime_integrity_manifest.mjs', 'scripts/icon_asset_pack_guard.sh']) {
+        fs.writeFileSync(path.join(directory, file), '');
+    }
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+today="$(date +%Y.%m.%d)"
+touch "archive/folderview.plus-$today.98.txz"
+bash "$2" --branch dev --dry-run --no-validate
+touch "archive/folderview.plus-$today.99.txz"
+if bash "$2" --branch dev --dry-run --no-validate > result 2>&1; then exit 10; fi
+grep -F '99 revisions per date' result
+if FVPLUS_VERSION_OVERRIDE="$today.100" FVPLUS_HISTORICAL_REBUILD=1 bash "$2" --branch dev --dry-run --no-validate > result 2>&1; then exit 11; fi
+grep -F '99 revisions per date' result
+test ! -e "archive/folderview.plus-$today.100.txz"
+`, pkgBuildPath);
+    assert.match(output, /Version: \d{4}\.\d{2}\.\d{2}\.99/);
+    assert.equal(output.match(/99 revisions per date/g).length, 2);
+});
+
 test('package modes share a lock which recovers after abrupt owner termination', t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -375,6 +438,8 @@ test('release_guard enforces archive size, file-count, and extension policy', ()
     assert.match(releaseGuard, /contains blocked executable\/binary artifacts/);
     assert.match(releaseGuard, /contains files with unexpected extensions/);
     assert.match(releaseGuard, /grep -Fvx 'install\/slack-desc'/);
+    assert.match(releaseGuard, /grep -Fvx 'usr\/local\/emhttp\/plugins\/folderview\.plus\/scripts\/complete_native_registration\.sh'/);
+    assert.match(releaseGuard, /"\.\/usr\/local\/emhttp\/plugins\/folderview\.plus\/scripts\/complete_native_registration\.sh"/);
     assert.match(releaseGuard, /scripts\/install_report\.sh/);
 });
 

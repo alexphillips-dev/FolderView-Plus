@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "content-revision": "8be0ffe88946d5b5a83462bbf3ce07c6b554cce3ffb25f5d2189928d681cd5ae"
+        "content-revision": "9b1870f51f299859e1303bd97c9b348dc50afaeb3339a1f1222d3bbe922a5d77"
     },
     "settings.visibility.group-unassigned-items": "Grupuj nieprzypisane elementy",
     "settings.visibility.group-unassigned-items-help": "Dotyczy także odpowiedniego kafelka na pulpicie.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Wyświetlanie $1 z $2 reguł",
     "settings.rules.selected": "· Wybrano $1 (pokazano $2)",
     "settings.rules.edit-missing": "Edytowana reguła już nie istnieje. Anuluj edycję i wybierz inną regułę.",
+    "settings.rules.edit-conflict": "Ta reguła uległa zmianie podczas edycji. Anuluj i otwórz ponownie przed ponownym zapisaniem.",
     "settings.rules.docker-description": "Automatycznie organizuj kontenery Dockera w odpowiednich folderach, korzystając z elastycznych reguł.",
     "settings.rules.vm-description": "Automatycznie organizuj swoje maszyny wirtualne w odpowiednich folderach, korzystając z elastycznych reguł.",
     "settings.folder-defaults.edit": "Edytuj domyślne ustawienia folderów",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "content-revision": "0ce286b732e4f585e01de277a1b71835ee527174044e36303c5929e36b46d2e9"
+        "content-revision": "70a0147341dfc9c0b12e0d1dd3a5beee82c9e2c66d45a1e3de6bd144d7d1cfb4"
     },
     "settings.visibility.group-unassigned-items": "未割り当ての項目をまとめる",
     "settings.visibility.group-unassigned-items-help": "ダッシュボードの対応するタイルにも適用されます。",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "$2 ルールの $1 を表示しています",
     "settings.rules.selected": "· $1 が選択されました ($2 が表示されます)",
     "settings.rules.edit-missing": "編集中のルールは存在しません。編集をキャンセルして、別のルールを選択してください。",
+    "settings.rules.edit-conflict": "このルールは編集中に変更されました。再度保存する前に、キャンセルして再度開きます。",
     "settings.rules.docker-description": "柔軟なルールを使用して、Docker コンテナを適切なフォルダーに自動的に整理します。",
     "settings.rules.vm-description": "柔軟なルールを使用して、VM を適切なフォルダーに自動的に整理します。",
     "settings.folder-defaults.edit": "フォルダーの既定設定を編集",

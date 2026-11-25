@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "editor",
-        "content-revision": "913deed8a4189b8a49dc94f6ab071a9ccd864befe6e32afb2ec0b8a93b15b48f"
+        "content-revision": "1fd2680490af9e9ffd2c69766eeadcf10751c7060dbe06fb81fd60d684d7cc2d"
     },
     "editor.settings.information-about": "Informace o $1",
     "editor.actions.add-custom": "Přidejte vlastní akci",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "V této složce není k dispozici",
     "editor.webui-profiles.no-members": "Nejsou k dispozici žádní odpovídající členové složky.",
     "editor.webui-profiles.error-name": "Každý profil WebUI potřebuje jméno.",
+    "editor.webui-profiles.error-name-length": "Názvy profilů webového rozhraní mohou mít až $1 UTF-8 bajtů.",
     "editor.webui-profiles.error-duplicate": "Názvy profilů webového rozhraní musí být v této složce jedinečné.",
     "editor.webui-profiles.error-members": "Každý profil WebUI musí vybrat alespoň jednoho člena složky.",
+    "editor.webui-profiles.error-member-limit": "Profil WebUI může vybrat až $1 členů.",
     "editor.webui-profiles.limit": "Tato složka dosáhla bezpečnostního limitu profilu WebUI.",
     "editor.members.assignment-why": "Proč tato složka?",
     "editor.members.assignment-elsewhere": "Přiřazeno do jiných složek",

@@ -28,6 +28,7 @@
     },
     "overrides": {
         "fr": {
+            "This rule changed while you were editing. Cancel and reopen it before saving again.": "Cette règle a changé pendant la modification. Annulez la modification, puis rouvrez la règle avant de la réenregistrer.",
             "Rebuild ready": "Reconstruction prête",
             "Skipped": "Ignoré",
             "Open console": "Ouvrir la console",
@@ -103,6 +104,7 @@
             "FolderView Plus start-order workspace is unavailable.": "Pracovní prostor pro pořadí spuštění v FolderView Plus není k dispozici."
         },
         "hu": {
+            "This rule changed while you were editing. Cancel and reopen it before saving again.": "A szabály szerkesztés közben megváltozott. Mentés előtt lépjen ki a szerkesztésből, majd nyissa meg újra a szabályt.",
             "Preferences": "Beállítások",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Kezdő mappák: $1 (kijelölve: $2; meglévők kihagyva: $3; automatikusan hozzárendelt egyezések: $4; ellenőrzésre vár: $5; nincs egyezés: $6)",
             "$1 refs": "Hivatkozások: $1",
@@ -243,6 +245,7 @@
             "Needs attention before applying": "প্রয়োগের আগে যাচাই করা প্রয়োজন"
         },
         "ca": {
+            "This rule changed while you were editing. Cancel and reopen it before saving again.": "Aquesta regla ha canviat mentre l’editàveu. Cancel·leu l’edició i torneu a obrir la regla abans de desar-la.",
             "Update status unavailable": "Estat de l'actualització no disponible",
             "Configuration is unavailable. Reload Settings before previewing rules.": "La configuració no està disponible. Torneu a carregar la configuració abans de previsualitzar les regles.",
             "Invalid preview digest.": "La signatura de la previsualització no és vàlida.",
@@ -811,6 +814,7 @@
             "FolderView Plus start-order model is unavailable.": "Das Modell für die Startreihenfolge in FolderView Plus ist nicht verfügbar."
         },
         "es": {
+            "This rule changed while you were editing. Cancel and reopen it before saving again.": "Esta regla cambió mientras la editaba. Cancele la edición y vuelva a abrir la regla antes de guardarla.",
             "Rebuild ready": "Reconstrucción lista",
             "Skipped": "Omitido",
             "Open console": "Abrir consola",
@@ -985,6 +989,7 @@
             "Undo snapshot created: $1": "Snapshot criado para desfazer a operação: $1"
         },
         "pt-PT": {
+            "This rule changed while you were editing. Cancel and reopen it before saving again.": "Esta regra foi alterada durante a edição. Cancele a edição e volte a abrir a regra antes de a guardar.",
             "Update status unavailable": "Estado da atualização indisponível",
             "Containers": "Contentores",
             "Restore this snapshot’s folders and saved preferences? A safety backup is created first.": "Restaurar as pastas e as preferências guardadas deste instantâneo? Primeiro, é criada uma cópia de segurança.",

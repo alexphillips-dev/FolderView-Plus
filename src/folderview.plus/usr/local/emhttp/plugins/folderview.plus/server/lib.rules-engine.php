@@ -92,7 +92,7 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
 
 
 
-    function fvplusRulePatternIsPortable(string $pattern): bool {
+    function fvplusRulePatternIsPortable(string $pattern, bool $unicode = true): bool {
         $class = false; $length = strlen($pattern);
         for ($index = 0; $index < $length; $index++) {
             $char = $pattern[$index];
@@ -117,6 +117,13 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
             if ($char === '[' && !$class) { $class = true; continue; }
             if ($char === ']' && $class) { $class = false; continue; }
             if ($class) continue;
+            if ($unicode && $char === '{') {
+                if (!preg_match('/\A\{[0-9]+(?:,[0-9]*)?\}/', substr($pattern, $index), $quantifier)) return false;
+                $index += strlen($quantifier[0]) - 1;
+                $char = '}';
+            } elseif ($unicode && ($char === '}' || $char === ']')) {
+                return false;
+            }
             if ($char === '(' && ($pattern[$index + 1] ?? '') === '*') return false;
             if ($char === '(' && ($pattern[$index + 1] ?? '') === '?' && !preg_match('/\A\(\?(?:[:=!]|<[=!]|<[A-Za-z_$][A-Za-z0-9_$]*>)/', substr($pattern, $index))) return false;
             if (strpos('*+?}', $char) !== false && ($pattern[$index + 1] ?? '') === '+') return false;
@@ -136,10 +143,11 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
             $regex = null; $valid = in_array($kind, FVPLUS_RULE_KINDS, true) && ($type === 'docker' || $kind === 'name_regex');
             if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
                 $pattern = (string)($rule['pattern'] ?? '');
-                $regex = serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule), true);
+                $unicode = !fvplusRuleUsesLegacyRegex($rule);
+                $regex = serverRuleRegex($pattern, $unicode, true);
                 // PCRE-only constructs have no matching browser rule meaning.
                 $valid = $valid && $pattern !== '' && @preg_match($regex, '') !== false
-                    && fvplusRulePatternIsPortable($pattern);
+                    && fvplusRulePatternIsPortable($pattern, $unicode);
             } else {
                 $valid = $valid && (string)($rule['labelKey'] ?? '') !== ''
                     && ($kind === 'label' || (string)($rule['labelValue'] ?? '') !== '');

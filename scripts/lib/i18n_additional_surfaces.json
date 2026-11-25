@@ -2343,10 +2343,6 @@
     "phrase": "Backup failed.",
     "locations": [
       {
-        "file": "scripts/folder.js",
-        "anchor": "'Backup failed.'"
-      },
-      {
         "file": "scripts/folderviewplus.activity-diagnostics.js",
         "anchor": "'Backup failed.'"
       }
@@ -2589,10 +2585,6 @@
     "phrase": "Bulk assignment failed.",
     "locations": [
       {
-        "file": "scripts/folder.js",
-        "anchor": "'Bulk assignment failed.'"
-      },
-      {
         "file": "scripts/folderviewplus.bulk-assignment.shared.js",
         "anchor": "'Bulk assignment failed.'"
       }
@@ -2601,10 +2593,6 @@
   {
     "phrase": "Bulk assignment request API unavailable.",
     "locations": [
-      {
-        "file": "scripts/folder.js",
-        "anchor": "'Bulk assignment request API unavailable.'"
-      },
       {
         "file": "scripts/folderviewplus.bulk-assignment.shared.js",
         "anchor": "'Bulk assignment request API unavailable.'"
@@ -11202,6 +11190,15 @@
       {
         "file": "scripts/folder.js",
         "anchor": "'this parent folder'"
+      }
+    ]
+  },
+  {
+    "phrase": "This restores Docker + VM folders and settings from the previous rollback snapshot.",
+    "locations": [
+      {
+        "file": "scripts/folderviewplus.actions-support.js",
+        "anchor": "This restores Docker + VM folders and settings from the previous rollback snapshot."
       }
     ]
   },

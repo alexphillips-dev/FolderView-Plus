@@ -22,6 +22,7 @@ if (($request['seed'] ?? true) !== false) {
 }
 if (isset($request['workspace'])) writeJsonObjectWithLastGood(getThemeWorkspacePath(), $request['workspace']);
 if (!empty($request['corruptWorkspace'])) file_put_contents(getThemeWorkspacePath(), '{invalid');
+if (!empty($request['missingWorkspacePrimary'])) unlink(getThemeWorkspacePath());
 $before = migrationFiles($root . '/config');
 $operation = $request['operation'] ?? 'plan'; $bundle = $request['bundle'];
 try {
@@ -39,7 +40,10 @@ try {
     }
     if (in_array($operation, ['installed', 'installed-stale'], true)) {
         foreach (['docker', 'vm', 'settings', 'autostart', 'css_config'] as $key) {
-            if (isset($bundle[$key])) file_put_contents($root . '/legacy/' . ($key === 'css_config' ? 'css-config' : $key) . '.json', json_encode($bundle[$key]));
+            if (!isset($bundle[$key])) continue;
+            $payload = $key === 'docker' ? ($request['installedDockerJson'] ?? json_encode((object)$bundle[$key]))
+                : json_encode($key === 'vm' ? (object)$bundle[$key] : $bundle[$key]);
+            file_put_contents($root . '/legacy/' . ($key === 'css_config' ? 'css-config' : $key) . '.json', $payload);
         }
         $first = buildFolderView3MigrationPlan(fvplusFolderView3ReadInstalledBundle());
         usleep(1100000);
@@ -47,6 +51,7 @@ try {
         $result['stableDigest'] = $first['source']['digest'] === $second['source']['digest'];
         if ($operation === 'installed-stale') { file_put_contents($root . '/legacy/settings.json', '{"default_preview":"0"}'); $before = migrationFiles($root . '/config'); }
         $result['applied'] = applyFolderView3Migration(fvplusFolderView3ReadInstalledBundle(), 'installed', $first['source']['digest']);
+        $result['stored'] = [readRawFolderMap('docker'), readRawFolderMap('vm'), readTypePrefs('docker'), readTypePrefs('vm'), readThemeWorkspace()];
     } elseif ($operation === 'stale') {
         writeRawFolderMap('docker', ['concurrent' => ['name' => 'Concurrent fixture']]);
         $before = migrationFiles($root . '/config');

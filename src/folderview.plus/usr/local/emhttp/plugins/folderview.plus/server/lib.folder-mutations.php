@@ -60,6 +60,7 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             throw new RuntimeException('Invalid folder payload.');
         }
         fvplus_assert_folder_payload_shape($decodedContent);
+        if ($type === 'docker') fvplusAssertWebuiProfileLimits($decodedContent['settings'] ?? []);
         $existingFolder = is_array($fileData[$id] ?? null)
             ? normalizeFolderContentPayload((array)$fileData[$id])
             : null;

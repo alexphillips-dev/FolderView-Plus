@@ -32,7 +32,69 @@ function seedState(string $label): void {
     writeThemeWorkspace($workspace);
 }
 
-if (in_array($operation, ['rule-preview-retention', 'folder-transfer-retention'], true)) {
+if ($operation === 'fresh-checkpoint-retention') {
+    seedState('archived');
+    writeTypePrefs('vm', ['backupSchedule' => ['retention' => 1]]);
+    $old = createBackupSnapshot('vm', 'manual');
+    $future = gmdate('Y-m-d\TH:i:s', time() + 600) . '.000000+00:00';
+    $oldPath = getBackupSnapshotPath('vm', $old['name']);
+    $payload = readJsonObjectFile($oldPath);
+    $payload['createdAt'] = $future;
+    writeJsonObjectAtomic($oldPath, $payload);
+
+    $checkpoint = createGlobalRollbackSnapshot('manual', [], false);
+    $globalPayload = readJsonObjectFile(getGlobalRollbackSnapshotPath($checkpoint['name']));
+    $globalPayload['createdAt'] = $future;
+    for ($i = 0; $i < FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX; $i++) {
+        writeJsonObjectAtomic(getGlobalRollbackSnapshotPath("global-20990101-000000-aged-$i.json"), $globalPayload);
+    }
+    writeRawFolderMap('vm', ['current' => ['name' => 'Latest stored folders']]);
+    $backup = createBackupSnapshot('vm', 'manual-diagnostics');
+    $global = createGlobalRollbackSnapshot('manual-diagnostics');
+    $currentBackup = getBackupSnapshotPath('vm', $backup['name']);
+    $currentGlobal = getGlobalRollbackSnapshotPath($global['name']);
+    echo json_encode([
+        'backupRetained' => is_file($currentBackup) && isset(readBackupSnapshot('vm', $backup['name'])['folders']['current']),
+        'globalRetained' => is_file($currentGlobal) && isset(readJsonObjectFile($currentGlobal)['types']['vm']['folders']['current']),
+        'priorTypePruned' => $backup['pruned'] === [$old['name']],
+        'globalCount' => count(listGlobalRollbackSnapshots()),
+        'globalLimit' => FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX
+    ], JSON_THROW_ON_ERROR);
+    exit;
+}
+
+if (in_array($operation, ['rollback-select-latest', 'rollback-select-previous'], true)) {
+    seedState('original');
+    $original = createGlobalRollbackSnapshot('manual');
+    $originalPath = getGlobalRollbackSnapshotPath($original['name']);
+    $originalHash = hash_file('sha256', $originalPath);
+    $damaged = [];
+    foreach (['20990101', '20990102'] as $date) {
+        $name = "global-$date-000000-broken.json";
+        $damaged[] = $name;
+        writeJsonObjectAtomic(getGlobalRollbackSnapshotPath($name), [
+            'rollbackSchemaVersion' => FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION,
+            'createdAt' => substr($date, 0, 4) . '-01-' . substr($date, 6) . 'T00:00:00+00:00',
+            'types' => ['docker' => ['folders' => false], 'vm' => ['folders' => []]]
+        ]);
+    }
+    seedState('current');
+    $paths = fvplusEnvironmentTransactionPaths([fvplusEnvironmentDockerAutostartPath()]);
+    $before = fvplusEnvironmentCaptureFiles($paths);
+    $rows = listGlobalRollbackSnapshots();
+    $restore = $operation === 'rollback-select-previous' ? 'restorePreviousGlobalRollbackSnapshot' : 'restoreLatestGlobalRollbackSnapshot';
+    $conflict = false;
+    try { $restore($damaged[0]); } catch (FVPlusConfigConflictException $error) { $conflict = true; }
+    $untouched = $before === fvplusEnvironmentCaptureFiles($paths) && $rows === listGlobalRollbackSnapshots();
+    $applied = $restore($original['name']);
+    echo json_encode(['rows' => array_column($rows, 'restorable', 'name'), 'originalName' => $original['name'],
+        'staleConfirmationRejected' => $conflict && $untouched, 'selected' => $applied['name'],
+        'verified' => $applied['verified'], 'folderIds' => array_keys(readRawFolderMap('vm')),
+        'originalRestorable' => hash_file('sha256', $originalPath) === $originalHash], JSON_THROW_ON_ERROR);
+    exit;
+}
+
+if (in_array($operation, ['rule-preview-retention', 'folder-transfer-retention', 'editor-bulk-retention'], true)) {
     $type = 'vm';
     writeRawFolderMap($type, ['target' => ['name' => 'Fixture target', 'icon' => 'original.svg']]);
     writeTypePrefs($type, ['backupSchedule' => ['enabled' => false, 'retention' => 1], 'autoRules' => [
@@ -52,20 +114,38 @@ if (in_array($operation, ['rule-preview-retention', 'folder-transfer-retention']
             try { \\writeRawFolderMap($type, $folders); }
             finally { putenv("FVPLUS_STORAGE_FAILURE_INJECTION"); putenv("FVPLUS_STORAGE_FAILURE_STAGE"); }
         }');
-    $files = $operation === 'rule-preview-retention'
-        ? ['lib.rules-apply.php', 'lib.folder-rules.php'] : ['lib.folder-settings-transfer.php'];
+    $files = match ($operation) {
+        'rule-preview-retention' => ['lib.rules-apply.php', 'lib.folder-rules.php'],
+        'editor-bulk-retention' => ['lib.folder-rules.php'],
+        default => ['lib.folder-settings-transfer.php']
+    };
     foreach ($files as $file) {
         $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/' . $file));
         eval('namespace DeferredBackupBoundary; use \\RuntimeException; use \\Throwable;' . substr($body, 5));
     }
     $inventory = ['fixture' => []];
-    $apply = $operation === 'rule-preview-retention'
-        ? static function () use ($type, $inventory): array {
+    $revision = readConfigMetadata($type, false)['folderRevision'];
+    $staleProtected = null;
+    $apply = match ($operation) {
+        'rule-preview-retention' => static function () use ($type, $inventory): array {
             $preview = DeferredBackupBoundary\fvplusBuildRulePreview($type, $inventory);
             return DeferredBackupBoundary\fvplusApplyRulePreview($type, $preview['digest'], $inventory);
+        },
+        'editor-bulk-retention' => static fn(): array =>
+            DeferredBackupBoundary\bulkAssignItemsToFolders($type, [['folderId' => 'target', 'items' => ['fixture']]], $inventory, $revision, true),
+        default => static fn(): array => DeferredBackupBoundary\applySelectiveFolderSettings($type, ['target'],
+            ['icon' => 'new.svg'], ['categories' => ['appearance']])
+    };
+    if ($operation === 'editor-bulk-retention') {
+        $staleProtected = false;
+        try {
+            DeferredBackupBoundary\bulkAssignItemsToFolders($type, [['folderId' => 'target', 'items' => ['fixture']]], $inventory, $revision + 1, true);
+        } catch (FVPlusConfigConflictException $error) {
+            $staleProtected = $before === fvplusEnvironmentCaptureFiles($paths)
+                && array_column(listBackupSnapshots($type), 'name') === [$oldName]
+                && hash_file('sha256', $oldPath) === $oldHash;
         }
-        : static fn(): array => DeferredBackupBoundary\applySelectiveFolderSettings($type, ['target'],
-            ['icon' => 'new.svg'], ['categories' => ['appearance']]);
+    }
     $error = '';
     $GLOBALS['deferred_backup_write_fault'] = true;
     try { $apply(); } catch (Throwable $failure) { $error = $failure->getMessage(); }
@@ -75,9 +155,9 @@ if (in_array($operation, ['rule-preview-retention', 'folder-transfer-retention']
         'archives' => count(listBackupSnapshots($type))];
     $result = $apply();
     $current = readRawFolderMap($type)['target'];
-    echo json_encode(['failure' => $failure, 'oldName' => $oldName, 'backup' => $result['backup'],
+    echo json_encode(['failure' => $failure, 'staleProtected' => $staleProtected, 'oldName' => $oldName, 'backup' => $result['backup'],
         'remaining' => array_column(listBackupSnapshots($type), 'name'),
-        'applied' => $operation === 'rule-preview-retention' ? $current['containers'] === ['fixture'] : $current['icon'] === 'new.svg'], JSON_THROW_ON_ERROR);
+        'applied' => $operation === 'folder-transfer-retention' ? $current['icon'] === 'new.svg' : $current['containers'] === ['fixture']], JSON_THROW_ON_ERROR);
     exit;
 }
 
@@ -123,7 +203,9 @@ if (in_array($operation, ['backup-prune-fault', 'checkpoint-collision', 'checkpo
         echo json_encode(CheckpointBoundary\exportEnvironmentSnapshotPayload(), JSON_THROW_ON_ERROR); exit;
     }
     $module = is_file($server . '/lib.global-rollback.php') ? 'lib.global-rollback.php' : 'lib.backup-schedule.php';
-    foreach ([$module, 'lib.environment-transaction.php'] as $file) {
+    $modules = [$module];
+    if (is_file($server . '/lib.global-rollback-restore.php')) $modules[] = 'lib.global-rollback-restore.php';
+    foreach ([...$modules, 'lib.environment-transaction.php'] as $file) {
         $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/' . $file));
         eval('namespace CheckpointBoundary; use \\RuntimeException; use \\Throwable; use \\DateTimeImmutable; use \\DateTimeZone;' . substr($body, 5));
     }

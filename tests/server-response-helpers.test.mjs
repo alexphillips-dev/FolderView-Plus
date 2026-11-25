@@ -121,7 +121,7 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
     assert.match(libPhp, /function fvplusRepairMissingCustomIconReferences\(\): array/);
     assert.match(libPhp, /fvplusVisitCustomIconReferences\(\$type, \&?\$folders, \&?\$prefs,/);
     assert.match(libPhp, /\$record\['icon'\] = '';/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons'\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons', false\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_missing_custom_icons'/);
     assert.match(libPhp, /\$customIconDir = fvplusCustomIconDirPath\(\);/);
     assert.match(libPhp, /if \(is_dir\(\$customIconDir\)\) \{/);
@@ -132,7 +132,7 @@ test('lib.php can prune orphaned member references from saved folders', () => {
     assert.match(libPhp, /function fvplusRepairOrphanedMemberReferences\(string \$type\): array/);
     assert.match(libPhp, /\$infoByName = fvplusReadRepairInventory\(\$type\);\s*\$folders = readRawFolderMap\(\$type\);/);
     assert.match(libPhp, /\$normalizedFolder\['containers'\] = array_values\(array_filter\(\$members,/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-orphaned-members'\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-orphaned-members', false\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_orphaned_members'/);
     assert.match(libPhp, /'repairedMemberCount'\s*=>\s*count\(\$repairedMembers\)/);
 });

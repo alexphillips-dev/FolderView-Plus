@@ -1,6 +1,19 @@
 <?php
 namespace InventoryRepairFixture {
-    function syncContainerOrder(string $type): void { $GLOBALS['inventory_order_calls'][] = $type; }
+    function syncContainerOrder(string $type): void {
+        $GLOBALS['inventory_order_calls'][] = $type;
+        if (!empty($GLOBALS['inventory_request']['repairSyncFailure'])) {
+            file_put_contents(\fvplusEnvironmentDockerAutostartPath(), 'Modified native order');
+            throw new \RuntimeException('Injected late Docker order failure.');
+        }
+    }
+    function writeRawFolderMap(string $type, array $folders): void {
+        if (empty($GLOBALS['inventory_request']['repairWriteFailure'])) { \writeRawFolderMap($type, $folders); return; }
+        putenv('FVPLUS_STORAGE_FAILURE_INJECTION=1');
+        putenv('FVPLUS_STORAGE_FAILURE_STAGE=rename');
+        try { \writeRawFolderMap($type, $folders); }
+        finally { putenv('FVPLUS_STORAGE_FAILURE_INJECTION'); putenv('FVPLUS_STORAGE_FAILURE_STAGE'); }
+    }
 }
 namespace InventorySyncFixture {
     function applyDockerStartOrderSequenceWaits(array $lines, array $sequence): array {
@@ -154,10 +167,14 @@ namespace {
             ? ['kind' => 'docker', 'containerId' => str_repeat('a', 64)]
             : ['kind' => 'vm', 'uuid' => '00000000-0000-0000-0000-000000000001'];
         writeRawFolderMap($seedType, ['fixture' => $folder]);
-        $prefs = ['backupSchedule' => ['enabled' => false]];
+        $prefs = ['backupSchedule' => ['enabled' => false, 'retention' => empty($request['retainPriorBackup']) ? 25 : 1]];
         if ($operation !== 'repair' && $seedType === 'docker') $prefs['dockerStartOrder'] = $request['plan'] ?? ['mode' => 'docker-page'];
         writeTypePrefs($seedType, $prefs);
     }
+    $priorBackup = !empty($request['retainPriorBackup']) ? createBackupSnapshot($type, 'manual') : null;
+    $priorPath = $priorBackup === null ? null : getBackupSnapshotPath($type, $priorBackup['name']);
+    $priorHash = $priorPath === null ? null : hash_file('sha256', $priorPath);
+    if (!empty($request['failRepairHistory'])) mkdir(diagnosticsHistoryPath());
     file_put_contents("$root/config/native-autostart", "docker-present 0\nstale-host-entry 0\n");
     if ($operation !== 'repair') file_put_contents("$root/config/native-autostart", "docker-extra 19\r\n\r\ndocker-present 7\nstale-host-entry 31\n");
     if (isset($request['nativeAutostart'])) file_put_contents("$root/config/native-autostart", $request['nativeAutostart']);
@@ -262,5 +279,6 @@ namespace {
         'nativeModeBefore' => $nativeModeBefore, 'nativeMode' => fileperms("$root/config/native-autostart") & 0777,
         'folders' => readRawFolderMap($type), 'otherFolders' => readRawFolderMap($type === 'docker' ? 'vm' : 'docker'),
         'metadata' => readConfigMetadata($type, false), 'backups' => listBackupSnapshots($type),
+        'priorBackupRetained' => $priorPath !== null && is_file($priorPath) && hash_file('sha256', $priorPath) === $priorHash,
         'native' => file_get_contents("$root/config/native-autostart")], JSON_UNESCAPED_SLASHES);
 }

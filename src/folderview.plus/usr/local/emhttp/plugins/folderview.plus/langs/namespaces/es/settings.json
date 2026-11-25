@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "content-revision": "028d214c4a23cd613876a46ca803087954b72ab756616828d52d7a87a8c05d6d"
+        "content-revision": "b074a7dc4ce90965fb19ede2857ca218010a3e0b4f57aede58fab9c8fb89fc9c"
     },
     "settings.visibility.group-unassigned-items": "Agrupar elementos sin asignar",
     "settings.visibility.group-unassigned-items-help": "También se aplica al panel correspondiente del tablero.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Mostrando $1 de $2 reglas",
     "settings.rules.selected": "· $1 seleccionado (se muestra $2)",
     "settings.rules.edit-missing": "La regla que se está editando ya no existe. Cancele la edición y seleccione otra regla.",
+    "settings.rules.edit-conflict": "Esta regla cambió mientras la editaba. Cancele la edición y vuelva a abrir la regla antes de guardarla.",
     "settings.rules.docker-description": "Organice automáticamente sus contenedores Docker en las carpetas adecuadas utilizando reglas flexibles.",
     "settings.rules.vm-description": "Organice automáticamente sus máquinas virtuales en las carpetas adecuadas mediante reglas flexibles.",
     "settings.folder-defaults.edit": "Editar los valores predeterminados de las carpetas",

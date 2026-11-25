@@ -423,6 +423,7 @@ UNEXPECTED_ARCHIVE_FILES="$(
     | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" \
     | grep -Fvx 'install/slack-desc' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh' \
+    | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/complete_native_registration.sh' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh' \
     || true
@@ -438,6 +439,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
   "./usr/local/emhttp/plugins/folderview.plus/runtime-integrity.json"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/complete_native_registration.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.csp-events.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"

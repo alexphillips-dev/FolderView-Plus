@@ -72,11 +72,12 @@ export const registerDockerHideEmptyCases = ({ test }) => {
                 assert.equal(await row('empty').count(), 0, 'an entirely empty branch stays hidden');
                 assert.equal(await row('emptyChild').count(), 0);
             } finally {
-                await waitForDockerExpansionSave(page);
-                await page.waitForLoadState('networkidle');
-                await page.goto('about:blank');
-                await page.unrouteAll({ behavior: 'wait' });
-                await host.close();
+                try {
+                    await waitForDockerExpansionSave(page);
+                    await page.waitForLoadState('networkidle');
+                    await page.goto('about:blank');
+                    await page.unrouteAll({ behavior: 'wait' });
+                } finally { await host.close(); }
             }
         }
     }, { skipAccessibility: true }); // Synthetic host omits Unraid's surrounding accessibility markup.

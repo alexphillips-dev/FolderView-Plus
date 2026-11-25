@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "content-revision": "9d23061f279965f6fc2aa45b4ba8657330a1f2722988b017518cedbc4cb9a689"
+        "content-revision": "291043b0ca520864b513b9fb054c4e2c0d37bbb0a9f36b05494eea2ad657146f"
     },
     "settings.visibility.group-unassigned-items": "Hozzá nem rendelt elemek csoportosítása",
     "settings.visibility.group-unassigned-items-help": "Az irányítópult megfelelő csempéjére is érvényes.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "$1/$2 szabály megjelenítése",
     "settings.rules.selected": "· $1 kiválasztva ($2 látható)",
     "settings.rules.edit-missing": "A szerkesztett szabály már nem létezik. Törölje a szerkesztést, és válasszon másik szabályt.",
+    "settings.rules.edit-conflict": "A szabály szerkesztés közben megváltozott. Mentés előtt lépjen ki a szerkesztésből, majd nyissa meg újra a szabályt.",
     "settings.rules.docker-description": "A rugalmas szabályok segítségével automatikusan rendezze Docker-tárolóit a megfelelő mappákba.",
     "settings.rules.vm-description": "Rugalmas szabályok segítségével automatikusan rendezze virtuális gépeit a megfelelő mappákba.",
     "settings.folder-defaults.edit": "Mappák alapértelmezett beállításainak szerkesztése",

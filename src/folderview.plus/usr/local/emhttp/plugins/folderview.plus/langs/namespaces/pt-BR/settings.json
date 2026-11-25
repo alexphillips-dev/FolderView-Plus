@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "settings",
-        "content-revision": "7d7c7a6d4f05c8a1958ed2ae2c6d48c1669fac195dc09408c4609027afbbb16a"
+        "content-revision": "269c0f8bc4a7f5807c9c29c847da7eb10a86ec74c341dd08068a14eac9201aa4"
     },
     "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
     "settings.visibility.group-unassigned-items-help": "Também se aplica ao cartão correspondente no painel.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Mostrando $1 de $2 regras",
     "settings.rules.selected": "· $1 selecionado ($2 mostrado)",
     "settings.rules.edit-missing": "A regra que está sendo editada não existe mais. Cancele a edição e selecione outra regra.",
+    "settings.rules.edit-conflict": "Esta regra foi alterada durante a edição. Cancele e reabra antes de salvar novamente.",
     "settings.rules.docker-description": "Organize automaticamente seus contêineres Docker nas pastas certas usando regras flexíveis.",
     "settings.rules.vm-description": "Organize automaticamente suas VMs nas pastas certas usando regras flexíveis.",
     "settings.folder-defaults.edit": "Editar configurações padrão das pastas",

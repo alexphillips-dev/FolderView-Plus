@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "editor",
-        "content-revision": "bf3bc3366a278008d27e85cfa6d640cf86b4e09eced974f1acbf6809180803a9"
+        "content-revision": "191923d7c6792173ed8cdd858ab9db30d99fda2e448b2ef005b1372d164a4da5"
     },
     "editor.settings.information-about": "Information om $1",
     "editor.actions.add-custom": "Lägg till en anpassad åtgärd",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Ej tillgänglig i den här mappen",
     "editor.webui-profiles.no-members": "Inga matchande mappmedlemmar är tillgängliga.",
     "editor.webui-profiles.error-name": "Varje WebUI-profil behöver ett namn.",
+    "editor.webui-profiles.error-name-length": "WebUI-profilnamn kan vara upp till $1 UTF-8 byte.",
     "editor.webui-profiles.error-duplicate": "WebUI-profilnamn måste vara unika i den här mappen.",
     "editor.webui-profiles.error-members": "Varje WebUI-profil måste välja minst en mappmedlem.",
+    "editor.webui-profiles.error-member-limit": "En WebUI-profil kan välja upp till $1 medlemmar.",
     "editor.webui-profiles.limit": "Den här mappen har nått säkerhetsgränsen för WebUI-profilen.",
     "editor.members.assignment-why": "Varför denna mapp?",
     "editor.members.assignment-elsewhere": "Tilldelad till andra mappar",

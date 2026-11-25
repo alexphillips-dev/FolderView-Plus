@@ -1714,6 +1714,7 @@ const createFolders = async (currentBundle) => {
     markVmFatalBannerStep('VM folders rendered');
     setVmFatalBannerPhase('ready');
     recordVmFatalBannerAction('VM folders rendered successfully');
+    renderedVmRuleSignature = utils.getMembershipSignature({ type: 'vm', rules: folderTypePrefs.autoRules });
     vmRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
         folderCount: Object.keys(globalFolders || {}).length
     });
@@ -3044,6 +3045,7 @@ const addVMFolderContext = (id) => {
 let loadedFolder = false;
 let globalFolders = {};
 let lastAppliedRuntimePrefs = null;
+let renderedVmRuleSignature = '';
 const folderRegex = /^folder-/;
 let folderReq = null;
 let folderTypePrefs = utils.normalizePrefs({});
@@ -3623,8 +3625,10 @@ const bindVmRuntimePreferenceSync = () => {
         const previousPrefs = lastAppliedRuntimePrefs;
         folderTypePrefs = applyVmPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
         applyRuntimePrefs(folderTypePrefs);
+        const rulesChanged = snapshot.pending !== true && !vmFullRenderPending && renderedVmRuleSignature
+            && renderedVmRuleSignature !== utils.getMembershipSignature({ type: 'vm', rules: folderTypePrefs.autoRules });
         if (previousPrefs && (
-            previousPrefs.hideEmptyFolders !== folderTypePrefs.hideEmptyFolders
+            rulesChanged || previousPrefs.hideEmptyFolders !== folderTypePrefs.hideEmptyFolders
             || previousPrefs.groupUnassignedItems !== folderTypePrefs.groupUnassignedItems
             || ['running', 'stopped'].some(key => previousPrefs.badges?.[key] !== folderTypePrefs.badges?.[key])
         )) {
@@ -3846,6 +3850,7 @@ window.addEventListener('pagehide', function releaseVmPage(event) {
     if (event?.persisted) return;
     window.removeEventListener('pagehide', releaseVmPage);
     vmRuntimePageDisposed = true;
+    vmLifecycleApi?.dispose?.();
     vmNativeListRequest?.abort();
     vmUnassignedGroup?.clear({ resetFocus: true });
     window.clearTimeout(vmFolderActionRefreshTimer);

@@ -83,6 +83,21 @@ test('repair rejects an unavailable icon inventory and compensates folder or pre
     }
 });
 
+test('late icon repair failure preserves old Docker and VM archives before retention runs', () => {
+    const result = run({ type: 'docker', kind: 'folder', reference: aliases[2], policyAction: 'repair',
+        bothRepairTypes: true, retainPriorArchives: true, policyFault: 'folders', policyFaultType: 'vm' });
+    assert.match(result.error, /Injected icon folder failure/);
+    assert.equal(result.exactRestored, true);
+    assert.equal(result.archivesRetained, true);
+});
+
+test('preference-only icon repair saves a recovery point even without folders', () => {
+    const result = run({ type: 'vm', kind: 'defaults', reference: aliases[2], policyAction: 'repair' });
+    assert.equal(result.beforeCount, 1);
+    assert.equal(result.afterCount, 0);
+    assert.deepEqual(result.archiveCounts, [0]);
+});
+
 for (const type of ['docker', 'vm']) for (const kind of ['folder', 'defaults', 'group']) {
     test(`guarded delete protects ${type}/${kind} references recoverable only from raw lastgood`, () => {
         for (const unavailable of ['missing', 'malformed']) {

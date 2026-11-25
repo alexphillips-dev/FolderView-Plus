@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "content-revision": "d22abaa15250ede4b203378f8ec6695d36f34fd781abe2466d95576466382063"
+        "content-revision": "d178a06b61072592901b95d1308c7d36f3e2e5629dd683220f002ffbf2bb2377"
     },
     "settings.visibility.group-unassigned-items": "Группировать неназначенные элементы",
     "settings.visibility.group-unassigned-items-help": "Применяется и к соответствующей плитке панели управления.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Показаны $1 из $2 правил.",
     "settings.rules.selected": "· Выбран $1 (показан $2)",
     "settings.rules.edit-missing": "Редактируемое правило больше не существует. Отмените редактирование и выберите другое правило.",
+    "settings.rules.edit-conflict": "Это правило изменилось, пока вы редактировали. Отмените и снова откройте его, прежде чем снова сохранить.",
     "settings.rules.docker-description": "Автоматически распределяйте контейнеры Docker по нужным папкам, используя гибкие правила.",
     "settings.rules.vm-description": "Автоматически распределяйте свои виртуальные машины по нужным папкам, используя гибкие правила.",
     "settings.folder-defaults.edit": "Изменить настройки папок по умолчанию",

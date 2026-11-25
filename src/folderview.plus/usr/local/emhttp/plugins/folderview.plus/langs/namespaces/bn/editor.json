@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "editor",
-        "content-revision": "9a87753c8d14de36a8951f198b7f4d799e36176201a4598a41d1373f0542bdac"
+        "content-revision": "daa1df88ea03a3f55d5e97aaa6e6cde2ac5cad0728f1b5c963dcd3408b7416d6"
     },
     "editor.settings.information-about": "$1 সম্পর্কে তথ্য",
     "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "এই ফোল্ডারে অনুপলব্ধ",
     "editor.webui-profiles.no-members": "কোন মিল ফোল্ডার সদস্য উপলব্ধ নেই.",
     "editor.webui-profiles.error-name": "প্রতিটি WebUI প্রোফাইলের একটি নাম প্রয়োজন৷",
+    "editor.webui-profiles.error-name-length": "WebUI প্রোফাইল নামগুলি $1 UTF-8 বাইট পর্যন্ত হতে পারে৷",
     "editor.webui-profiles.error-duplicate": "WebUI প্রোফাইল নাম এই ফোল্ডারের মধ্যে অনন্য হতে হবে।",
     "editor.webui-profiles.error-members": "প্রতিটি WebUI প্রোফাইলকে অবশ্যই অন্তত একজন ফোল্ডার সদস্য নির্বাচন করতে হবে।",
+    "editor.webui-profiles.error-member-limit": "একটি WebUI প্রোফাইল $1 সদস্য পর্যন্ত নির্বাচন করতে পারে৷",
     "editor.webui-profiles.limit": "এই ফোল্ডারটি WebUI প্রোফাইল নিরাপত্তা সীমাতে পৌঁছেছে।",
     "editor.members.assignment-why": "কেন এই ফোল্ডার?",
     "editor.members.assignment-elsewhere": "অন্যান্য ফোল্ডারে বরাদ্দ করা হয়েছে৷",

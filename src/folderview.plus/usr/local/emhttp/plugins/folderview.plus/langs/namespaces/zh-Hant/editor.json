@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "editor",
-        "content-revision": "965319b40d9ba699ec479e24584c4c4e63093f0f88af79956053af8e87fefb7d"
+        "content-revision": "1330d4ca972929bd5ca1b98efa1291f48a4bccdf76ff1d7c3503c269a0096d10"
     },
     "editor.settings.information-about": "有關 $1 的資訊",
     "editor.actions.add-custom": "新增自訂操作",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "此資料夾中不可用",
     "editor.webui-profiles.no-members": "沒有可用的匹配資料夾成員。",
     "editor.webui-profiles.error-name": "每個 WebUI 設定檔都需要一個名稱。",
+    "editor.webui-profiles.error-name-length": "WebUI 設定檔名稱最多可達 $1 UTF-8 位元組。",
     "editor.webui-profiles.error-duplicate": "WebUI 設定檔名稱在此資料夾中必須是唯一的。",
     "editor.webui-profiles.error-members": "每個 WebUI 設定檔必須至少選擇一個資料夾成員。",
+    "editor.webui-profiles.error-member-limit": "WebUI 設定檔最多可以選擇 $1 成員。",
     "editor.webui-profiles.limit": "此資料夾已達到 WebUI 設定檔安全限制。",
     "editor.members.assignment-why": "為什麼是這個資料夾？",
     "editor.members.assignment-elsewhere": "分配給其他資料夾",

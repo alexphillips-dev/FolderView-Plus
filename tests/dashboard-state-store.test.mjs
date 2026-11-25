@@ -33,7 +33,11 @@ const fixture = (initial = {}) => {
     const key = type => api.EXPANDED_STATE_STORAGE_KEYS[type];
     const read = type => JSON.parse(JSON.stringify(store.read(type)));
     const disk = type => JSON.parse(records.get(key(type)) || '{}');
-    return { store, writer, records, key, read, disk, advance, deny: value => { denied = value; } };
+    const createPeer = () => {
+        const peerWriter = foundation.createBatchedStorageWriter(storage);
+        return { store: api.createStore({ window: context.window, storage, writer: peerWriter }), writer: peerWriter };
+    };
+    return { store, writer, records, key, read, disk, advance, createPeer, deny: value => { denied = value; } };
 };
 
 for (const type of ['docker', 'vm']) {
@@ -74,11 +78,14 @@ for (const type of ['docker', 'vm']) {
         assert.deepEqual(f.disk(type), { afterReset: true });
     });
 
-    test(`${type} observed external state adopts current disk after pending local writes settle`, () => {
+    test(`${type} pending local changes overlay current storage without erasing unrelated external state`, () => {
         const f = fixture();
         f.store.patch(type, { local: true });
         f.records.set(f.key(type), '{"external":true}');
-        assert.deepEqual(f.read(type), { local: true }, 'queued local write retains last-write precedence');
+        assert.deepEqual(f.read(type), { local: true, external: true });
+        assert.deepEqual(f.disk(type), { external: true });
+        f.writer.flush();
+        assert.deepEqual(f.disk(type), { local: true, external: true });
         f.records.set(f.key(type), '{"local":false,"external":true}');
         assert.deepEqual(f.read(type), { local: false, external: true });
         f.store.patch(type, { next: true }); f.writer.flush();
@@ -108,4 +115,17 @@ test('Dashboard keys and unrelated shared-writer keys stay isolated', () => {
     f.store.clear('docker'); f.writer.flush(); f.advance(1000);
     assert.deepEqual(f.disk('docker'), {}); assert.deepEqual(f.disk('vm'), { vmOnly: true });
     assert.equal(f.records.get('unrelated-preference'), 'keep');
+});
+
+test('Dashboard expansion writes merge disjoint changes in both tab flush orders', () => {
+    for (const firstWritesLast of [false, true]) {
+        const f = fixture(), peer = f.createPeer();
+        f.store.patch('docker', { first: true, shared: true });
+        peer.store.patch('docker', { second: true, shared: false });
+        const [firstWriter, lastWriter] = firstWritesLast ? [peer.writer, f.writer] : [f.writer, peer.writer];
+        firstWriter.flush();
+        f.read('docker'); // A read from the tab with pending local edits must leave the writer queued.
+        lastWriter.flush();
+        assert.deepEqual(f.disk('docker'), { first: true, second: true, shared: firstWritesLast });
+    }
 });

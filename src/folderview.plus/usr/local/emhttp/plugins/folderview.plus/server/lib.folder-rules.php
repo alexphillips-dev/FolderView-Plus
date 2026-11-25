@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/lib.legacy-regex-conversion.php';
 
-    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null, $expectedRevision = null): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null, $expectedRevision = null, bool $createSafetyBackup = false): array {
         $type = ensureType($type);
+        if ($createSafetyBackup && (!is_scalar($expectedRevision) || !ctype_digit((string)$expectedRevision) || (int)$expectedRevision < 1)) {
+            throw new RuntimeException('Invalid expected configuration revision.');
+        }
         if (count($assignments) <= 0) {
             throw new RuntimeException('At least one folder assignment is required.');
         }
@@ -58,7 +61,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             }
         }
 
-        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem, $expectedRevision): array {
+        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem, $expectedRevision, $createSafetyBackup): array {
             if ($expectedRevision !== null) assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             $startedAt = microtime(true);
             $originalFolders = readRawFolderMap($type);
@@ -119,9 +122,11 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             }
 
             $dockerSync = null;
+            $backup = null;
             if (count($changedFolderIds) > 0) {
                 $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
                 try {
+                    if ($createSafetyBackup) $backup = createBackupSnapshot($type, 'before-folder-editor-bulk-move', false);
                     writeRawFolderMap($type, $nextFolders);
                     if ($type === 'docker') $dockerSync = syncContainerOrder('docker');
                     if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))) {
@@ -135,6 +140,9 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                     }
                     throw new RuntimeException('Bulk assignment transaction failed: ' . $error->getMessage()
                         . ' Automatic rollback restored the original configuration.', 0, $error);
+                }
+                if ($backup !== null) {
+                    $backup['pruned'] = pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
                 }
             }
 
@@ -184,18 +192,19 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
                 'changedFolderCount' => count($changedFolderIds),
                 'dockerOrderSynced' => ($dockerSync['syncOutcome'] ?? null) === 'synced',
                 'durationMs' => $durationMs,
+                ...($createSafetyBackup ? ['backup' => $backup] : []),
                 'metadata' => readConfigMetadata($type, false)
             ];
         });
     }
 
-    function bulkAssignItemsToFolder(string $type, string $folderId, array $items, $expectedRevision = null): array {
+    function bulkAssignItemsToFolder(string $type, string $folderId, array $items, $expectedRevision = null, bool $createSafetyBackup = false): array {
         $type = ensureType($type);
         $folderId = trim($folderId);
         $batch = bulkAssignItemsToFolders($type, [[
             'folderId' => $folderId,
             'items' => $items
-        ]], null, $expectedRevision);
+        ]], null, $expectedRevision, $createSafetyBackup);
         $result = is_array($batch['results'][0] ?? null) ? $batch['results'][0] : [];
         return [
             'type' => $type,
@@ -206,6 +215,7 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             'skippedInvalid' => array_values((array)($result['skippedInvalid'] ?? [])),
             'changedFolderIds' => array_values((array)($batch['changedFolderIds'] ?? [])),
             'durationMs' => (int)($batch['durationMs'] ?? 0),
+            ...($createSafetyBackup ? ['backup' => $batch['backup']] : []),
             'metadata' => (array)($batch['metadata'] ?? [])
         ];
     }

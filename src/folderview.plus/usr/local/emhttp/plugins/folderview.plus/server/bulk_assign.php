@@ -6,6 +6,7 @@ fvplus_json_try(function (): array {
 
     $type = ensureType((string)($_POST['type'] ?? ''));
     $expectedRevision = $_POST['expectedRevision'] ?? null;
+    $createSafetyBackup = normalizeBool($_POST['createSafetyBackup'] ?? false);
     $assignmentsRaw = (string)($_POST['assignments'] ?? '');
     if ($assignmentsRaw !== '') {
         if (strlen($assignmentsRaw) > FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES) {
@@ -16,7 +17,7 @@ fvplus_json_try(function (): array {
             throw new RuntimeException('Invalid bulk assignments payload.');
         }
         return [
-            'result' => bulkAssignItemsToFolders($type, $assignments, null, $expectedRevision)
+            'result' => bulkAssignItemsToFolders($type, $assignments, null, $expectedRevision, $createSafetyBackup)
         ];
     }
 
@@ -28,6 +29,6 @@ fvplus_json_try(function (): array {
     }
 
     return [
-        'result' => bulkAssignItemsToFolder($type, $folderId, $itemsDecoded, $expectedRevision)
+        'result' => bulkAssignItemsToFolder($type, $folderId, $itemsDecoded, $expectedRevision, $createSafetyBackup)
     ];
 });

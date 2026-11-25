@@ -64,6 +64,10 @@
             root.querySelectorAll('[data-rule-icon]:empty').forEach(element => { element.innerHTML = ui.svgIcon(element.dataset.ruleIcon); });
         };
         const value = (type, key) => document.getElementById(`${type}-rule-${key}`);
+        const editBaselines = new Map();
+        const editSignature = rule => JSON.stringify([
+            rule.id, rule.folderId, rule.effect, rule.kind, rule.pattern, rule.regexMode || '', rule.labelKey || '', rule.labelValue || ''
+        ]);
         let drag = null, busy = false, menu = null;
         const saving = new Set();
         const controller = new window.AbortController();
@@ -110,6 +114,7 @@
             document.getElementById(`${type}-rules-save-suggestions`).disabled = checked === 0;
         };
         const reset = type => {
+            editBaselines.delete(type);
             value(type, 'editing').value = '';
             value(type, 'pattern').value = '';
             value(type, 'label-key').value = '';
@@ -121,6 +126,7 @@
             sync(type);
         };
         const edit = (type, rule) => {
+            editBaselines.set(type, editSignature(rule));
             const condition = describeCondition(rule);
             value(type, 'editing').value = rule.id;
             value(type, 'folder').value = rule.folderId;
@@ -234,7 +240,8 @@
         });
         const dispose = () => { closeMenu(); controller.abort(); };
         window.addEventListener('pagehide', dispose, { once: true });
-        return { sync, reset, edit, updateSuggestions, closeMenu, dispose, hydrateIcons, setSaving, isSaving: type => saving.has(type) };
+        return { sync, reset, edit, matchesEditBaseline: (type, rule) => editBaselines.get(type) === editSignature(rule),
+            updateSuggestions, closeMenu, dispose, hydrateIcons, setSaving, isSaving: type => saving.has(type) };
     };
     return { escapeLiteral, normalizeBuilderRule, describeCondition, reorderRules, createApi };
 }));

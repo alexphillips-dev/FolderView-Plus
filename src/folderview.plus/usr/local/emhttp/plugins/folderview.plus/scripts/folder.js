@@ -1414,34 +1414,7 @@ const getFolderBulkAssignmentSharedApi = (() => {
             utils,
             getFolderMap: () => allFoldersById,
             getFolderNameForId: (_managedType, id) => String(allFoldersById?.[id]?.name || id || '').trim(),
-            requestBulkAssign: async (managedType, folderId, items, expectedRevision) => {
-                if (!requestClient || typeof requestClient.postJson !== 'function') {
-                    throw new Error('Bulk assignment request API unavailable.');
-                }
-                const response = await requestClient.postJson('/plugins/folderview.plus/server/bulk_assign.php', {
-                    type: managedType,
-                    folderId,
-                    items: JSON.stringify(items || []), expectedRevision
-                });
-                if (!response?.ok) {
-                    throw new Error(response?.error || 'Bulk assignment failed.');
-                }
-                return response.result || {};
-            },
-            createBackup: async (managedType, reason) => {
-                if (!requestClient || typeof requestClient.postJson !== 'function') {
-                    return null;
-                }
-                const response = await requestClient.postJson('/plugins/folderview.plus/server/backup.php', {
-                    type: managedType,
-                    action: 'create',
-                    reason
-                });
-                if (!response?.ok) {
-                    throw new Error(response?.error || 'Backup failed.');
-                }
-                return response.backup || null;
-            }
+            apiPostJson: requestClient?.postJson
         });
         return folderBulkAssignmentSharedApi;
     };
@@ -4166,7 +4139,7 @@ async function applyEditorMemberBulkMove() {
                 typeLabel: type === 'docker' ? 'Docker' : 'VM',
                 operationScope: 'editor-bulk-move',
                 operationLabel: `${type === 'docker' ? 'Docker' : 'VM'} editor bulk move`,
-                backupReason: 'before-folder-editor-bulk-move',
+                createSafetyBackup: true,
                 preludeLines,
                 expectedRevision,
                 offerUndo: false,

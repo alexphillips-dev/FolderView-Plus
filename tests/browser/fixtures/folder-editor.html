@@ -27,6 +27,7 @@
     </form>
     <script src="/vendor/jquery.js"></script>
     <script src="/fixtures/folder-editor.fixture.js"></script>
+    <script src="/plugin/scripts/folder.webui-profile-limits.js"></script>
     <script src="/plugin/scripts/folder.webui-profiles.js"></script>
     <script src="/plugin/scripts/folderviewplus.folder-editor.js"></script>
     <script>
@@ -43,7 +44,7 @@
                 { Name: 'Tautulli', State: { Running: true }, webuiCapability: true },
                 { Name: 'Stopped', State: { Running: false } }
             ],
-            translate: (_key, fallback) => fallback
+            translate: (_key, fallback, value) => fallback.replace('$1', value)
         });
         window.fixtureFolderEditor.ready = true;
     </script>

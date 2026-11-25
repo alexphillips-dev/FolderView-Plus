@@ -37,12 +37,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     assert.deepEqual(endpoints['bulk_folder_action.php'].requiredParameters, ['type', 'folderId']);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        'a4e9a9788db1f4e2a99aac2ba569dcc477b52fad6e456df741ba0d4c22d82f01'
+        '01bdf42d29535968fddd92bb7aae4e4021b7b7cb9e7ce74cf9e5d066a49b4489'
     );
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 65);
+    assert.equal(architecture.serverModuleContracts.length, 67);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -68,6 +68,7 @@ test('decomposition preserves every historical public PHP function name', () => 
         // New helpers are inventoried separately; retain the original API fingerprint.
         const additions = new Set(['fvplusFolderView3ResolveOrder', 'fvplusFolderView3GroupStyles', 'fvplus_localize_response_keys', 'fvplus_attach_response_translations', 'parseBatchManualOrder', 'assertBatchFolderOperationCount', 'assertBatchManualOrderRevision', 'applyBatchManualOrderPrefs', 'diagnosticsRuntimeConnectivity', 'diagnosticsBackupReadiness', 'diagnosticsBuildBackupReadinessCard', 'diagnosticsBuildRuntimeConnectivityCard', 'diagnosticsBuildSummaryOutcome']);
         additions.add('fvplusJsonKeyedMap'); additions.add('fvplusJsonTypeConfig');
+        additions.add('fvplusAssertWebuiProfileLimits');
         for (const name of ['folderSettingsTransferSchema', 'folderSettingsTransferCategory', 'normalizeFolderSettingsTransferCategories',
             'mergeFolderSettingsTransfer', 'applySelectiveFolderSettings']) additions.add(name);
         additions.add('fvplusTransactionCaptureFile');
@@ -102,6 +103,8 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('readUnraidStoredDockerOrder');
         additions.add('fvplusLegacyRegexCodeUnits');
         additions.add('writeFolderMapAndManualOrder');
+        additions.add('fvplusRestoreSelectedGlobalRollbackSnapshot');
+        additions.add('fvplusValidateGlobalRollbackPayload');
         for (const name of ['diagnosticsProjectBackupRecord', 'diagnosticsProjectHistoryEvents', 'diagnosticsProjectTimeline',
             'diagnosticsRedactIntegrityIdentifiers', 'diagnosticsRedactReportFolderReferences', 'diagnosticsSanitizeReport']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {
@@ -111,8 +114,10 @@ test('decomposition preserves every historical public PHP function name', () => 
         if (facade === 'server/lib.php') {
             // This historical helper moved into an existing required module outside the extraction graph.
             const profiles = fs.readFileSync(path.join(serverRoot, 'lib.webui-profiles.php'), 'utf8');
-            assert.ok(graphFiles.includes('server/lib.webui-profiles.php'));
-            assert.match(profiles, /require_once __DIR__ \. '\/lib\.input-security\.php';/);
+            const limits = fs.readFileSync(path.join(serverRoot, 'lib.webui-profile-limits.php'), 'utf8');
+            assert.ok(graphFiles.includes('server/lib.webui-profile-limits.php'));
+            assert.match(profiles, /require_once __DIR__ \. '\/lib\.webui-profile-limits\.php';/);
+            assert.match(limits, /require_once __DIR__ \. '\/lib\.input-security\.php';/);
             const inputSecurity = fs.readFileSync(path.join(serverRoot, 'lib.input-security.php'), 'utf8');
             const relocated = [...inputSecurity.matchAll(/^\s*function\s+(truncateUtf8String)\s*\(/gm)].map(match => match[1]);
             assert.deepEqual(relocated, ['truncateUtf8String']);

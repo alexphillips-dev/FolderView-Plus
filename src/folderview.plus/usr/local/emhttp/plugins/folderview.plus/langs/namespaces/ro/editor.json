@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "editor",
-        "content-revision": "d496f5a482a3e0bb26049189705d3f001b413f038cded428a4c8a16e12c71645"
+        "content-revision": "2b6048d06754bca48a210812214e015371cdf566ca8e92e2e6718cd40654a494"
     },
     "editor.settings.information-about": "Informații despre $1",
     "editor.actions.add-custom": "Adaugă o acțiune personalizată",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Indisponibil în acest dosar",
     "editor.webui-profiles.no-members": "Nu sunt disponibili membrii de folder care se potrivesc.",
     "editor.webui-profiles.error-name": "Fiecare profil WebUI are nevoie de un nume.",
+    "editor.webui-profiles.error-name-length": "Numele profilului WebUI pot avea până la $1 UTF-8 octeți.",
     "editor.webui-profiles.error-duplicate": "Numele profilului WebUI trebuie să fie unice în acest folder.",
     "editor.webui-profiles.error-members": "Fiecare profil WebUI trebuie să selecteze cel puțin un membru al folderului.",
+    "editor.webui-profiles.error-member-limit": "Un profil WebUI poate selecta până la $1 membri.",
     "editor.webui-profiles.limit": "Acest folder a atins limita de siguranță a profilului WebUI.",
     "editor.members.assignment-why": "De ce acest folder?",
     "editor.members.assignment-elsewhere": "Atribuit altor dosare",

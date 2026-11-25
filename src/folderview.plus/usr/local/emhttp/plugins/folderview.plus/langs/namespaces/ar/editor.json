@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "editor",
-        "content-revision": "304b48dc1836ed67bd1f658cc550ae710d3ca3c0d3db1bc54cf790e0c8bf8502"
+        "content-revision": "69c1a79e7429542acbbf816d98bafd355b9f1a3b7f5ea98a1b9fe7605be801ba"
     },
     "editor.settings.information-about": "معلومات حول $1",
     "editor.actions.add-custom": "إضافة إجراء مخصص",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "غير متوفر في هذا المجلد",
     "editor.webui-profiles.no-members": "لا يتوفر أي أعضاء مجلد متطابقين.",
     "editor.webui-profiles.error-name": "يحتاج كل ملف تعريف WebUI إلى اسم.",
+    "editor.webui-profiles.error-name-length": "يمكن أن تصل أسماء ملفات تعريف WebUI إلى $1 UTF-8 بايت.",
     "editor.webui-profiles.error-duplicate": "يجب أن تكون أسماء ملفات تعريف WebUI فريدة داخل هذا المجلد.",
     "editor.webui-profiles.error-members": "يجب أن يحدد كل ملف تعريف WebUI عضو مجلد واحد على الأقل.",
+    "editor.webui-profiles.error-member-limit": "يمكن لملف تعريف WebUI تحديد ما يصل إلى $1 من الأعضاء.",
     "editor.webui-profiles.limit": "لقد وصل هذا المجلد إلى حد أمان ملف تعريف WebUI.",
     "editor.members.assignment-why": "لماذا هذا المجلد؟",
     "editor.members.assignment-elsewhere": "المخصصة لمجلدات أخرى",

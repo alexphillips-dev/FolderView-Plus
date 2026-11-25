@@ -161,7 +161,7 @@ test('manifest resolves and requires the installed asset-pack activation helper'
     const pluginDir = entity('plugdir').replace('&name;', entity('name'));
     const activationPath = `${pluginDir}/scripts/install_icon_asset_pack.sh`;
     assert.equal(activationPath, '/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh');
-    assert.match(plg, /<INLINE>\s*set -e/);
+    assert.match(plg, /<INLINE>\s*\{\s*#[^\n]+\n\s*set -e\b/);
     assert.match(plg, /\/bin\/bash "&plugdir;\/scripts\/install_icon_asset_pack\.sh"/);
     assert.doesNotMatch(plg, /&plugdir;scripts\/install_icon_asset_pack\.sh/);
     assert.match(plg, /FVPLUS_ICON_PACK_STATUS_FILE="\$\{icon_status\}"/);

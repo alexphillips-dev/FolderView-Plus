@@ -52,6 +52,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request-diagnostics.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request-transport.js')?>"></script><script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.webui-profile-limits.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.webui-profiles.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.privacy.js')?>"></script>

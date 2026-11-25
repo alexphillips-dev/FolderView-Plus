@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "content-revision": "1a6d2167a6b7bf2a8cf2b0e3f93fd99a5e793bd6b73cad4871e840d7243fa90c"
+        "content-revision": "e23775c264486292b2e0a0439b2c2e649d407299429ebfe685ed60249f37f0a1"
     },
     "settings.visibility.group-unassigned-items": "Atanmamış öğeleri grupla",
     "settings.visibility.group-unassigned-items-help": "İlgili gösterge paneli kutucuğuna da uygulanır.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "$2 kuraldan $1 gösteriliyor",
     "settings.rules.selected": "· $1 seçildi ($2 gösteriliyor)",
     "settings.rules.edit-missing": "Düzenlenmekte olan kural artık mevcut değil. Düzenlemeyi iptal edin ve başka bir kural seçin.",
+    "settings.rules.edit-conflict": "Bu kural siz düzenleme yaparken değişti. Tekrar kaydetmeden önce iptal edip yeniden açın.",
     "settings.rules.docker-description": "Esnek kuralları kullanarak Docker kapsayıcılarınızı otomatik olarak doğru klasörlerde düzenleyin.",
     "settings.rules.vm-description": "Esnek kuralları kullanarak VM'lerinizi otomatik olarak doğru klasörlerde düzenleyin.",
     "settings.folder-defaults.edit": "Klasör varsayılanlarını düzenle",

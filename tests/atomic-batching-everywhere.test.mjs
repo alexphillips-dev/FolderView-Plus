@@ -173,8 +173,8 @@ test('remaining multi-folder workflows route through atomic batch helpers', () =
     assert.match(treeIntegrity, /upserts: toRepair\.map\(\(id\) =>/);
     assert.match(treeIntegrity, /await requestFolderBatchMutation\(resolvedType,/);
     assert.match(settings, /server\/rule_preview\.php', \{ type: resolvedType, expectedDigest: preview\.digest \}/);
-    assert.match(endpoint, /bulkAssignItemsToFolders\(\$type, \$assignments, null, \$expectedRevision\)/);
-    assert.match(endpoint, /bulkAssignItemsToFolder\(\$type, \$folderId, \$itemsDecoded, \$expectedRevision\)/);
+    assert.match(endpoint, /bulkAssignItemsToFolders\(\$type, \$assignments, null, \$expectedRevision, \$createSafetyBackup\)/);
+    assert.match(endpoint, /bulkAssignItemsToFolder\(\$type, \$folderId, \$itemsDecoded, \$expectedRevision, \$createSafetyBackup\)/);
     assert.match(lib, /const FVPLUS_MAX_BULK_ASSIGN_BATCH_ITEMS = 5000;/);
     assert.match(lib, /appendDiagnosticsHistoryEvent\('folder_batch_assignment'/);
     assert.doesNotMatch(bulkShared, /DEFAULT_BULK_ASSIGN_CHUNK/);

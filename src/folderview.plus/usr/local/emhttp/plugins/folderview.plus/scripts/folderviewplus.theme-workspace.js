@@ -119,6 +119,8 @@
             const status = documentRef?.getElementById('fv-theme-appearance-loading');
             if (status) {
                 status.hidden = workspaceLoaded;
+                if (failed) status.removeAttribute?.('data-i18n');
+                else status.setAttribute?.('data-i18n', 'common.loading');
                 status.textContent = failed
                     ? translate('legacy.surface.2517b2dd9baadf0e', '$1 failed', translate('settings.navigation.appearance', 'Appearance'))
                     : translate('common.loading', 'Loading…');
@@ -358,12 +360,28 @@
             ? translate('settings.theme.override-suffix', ' · customized')
             : translate('settings.theme.default-suffix', ' · default'));
 
+        const syncVariableControl = (input) => {
+            const token = input.getAttribute('data-fv-theme-token');
+            const hasOverride = Object.prototype.hasOwnProperty.call(workspace.variables || {}, token);
+            const value = hasOverride ? workspace.variables[token] : input.getAttribute('data-fv-theme-fallback');
+            if (input.value !== value) input.value = value;
+            const row = input.closest('.fv-theme-variable-row');
+            if (row) {
+                row.classList.toggle('has-override', hasOverride);
+                row.querySelector('code').textContent = variableLabel(token, hasOverride);
+            }
+        };
+
         const renderVariableGrid = () => {
             if (!documentRef) {
                 return;
             }
             const host = documentRef.getElementById('fv-theme-variable-grid');
             if (!host) {
+                return;
+            }
+            if (host.firstElementChild) {
+                host.querySelectorAll('[data-fv-theme-token]').forEach(syncVariableControl);
                 return;
             }
             host.innerHTML = TOKEN_DEFINITIONS.map((definition) => {
@@ -425,7 +443,7 @@
             }).join('');
         };
 
-        const syncCustomizeFields = () => {
+        const syncCustomCssField = () => {
             if (!documentRef) {
                 return;
             }
@@ -433,16 +451,6 @@
             if (cssField && cssField.value !== String(workspace.customCss || '')) {
                 cssField.value = String(workspace.customCss || '');
             }
-            TOKEN_DEFINITIONS.forEach((definition) => {
-                const input = documentRef.querySelector(`[data-fv-theme-token="${definition.token}"]`);
-                if (input) {
-                    input.value = String(
-                        Object.prototype.hasOwnProperty.call(workspace.variables || {}, definition.token)
-                            ? workspace.variables?.[definition.token]
-                            : (definition.fallback || '')
-                    );
-                }
-            });
         };
 
         const renderWorkspace = () => {
@@ -452,7 +460,7 @@
             renderSummary();
             renderThemeList();
             renderVariableGrid();
-            syncCustomizeFields();
+            syncCustomCssField();
             applyPreviewCss();
             const updateButton = documentRef?.getElementById('fv-theme-update-available');
             if (updateButton) {
@@ -754,11 +762,7 @@
                 updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } }, { selectedPreset: '' });
                 renderPresetControls();
                 // Keep the native input mounted while its picker or keyboard is active.
-                const row = event.target.closest('.fv-theme-variable-row');
-                if (row) {
-                    row.classList.add('has-override');
-                    row.querySelector('code').textContent = variableLabel(token, true);
-                }
+                syncVariableControl(event.target);
                 applyPreviewCss();
                 renderSummary();
             });

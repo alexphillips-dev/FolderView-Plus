@@ -86,6 +86,31 @@ test('Docker repair validates the complete multiline body instead of the host de
     assert.equal(result.repair.repairedMemberCount, 1);
 });
 
+test('orphan repair keeps the prior archive when the folder write fails at retention one', () => {
+    const result = runInventoryRepair({ type: 'vm', scenario: 'empty', retainPriorBackup: true, repairWriteFailure: true });
+    assert.match(result.error, /Injected durable storage failure at 'rename'/);
+    assert.equal(result.priorBackupRetained, true);
+    assert.deepEqual(result.folders.fixture.containers, ['vm-present', 'vm-missing']);
+    assert.equal(result.backups.length, 2);
+});
+
+test('orphan repair succeeds when its history destination is unavailable', () => {
+    const result = runInventoryRepair({ type: 'vm', scenario: 'empty', failRepairHistory: true });
+    assert.equal(result.error, '');
+    assert.equal(result.repair.repairedMemberCount, 2);
+    assert.deepEqual(result.folders.fixture.containers, []);
+    assert.equal(result.backups.length, 1);
+});
+
+test('orphan repair restores folders and native order after a late Docker synchronization error', () => {
+    const result = runInventoryRepair({ type: 'docker', scenario: 'empty', retainPriorBackup: true, repairSyncFailure: true });
+    assert.match(result.error, /Injected late Docker order failure/);
+    assert.equal(result.native, result.nativeBefore);
+    assert.equal(result.nativeMode, result.nativeModeBefore);
+    assert.deepEqual(result.folders.fixture.containers, ['docker-present', 'docker-missing']);
+    assert.equal(result.priorBackupRetained, true);
+});
+
 const server = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
 const quotePhp = (value) => `'${String(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'")}'`;
 const runRepair = (type, { repeat = false, failBackup = false, failInventory = false } = {}) => {
@@ -123,11 +148,17 @@ function fvplusReadRepairInventory($type) {
 function fvplusAssertRepairMembersNotRenamed($type, $folders, $inventory) {}
 function normalizeFolderContentPayload($folder) { return $folder; }
 function normalizeFolderMembers($members) { return array_values(array_unique($members)); }
-function createBackupSnapshot($type, $reason) {
+function createBackupSnapshot($type, $reason, $prune) {
     global $maps, $backups, $events, $failBackup;
     if ($failBackup) throw new RuntimeException('Synthetic backup failure');
-    $events[] = ['backup', $type]; $backups[$type][] = $maps[$type]; return [];
+    if ($prune) throw new RuntimeException('Pruned before repair write');
+    $events[] = ['backup', $type]; $backups[$type][] = $maps[$type]; return ['name' => 'fixture.json'];
 }
+function fvplusTypeTransactionPaths($type) { return []; }
+function fvplusEnvironmentCaptureFiles($paths) { return []; }
+function fvplusTransactionRestoreAfterFailure($snapshots, $error, $restoreFiles) {}
+function getTypeBackupRetention($type) { return 1; }
+function pruneBackupSnapshots($type, $keep, $protected) { global $events; $events[] = ['prune', $type]; }
 function writeRawFolderMap($type, $folders) {
     global $maps, $events, $revisions, $locked;
     if (!$locked) throw new RuntimeException('Write outside mutation lock');
@@ -168,7 +199,7 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.revisions[other], other === 'docker' ? 10 : 20);
         assert.equal(result.revisions[type], type === 'docker' ? 11 : 21);
         assert.ok(result.events.filter(([event]) => event !== 'snapshot').every((event) => event[1] === type));
-        assert.deepEqual(result.events.filter((event) => ['backup', 'write'].includes(event[0])).map((event) => event[0]), ['backup', 'write']);
+        assert.deepEqual(result.events.filter((event) => ['backup', 'write', 'prune'].includes(event[0])).map((event) => event[0]), ['backup', 'write', 'prune']);
         assert.equal(result.events.some((event) => event[0] === 'order'), type === 'docker');
         assert.equal(result.history.length, 1);
         assert.equal(result.history[0].type, type);

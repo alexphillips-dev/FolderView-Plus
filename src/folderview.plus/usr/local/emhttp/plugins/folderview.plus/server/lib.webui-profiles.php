@@ -1,14 +1,5 @@
 <?php
-require_once __DIR__ . '/lib.input-security.php';
-const FVPLUS_WEBUI_PROFILE_MAX_PROFILES = 100;
-const FVPLUS_WEBUI_PROFILE_MAX_MEMBERS = 250;
-const FVPLUS_WEBUI_PROFILE_MAX_NAME_BYTES = 80;
-const FVPLUS_WEBUI_PROFILE_MAX_MEMBER_BYTES = 160;
-function fvplusWebuiProfileCleanString($value, int $maxBytes): string {
-    $clean = preg_replace('/[\x00-\x1F\x7F]/u', '', (string)$value);
-    $trimmed = trim(is_string($clean) ? $clean : '');
-    return truncateUtf8String($trimmed, $maxBytes);
-}
+require_once __DIR__ . '/lib.webui-profile-limits.php';
 
 function fvplusNormalizeWebuiProfiles($value): array {
     $source = is_array($value) ? $value : [];

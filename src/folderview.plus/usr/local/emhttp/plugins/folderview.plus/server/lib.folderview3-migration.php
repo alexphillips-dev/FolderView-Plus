@@ -151,7 +151,7 @@ function fvplusFolderView3ConfigDir(): string {
     return $override !== '' ? rtrim($override, '/\\') : '/boot/config/plugins/folder.view3';
 }
 
-function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152): array {
+function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152, bool $folderMap = false): array {
     if (!file_exists($path)) {
         return [];
     }
@@ -168,6 +168,9 @@ function fvplusFolderView3ReadJsonFile(string $path, int $maxBytes = 2097152): a
     if (!is_array($decoded)) {
         throw new RuntimeException('FolderView3 configuration contains invalid JSON.');
     }
+    if ($folderMap && $decoded !== [] && str_starts_with(ltrim($raw), '[')) {
+        throw new RuntimeException('Invalid FolderView3 ' . pathinfo($path, PATHINFO_FILENAME) . ' map. No configuration was imported.');
+    }
     fvplusFolderView3AssertUniqueJsonKeys($raw);
     return $decoded;
 }
@@ -182,8 +185,8 @@ function fvplusFolderView3ReadInstalledBundle(): array {
         'plugin_version' => truncateUtf8String(trim((string)@file_get_contents($configDir . '/version')), 128),
         'unraid_version' => '',
         'exported' => gmdate('c'),
-        'docker' => fvplusFolderView3ReadJsonFile($configDir . '/docker.json'),
-        'vm' => fvplusFolderView3ReadJsonFile($configDir . '/vm.json'),
+        'docker' => fvplusFolderView3ReadJsonFile($configDir . '/docker.json', folderMap: true),
+        'vm' => fvplusFolderView3ReadJsonFile($configDir . '/vm.json', folderMap: true),
         'settings' => fvplusFolderView3ReadJsonFile($configDir . '/settings.json'),
         'css_config' => fvplusFolderView3ReadJsonFile($configDir . '/css-config.json'),
         'organizer_registry' => fvplusFolderView3ReadJsonFile($configDir . '/organizer-registry.json'),
@@ -330,6 +333,12 @@ function decodeFolderView3BundlePayloadString(string $rawPayload): array {
         throw new RuntimeException('FolderView3 export is not valid JSON.');
     }
     fvplusFolderView3AssertUniqueJsonKeys($trimmed);
+    $shape = json_decode($trimmed);
+    foreach (['docker', 'vm'] as $type) {
+        if (is_array($shape->$type ?? null) && $shape->$type !== []) {
+            throw new RuntimeException('Invalid FolderView3 ' . $type . ' map. No configuration was imported.');
+        }
+    }
     return fvplusFolderView3NormalizeBundle($decoded);
 }
 

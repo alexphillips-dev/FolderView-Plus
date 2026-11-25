@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "content-revision": "9b1a89d15b2d94cfc65af111d6654d00a7595af8fb0b834e7192542fdf7e8806"
+        "content-revision": "1ced464b8751717aef08b592b84cf495070eac7c3f102b85a3a1b0dd85b34d33"
     },
     "settings.visibility.group-unassigned-items": "Nicht zugeordnete Elemente gruppieren",
     "settings.visibility.group-unassigned-items-help": "Gilt auch für die zugehörige Dashboard-Kachel.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Es werden $1 von $2 Regeln angezeigt",
     "settings.rules.selected": "· $1 ausgewählt ($2 angezeigt)",
     "settings.rules.edit-missing": "Die bearbeitete Regel existiert nicht mehr. Brechen Sie die Bearbeitung ab und wählen Sie eine andere Regel aus.",
+    "settings.rules.edit-conflict": "Diese Regel wurde während der Bearbeitung geändert. Brechen Sie den Vorgang ab und öffnen Sie ihn erneut, bevor Sie ihn erneut speichern.",
     "settings.rules.docker-description": "Organisieren Sie Ihre Docker-Container mithilfe flexibler Regeln automatisch in den richtigen Ordnern.",
     "settings.rules.vm-description": "Organisieren Sie Ihre VMs mithilfe flexibler Regeln automatisch in den richtigen Ordnern.",
     "settings.folder-defaults.edit": "Standardwerte für Ordner bearbeiten",

@@ -88,6 +88,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/complete_native_registration.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.child-folder-preview-menu.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.column-controller.js"

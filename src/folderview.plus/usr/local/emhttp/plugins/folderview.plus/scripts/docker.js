@@ -704,6 +704,7 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
     })
     : null;
 let lastAppliedRuntimePrefs = null;
+let renderedDockerRuleSignature = '';
 const dockerRuntimeColumnControllerState = {
     resizerBindTimer: null,
     resizerRetryTimer: null,
@@ -4923,6 +4924,7 @@ const createFolders = async () => {
     markDockerFatalBannerStep('Docker folders rendered');
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
+    renderedDockerRuleSignature = utils.getMembershipSignature({ type: 'docker', rules: folderTypePrefs.autoRules });
     foldersRenderedSuccessfully = true;
     dockerRuntimePerformanceTelemetry?.end?.('folderFinalization');
     dockerRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
@@ -7661,8 +7663,11 @@ const bindDockerRuntimePreferenceSync = () => {
             clearDockerUnassignedGroup({ resetExpansion: nextPrefs.groupUnassignedItems !== true, resetFocus: true });
         }
         applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
+        const rulesChanged = snapshot.pending !== true && !dockerHostLoadOwnsLoadingUi && !createFoldersInFlight && renderedDockerRuleSignature
+            && resolveDockerPageViewMode(nextPrefs) === 'folderview'
+            && renderedDockerRuleSignature !== utils.getMembershipSignature({ type: 'docker', rules: nextPrefs.autoRules });
         if (previousPrefs && (
-            previousPrefs.hideEmptyFolders !== nextPrefs.hideEmptyFolders
+            rulesChanged || previousPrefs.hideEmptyFolders !== nextPrefs.hideEmptyFolders
             || previousPrefs.groupUnassignedItems !== nextPrefs.groupUnassignedItems
             || previousPrefs.pageViewMode !== nextPrefs.pageViewMode
             || ['running', 'stopped', 'updates'].some(key => previousPrefs.badges?.[key] !== nextPrefs.badges?.[key])

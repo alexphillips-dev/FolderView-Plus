@@ -290,6 +290,12 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
             };
         });
         assert.deepEqual(color, { retainsFocus: true, customized: true, preview: '#335577' });
+        await page.locator('[data-fv-theme-token-reset="--fvplus-theme-accent"]').focus();
+        await page.evaluate(() => { window.fixtureResetButton = document.activeElement; });
+        await page.keyboard.press('Enter');
+        assert.equal(await page.evaluate(() => document.activeElement === window.fixtureResetButton), true);
+        assert.equal(await page.locator('[data-fv-theme-token="--fvplus-theme-accent"]').evaluate(input => input.value === input.dataset.fvThemeFallback), true);
+        assert.equal(await page.evaluate(() => themeApi.getWorkspace().variables['--fvplus-theme-accent']), undefined);
         await page.locator('#fv-theme-custom-css').fill('.draft { opacity: .9; }');
         await page.locator('[data-fv-theme-preset="green"]').click();
         await page.locator('[data-fv-onclick="saveThemeWorkspaceCustomize()"]').click();

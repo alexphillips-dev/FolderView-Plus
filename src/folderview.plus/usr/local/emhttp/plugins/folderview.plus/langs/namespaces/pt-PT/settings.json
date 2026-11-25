@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "settings",
-        "content-revision": "1f565ff5d2ea7d303617ff85cf6488d404a7707e12f78afaa6b9bd4714c2f254"
+        "content-revision": "f5cfa6e3c04810fac5d2601e61050be29df315b9c18e05af90d84aac5dc7e3f0"
     },
     "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
     "settings.visibility.group-unassigned-items-help": "Também se aplica ao mosaico correspondente no painel.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Mostrando $1 de $2 regras",
     "settings.rules.selected": "· $1 selecionado ($2 mostrado)",
     "settings.rules.edit-missing": "A regra que está sendo editada não existe mais. Cancele a edição e selecione outra regra.",
+    "settings.rules.edit-conflict": "Esta regra foi alterada durante a edição. Cancele a edição e volte a abrir a regra antes de a guardar.",
     "settings.rules.docker-description": "Organize automaticamente seus contentores Docker nas pastas certas usando regras flexíveis.",
     "settings.rules.vm-description": "Organize automaticamente suas VMs nas pastas certas usando regras flexíveis.",
     "settings.folder-defaults.edit": "Editar predefinições das pastas",

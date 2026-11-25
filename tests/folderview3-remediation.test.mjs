@@ -78,14 +78,16 @@ test('M15/M20: whitespace retains original meaning and invalid or oversized rege
 });
 
 test('FolderView3 rejects legacy predicates that would become inactive managed rules', () => {
-    const bundle = copy();
-    bundle.docker.regex.regex = '^(?:(a)|b)+\\1$';
-    assert.equal(new RegExp(bundle.docker.regex.regex).test('aa'), true);
-    for (const operation of ['plan', 'direct-apply']) {
-        const result = runMigrationFixture({ bundle, operation });
-        assert.match(result.error, /FolderView3 regex is invalid or uses unsupported JavaScript\/PHP syntax/);
-        assert.equal(result.protectedUnchanged, true, operation);
-        assert.equal(Object.keys(result.after).some(key => key.startsWith('backups/') || key.startsWith('rollback/')), false);
+    for (const [pattern, matched] of [['^(?:(a)|b)+\\1$', 'aa'], ['^(?:fixture|x{y})$', 'fixture']]) {
+        const bundle = copy();
+        bundle.docker.regex.regex = pattern;
+        assert.equal(new RegExp(pattern).test(matched), true);
+        for (const operation of ['plan', 'direct-apply']) {
+            const result = runMigrationFixture({ bundle, operation });
+            assert.match(result.error, /FolderView3 regex is invalid or uses unsupported JavaScript\/PHP syntax/);
+            assert.equal(result.protectedUnchanged, true, operation);
+            assert.equal(Object.keys(result.after).some(key => key.startsWith('backups/') || key.startsWith('rollback/')), false);
+        }
     }
 });
 
@@ -95,8 +97,47 @@ test('M07/M21/M29/M30: preview is pure with missing, legacy and corrupt workspac
     }
 });
 
+test('FolderView3 keeps the existing active theme when only its recovery copy remains', () => {
+    const customCss = '.fixture-preserved { color: red; }';
+    const existing = { id: 'fixture-preserved', name: 'Existing active profile', layers: { global: { customCss } } };
+    const workspace = { activeProfileId: existing.id, profiles: [existing] };
+    const input = { workspace, missingWorkspacePrimary: true };
+    const preview = runMigrationFixture(input);
+    assert.equal(preview.error, '');
+    assert.equal(preview.unchanged, true);
+    assert.equal(preview.plan.target.themeWorkspace.activeProfileId, existing.id);
+
+    const applied = runMigrationFixture({ ...input, operation: 'apply' });
+    assert.equal(applied.error, '');
+    assert.equal(applied.applied.transaction.verified, true);
+    assert.equal(applied.stored[4].activeProfileId, existing.id);
+    assert.equal(applied.stored[4].profiles.find(profile => profile.id === existing.id).layers.global.customCss, customCss);
+});
+
 test('M21/M22: independent installed reads retain a stable digest and apply', () => {
     const r = runMigrationFixture({ operation: 'installed' }); assert.equal(r.error, ''); assert.equal(r.stableDigest, true); assert.equal(r.applied.transaction.verified, true);
+});
+
+test('FolderView3 preserves numeric folder object keys and rejects folder lists', () => {
+    const bundle = copy();
+    bundle.docker = { 0: { name: 'Indexed zero' }, 1: { name: 'Indexed one' } };
+    bundle.vm = { 0: { name: 'Indexed VM' } };
+    const raw = JSON.stringify(bundle);
+    for (const operation of ['apply', 'installed']) {
+        const result = runMigrationFixture({ raw, operation });
+        assert.equal(result.error, '', operation);
+        assert.equal(result.applied.transaction.verified, true);
+        assert.deepEqual(Object.keys(result.stored[0]), ['0', '1']);
+        assert.deepEqual(Object.keys(result.stored[1]), ['0']);
+        assert.deepEqual(result.stored[2].manualOrder, ['0', '1']);
+    }
+    const list = Object.values(bundle.docker);
+    const exportedList = runMigrationFixture({ bundle: { ...bundle, docker: list } });
+    assert.match(exportedList.error, /Invalid FolderView3 docker map/);
+    assert.equal(exportedList.unchanged, true);
+    const installedList = runMigrationFixture({ raw, operation: 'installed', installedDockerJson: JSON.stringify(list) });
+    assert.match(installedList.error, /Invalid FolderView3 docker map/);
+    assert.equal(installedList.unchanged, true);
 });
 
 test('M24/M38: concurrent destination edits reject the reviewed migration without changing the new state', () => {

@@ -167,7 +167,7 @@
 
         const createRollbackCheckpoint = async () => {
             try {
-                const checkpoint = await deps.createGlobalRollbackCheckpointApi('manual');
+                const checkpoint = await deps.globalRollbackApi('rollback_checkpoint', { reason: 'manual' });
                 const message = checkpoint?.name ? `Created: ${checkpoint.name}` : 'Rollback checkpoint created.';
                 setRollbackStatus(message);
                 notify({
@@ -180,18 +180,18 @@
                 showError(repairT88902831("common.repair.rollback-checkpoint-failed-3f552f", "Rollback checkpoint failed"), error);
             }
         };
-
         const rollbackLatestCheckpoint = async () => {
-            const confirmed = await requestConfirmation({
-                title: 'Rollback plugin settings?',
-                text: 'This restores Docker + VM folders and settings from the previous rollback snapshot.',
-                type: 'warning',
-                confirmButtonText: 'Rollback now',
-                cancelButtonText: 'Cancel'
-            });
-            if (!confirmed) return;
             try {
-                const restore = await deps.restorePreviousGlobalRollbackCheckpointApi();
+                const checkpoint = await deps.globalRollbackApi('rollback_list');
+                if (!checkpoint) throw new Error(repairT88902831('common.server.no-previous-rollback-snapshot-available-d7dc01', 'No previous rollback snapshot available.'));
+                const explanation = repairT88902831('legacy.surface.5902ad5c407a5713', 'This restores Docker + VM folders and settings from the previous rollback snapshot.');
+                const confirmed = await requestConfirmation({
+                    title: 'Rollback plugin settings?',
+                    text: explanation + '\n' + repairT88902831('legacy.surface.7cd563c9fb21ade7', 'Rollback checkpoint: $1', checkpoint.name),
+                    confirmButtonText: 'Rollback now'
+                });
+                if (!confirmed) return;
+                const restore = await deps.globalRollbackApi('rollback_restore_previous', { expectedName: checkpoint.name });
                 await deps.refreshAll();
                 const target = restore?.targetName || restore?.name || 'previous snapshot';
                 const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';

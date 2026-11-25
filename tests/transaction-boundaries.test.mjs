@@ -35,6 +35,21 @@ test('global rollback reuses compensated transaction and retains selected checkp
         assert.ok(result.success.undoSnapshot);
     } finally { harness.cleanup(); }
 });
+
+for (const mode of ['latest', 'previous']) {
+    test('global ' + mode + ' restore skips damaged checkpoints and requires the reviewed target', () => {
+        const harness = setup();
+        try {
+            const result = harness.run('rollback-select-' + mode);
+            assert.deepEqual(Object.values(result.rows), [false, false, true]);
+            assert.equal(result.staleConfirmationRejected, true);
+            assert.equal(result.selected, result.originalName);
+            assert.deepEqual(result.folderIds, ['original']);
+            assert.equal(result.verified, true);
+            assert.equal(result.originalRestorable, true);
+        } finally { harness.cleanup(); }
+    });
+}
 test('public environment boundaries reject incomplete and unsupported envelopes before mutation', () => {
     const harness = setup();
     try {
@@ -63,7 +78,7 @@ test('failed environment transactions preserve backup and checkpoint history bef
     } finally { harness.cleanup(); }
 });
 
-for (const operation of ['rule-preview-retention', 'folder-transfer-retention']) {
+for (const operation of ['rule-preview-retention', 'folder-transfer-retention', 'editor-bulk-retention']) {
     test(operation + ' preserves old recovery points until a successful folder write', () => {
         const harness = setup();
         try {
@@ -72,6 +87,7 @@ for (const operation of ['rule-preview-retention', 'folder-transfer-retention'])
             assert.equal(result.failure.configUnchanged, true);
             assert.equal(result.failure.previousRetained, true);
             assert.equal(result.failure.archives, 2);
+            if (operation === 'editor-bulk-retention') assert.equal(result.staleProtected, true);
             assert.equal(result.applied, true);
             assert.ok(result.backup.pruned.includes(result.oldName));
             assert.deepEqual(result.remaining, [result.backup.name]);
@@ -155,6 +171,17 @@ test('source backup pruning reports only successful deletes and preserves the pr
         const result = harness.run('backup-prune-fault');
         assert.deepEqual(result.removed, ['vm-stale.json']);
         assert.deepEqual(result.remaining, ['vm-new.json', 'vm-blocked.json', 'vm-safety.json']);
+    } finally { harness.cleanup(); }
+});
+
+test('fresh per-type and global archives survive retention when existing timestamps are ahead', () => {
+    const harness = setup();
+    try {
+        const result = harness.run('fresh-checkpoint-retention');
+        assert.equal(result.backupRetained, true);
+        assert.equal(result.globalRetained, true);
+        assert.equal(result.priorTypePruned, true);
+        assert.equal(result.globalCount, result.globalLimit);
     } finally { harness.cleanup(); }
 });
 

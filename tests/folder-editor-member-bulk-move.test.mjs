@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -25,8 +26,47 @@ test('shared bulk assignment module provides plan building and atomic execution 
     assert.match(bulkSharedJs, /const buildBulkAssignmentPlan = \(type,\s*folderId,\s*namesInput = null\) =>/);
     assert.match(bulkSharedJs, /const buildBulkAssignmentPreludeLines = \(plan,\s*options = \{\}\) =>/);
     assert.match(bulkSharedJs, /const executeBulkAssignmentPlan = async \(type,\s*planInput,\s*options = \{\}\) =>/);
-    assert.match(bulkSharedJs, /const result = await requestBulkAssign\(resolvedType, targetFolderId, actionableNames, options\.expectedRevision\);/);
+    assert.match(bulkSharedJs, /const result = await requestBulkAssign\(resolvedType, targetFolderId, actionableNames, options\.expectedRevision, createSafetyBackup\);/);
     assert.doesNotMatch(bulkSharedJs, /DEFAULT_BULK_ASSIGN_CHUNK/);
+});
+
+test('editor bulk move requests the checkpoint within the revision-guarded assignment', async () => {
+    const start = folderJs.indexOf('const getFolderBulkAssignmentSharedApi =');
+    const end = folderJs.indexOf('const updateUnsavedIndicator', start);
+    const shared = createRequire(import.meta.url)(path.resolve(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js'));
+    const requests = [];
+    let rejectRevision = false;
+    const checkpoint = { name: 'fixture-editor-checkpoint.json' };
+    const mount = new Function('bulkAssignmentSharedModule', 'window', 'requestClient', `
+        const utils = {};
+        const allFoldersById = { source: { containers: ['fixture'] }, target: { containers: [] } };
+        let folderBulkAssignmentSharedApi;
+        ${folderJs.slice(start, end)}
+        return getFolderBulkAssignmentSharedApi();
+    `);
+    const api = mount(shared, {}, {
+        postJson: async (url, data) => {
+            requests.push({ url, data });
+            if (rejectRevision) throw new Error('Stale folder revision');
+            return { ok: true, result: { assigned: ['fixture'], backup: checkpoint, metadata: { folderRevision: 8 } } };
+        }
+    });
+    const plan = api.buildBulkAssignmentPlan('vm', 'target', ['fixture']);
+    const options = { expectedRevision: 7, createSafetyBackup: true };
+    assert.match(folderJs, /operationScope: 'editor-bulk-move',[\s\S]{0,250}createSafetyBackup: true/);
+    const applied = await api.executeBulkAssignmentPlan('vm', plan, options);
+    assert.deepEqual(applied.backup, checkpoint);
+    assert.equal(applied.metadata.folderRevision, 8);
+    assert.equal(applied.assignedCount, 1);
+    rejectRevision = true;
+    const rejected = await api.executeBulkAssignmentPlan('vm', plan, options);
+    assert.equal(rejected.backup, null);
+    assert.equal(rejected.assignedCount, 0);
+    assert.deepEqual(rejected.failedNames, ['fixture']);
+    assert.deepEqual(requests, Array(2).fill({
+        url: '/plugins/folderview.plus/server/bulk_assign.php',
+        data: { type: 'vm', folderId: 'target', items: '["fixture"]', expectedRevision: 7, createSafetyBackup: 1 }
+    }));
 });
 
 test('folder editor members tab renders compact bulk move controls and blocks unsafe local member drift', () => {
@@ -137,8 +177,8 @@ $start = normalizeFolderMapPayload([
 writeRawFolderMap($type, $start);
 writeTypePrefs($type, normalizeTypePrefs(['groupUnassignedItems' => false]));
 $base = readConfigMetadata($type, true)['folderRevision'];
-$backup = createBackupSnapshot($type, 'before-folder-editor-bulk-move');
-$move = bulkAssignItemsToFolder($type, 'target', ['one', 'two', 'unassigned'], $base);
+$move = bulkAssignItemsToFolder($type, 'target', ['one', 'two', 'unassigned'], $base, true);
+$backup = $move['backup'];
 $moved = readRawFolderMap($type);
 writeTypePrefs($type, normalizeTypePrefs(['groupUnassignedItems' => true]));
 $prefsBeforeUndo = readTypePrefs($type);
@@ -147,8 +187,8 @@ $restore = restoreBackupSnapshot($type, $backup['name'], ['expectedFolderRevisio
 $restored = readRawFolderMap($type);
 $safety = readBackupSnapshot($type, $restore['backup']['name']);
 $preservesPrefs = $prefsBeforeUndo === readTypePrefs($type) && !$restore['prefsRestored'];
-$newBackup = createBackupSnapshot($type, 'before-folder-editor-bulk-move');
-$move = bulkAssignItemsToFolder($type, 'target', ['one'], readConfigMetadata($type, true)['folderRevision']);
+$move = bulkAssignItemsToFolder($type, 'target', ['one'], readConfigMetadata($type, true)['folderRevision'], true);
+$newBackup = $move['backup'];
 $later = readRawFolderMap($type);
 $later['src-b']['icon'] = 'later.png';
 writeRawFolderMap($type, $later);

@@ -21,6 +21,7 @@
         "../tests/browser/cases/dashboard-native-reconciliation.mjs",
         "../tests/browser/cases/runtime-folder-identity-persistence.mjs",
         "../tests/browser/cases/dashboard-runtime-native-controls.mjs",
+        "../tests/browser/cases/runtime-peer-persistence.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -65,6 +66,7 @@
     {"file": "tests/browser/cases/dashboard-native-reconciliation.mjs", "limit": 120, "owner": "Dashboard native summary and committed rules across browser tabs"},
     {"file": "tests/browser/cases/runtime-folder-identity-persistence.mjs", "limit": 110, "owner": "Literal runtime folder IDs and preservation of pending expansion during rebuilds"},
     {"file": "tests/browser/cases/dashboard-runtime-native-controls.mjs", "limit": 100, "owner": "Dashboard native VM actions and Docker update indicators after live refresh"},
+    {"file": "tests/browser/cases/runtime-peer-persistence.mjs", "limit": 95, "owner": "Committed rules from a peer tab and expansion recovery during navigation"},
     {"file": "tests/browser/helpers/dashboard-membership-host.mjs", "limit": 40, "owner": "Dashboard native row markup and membership snapshots"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
@@ -194,7 +196,8 @@
     { "file": "tests/browser/cases/settings-start-order.mjs", "limit": 48, "owner": "fixture Docker start-order Settings cases" },
     { "file": "tests/browser/cases/folder-editor.mjs", "limit": 44, "owner": "fixture Folder Editor cases" },
     { "file": "tests/browser/cases/folder-editor-tabs.mjs", "limit": 32, "owner": "fixture editor tab themes and focus" },
-    { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases" },
+    { "file": "tests/browser/cases/folder-webui-profiles.mjs", "limit": 32, "owner": "fixture Folder WebUI profile cases", "requiredImports": ["./folder-webui-profile-limits.mjs"] },
+    { "file": "tests/browser/cases/folder-webui-profile-limits.mjs", "limit": 57, "owner": "fixture UTF-8 profile names and selected member bounds" },
     { "file": "tests/browser/cases/folder-webui-profile-theme.mjs", "limit": 42, "owner": "fixture Folder WebUI profile theme cases" },
     { "file": "tests/browser/cases/import.mjs", "limit": 74, "owner": "fixture import and export cases" },
     { "file": "tests/browser/cases/snapshot-compare.mjs", "limit": 125, "owner": "fixture snapshot comparison dialogs and lifecycle" },
@@ -223,6 +226,7 @@
         "tests/browser/cases/dashboard-native-reconciliation.mjs",
         "tests/browser/cases/runtime-folder-identity-persistence.mjs",
         "tests/browser/cases/dashboard-runtime-native-controls.mjs",
+        "tests/browser/cases/runtime-peer-persistence.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-privacy-diagnostics.mjs",
@@ -264,6 +268,7 @@
         "tests/browser/cases/icon-browser.mjs",
         "tests/browser/cases/folder-editor-diagnostics.mjs",
         "tests/browser/cases/folder-editor-tabs.mjs",
+        "tests/browser/cases/folder-webui-profile-limits.mjs",
         "tests/browser/cases/folder-webui-profiles.mjs",
         "tests/browser/cases/folder-webui-profile-theme.mjs",
         "tests/browser/cases/snapshot-compare.mjs",
@@ -358,10 +363,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 199,
-      "assertionCount": 2443,
-      "pageEvaluateCount": 843,
-      "orderedTitleSha256": "2641e492f6945ef6c29aa1b6e797b994fabc5e1e963e74db927e1d93ba995da9"
+      "testCount": 204,
+      "assertionCount": 2468,
+      "pageEvaluateCount": 857,
+      "orderedTitleSha256": "540d52a2b1d6356f149b4f043c49157ac4e53ff394ab97d2b280e41f1e9a2aa2"
     }
   }
 }

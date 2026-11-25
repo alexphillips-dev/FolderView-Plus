@@ -81,9 +81,12 @@ function fvplusFolderView3SettingsWarnings(array $settings, array &$warnings): a
 function fvplusFolderView3InspectWorkspace(): array {
     $path = getThemeWorkspacePath();
     $decoded = readJsonObjectFile($path);
-    if ($decoded === null && file_exists($path)) {
-        $decoded = readJsonObjectFile(getLastGoodJsonPath($path));
-        if ($decoded === null) throw new RuntimeException('Theme Workspace is corrupt and has no valid recovery copy. Restore it in Recovery before migrating.');
+    if ($decoded === null) {
+        $lastGoodPath = getLastGoodJsonPath($path);
+        $decoded = readJsonObjectFile($lastGoodPath);
+        if ($decoded === null && (file_exists($path) || file_exists($lastGoodPath))) {
+            throw new RuntimeException('Theme Workspace is corrupt and has no valid recovery copy. Restore it in Recovery before migrating.');
+        }
     }
     return normalizeThemeWorkspacePayload($decoded ?? defaultThemeWorkspace());
 }

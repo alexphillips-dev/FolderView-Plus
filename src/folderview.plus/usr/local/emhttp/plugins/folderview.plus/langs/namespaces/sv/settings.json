@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "content-revision": "401e3fa33950982e917e920d4381a6497b070be13d7e1f824797a9e8f835f6ad"
+        "content-revision": "97abec69227ed868493c5cc9731644c2df2a14cdffdf7c5bfbc664a1dc0b9a26"
     },
     "settings.visibility.group-unassigned-items": "Gruppera otilldelade objekt",
     "settings.visibility.group-unassigned-items-help": "Gäller även motsvarande ruta på instrumentpanelen.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Visar $1 av $2 regler",
     "settings.rules.selected": "· $1 har valts ($2 visas)",
     "settings.rules.edit-missing": "Regeln som redigeras finns inte längre. Avbryt redigeringen och välj en annan regel.",
+    "settings.rules.edit-conflict": "Denna regel ändrades medan du redigerade. Avbryt och öppna den igen innan du sparar igen.",
     "settings.rules.docker-description": "Organisera dina Docker-behållare automatiskt i rätt mappar med hjälp av flexibla regler.",
     "settings.rules.vm-description": "Organisera dina virtuella datorer automatiskt i rätt mappar med hjälp av flexibla regler.",
     "settings.folder-defaults.edit": "Redigera standardinställningar för mappar",

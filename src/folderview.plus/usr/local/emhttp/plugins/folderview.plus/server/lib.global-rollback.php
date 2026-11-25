@@ -36,6 +36,7 @@
             $transactionId = '';
             $dockerCount = null;
             $vmCount = null;
+            $restorable = false;
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
                 $pluginVersion = (string)($decoded['pluginVersion'] ?? '');
@@ -50,6 +51,10 @@
                 if (is_array($vmFolders)) {
                     $vmCount = count($vmFolders);
                 }
+                try {
+                    fvplusValidateGlobalRollbackPayload($decoded);
+                    $restorable = true;
+                } catch (RuntimeException $error) { /* Keep damaged checkpoints visible for inspection. */ }
             }
             $modified = (int)@filemtime($path);
             $created = new DateTimeImmutable('@' . $modified);
@@ -69,6 +74,7 @@
                 'pluginVersion' => $pluginVersion,
                 'traceId' => $traceId,
                 'transactionId' => $transactionId,
+                'restorable' => $restorable,
                 'dockerCount' => $dockerCount,
                 'vmCount' => $vmCount
             ];
@@ -145,7 +151,7 @@
                 'themeWorkspace' => readThemeWorkspace()
             ];
             writeJsonObjectAtomic("$rollbackDir/$filename", $payload);
-            $pruned = $prune ? pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, $protectedNames) : [];
+            $pruned = $prune ? pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, [$filename, ...$protectedNames]) : [];
             try {
                 appendDiagnosticsHistoryEvent('rollback_create', null, [
                     'name' => $filename,
@@ -174,61 +180,4 @@
         });
     }
 
-    function restoreGlobalRollbackSnapshot(string $name, array $options = []): array {
-        return withConfigMutationLock(static function () use ($name, $options): array {
-            $path = getGlobalRollbackSnapshotPath($name);
-            $safeName = basename($path);
-            if (!is_file($path)) throw new RuntimeException('Rollback snapshot file not found.');
-            $decoded = json_decode((string)@file_get_contents($path), true);
-            if (!is_array($decoded)) throw new RuntimeException('Rollback snapshot is not valid JSON.');
-            if (($decoded['rollbackSchemaVersion'] ?? null) !== FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION
-                || !is_array($decoded['types'] ?? null)) {
-                throw new RuntimeException('Rollback snapshot format or schema version is unsupported.');
-            }
-            $types = [];
-            foreach (FVPLUS_ALLOWED_TYPES as $type) {
-                $entry = $decoded['types'][$type] ?? null;
-                if (!is_array($entry) || !is_array($entry['folders'] ?? null)
-                    || (array_key_exists('prefs', $entry) && !is_array($entry['prefs']))) {
-                    throw new RuntimeException('Rollback snapshot is missing required type data.');
-                }
-                fvplusAssertSnapshotFolderMap($entry['folders'], 'Rollback snapshot is missing required type data.');
-                $types[$type] = $entry;
-            }
-            foreach (FVPLUS_ALLOWED_TYPES as $type) $types[$type]['prefs'] ??= readTypePrefs($type);
-            // Older checkpoints can omit Theme Workspace; retain its current state in that adapter.
-            $workspace = $decoded['themeWorkspace'] ?? readThemeWorkspace();
-            if (!is_array($workspace)) throw new RuntimeException('Rollback snapshot contains invalid Theme Workspace data.');
-            $target = ['types' => $types, 'themeWorkspace' => $workspace];
-            $transaction = applyEnvironmentSnapshotTransaction($target, $safeName,
-                array_merge($options, ['reason' => 'global-rollback', 'preserveRollbackNames' => [$safeName]]));
-            $counts = ['docker' => count($types['docker']['folders']), 'vm' => count($types['vm']['folders'])];
-            try {
-                appendDiagnosticsHistoryEvent('rollback_restore', null, [
-                    'name' => $safeName, 'dockerCount' => $counts['docker'], 'vmCount' => $counts['vm']
-                ], 'ok', 'server');
-            } catch (Throwable $error) { /* Optional history cannot change a committed restore. */ }
-            return ['name' => $safeName, 'restoredAt' => gmdate('c'),
-                'dockerCount' => $counts['docker'], 'vmCount' => $counts['vm'],
-                'undoSnapshot' => (string)($transaction['rollback']['name'] ?? ''), 'verified' => true];
-        });
-    }
-
-    function restoreLatestGlobalRollbackSnapshot(): array {
-        $snapshots = listGlobalRollbackSnapshots();
-        if (empty($snapshots)) {
-            throw new RuntimeException('No rollback snapshots available.');
-        }
-        return restoreGlobalRollbackSnapshot((string)$snapshots[0]['name']);
-    }
-
-    function restorePreviousGlobalRollbackSnapshot(): array {
-        $snapshots = listGlobalRollbackSnapshots();
-        if (count($snapshots) < 2) {
-            throw new RuntimeException('No previous rollback snapshot available.');
-        }
-        $target = (string)$snapshots[1]['name'];
-        $restored = restoreGlobalRollbackSnapshot($target);
-        $restored['targetName'] = $target;
-        return $restored;
-    }
+    require_once __DIR__ . '/lib.global-rollback-restore.php';

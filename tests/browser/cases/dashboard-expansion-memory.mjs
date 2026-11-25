@@ -1,6 +1,27 @@
 import assert from 'node:assert/strict';
-
 export const registerDashboardExpansionMemoryCase = ({ test, baseUrl, installFixture, hydrateFixture }) => {
+    test('Dashboard expansion commits from two tabs preserve separate folder edits', async ({ page }) => {
+        const peer = await page.context().newPage();
+        try {
+            for (const tab of [page, peer]) {
+                await installFixture(tab, baseUrl);
+                await tab.clock.install({ time: new Date('2026-10-12T12:00:00Z') });
+                await tab.clock.pauseAt(new Date('2026-10-12T12:00:01Z'));
+            }
+            await page.evaluate(() => document.getElementById('docker-parent').click());
+            await peer.evaluate(() => document.getElementById('docker-other').click());
+            await peer.evaluate(() => window.fixtureDashboardAccordion.flush());
+            await page.waitForFunction(() => window.fixtureDashboardAccordion.disk('docker').other === true);
+            assert.deepEqual(await page.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), { other: true });
+            assert.deepEqual(await page.evaluate(() => window.fixtureDashboardAccordion.snapshot('docker').saved), { parent: true, other: true });
+            await page.evaluate(() => window.fixtureDashboardAccordion.flush());
+            await peer.waitForFunction(() => window.fixtureDashboardAccordion.disk('docker').parent === true);
+            assert.deepEqual(await peer.evaluate(() => window.fixtureDashboardAccordion.disk('docker')), { parent: true, other: true });
+        } finally {
+            await peer.close();
+            await page.clock.resume();
+        }
+    });
     test('Dashboard expansion memory merges rapid clicks and cannot resurrect cleared Docker or VM state', async ({ page }) => {
         await installFixture(page, baseUrl);
         await page.clock.install({ time: new Date('2026-10-12T12:00:00Z') });

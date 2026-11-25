@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "content-revision": "2c663e2ac5dcfc404b3ec1dbc7dd9aac23dcc4932b9feb811eb9a3d6ce736524"
+        "content-revision": "0e6f6ecc3e5c9823c217a10b026e92e02bd3223ef335e713e923e45f8e3c17db"
     },
     "settings.visibility.group-unassigned-items": "Grupiraj nedodijeljene stavke",
     "settings.visibility.group-unassigned-items-help": "Primjenjuje se i na odgovarajući panel na nadzornoj ploči.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Prikazuje se $1 od $2 pravila",
     "settings.rules.selected": "· $1 odabran ($2 prikazan)",
     "settings.rules.edit-missing": "Pravilo koje se uređuje više ne postoji. Poništite uređivanje i odaberite drugo pravilo.",
+    "settings.rules.edit-conflict": "Ovo se pravilo promijenilo dok ste uređivali. Odustani i ponovno ga otvori prije ponovnog spremanja.",
     "settings.rules.docker-description": "Automatski organizirajte svoje Docker spremnike u prave mape pomoću fleksibilnih pravila.",
     "settings.rules.vm-description": "Automatski organizirajte svoje VM-ove u prave mape pomoću fleksibilnih pravila.",
     "settings.folder-defaults.edit": "Uredi zadane postavke mapa",

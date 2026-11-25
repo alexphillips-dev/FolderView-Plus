@@ -13,7 +13,8 @@ fvplus_json_try(function (): array {
         'delete_all',
         'rollback_checkpoint',
         'rollback_restore_latest',
-        'rollback_restore_previous'
+        'rollback_restore_previous',
+        'rollback_restore_named'
     ];
     $guardedReadActions = ['download_post'];
     if (in_array($action, $mutatingActions, true)) {
@@ -39,14 +40,21 @@ fvplus_json_try(function (): array {
 
     if ($action === 'rollback_restore_latest') {
         return [
-            'restore' => restoreLatestGlobalRollbackSnapshot(),
+            'restore' => restoreLatestGlobalRollbackSnapshot(isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null),
             'snapshots' => listGlobalRollbackSnapshots()
         ];
     }
 
     if ($action === 'rollback_restore_previous') {
         return [
-            'restore' => restorePreviousGlobalRollbackSnapshot(),
+            'restore' => restorePreviousGlobalRollbackSnapshot(isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null),
+            'snapshots' => listGlobalRollbackSnapshots()
+        ];
+    }
+
+    if ($action === 'rollback_restore_named') {
+        return [
+            'restore' => restoreGlobalRollbackSnapshot((string)($_POST['name'] ?? '')),
             'snapshots' => listGlobalRollbackSnapshots()
         ];
     }

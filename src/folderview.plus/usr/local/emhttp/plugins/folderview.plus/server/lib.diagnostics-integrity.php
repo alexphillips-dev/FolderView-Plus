@@ -503,7 +503,7 @@ function readUnraidVersionString(): ?string {
                 $pattern = (string)($rule['pattern'] ?? '');
                 if ($pattern === '') {
                     $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is empty.'];
-                } elseif (@preg_match(serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule)), '') === false || !fvplusRulePatternIsPortable($pattern)) {
+                } elseif (@preg_match(serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule)), '') === false || !fvplusRulePatternIsPortable($pattern, !fvplusRuleUsesLegacyRegex($rule))) {
                     $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is invalid.'];
                 }
             }

@@ -930,27 +930,19 @@ const createBackup = async (type, reason) => {
     return response.backup;
 };
 
-const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
-    assertRuntimeConflictActionAllowed('Create rollback checkpoint');
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        action: 'rollback_checkpoint',
-        reason
-    });
-    if (!response.ok) {
-        throw new Error(response.error || 'Rollback checkpoint failed.');
+const globalRollbackApi = async (action, fields = {}) => {
+    const endpoint = '/plugins/folderview.plus/server/backup.php';
+    if (action === 'rollback_list') {
+        const response = await apiGetJson(`${endpoint}?action=rollback_list`, { cache: false });
+        if (!response?.ok) throw new Error(response?.error || 'Rollback restore failed.');
+        const snapshots = Array.isArray(response.snapshots) ? response.snapshots : [];
+        return snapshots.slice(1).find((snapshot) => snapshot?.restorable === true && snapshot.name) || null;
     }
-    return response.rollback || {};
-};
-
-const restorePreviousGlobalRollbackCheckpointApi = async () => {
-    assertRuntimeConflictActionAllowed('Restore rollback checkpoint');
-    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
-        action: 'rollback_restore_previous'
-    });
-    if (!response.ok) {
-        throw new Error(response.error || 'Rollback restore failed.');
-    }
-    return response.restore || {};
+    const creating = action === 'rollback_checkpoint';
+    assertRuntimeConflictActionAllowed(creating ? 'Create rollback checkpoint' : 'Restore rollback checkpoint');
+    const response = await apiPostJson(endpoint, { ...fields, action });
+    if (!response?.ok) throw new Error(response?.error || (creating ? 'Rollback checkpoint failed.' : 'Rollback restore failed.'));
+    return (creating ? response.rollback : response.restore) || {};
 };
 
 const restoreLatest = async (type) => {
@@ -2217,8 +2209,7 @@ Object.assign(window, {
     postPrefs,
     diagnosticsPrefsCoordinator,
     createBackup,
-    createGlobalRollbackCheckpointApi,
-    restorePreviousGlobalRollbackCheckpointApi,
+    globalRollbackApi,
     restoreLatest,
     restoreLatestUndo,
     executeFolderRuntimeAction,

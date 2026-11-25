@@ -30,7 +30,8 @@
         "rollback_list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": [], "auditCategory": "recovery.list"},
         "rollback_checkpoint": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.checkpoint"},
         "rollback_restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
-        "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}}
+        "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
+        "rollback_restore_named": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name"], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}}
       }
     },
     "batch.php": {

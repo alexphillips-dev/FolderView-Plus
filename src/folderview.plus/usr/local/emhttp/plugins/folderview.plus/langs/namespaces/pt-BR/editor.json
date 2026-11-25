@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "editor",
-        "content-revision": "6a0666f37b1e9a88a4b184f8c00c421cf026becc88cd64b7924a8c3c03009d07"
+        "content-revision": "fcd8b16f17d1b49698ee6bbcacf08b22f0db9a5ff451d6fda020aaa468a6967e"
     },
     "editor.settings.information-about": "Informações sobre $1",
     "editor.actions.add-custom": "Adicionar uma ação personalizada",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Indisponível nesta pasta",
     "editor.webui-profiles.no-members": "Nenhum membro da pasta correspondente está disponível.",
     "editor.webui-profiles.error-name": "Todo perfil WebUI precisa de um nome.",
+    "editor.webui-profiles.error-name-length": "Os nomes de perfis WebUI podem ter até $1 UTF-8 bytes.",
     "editor.webui-profiles.error-duplicate": "Os nomes dos perfis WebUI devem ser exclusivos nesta pasta.",
     "editor.webui-profiles.error-members": "Cada perfil WebUI deve selecionar pelo menos um membro da pasta.",
+    "editor.webui-profiles.error-member-limit": "Um perfil WebUI pode selecionar até $1 membros.",
     "editor.webui-profiles.limit": "Esta pasta atingiu o limite de segurança do perfil WebUI.",
     "editor.members.assignment-why": "Por que esta pasta?",
     "editor.members.assignment-elsewhere": "Atribuído a outras pastas",

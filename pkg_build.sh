@@ -532,6 +532,12 @@ while [ -f "$filename" ]; do
     filename="$archive_dir/$archive_prefix-$version.txz"
 done
 
+# Unraid orders install versions as strings and release notes use two-digit revisions.
+if [[ "$version" =~ \.[0-9]{3,}$ ]]; then
+    echo "ERROR: Release versions support 99 revisions per date. Use a later release date after revision .99." >&2
+    exit 1
+fi
+
 xml_date=""
 if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+)?$ ]]; then
     xml_date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"

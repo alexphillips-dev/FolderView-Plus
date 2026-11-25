@@ -44,7 +44,7 @@ const makeSurface = () => {
 
 for (const sameVm of [false, true]) {
     for (const rejected of [false, true]) {
-        test(`superseded ${sameVm ? 'same' : 'different'} VM request cleans owned surfaces after a delayed ${rejected ? 'failure' : 'success'}`, async () => {
+        test(`${sameVm ? 'superseded same-VM' : 'independent VM'} request cleans owned surfaces after a delayed ${rejected ? 'failure' : 'success'}`, async () => {
             const scheduled = [], fallback = [];
             const surfaces = { first: makeSurface(), second: makeSurface() };
             let complete;
@@ -62,11 +62,13 @@ for (const sameVm of [false, true]) {
             scheduled.shift().handler();
             const currentId = sameVm ? 'first' : 'second';
             const current = api.run({ action: 'domain-start', uuid: currentId });
-            assert.equal(surfaces.first.icon.hasAttribute('aria-busy'), sameVm);
+            assert.equal(surfaces.first.icon.hasAttribute('aria-busy'), true);
             assert.equal(surfaces[currentId].icon.hasAttribute('aria-busy'), true);
             complete();
             await flushPromises();
-            assert.equal((await old).canceled, true);
+            const previous = await old;
+            if (sameVm) assert.equal(previous.canceled, true);
+            else assert.equal(previous.settled, !rejected);
             assert.equal(surfaces[currentId].icon.hasAttribute('aria-busy'), true, 'old completion cleared newer busy indicator');
             await drainTimers(scheduled);
             assert.equal((await current).settled, true);
@@ -75,7 +77,7 @@ for (const sameVm of [false, true]) {
                 assert.equal(surface.icon.getAttribute('class'), 'fa fa-play');
                 assert.equal(surface.icon.getAttribute('style'), 'color:green');
             }
-            assert.equal(fallback.length, 0);
+            assert.equal(fallback.length, !sameVm && rejected ? 1 : 0);
         });
     }
 }
@@ -88,11 +90,11 @@ test('queued native action retains its busy indicator until its own callback set
         refreshRuntimeStateInPlace: async () => true, shouldTrackRequest: () => true
     });
     const first = api.run({ action: 'domain-start', uuid: 'first' });
-    api.enqueueNativeRequest({ action: 'domain-start', uuid: 'first' });
+    const callbackName = api.enqueueNativeRequest({ action: 'domain-start', uuid: 'first' });
     await drainTimers(scheduled);
     await first;
     assert.equal(surface.icon.hasAttribute('aria-busy'), true);
-    const queued = api.handleNativeCallback();
+    const queued = api.handleNativeCallback(callbackName);
     await drainTimers(scheduled);
     await queued;
     assert.equal(surface.icon.hasAttribute('aria-busy'), false);
@@ -111,7 +113,7 @@ test('a superseded deferred fallback cannot reload over a newer VM action', asyn
     await flushPromises();
     assert.equal((await first).settled, false);
     runtime.state = 'running';
-    const next = api.run({ action: 'domain-start', uuid: 'second' });
+    const next = api.run({ action: 'domain-start', uuid: 'first' });
     await drainTimers(scheduled);
     assert.equal((await next).settled, true);
     assert.equal(fallback.length, 0);
@@ -149,13 +151,39 @@ test('VM lifecycle replaces native loadlist with incremental stop and patches co
 
     assert.equal(window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'vm-1' }, 'loadlist'), 'native-result');
     await drainTimers(scheduled);
-    assert.equal(hostCalls[0].callbackName, lifecycleModule.VM_LIFECYCLE_CALLBACK_NAME);
+    assert.equal(hostCalls[0].callbackName, lifecycleModule.VM_LIFECYCLE_CALLBACK_NAME + '_1');
     assert.equal(api.getSnapshot().latest.eventType, 'lifecycleSurfaceFinalized');
     assert.equal(api.getSnapshot().latest.settled, true);
 
     window.addVMContext('Test VM', 'vm-1', 'Custom', 'running');
     assert.deepEqual(contextStates, ['shutoff']);
     assert.equal(api.getSnapshot().eventGroups.lifecycleContextStateResolved, 1);
+});
+
+test('VM callback names track their originating action and ignore a superseded same-VM completion', async () => {
+    const scheduled = [], callbacks = [], refreshed = [];
+    const window = {
+        setTimeout: handler => scheduled.push({ handler }),
+        ajaxVMDispatch: (_params, callback) => callbacks.push(callback)
+    };
+    const api = lifecycleModule.createApi({
+        window, hostAdapter: createHookAdapter(window), delaysMs: [0],
+        getRuntimeEntry: () => ({ state: 'running' }),
+        refreshRuntimeStateInPlace: async ({ requests }) => { refreshed.push(requests[0].action); return true; }
+    });
+    api.bind();
+    window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'fixture' }, 'loadlist');
+    window.ajaxVMDispatch({ action: 'domain-start', uuid: 'fixture' }, 'loadlist');
+    assert.notEqual(callbacks[0], callbacks[1]);
+    const newest = window[callbacks[1]]();
+    await drainTimers(scheduled);
+    assert.equal((await newest).settled, true);
+    assert.equal((await window[callbacks[0]]()).canceled, true);
+    assert.deepEqual(refreshed, ['domain-start']);
+    assert.ok(callbacks.every(name => !Object.hasOwn(window, name)));
+    window.ajaxVMDispatch({ action: 'domain-stop', uuid: 'fixture' }, 'loadlist');
+    api.dispose();
+    assert.equal(Object.hasOwn(window, callbacks[2]), false);
 });
 
 test('VM lifecycle supports start, pause, resume, hibernate, wake, destroy, and console starts', () => {
@@ -251,7 +279,7 @@ test('VM lifecycle ignores a response and native callback that arrive after page
     const action = api.run(request);
     scheduled.shift().handler();
     assert.equal(reads, 1);
-    assert.equal(api.enqueueNativeRequest(request), true);
+    assert.match(api.enqueueNativeRequest(request), /^__fvplusVmLifecycleRefresh_\d+$/);
     const eventGroups = api.getSnapshot().eventGroups;
 
     pageCurrent = false;

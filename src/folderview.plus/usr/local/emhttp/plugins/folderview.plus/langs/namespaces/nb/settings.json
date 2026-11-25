@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "content-revision": "8d7f85654a6942cbd4f40e03411bbb48ace3b7266088eadcf19bb74f14e12478"
+        "content-revision": "3de59747abfe55cc31e04e9caee91c53aff895efd42c85d6bd01d21d54bcbc34"
     },
     "settings.visibility.group-unassigned-items": "Grupper ikke-tilordnede elementer",
     "settings.visibility.group-unassigned-items-help": "Gjelder også den tilsvarende flisen på dashbordet.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Viser $1 av $2 regler",
     "settings.rules.selected": "· $1 valgt ($2 vist)",
     "settings.rules.edit-missing": "Regelen som redigeres eksisterer ikke lenger. Avbryt redigeringen og velg en annen regel.",
+    "settings.rules.edit-conflict": "Denne regelen ble endret mens du redigerte. Avbryt og åpne den på nytt før du lagrer igjen.",
     "settings.rules.docker-description": "Organiser Docker-beholderne dine automatisk i de riktige mappene ved hjelp av fleksible regler.",
     "settings.rules.vm-description": "Organiser VM-ene dine automatisk i de riktige mappene ved hjelp av fleksible regler.",
     "settings.folder-defaults.edit": "Rediger standardinnstillinger for mapper",

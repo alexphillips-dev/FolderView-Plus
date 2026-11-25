@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "content-revision": "09f759f42071c322ab4f6a8883e2f536e11711facc5478605f9cf9203d02be73"
+        "content-revision": "576a60de60f87bded479799a3915375d79509814836ce344f2ddf26b58826204"
     },
     "settings.visibility.group-unassigned-items": "归类未分组的项目",
     "settings.visibility.group-unassigned-items-help": "也适用于仪表板上对应的区块。",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "显示 $1 条规则（共 $2 条）",
     "settings.rules.selected": "· 已选择 $1（显示 $2）",
     "settings.rules.edit-missing": "正在编辑的规则不再存在。取消编辑并选择另一个规则。",
+    "settings.rules.edit-conflict": "此规则在您编辑时发生更改。取消并重新打开它，然后再次保存。",
     "settings.rules.docker-description": "使用灵活的规则自动将 Docker 容器组织到正确的文件夹中。",
     "settings.rules.vm-description": "使用灵活的规则自动将您的虚拟机组织到正确的文件夹中。",
     "settings.folder-defaults.edit": "编辑文件夹默认设置",

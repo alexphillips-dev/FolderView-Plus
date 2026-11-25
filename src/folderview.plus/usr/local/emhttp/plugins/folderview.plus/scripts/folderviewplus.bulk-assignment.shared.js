@@ -26,7 +26,7 @@
             : null;
         const requestBulkAssign = typeof deps.requestBulkAssign === 'function'
             ? deps.requestBulkAssign
-            : (async (type, folderId, items, expectedRevision) => {
+            : (async (type, folderId, items, expectedRevision, createSafetyBackup) => {
                 if (typeof apiPostJson !== 'function') {
                     throw new Error('Bulk assignment request API unavailable.');
                 }
@@ -34,7 +34,8 @@
                     type,
                     folderId,
                     items: JSON.stringify(items || []),
-                    ...(Number.isSafeInteger(expectedRevision) ? { expectedRevision } : {})
+                    ...(Number.isSafeInteger(expectedRevision) ? { expectedRevision } : {}),
+                    ...(createSafetyBackup ? { createSafetyBackup: 1 } : {})
                 });
                 if (!response?.ok) {
                     throw new Error(response?.error || 'Bulk assignment failed.');
@@ -248,6 +249,7 @@
             const operationScope = String(options.operationScope || 'bulk').trim() || 'bulk';
             const operationLabel = String(options.operationLabel || `${typeLabel} bulk assignment`).trim() || `${typeLabel} bulk assignment`;
             const backupReason = String(options.backupReason || 'before-bulk-assign').trim() || 'before-bulk-assign';
+            const createSafetyBackup = options.createSafetyBackup === true;
             const preludeLines = Array.isArray(options.preludeLines)
                 ? options.preludeLines.slice()
                 : buildBulkAssignmentPreludeLines(plan, options);
@@ -299,7 +301,7 @@
             const resultLines = preludeLines.slice();
 
             try {
-                backup = await createBackup(resolvedType, backupReason);
+                if (!createSafetyBackup) backup = await createBackup(resolvedType, backupReason);
                 if (onProgress) {
                     onProgress({
                         chunkNumber: 1,
@@ -312,7 +314,8 @@
                     });
                 }
                 try {
-                    const result = await requestBulkAssign(resolvedType, targetFolderId, actionableNames, options.expectedRevision);
+                    const result = await requestBulkAssign(resolvedType, targetFolderId, actionableNames, options.expectedRevision, createSafetyBackup);
+                    if (createSafetyBackup) backup = result?.backup || null;
                     metadata = result?.metadata || null;
                     const assignedSet = new Set(
                         (Array.isArray(result?.assigned) ? result.assigned : [])

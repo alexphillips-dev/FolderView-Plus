@@ -40,6 +40,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
         return strpos($normalized, 'before-import') === 0
             || strpos($normalized, 'before-restore') === 0
             || strpos($normalized, 'before-template') === 0
+            || $normalized === 'before-repair-missing-custom-icons'
             || strpos($normalized, 'transaction-') === 0
             || strpos($normalized, 'rollback') !== false;
     }
@@ -108,7 +109,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 'prefs' => $prefs
             ];
             writeJsonObjectAtomic("$backupDir/$filename", fvplusJsonTypeConfig($payload));
-            $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type)) : [];
+            $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type), [$filename]) : [];
             try {
                 appendDiagnosticsHistoryEvent('backup_create', $type, [
                     'reason' => $reason,

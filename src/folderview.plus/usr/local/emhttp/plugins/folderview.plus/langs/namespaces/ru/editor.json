@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "editor",
-        "content-revision": "1deb8962d2dca533f9768275043758da308fc2b44facbabe77570165208f2c0d"
+        "content-revision": "32fbc0f8302ad5aaa160cf01505be320711f52a9aee379ce59172d00f3db24ee"
     },
     "editor.settings.information-about": "Информация о $1",
     "editor.actions.add-custom": "Добавить пользовательское действие",
@@ -48,8 +48,10 @@
     "editor.webui-profiles.unavailable": "Недоступно в этой папке",
     "editor.webui-profiles.no-members": "Нет соответствующих элементов папки.",
     "editor.webui-profiles.error-name": "Каждому профилю WebUI необходимо имя.",
+    "editor.webui-profiles.error-name-length": "Имена профилей WebUI могут иметь длину до $1 UTF-8 байт.",
     "editor.webui-profiles.error-duplicate": "Имена профилей WebUI должны быть уникальными в этой папке.",
     "editor.webui-profiles.error-members": "В каждом профиле WebUI необходимо выбрать хотя бы одного члена папки.",
+    "editor.webui-profiles.error-member-limit": "Профиль WebUI может выбрать до $1 участников.",
     "editor.webui-profiles.limit": "В этой папке достигнут предел безопасности профиля WebUI.",
     "editor.members.assignment-why": "Почему эта папка?",
     "editor.members.assignment-elsewhere": "Назначено другим папкам",

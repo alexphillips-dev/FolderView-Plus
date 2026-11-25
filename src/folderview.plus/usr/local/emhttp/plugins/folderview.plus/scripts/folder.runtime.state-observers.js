@@ -39,13 +39,30 @@
         const prefsType = String(deps.type || '').trim();
         const preferenceCoordinator = deps.preferenceCoordinator || null;
         const readPrefs = typeof deps.readPrefs === 'function' ? deps.readPrefs : (() => ({}));
+        const draftKey = storageKey && storageKey + '.pending';
+        const readDraft = () => {
+            try {
+                return draftKey ? normalizeExpandedStateMap(JSON.parse(win.sessionStorage?.getItem(draftKey) || '{}')) : {};
+            } catch (_error) {
+                return {};
+            }
+        };
 
         let syncTimer = null;
         let syncInFlight = false;
         let syncQueued = false;
         let lifecycleHooksBound = false;
         let latestStateMap = {};
-        const pendingIntents = new Map();
+        const pendingIntents = new Map(Object.entries(readDraft()));
+        const persistDraft = () => {
+            if (!draftKey) return;
+            try {
+                if (pendingIntents.size) win.sessionStorage?.setItem(draftKey, JSON.stringify(Object.fromEntries(pendingIntents)));
+                else win.sessionStorage?.removeItem(draftKey);
+            } catch (_error) {
+                // Persistence is best effort if storage is disabled.
+            }
+        };
 
         const readLocalMap = () => {
             try {
@@ -119,6 +136,7 @@
                 for (const [id, expanded] of submitted) {
                     if (pendingIntents.get(id) === expanded) pendingIntents.delete(id);
                 }
+                persistDraft();
                 // The coordinator can publish an older response before resolving.
                 const reconciled = { ...committedMap, ...Object.fromEntries(pendingIntents) };
                 writeLocalMap(reconciled);
@@ -171,6 +189,8 @@
             }
             writeLocalMap(resolved);
             writeServerExpandedStateMap(resolved);
+            persistDraft();
+            if (pendingIntents.size && !syncTimer && !syncInFlight) scheduleExpandedStateSync();
             return resolved;
         };
 
@@ -179,6 +199,7 @@
             for (const [id, expanded] of Object.entries(normalized)) {
                 if (latestStateMap[id] !== expanded) pendingIntents.set(id, expanded);
             }
+            persistDraft();
             writeLocalMap(normalized);
             writeServerExpandedStateMap(normalized);
             if (syncServer && pendingIntents.size) scheduleExpandedStateSync();

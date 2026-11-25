@@ -410,21 +410,22 @@ require_once __DIR__ . '/lib.custom-icon-repair.php';
             unset($folder);
 
             if ($updated) {
-                createBackupSnapshot($type, 'before-repair-orphaned-members');
-                writeRawFolderMap($type, $folders);
-                if ($type === 'docker') {
-                    syncContainerOrder('docker');
+                $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+                try {
+                    $backup = createBackupSnapshot($type, 'before-repair-orphaned-members', false);
+                    writeRawFolderMap($type, $folders);
+                    if ($type === 'docker') syncContainerOrder('docker');
+                } catch (Throwable $error) {
+                    fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');
+                    throw $error;
                 }
-                appendDiagnosticsHistoryEvent(
-                    'repair_orphaned_members',
-                    $type,
-                    [
+                pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
+                try {
+                    appendDiagnosticsHistoryEvent('repair_orphaned_members', $type, [
                         'repairedFolderCount' => $typeFolderCount,
                         'repairedMemberCount' => (int)($typeCounts[$type] ?? 0)
-                    ],
-                    'ok',
-                    'server'
-                );
+                    ], 'ok', 'server');
+                } catch (Throwable $error) { /* Optional history cannot change a committed repair. */ }
             }
             return [
                 'type' => $type,

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "content-revision": "7609dc151e71e84172424973813ee26e3676ec1ebcec059c29914e5b997aa4de"
+        "content-revision": "f27d3e90833658172bd41860e3e78606fd4cf6ca799fc94d43f6722adb0b821b"
     },
     "settings.visibility.group-unassigned-items": "Regrouper les éléments non affectés",
     "settings.visibility.group-unassigned-items-help": "S’applique aussi à la tuile correspondante du tableau de bord.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Affichage de $1 règles sur $2",
     "settings.rules.selected": "· $1 sélectionné ($2 affiché)",
     "settings.rules.edit-missing": "La règle en cours de modification n'existe plus. Annulez la modification et sélectionnez une autre règle.",
+    "settings.rules.edit-conflict": "Cette règle a changé pendant la modification. Annulez la modification, puis rouvrez la règle avant de la réenregistrer.",
     "settings.rules.docker-description": "Organisez automatiquement vos conteneurs Docker dans les bons dossiers à l'aide de règles flexibles.",
     "settings.rules.vm-description": "Organisez automatiquement vos VM dans les bons dossiers à l'aide de règles flexibles.",
     "settings.folder-defaults.edit": "Modifier les paramètres par défaut des dossiers",

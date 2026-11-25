@@ -15,7 +15,7 @@ function fvplusRepairMissingCustomIconReferences(): array {
         }
         $paths = array_merge(fvplusTypeTransactionPaths('docker', false), fvplusTypeTransactionPaths('vm', false));
         $snapshots = fvplusEnvironmentCaptureFiles($paths);
-        $repaired = []; $missing = []; $typeCounts = ['docker' => 0, 'vm' => 0];
+        $repaired = []; $missing = []; $backups = []; $typeCounts = ['docker' => 0, 'vm' => 0];
         try {
             foreach (['docker', 'vm'] as $type) {
                 $folders = readRawFolderMap($type);
@@ -34,7 +34,7 @@ function fvplusRepairMissingCustomIconReferences(): array {
                         else $prefsChanged = true;
                     });
                 if (!$foldersChanged && !$prefsChanged) continue;
-                createBackupSnapshot($type, 'before-repair-missing-custom-icons');
+                $backups[$type] = createBackupSnapshot($type, 'before-repair-missing-custom-icons', false);
                 if ($foldersChanged) writeRawFolderMap($type, $folders);
                 if ($prefsChanged) writeTypePrefs($type, $prefs);
             }
@@ -44,6 +44,7 @@ function fvplusRepairMissingCustomIconReferences(): array {
         }
         foreach ($typeCounts as $type => $count) {
             if (!$count) continue;
+            pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backups[$type]['name']]);
             try {
                 appendDiagnosticsHistoryEvent('repair_missing_custom_icons', $type,
                     ['repairedFolderCount' => $count, 'missingIconCount' => count($missing)], 'ok', 'server');

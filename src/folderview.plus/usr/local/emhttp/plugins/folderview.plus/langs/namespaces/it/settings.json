@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "content-revision": "f537fb518e2a926da8a1c0845160d28c21d9d8adb00ab75d1a3f5f9ea71274f2"
+        "content-revision": "fd8087c19c37a282765c21f98274aa3eee7f238ed15ebe2b9c9feb083ce6d79d"
     },
     "settings.visibility.group-unassigned-items": "Raggruppa gli elementi non assegnati",
     "settings.visibility.group-unassigned-items-help": "Si applica anche al riquadro corrispondente della dashboard.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Visualizzazione di $1 di $2 regole",
     "settings.rules.selected": "· $1 selezionato ($2 mostrato)",
     "settings.rules.edit-missing": "La regola in fase di modifica non esiste più. Annulla la modifica e seleziona un'altra regola.",
+    "settings.rules.edit-conflict": "Questa regola è cambiata mentre stavi modificando. Annulla e riaprilo prima di salvare nuovamente.",
     "settings.rules.docker-description": "Organizza automaticamente i tuoi contenitori Docker nelle cartelle giuste utilizzando regole flessibili.",
     "settings.rules.vm-description": "Organizza automaticamente le tue VM nelle cartelle giuste utilizzando regole flessibili.",
     "settings.folder-defaults.edit": "Modifica le impostazioni predefinite delle cartelle",

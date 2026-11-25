@@ -7415,7 +7415,7 @@ const renderBackupRows = (type) => {
 
     const rows = backups.map((backup) => {
         const name = String(backup.name || '');
-        const count = Number.isFinite(Number(backup.count)) ? Number(backup.count) : '-';
+        const count = Number.isSafeInteger(backup.count) && backup.count >= 0 ? backup.count : '-';
         const reason = backup.reason ? escapeHtml(backup.reason) : '-';
         return `<tr>
             <td>${escapeHtml(formatTimestamp(backup.createdAt))}</td>
@@ -9513,6 +9513,11 @@ const addAutoRule = async (type) => {
         showError(surfaceT('settings.rules.edit-missing', 'The rule being edited no longer exists. Cancel the edit and select another rule.'));
         return;
     }
+    if (editingRule && !getRulesWorkspaceApi().matchesEditBaseline(type, editingRule)) {
+        showError(surfaceT('common.repair.rule-save-failed-a631c5', 'Rule save failed'),
+            new Error(surfaceT('settings.rules.edit-conflict', 'This rule changed while you were editing. Cancel and reopen it before saving again.')));
+        return;
+    }
     const nextRule = {
         ...normalizedRule,
         id: editingId || `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
@@ -10475,8 +10480,7 @@ const settingsSupportActions = settingsActionSupportModule.createSupportActions(
     setRollbackStatus,
     showError,
     updateTools,
-    createGlobalRollbackCheckpointApi,
-    restorePreviousGlobalRollbackCheckpointApi,
+    globalRollbackApi,
     refreshAll,
     downloadType,
     importType,

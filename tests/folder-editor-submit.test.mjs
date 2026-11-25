@@ -26,7 +26,7 @@ function fixture(overrides = {}) {
         setSuppressUnloadPrompt: value => { context.suppressUnloadPrompt = value; },
         recordDiagnostics: context.recordFolderEditorSubmitDiagnostics
     });
-    return { context, calls, records, errors, run: copy => handler({}, copy) };
+    return { context, calls, records, errors, run: (copy, form = {}) => handler(form, copy) };
 }
 
 test('unchanged edits leave without mutation, synchronization or revision writes', async () => {
@@ -80,6 +80,42 @@ test('changed appearance waits for persistence and order reconciliation before l
     assert.equal(f.records[0].saveMs, 4);
     assert.equal(f.records[0].guardMs, 3);
     assert.equal(f.records[0].ok, true);
+});
+
+test('the whole editor stays locked while persistence or post-save synchronization is pending', async () => {
+    for (const failed of [false, true]) {
+        const saved = deferred(), synced = deferred();
+        const f = fixture({
+            computeFormSnapshot: () => 'draft',
+            securePost: async () => {
+                await saved.promise;
+                if (failed) throw new Error('Synthetic write failure');
+                return { metadata: { folderRevision: 5 } };
+            },
+            flushPostSaveTypeSync: () => synced.promise
+        });
+        const attributes = new Map([['aria-busy', 'false']]);
+        const form = {
+            tagName: 'FORM', inert: false,
+            getAttribute: key => attributes.get(key) ?? null,
+            setAttribute: (key, value) => attributes.set(key, value),
+            removeAttribute: key => attributes.delete(key)
+        };
+        const pending = f.run(false, form);
+        assert.equal(form.inert, true);
+        assert.equal(attributes.get('aria-busy'), 'true');
+        saved.resolve();
+        if (!failed) {
+            await new Promise(setImmediate);
+            assert.equal(form.inert, true);
+            assert.match(f.context.location.href, /\/Folder/);
+            synced.resolve();
+        }
+        await pending;
+        assert.equal(form.inert, false);
+        assert.equal(attributes.get('aria-busy'), 'false');
+        assert.equal(f.context.location.href, failed ? '/Docker/Folder?id=fixture' : '/Docker');
+    }
 });
 
 test('copies, new folders and incomplete baselines never take the unchanged shortcut', async () => {

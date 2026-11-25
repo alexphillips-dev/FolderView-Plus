@@ -3430,7 +3430,7 @@ const applySetupAssistantPlan = async () => {
         if (safetyMode !== 'fast') {
             setSetupAssistantProgress(setupAssistantT("common.repair.creating-rollback-checkpoint-25ab79", "Creating rollback checkpoint..."), 10);
             renderSetupAssistant();
-            const rollback = await createGlobalRollbackCheckpointApi('setup_assistant_apply');
+            const rollback = await globalRollbackApi('rollback_checkpoint', { reason: 'setup_assistant_apply' });
             rollbackCreated = true;
             setupAssistantState.rollbackCheckpointName = rollback?.name || rollback?.checkpoint || '';
         } else {
@@ -3712,7 +3712,7 @@ const applySetupAssistantPlan = async () => {
             if (typeof swal.close === 'function') {
                 swal.close();
             }
-            const restore = await restorePreviousGlobalRollbackCheckpointApi();
+            const restore = await globalRollbackApi('rollback_restore_named', { name: setupAssistantState.rollbackCheckpointName });
             await refreshAll();
             swal({
                 title: 'Setup reverted',
@@ -3734,7 +3734,7 @@ const applySetupAssistantPlan = async () => {
         let rollbackMessage = '';
         if (rollbackCreated) {
             try {
-                await restorePreviousGlobalRollbackCheckpointApi();
+                await globalRollbackApi('rollback_restore_named', { name: setupAssistantState.rollbackCheckpointName });
                 await refreshAll();
                 rollbackMessage = '\nAutomatic rollback restored the previous checkpoint.';
             } catch (rollbackError) {

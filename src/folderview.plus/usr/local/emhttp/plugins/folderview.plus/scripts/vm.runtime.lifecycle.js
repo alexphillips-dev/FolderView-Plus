@@ -108,7 +108,8 @@
         const shouldTrackRequest = typeof deps.shouldTrackRequest === 'function'
             ? deps.shouldTrackRequest
             : (() => true);
-        const isPageCurrent = typeof deps.isPageCurrent === 'function' ? deps.isPageCurrent : (() => true);
+        let disposed = false;
+        const isPageCurrent = () => !disposed && (typeof deps.isPageCurrent !== 'function' || deps.isPageCurrent());
         const storage = utilityFoundation.resolveBrowserStorage(deps.storage, win);
         const requestedCallbackName = String(deps.callbackName || '').trim();
         const callbackName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(requestedCallbackName)
@@ -118,22 +119,21 @@
             ? Object.freeze(deps.delaysMs.map((delay) => Math.max(0, Number(delay) || 0)))
             : VM_LIFECYCLE_DELAYS_MS;
         const events = [];
-        const requestQueue = [];
+        const nativeCallbacks = new Map();
+        const owners = new Map();
+        const pending = new Map();
         const boundHooks = new Set();
         let generation = 0;
-        let activeGeneration = 0;
-        let finalizedGeneration = 0;
         let fallbackCount = 0;
         let staleGenerationCount = 0;
         let bound = false;
         let latest = null;
-        let pending = [];
 
         const schedule = (handler, delayMs) => {
             const setTimer = typeof win?.setTimeout === 'function' ? win.setTimeout.bind(win) : setTimeout;
             return setTimer(handler, Math.max(0, Number(delayMs) || 0));
         };
-        const collectSurfaceSnapshot = (requests = pending) => {
+        const collectSurfaceSnapshot = (requests = [...pending.values()]) => {
             const surfaces = requests.flatMap((request) => Array.from(getSurfaces(request) || []));
             const unique = Array.from(new Set(surfaces.filter(Boolean)));
             const icons = unique.flatMap((surface) => Array.from(surface?.querySelectorAll?.('i') || []));
@@ -151,12 +151,12 @@
                 strategy: 'state-aware-incremental',
                 updatedAt: isoNow(),
                 generation,
-                activeGeneration,
+                activeGeneration: generation,
                 fallbackCount,
                 staleGenerationCount,
                 eventGroups: countBy(events, 'eventType'),
                 latest,
-                pending: pending.map((request) => ({ ...request })),
+                pending: [...pending.values()].map((request) => ({ ...request })),
                 surface: collectSurfaceSnapshot(),
                 hostAdapter: hostAdapter?.getSnapshot?.() || null,
                 events: events.slice(-MAX_DIAGNOSTIC_EVENTS)
@@ -210,16 +210,27 @@
             syncRuntimeState(request);
             return surfaces.length > 0;
         };
+        const begin = (requests) => {
+            const requestGeneration = ++generation;
+            requests.forEach((request) => {
+                owners.set(request.uuid, requestGeneration);
+                pending.set(request.uuid, request);
+                captureSurface(request);
+            });
+            return requestGeneration;
+        };
+        const ownedBy = (requestGeneration, requests) => requests.filter((request) => owners.get(request.uuid) === requestGeneration);
         const finalize = (requestGeneration, requests, outcome = {}) => {
-            if (requestGeneration !== activeGeneration || requestGeneration === finalizedGeneration) return false;
-            finalizedGeneration = requestGeneration;
-            pending = [];
-            requests.filter((request) => !requestQueue.some((queued) => queued.uuid === request.uuid)).forEach(restoreSurface);
+            requests.forEach((request) => {
+                pending.delete(request.uuid);
+                restoreSurface(request);
+            });
             if (outcome.settled !== true) {
                 fallbackCount += 1;
                 schedule(() => {
-                    if (isPageCurrent() && requestGeneration === activeGeneration) {
-                        queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests });
+                    const current = ownedBy(requestGeneration, requests);
+                    if (isPageCurrent() && current.length) {
+                        queueNativeRefresh({ reason: 'vm-lifecycle-attempts-exhausted', requests: current });
                     }
                 }, 0);
                 emit('lifecycleNativeRefreshFallback', {
@@ -247,13 +258,7 @@
             if (!isPageCurrent()) return Promise.resolve({ settled: false, canceled: true });
             const normalized = normalizeRequests(requests);
             if (normalized.length === 0) return Promise.resolve({ settled: false, skipped: true });
-            const ownedUuids = new Set([...normalized, ...requestQueue].map((request) => request.uuid));
-            pending.filter((request) => !ownedUuids.has(request.uuid)).forEach(restoreSurface);
-            const requestGeneration = ++generation;
-            activeGeneration = requestGeneration;
-            finalizedGeneration = 0;
-            pending = normalized.map((request) => ({ ...request }));
-            normalized.forEach(captureSurface);
+            const requestGeneration = options.requestGeneration ?? begin(normalized);
             emit('lifecycleRefreshScheduled', {
                 generation: requestGeneration,
                 source: String(options.source || 'native-dispatch'),
@@ -267,7 +272,7 @@
                         resolve({ settled: false, canceled: true });
                         return true;
                     }
-                    if (requestGeneration === activeGeneration) return false;
+                    if (ownedBy(requestGeneration, normalized).length) return false;
                     staleGenerationCount += 1;
                     emit('lifecycleStaleGenerationCancelled', { generation: requestGeneration, attempt: attemptIndex + 1 });
                     resolve({ settled: false, canceled: true });
@@ -281,26 +286,27 @@
                         Promise.resolve(refreshRuntimeStateInPlace({
                             preserveGroupedDom: true,
                             lifecycle: true,
-                            requests: normalized
+                            requests: ownedBy(requestGeneration, normalized)
                         })).then((success) => {
                             if (cancelIfSuperseded(attemptIndex)) return;
-                            const settled = success === true && normalized.every((request) => isSettled(request, getRuntimeEntry(request.uuid)) === true);
+                            const current = ownedBy(requestGeneration, normalized);
+                            const settled = success === true && current.every((request) => isSettled(request, getRuntimeEntry(request.uuid)) === true);
                             emit('lifecycleRefreshResult', {
                                 generation: requestGeneration,
-                                requestCount: normalized.length,
+                                requestCount: current.length,
                                 attempt: attemptIndex + 1,
                                 delayMs,
                                 success: success === true,
                                 settled,
-                                observedStates: normalized.map((request) => ({ uuid: request.uuid, state: stateForEntry(getRuntimeEntry(request.uuid)) }))
+                                observedStates: current.map((request) => ({ uuid: request.uuid, state: stateForEntry(getRuntimeEntry(request.uuid)) }))
                             });
                             if (settled) {
-                                finalize(requestGeneration, normalized, { reason: 'settled', settled: true, success: true, attempt: attemptIndex + 1 });
+                                finalize(requestGeneration, current, { reason: 'settled', settled: true, success: true, attempt: attemptIndex + 1 });
                                 resolve({ settled: true, attempt: attemptIndex + 1 });
                                 return;
                             }
                             if (attemptIndex + 1 >= delaysMs.length) {
-                                finalize(requestGeneration, normalized, { reason: 'attempts-exhausted', settled: false, success: success === true, attempt: attemptIndex + 1 });
+                                finalize(requestGeneration, current, { reason: 'attempts-exhausted', settled: false, success: success === true, attempt: attemptIndex + 1 });
                                 resolve({ settled: false, attempt: attemptIndex + 1 });
                                 return;
                             }
@@ -317,7 +323,7 @@
                                 message: String(error?.message || error || 'VM lifecycle refresh failed')
                             });
                             if (attemptIndex + 1 >= delaysMs.length) {
-                                finalize(requestGeneration, normalized, { reason: 'attempts-exhausted', settled: false, success: false, attempt: attemptIndex + 1 });
+                                finalize(requestGeneration, ownedBy(requestGeneration, normalized), { reason: 'attempts-exhausted', settled: false, success: false, attempt: attemptIndex + 1 });
                                 resolve({ settled: false, attempt: attemptIndex + 1 });
                             } else {
                                 attempt(attemptIndex + 1);
@@ -331,20 +337,30 @@
         const enqueueNativeRequest = (request) => {
             const normalized = normalizeRequest(request);
             if (!normalized || !isPageCurrent() || shouldTrackRequest(normalized) !== true) return false;
-            requestQueue.push(normalized);
-            captureSurface(normalized);
+            const requestGeneration = begin([normalized]);
+            const name = `${callbackName}_${requestGeneration}`;
+            const callback = () => handleNativeCallback(name);
+            nativeCallbacks.set(name, { request: normalized, requestGeneration, callback });
+            win[name] = callback;
             emit('lifecycleDispatchIntercepted', { action: normalized.action, intent: normalized.intent, uuid: normalized.uuid });
-            return true;
+            return name;
         };
-        const handleNativeCallback = () => {
+        const removeCallback = (name) => {
+            const entry = nativeCallbacks.get(name);
+            if (entry && win[name] === entry.callback) delete win[name];
+            nativeCallbacks.delete(name);
+            return entry;
+        };
+        const handleNativeCallback = (name) => {
             if (!isPageCurrent()) return Promise.resolve(false);
-            const request = requestQueue.shift();
-            if (!request) {
+            const entry = removeCallback(name);
+            if (!entry) {
+                if (name) return Promise.resolve(false);
                 emit('lifecycleCallbackWithoutRequest');
                 queueNativeRefresh({ reason: 'vm-lifecycle-callback-without-request', requests: [] });
                 return Promise.resolve(false);
             }
-            return run([request], { source: 'native-dispatch' });
+            return run([entry.request], { source: 'native-dispatch', requestGeneration: entry.requestGeneration });
         };
         const bindDispatchHooks = () => {
             if (!hostAdapter || typeof hostAdapter.wrapHook !== 'function') return false;
@@ -355,8 +371,8 @@
                 hostAdapter.wrapHook(hookName, ({ args, invokeOriginal }) => {
                     const request = normalizeRequest(args?.[0]);
                     const refreshTarget = String(args?.[1] || '').trim();
-                    if (request && (refreshTarget === 'loadlist' || refreshTarget === callbackName) && enqueueNativeRequest(request)) {
-                        args[1] = callbackName;
+                    if (request && (refreshTarget === 'loadlist' || refreshTarget === callbackName)) {
+                        args[1] = enqueueNativeRequest(request) || args[1];
                     }
                     return invokeOriginal(...args);
                 }, { legacyAlias: `${hookName}_original` });
@@ -394,18 +410,25 @@
             bound,
             callbackName,
             generation,
-            activeGeneration,
+            activeGeneration: generation,
             fallbackCount,
             staleGenerationCount,
-            queuedRequestCount: requestQueue.length,
+            queuedRequestCount: nativeCallbacks.size,
             boundHooks: Array.from(boundHooks),
             latest,
-            pending: pending.map((request) => ({ ...request })),
+            pending: [...pending.values()].map((request) => ({ ...request })),
             surface: collectSurfaceSnapshot(),
             eventGroups: countBy(events, 'eventType'),
             events: events.slice()
         });
 
+        const dispose = () => {
+            disposed = true;
+            for (const name of nativeCallbacks.keys()) removeCallback(name);
+            if (win[callbackName] === handleNativeCallback) delete win[callbackName];
+            pending.clear();
+            owners.clear();
+        };
         const api = Object.freeze({
             bind,
             bindDispatchHooks,
@@ -413,6 +436,7 @@
             enqueueNativeRequest,
             handleNativeCallback,
             run,
+            dispose,
             getSnapshot,
             normalizeRequest,
             isSettled: (request) => {

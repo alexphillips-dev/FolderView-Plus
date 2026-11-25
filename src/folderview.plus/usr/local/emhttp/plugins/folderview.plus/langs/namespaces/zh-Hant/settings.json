@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "content-revision": "7c5c0957c880305750ac445f77412ab5968940b8eeac503e430f110aaf6f7cf5"
+        "content-revision": "c55aeee53ee43390d31e88c2d9b0e9dd663dd694190e64e46c29698b69608a12"
     },
     "settings.visibility.group-unassigned-items": "將未分組的項目集中顯示",
     "settings.visibility.group-unassigned-items-help": "也會套用至儀表板上對應的區塊。",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "顯示 $1 條規則（共 $2 條）",
     "settings.rules.selected": "· 已選擇 $1（顯示 $2）",
     "settings.rules.edit-missing": "正在編輯的規則不再存在。取消編輯並選擇另一個規則。",
+    "settings.rules.edit-conflict": "此規則在您編輯時發生變更。取消並重新開啟它，然後再次儲存。",
     "settings.rules.docker-description": "使用靈活的規則自動將 Docker 容器組織到正確的資料夾中。",
     "settings.rules.vm-description": "使用靈活的規則自動將您的虛擬機器組織到正確的資料夾中。",
     "settings.folder-defaults.edit": "編輯資料夾預設設定",

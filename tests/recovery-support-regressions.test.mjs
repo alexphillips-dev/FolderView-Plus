@@ -170,3 +170,22 @@ test('Recovery history keeps selected actions on the active row and expands all 
     assert.match(api.buildRecoveryBackupHistoryHtml('vm'), /No VM backups yet/);
     assert.equal(selected.vm, '');
 });
+
+test('Recovery distinguishes unreadable snapshots from empty ones and previews the newest valid fallback', () => {
+    const item = (name, count, createdAt) => ({ name, count, createdAt, reason: 'manual' });
+    const invalid = item('broken.json', null, '2026-11-24T02:00:00Z');
+    const empty = item('empty.json', 0, '2026-11-24T01:00:00Z');
+    const good = item('good.json', 2, '2026-11-24T00:00:00Z');
+    let backups = [invalid];
+    const api = workspaces.createApi({ $: () => ({ text: noop }), getSortedBackupsForType: () => backups,
+        formatTimestamp: String, escapeHtml: String });
+    const brokenHistory = api.buildRecoveryBackupHistoryHtml('vm');
+    assert.match(brokenHistory, /Folder count unavailable/);
+    assert.doesNotMatch(brokenHistory, /Folders: 0|>Empty</);
+    assert.doesNotMatch(api.buildRecoveryOverviewHtml('vm'), /Only empty snapshots|Restore Latest will use/);
+    backups = [invalid, empty, good];
+    assert.match(api.buildRecoveryOverviewHtml('vm'), /Restore Latest will use 2026-11-24T00:00:00Z/);
+    assert.match(api.buildRecoveryBackupHistoryHtml('vm'), /Folders: 0/);
+    backups = [empty];
+    assert.match(api.buildRecoveryOverviewHtml('vm'), /Only empty snapshots/);
+});

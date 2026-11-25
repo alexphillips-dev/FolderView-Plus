@@ -48,6 +48,7 @@
       "scripts/folderviewplus.utils-hierarchy.js": { "limit": 95, "target": 95, "history": [95] },
       "scripts/folderviewplus.utils-prefs.js": { "limit": 383, "target": 380, "history": [448, 383] },
       "scripts/folder.webui-profiles.js": { "limit": 447, "target": 400, "history": [447] },
+      "scripts/folder.webui-profile-limits.js": { "limit": 44, "target": 44, "history": [44] },
       "scripts/folderviewplus.utils-ordering.js": { "limit": 185, "target": 180, "history": [270, 185] },
       "scripts/folderviewplus.utils-transfer.js": { "limit": 645, "target": 620, "history": [717, 645] },
       "scripts/folderviewplus.utils-rules.js": {
@@ -81,6 +82,8 @@
       "server/lib.backup-schedule-state.php": { "limit": 120, "target": 100, "history": [120] },
       "server/lib.backup-schedule.php": { "limit": 303, "target": 280, "history": [303] },
       "server/lib.global-rollback.php": { "limit": 235, "target": 230, "history": [235] },
+      "server/lib.global-rollback-restore.php": { "limit": 69, "target": 69, "history": [69] },
+      "server/lib.webui-profile-limits.php": { "limit": 35, "target": 35, "history": [35] },
       "server/lib.custom-icon-references.php": { "limit": 115, "target": 110, "history": [115] },
       "server/lib.custom-icon-repair.php": { "limit": 65, "target": 60, "history": [65] },
       "server/lib.backup-snapshots.php": { "limit": 416, "target": 360, "history": [416] },
@@ -380,7 +383,8 @@
     {"file": "server/lib.docker-preview-summary.php", "owner": "docker-preview-projection", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": [], "compatibilityGlobals": [], "loadedBy": "server/docker_runtime_preview.php", "functionInventory": { "count": 4, "sha256": "fe96c1d44822b8d539d54c809689fcad373c8e85d48640c550d901cd882cc7e3" }},
     {"file": "server/lib.custom-icon-references.php", "owner": "custom-icon-reference-policy", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.preflight.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 6, "sha256": "9b987781f993b548bdaae59e3892adc12f79cdd26f136a7f9356ecf8c9ad1a55" }},
     {"file": "server/lib.custom-icon-repair.php", "owner": "compensated-custom-icon-repair", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.custom-icon-references.php", "server/lib.custom-icon-storage.php", "server/lib.environment-transaction.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 1, "sha256": "d25a815833ec720bba74fbc5b51751e152b22a3a1f19e05ad7fb542bd05414d8" }},
-    {"file": "server/lib.global-rollback.php", "owner": "global-rollback-checkpoints", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.backup-schedule.php", "functionInventory": { "count": 8, "sha256": "22da026ff8933f084ef2dde7aef385d2f9464336cc9a25b209d7739a31d42d40" }},
+    {"file": "server/lib.global-rollback.php", "owner": "global-rollback-checkpoints", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.theme-workspace.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.backup-schedule.php", "functionInventory": { "count": 5, "sha256": "172ff6962b2b641bdb5ca0b36abe95156ad54423c187f07bb468e0cc19c8b318" }},
+    {"file": "server/lib.global-rollback-restore.php", "owner": "global-rollback-restore", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.global-rollback.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.global-rollback.php", "functionInventory": { "count": 5, "sha256": "335a6f0f9d902b0bb732863e70c0aaeeb03ac4370acd668f1d5ee67bcfd971e1" }},
     {
       "file": "server/lib.folder-settings-transfer.php",
       "owner": "selective-folder-settings-transfer",
@@ -490,10 +494,20 @@
       "owner": "server-folder-webui-profiles",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": [],
+      "dependsOn": ["server/lib.webui-profile-limits.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 5, "sha256": "4f00673340cef720edd4334bc1c56fffa0704ae017057c204fce07d0fe61afe8" }
+      "functionInventory": { "count": 4, "sha256": "d631a3bebf36aaddf893fc7d560b53ebf54c50b1ce2dd0d91eb083ab9626c05b" }
+    },
+    {
+      "file": "server/lib.webui-profile-limits.php",
+      "owner": "server-folder-webui-profile-limits",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.input-security.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.webui-profiles.php",
+      "functionInventory": { "count": 2, "sha256": "50cfdf786a3871e8f03e29c0324e021e2453a8b0bf9f2c228ae1d36272502c0d" }
     },
     {
       "file": "server/lib.release-notes.php",
@@ -777,7 +791,7 @@
       "owner": "server-folder-mutations",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.folder-batch-order.php", "server/lib.folder-settings-transfer.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.webui-profile-limits.php", "server/lib.folder-batch-order.php", "server/lib.folder-settings-transfer.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 8, "sha256": "0d64ee0403812b75078edc9b28171760713a86554673bb86b5da356998c6ea30" }
@@ -1723,11 +1737,24 @@
       ]
     },
     {
+      "file": "scripts/folder.webui-profile-limits.js",
+      "owner": "shared-folder-webui-profile-limits",
+      "consumers": ["docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": [],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "folderWebuiProfileLimits",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["MAX_PROFILE_MEMBERS", "MAX_PROFILE_NAME_LENGTH", "MAX_MEMBER_NAME_LENGTH", "cleanText", "profileNameTooLong", "truncateProfileName", "uniqueStrings"]
+    },
+    {
       "file": "scripts/folder.webui-profiles.js",
       "owner": "shared-folder-webui-profiles",
       "consumers": ["docker", "vm", "dashboard", "folder-editor"],
       "stateModel": "factory-owned",
-      "dependsOn": [],
+      "dependsOn": ["scripts/folder.webui-profile-limits.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "folderWebuiProfiles",

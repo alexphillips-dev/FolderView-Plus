@@ -21,11 +21,16 @@ function verifyInstallFixture(bool $condition, string $message): void
 
 $source = file_get_contents($argv[1]);
 $cliSource = isset($argv[2]) ? file_get_contents($argv[2]) : null;
+$unraidVersion = '7.4.0';
 if ($cliSource !== null) {
-    verifyInstallFixture(
-        is_string($cliSource) && hash('sha256', $cliSource) === '41450297945ecacc11374fecf7007d244b415d94809bb1c098bb059c0ef87292',
-        'Expected the Unraid 7.4.0 plugin manager at b135287c706a30da44f71cc7820615209e83e9a0.'
-    );
+    $supportedCli = [
+        // b135287c706a30da44f71cc7820615209e83e9a0
+        '41450297945ecacc11374fecf7007d244b415d94809bb1c098bb059c0ef87292' => '7.4.0',
+        // 71a85f020b9b1bce48b5bec75d69d78a57d8df3d
+        '1b001772de850c9539742f34469e6a61402dd4018210632c015e9ef3ce511d23' => '7.0.0'
+    ];
+    $unraidVersion = is_string($cliSource) ? ($supportedCli[hash('sha256', $cliSource)] ?? '') : '';
+    verifyInstallFixture($unraidVersion !== '', 'Expected the pinned Unraid 7.0.0 or 7.4.0 plugin manager.');
 }
 verifyInstallFixture(is_string($source), 'Could not read plugin manifest.');
 $priorSource = isset($argv[3]) ? file_get_contents($argv[3]) : $source;
@@ -48,24 +53,28 @@ $cases = $cliSource === null
     ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-damaged-report', 'hook-legacy-damaged-report',
         'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-reinstall-success', 'hook-unknown']
     : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
-        'update-overlap-success', 'update-late-remove-success', 'update-staged-registration-conflict', 'update-older-staged-manifest',
+        'update-overlap-success', 'update-late-remove-success', 'update-late-check-success', 'install-url-remove-success',
+        'install-url-channel-downgrade-success', 'update-staged-registration-conflict', 'update-older-staged-manifest',
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
-        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success',
+        'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success'];
 $check = [];
 
 foreach ($cases as $case) {
     $reinstall = str_contains($case, '-reinstall-');
-    $previous = $reinstall ? $candidate : '2026.01.01.01';
-    $previousIcon = $reinstall ? '2.0.0' : '1.0.0';
+    $channelDowngrade = $case === 'install-url-channel-downgrade-success';
+    $previous = $reinstall || $channelDowngrade ? $candidate : '2026.01.01.01';
+    $previousIcon = $reinstall || $channelDowngrade ? '2.0.0' : '1.0.0';
     $dir = "$root/$case";
     $boot = "$dir/boot";
     $config = "$boot/$pluginName";
     $runtime = "$dir/emhttp/plugins/$pluginName";
+    $postHooks = "$dir/emhttp/plugins/dynamix.plugin.manager/post-hooks";
+    $registrationHook = "$postHooks/00-folderview.plus-registration";
     $packages = str_contains($case, '-legacy-') ? "$dir/legacy-packages" : "$dir/packages";
-    foreach ([$config, "$runtime/scripts", "$dir/emhttp/webGui/include", "$dir/emhttp/webGui/scripts", "$dir/bin", "$dir/cron.d", "$dir/running", "$dir/downloads", "$dir/manual", $packages] as $folder) {
+    foreach ([$config, "$runtime/scripts", "$dir/emhttp/webGui/include", "$dir/emhttp/webGui/scripts", "$dir/bin", "$dir/cron.d", "$dir/running", "$dir/downloads", "$dir/manual", $packages, $postHooks] as $folder) {
         mkdir($folder, 0770, true);
     }
     $rewrite = [
@@ -74,6 +83,7 @@ foreach ($cases as $case) {
         '/tmp/folderview.plus' => "$dir/folderview.plus",
         '/tmp/folderview-plus-archive' => "$dir/archive-preflight",
         '/run/folderview.plus-install.lock' => "$dir/install.lock",
+        '/run/folderview.plus-registration' => "$dir/registration",
         '/etc/cron.d' => "$dir/cron.d",
         '/etc/rc.d/rc.crond' => "$dir/bin/crond",
         '/etc/unraid-version' => "$dir/unraid-version",
@@ -145,8 +155,10 @@ foreach ($cases as $case) {
         file_put_contents($cronFile, $priorCron);
         chmod($cronFile, 0600);
     }
-    foreach (['archive_preflight.sh', 'install_icon_asset_pack.sh'] as $script) {
-        file_put_contents("$runtime/scripts/$script", strtr(file_get_contents("$scriptSource/$script"), $rewrite));
+    foreach (['archive_preflight.sh', 'install_icon_asset_pack.sh', 'complete_native_registration.sh'] as $script) {
+        $installedScript = "$runtime/scripts/$script";
+        file_put_contents($installedScript, strtr(file_get_contents("$scriptSource/$script"), $rewrite));
+        chmod($installedScript, 0700);
     }
     if (str_ends_with($case, 'icon')) {
         // Fail after the real helper has activated the candidate's icon link and cache.
@@ -154,13 +166,19 @@ foreach ($cases as $case) {
     }
     $reportFailure = str_ends_with($case, 'report') ? '[ "$1 $2" != "complete ' . $candidate . '" ] || exit 24' : ':';
     file_put_contents("$runtime/scripts/install_report.sh", "$reportFailure\n" . strtr(file_get_contents("$scriptSource/install_report.sh"), $rewrite));
-    file_put_contents("$dir/unraid-version", "version=7.4.0\n");
+    file_put_contents("$dir/unraid-version", "version=$unraidVersion\n");
     file_put_contents("$dir/emhttp/webGui/include/Wrappers.php", '<?php function my_logger(...$args) {}');
     file_put_contents("$dir/emhttp/webGui/include/publish.php", '<?php function publish(...$args) {}');
     foreach ([
         "$dir/emhttp/webGui/scripts/notify" => 'exit 0',
         "$dir/bin/crond" => '[ ! -e /proc/$$/fd/9 ]',
-        "$dir/bin/wget" => 'printf "offline fixture attempted a download\n" >&2; exit 4',
+        "$dir/bin/wget" => 'while [ "$#" -gt 1 ] && [ "$1" != -O ]; do shift; done
+if [ "$#" -gt 1 ] && [ "$2" = "$FVPLUS_FIXTURE_DIR/downloads/folderview.plus.plg" ] &&
+    [ -f "$FVPLUS_FIXTURE_DIR/remote.plg" ]; then
+    cp -- "$FVPLUS_FIXTURE_DIR/remote.plg" "$2"
+    exit $?
+fi
+printf "offline fixture attempted a download\n" >&2; exit 4',
         "$dir/bin/upgradepkg" => 'archive="${@: -1}"
 if [ "$(cat "$FVPLUS_FIXTURE_CORE" 2>/dev/null)" = "$archive" ] && [[ " $* " != *" --reinstall "* ]]; then exit 0; fi
 package="${archive##*/}"
@@ -187,7 +205,7 @@ rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
 exec /usr/bin/flock "$@"',
-        "$dir/bin/mv" => 'if [ "$FVPLUS_FIXTURE_CASE" = update-late-remove-success ] &&
+        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" = update-late-*-success ]] &&
     [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
     touch "$FVPLUS_FIXTURE_DIR/registration-commit-paused"
     for ((attempt=0; attempt<200; attempt++)); do
@@ -258,7 +276,11 @@ exec /bin/mv "$@"'
     }
     if ($case === 'update-missing-runtime-core' || $case === 'install-remove-reinstall-stale-success') {
         mkdir("$dir/package-scripts");
-        foreach (glob("$runtime/scripts/*.sh") as $script) copy($script, "$dir/package-scripts/" . basename($script));
+        foreach (glob("$runtime/scripts/*.sh") as $script) {
+            $packagedScript = "$dir/package-scripts/" . basename($script);
+            copy($script, $packagedScript);
+            chmod($packagedScript, 0700);
+        }
     }
     if ($case === 'update-missing-runtime-core') {
         rename($runtime, "$dir/missing-runtime");
@@ -272,6 +294,33 @@ exec /bin/mv "$@"'
             && is_file("$packages/$pluginName-$previous") && is_file("$runtime/FolderViewPlus.page")
             && is_link("$runtime/images/third-party-icons") && file_get_contents($cronFile) === $priorCron,
             "$case damaged the active installation, registration, schedule, or configuration.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'install-remove-stale-registration-success') {
+        $activeManifest = $manifest($previous, $previousIcon);
+        file_put_contents($bootManifest, $activeManifest);
+        mkdir("$dir/registration", 0700);
+        file_put_contents("$dir/registration/manifest", $activeManifest);
+        symlink("$runtime/scripts/complete_native_registration.sh", $registrationHook);
+        $owner = getmypid();
+        $ownerFields = explode(' ', preg_replace('/^[0-9]+ \(.*\) /', '', file_get_contents("/proc/$owner/stat")));
+        $startTime = (int)$ownerFields[19];
+        $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+        file_put_contents("$dir/registration/owner", "$owner $startTime update $previous\n");
+        [$busyStatus, $busyOutput] = $run($remove);
+        verifyInstallFixture($busyStatus !== 0 && str_contains($busyOutput, 'installation or removal is in progress')
+            && readlink($runningLink) === $bootManifest && is_link($registrationHook) && is_dir($config),
+            "$case took registration away from the live owner: $busyOutput");
+
+        // The recorded PID now belongs to another lifetime. An interrupted owner
+        // may not have written its completion report.
+        file_put_contents("$dir/registration/owner", "$owner " . ($startTime + 1) . " update $previous\n");
+        [$status, $output] = $run($remove);
+        clearstatcache();
+        verifyInstallFixture($status === 0 && !is_link($runningLink) && !is_file($bootManifest)
+            && !is_dir($runtime) && !is_dir($config) && !is_link($registrationHook) && !is_dir("$dir/registration"),
+            "$case did not complete removal after recovering abandoned registration: $output");
         $check[] = $case;
         continue;
     }
@@ -360,8 +409,42 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if (in_array($case, ['update-overlap-success', 'update-late-remove-success', 'update-staged-registration-conflict'], true)) {
+    if ($channelDowngrade) {
+        $downgradeVersion = '2026.01.01.01';
+        $mainManifest = str_replace('https://raw.githubusercontent.com/&github;/dev/', 'https://raw.githubusercontent.com/&github;/main/', $manifest($downgradeVersion, '1.0.0'));
+        file_put_contents("$dir/remote.plg", $mainManifest);
+        file_put_contents("$config/$pluginName-$downgradeVersion.txz", "core $downgradeVersion");
+        [$status, $output] = $run([PHP_BINARY, $cli, 'install', 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg', 'forced']);
+        verifyInstallFixture($status === 0 && str_contains($output, 'Downgrade complete')
+            && file_get_contents($bootManifest) === $mainManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$config/version")) === $downgradeVersion && is_file("$packages/$pluginName-$downgradeVersion")
+            && !is_dir("$dir/registration") && !is_link($registrationHook), "$case failed a deliberate stable-channel install: $output");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-late-check-success') {
+        $stagedVersion = '2026.01.01.03';
+        $peerManifest = $manifest($stagedVersion, '3.0.0');
+        file_put_contents("$dir/remote.plg", $peerManifest);
+        $first = $start($command);
+        for ($attempt = 0; $attempt < 160 && !is_file("$dir/registration-commit-paused"); $attempt++) usleep(50000);
+        verifyInstallFixture(is_file("$dir/registration-commit-paused") && is_link($registrationHook), "$case did not arm the post-hook at registration.");
+        [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
+        verifyInstallFixture($checkStatus === 0 && str_contains($checkOutput, $stagedVersion)
+            && file_get_contents("$dir/downloads/$pluginName.plg") === $peerManifest && is_link($registrationHook)
+            && file_get_contents($bootManifest) === $oldManifest, "$case let the unrelated check consume the handoff: $checkOutput");
+        touch("$dir/allow-registration-commit");
+        [$status, $output] = $finish($first);
+        verifyInstallFixture(str_contains($output, 'Executing hook script: 00-folderview.plus-registration')
+            && !str_contains($output, 'could not confirm native boot registration')
+            && file_get_contents("$dir/downloads/$pluginName.plg") === $peerManifest,
+            "$case failed post-hook reconciliation or lost the newer stage: $output");
+    } elseif (in_array($case, ['update-overlap-success', 'update-late-remove-success', 'install-url-remove-success', 'update-staged-registration-conflict'], true)) {
         $lateRemove = $case === 'update-late-remove-success';
+        if ($case === 'install-url-remove-success') {
+            file_put_contents("$dir/remote.plg", $newManifest);
+            $command = [PHP_BINARY, $cli, 'install', 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg'];
+        }
         $first = $start($command, $lateRemove ? [] : ['FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION' => '1']);
         $checkpoint = $lateRemove ? 'registration' : 'version';
         for ($attempt = 0; $attempt < 160 && !is_file("$dir/$checkpoint-commit-paused"); $attempt++) usleep(50000);
@@ -439,7 +522,8 @@ exec /bin/mv "$@"'
     verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === []
         && glob("$boot/.folderview.plus.plg.*") === [] && glob("$dir/downloads/.folderview.plus.plg.*") === [],
         "$case left temporary installation state behind.");
-    verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [], "$case left installation report state behind.");
+    verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [] && !is_dir("$dir/registration") && !is_link($registrationHook),
+        "$case left temporary reporting or native registration state behind: $output");
     if (str_ends_with($case, '-version')) {
         verifyInstallFixture(str_contains($output, 'Upgrade failed') && preg_match('/Previous\s+' . preg_quote($previous, '/') . '/', $output)
             && str_contains($output, 'restored the previous installation state') && !str_contains($output, 'Upgrade complete'),

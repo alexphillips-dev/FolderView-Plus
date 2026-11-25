@@ -1,7 +1,7 @@
 <?php
 // The v1 envelope gained optional fields over time; its five core maps did not change.
-function fvplusFolderView3AssertMap($value, string $field, int $limit = 5000): void {
-    if (!is_array($value) || ($value !== [] && array_is_list($value)) || count($value) > $limit) {
+function fvplusFolderView3AssertMap($value, string $field, int $limit = 5000, bool $allowIndexedIds = false): void {
+    if (!is_array($value) || (!$allowIndexedIds && $value !== [] && array_is_list($value)) || count($value) > $limit) {
         throw new RuntimeException('Invalid FolderView3 ' . $field . ' map. No configuration was imported.');
     }
 }
@@ -95,7 +95,7 @@ function fvplusFolderView3ValidateBundle(array $bundle): void {
     if (($bundle['fv3_export_version'] ?? null) !== 1) throw new RuntimeException('Unsupported FolderView3 export version.');
     foreach (['docker', 'vm', 'settings', 'css_config', 'custom_styles'] as $key) {
         if (!array_key_exists($key, $bundle)) throw new RuntimeException('FolderView3 backup is missing required ' . $key . ' data.');
-        fvplusFolderView3AssertMap($bundle[$key], $key);
+        fvplusFolderView3AssertMap($bundle[$key], $key, allowIndexedIds: in_array($key, ['docker', 'vm'], true));
     }
     foreach (['docker', 'vm'] as $type) {
         $seen = [];

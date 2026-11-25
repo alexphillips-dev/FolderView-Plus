@@ -196,6 +196,20 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
         assert.equal(saved.scope, 'docker');
         assert.equal(saved.name, 'Green copy');
         assert.equal(JSON.parse(saved.variables)['--fvplus-theme-accent'], '#22c55e');
+        await page.evaluate(async () => {
+            let attempts = 0;
+            const api = FolderViewPlusThemeWorkspace.createApi({ document, $: window.jQuery,
+                apiGetJson: async () => {
+                    if (++attempts === 1) throw new Error('Synthetic read failure');
+                    return { workspace: germanTheme.getWorkspace() };
+                } });
+            api.bindEvents();
+            await api.readWorkspace().catch(() => {});
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        });
+        assert.match(await page.locator('#fv-theme-appearance-loading').innerText(), /Aussehen fehlgeschlagen/);
+        await page.locator('#fv-theme-appearance-retry').click();
+        assert.equal(await page.locator('#fv-theme-appearance-loading').isVisible(), false);
         assert.equal(await page.evaluate(() => window.FolderViewPlusI18n.snapshot().missingKeyCount), 0);
     });
 };

@@ -377,15 +377,15 @@
         };
 
         const getRecoveryBackupFolderCount = (backup) => {
-            const count = Number(backup?.count);
-            return Number.isFinite(count) ? Math.max(0, count) : null;
+            const count = backup?.count;
+            return Number.isSafeInteger(count) && count >= 0 ? count : null;
         };
 
         const isRecoveryBackupEmpty = (backup) => getRecoveryBackupFolderCount(backup) === 0;
 
         const getLatestRestorableRecoveryBackup = (backups) => {
             const list = Array.isArray(backups) ? backups : [];
-            return list.find((backup) => !isRecoveryBackupEmpty(backup)) || null;
+            return list.find((backup) => (getRecoveryBackupFolderCount(backup) ?? 0) > 0) || null;
         };
 
         const formatRecoveryBackupFolderCount = (backup) => {
@@ -416,7 +416,7 @@
                 : translate("settings.recovery.no-restorable", "No restorable $1 backup is available yet.", title);
             const copy = latestRestorable
                 ? translate("settings.recovery.restore-summary", "Restore Latest will use $1 and create a fresh safety backup first when folders exist.", latestRestorableCreated)
-                : (latest
+                : (backups.length && backups.every(isRecoveryBackupEmpty)
                     ? translate("settings.recovery.only-empty", "Only empty snapshots were found. Restore Latest skips empty backups so it does not roll you back to no folders.")
                     : translate("settings.recovery.create-first", "Create a manual backup before making larger changes so you have a safe rollback point."));
             return `

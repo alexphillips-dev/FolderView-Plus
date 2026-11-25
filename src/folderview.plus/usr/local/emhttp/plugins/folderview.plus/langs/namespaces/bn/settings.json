@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "content-revision": "52e9357f756c95ba37feb581ad43e5d31e4fffc2511f6f964b3c01c49942f112"
+        "content-revision": "aa7ee00abd2757f5297be5f59b475d2f49ea59980c1d168eca7cf2ea77ef1d4a"
     },
     "settings.visibility.group-unassigned-items": "অনির্ধারিত আইটেম একত্র করুন",
     "settings.visibility.group-unassigned-items-help": "ড্যাশবোর্ডের সংশ্লিষ্ট টাইলেও প্রযোজ্য।",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "$2 নিয়মগুলির মধ্যে $1 দেখানো হচ্ছে৷",
     "settings.rules.selected": "· $1 নির্বাচিত ($2 দেখানো হয়েছে)",
     "settings.rules.edit-missing": "এডিট করা নিয়মটি আর বিদ্যমান নেই। সম্পাদনা বাতিল করুন এবং অন্য নিয়ম নির্বাচন করুন।",
+    "settings.rules.edit-conflict": "আপনি সম্পাদনা করার সময় এই নিয়মটি পরিবর্তিত হয়েছে। আবার সংরক্ষণ করার আগে এটি বাতিল করুন এবং পুনরায় খুলুন।",
     "settings.rules.docker-description": "স্বয়ংক্রিয়ভাবে নমনীয় নিয়ম ব্যবহার করে সঠিক ফোল্ডারে আপনার ডকার পাত্রে সংগঠিত করুন।",
     "settings.rules.vm-description": "নমনীয় নিয়ম ব্যবহার করে সঠিক ফোল্ডারে আপনার VM গুলিকে স্বয়ংক্রিয়ভাবে সংগঠিত করুন।",
     "settings.folder-defaults.edit": "ফোল্ডারের ডিফল্ট সেটিংস সম্পাদনা করুন",

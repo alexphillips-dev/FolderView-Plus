@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "content-revision": "95467c1a77488207a82ba373dd3b9a20e65afb2f47c0cde224c68c29861e9f0a"
+        "content-revision": "16839260813a1db95b648f856cdf58ce706c465b96b7590956262974aa0f11cf"
     },
     "settings.visibility.group-unassigned-items": "Niet-toegewezen items groeperen",
     "settings.visibility.group-unassigned-items-help": "Geldt ook voor de bijbehorende tegel op het dashboard.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Toont $1 van $2 regels",
     "settings.rules.selected": "· $1 geselecteerd ($2 weergegeven)",
     "settings.rules.edit-missing": "De regel die wordt bewerkt, bestaat niet meer. Annuleer de bewerking en selecteer een andere regel.",
+    "settings.rules.edit-conflict": "Deze regel is gewijzigd terwijl u aan het bewerken was. Annuleer en open het opnieuw voordat u het opnieuw opslaat.",
     "settings.rules.docker-description": "Organiseer uw Docker-containers automatisch in de juiste mappen met behulp van flexibele regels.",
     "settings.rules.vm-description": "Organiseer uw VM's automatisch in de juiste mappen met behulp van flexibele regels.",
     "settings.folder-defaults.edit": "Standaardinstellingen voor mappen bewerken",

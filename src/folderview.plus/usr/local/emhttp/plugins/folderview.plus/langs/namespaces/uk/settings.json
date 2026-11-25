@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "content-revision": "2c2ed193e730242a29d5fb400b6f028a3270303d63ad02c3fefb0e4ddba07295"
+        "content-revision": "a1942a14d70f93f41eabe89bf9f3e0e2c20fdbe31b4c21ea8b92e01b69976c6f"
     },
     "settings.visibility.group-unassigned-items": "Групувати непризначені елементи",
     "settings.visibility.group-unassigned-items-help": "Також застосовується до відповідної плитки на панелі.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Показано $1 з $2 правил",
     "settings.rules.selected": "· Вибрано $1 (показано $2)",
     "settings.rules.edit-missing": "Правило, яке редагується, більше не існує. Скасуйте редагування та виберіть інше правило.",
+    "settings.rules.edit-conflict": "Це правило змінилося під час редагування. Скасуйте та знову відкрийте його перед повторним збереженням.",
     "settings.rules.docker-description": "Автоматично впорядковуйте свої контейнери Docker у потрібні папки за допомогою гнучких правил.",
     "settings.rules.vm-description": "Автоматично впорядковуйте свої віртуальні машини в потрібні папки за допомогою гнучких правил.",
     "settings.folder-defaults.edit": "Змінити типові налаштування папок",

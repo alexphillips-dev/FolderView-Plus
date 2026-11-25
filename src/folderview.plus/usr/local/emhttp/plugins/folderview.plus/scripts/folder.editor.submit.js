@@ -88,6 +88,13 @@
                 return false;
             }
             submission = 'saving';
+            const form = e?.tagName === 'FORM' ? e : null;
+            const wasInert = form?.inert;
+            const wasBusy = form?.getAttribute('aria-busy');
+            if (form) {
+                form.inert = true;
+                form.setAttribute('aria-busy', 'true');
+            }
             const requestStartedAt = Date.now();
             try {
                 try {
@@ -130,6 +137,11 @@
                 leave(editingFolderDefaults ? '/Settings/FolderViewPlus' : undefined);
                 return false;
             } finally {
+                if (form) {
+                    form.inert = wasInert;
+                    if (wasBusy === null) form.removeAttribute('aria-busy');
+                    else form.setAttribute('aria-busy', wasBusy);
+                }
                 if (submission === 'saving') submission = 'idle';
             }
         };

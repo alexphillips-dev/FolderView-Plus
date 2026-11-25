@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {createRequire} from 'node:module';
 const require = createRequire(import.meta.url);
 const plugin = '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/';
-const {normalizeBuilderRule, describeCondition, reorderRules} = require(plugin + 'folderviewplus.rules-workspace.js');
+const {normalizeBuilderRule, describeCondition, reorderRules, createApi} = require(plugin + 'folderviewplus.rules-workspace.js');
 const {ruleMatchesItem} = require(plugin + 'folderviewplus.utils-rules.js');
 const draft = (kind, pattern, type = 'docker') => normalizeBuilderRule({type, folderId:'folder', effect:'include', kind, pattern});
 
@@ -68,4 +69,55 @@ test('rule reorder is immutable and supports both insertion sides without invent
     assert.equal(reorderRules(rules,'missing','b'), null);
     assert.equal(reorderRules(rules,'a','missing'), null);
     assert.deepEqual(rules.map(rule=>rule.id), ['a','b','c','d']);
+});
+
+test('saving an open rule edit rejects a changed target but takes unrelated committed changes from the latest list', async () => {
+    const nodes = new Map();
+    const node = id => {
+        if (!nodes.has(id)) nodes.set(id, {
+            dataset: {}, value: '', addEventListener() {}, closest() { return this; },
+            querySelector: () => null, querySelectorAll: () => [], scrollIntoView() {}, focus() {}
+        });
+        return nodes.get(id);
+    };
+    const document = { getElementById: node, querySelector: () => node('one-panel'), querySelectorAll: () => [] };
+    const workspace = createApi({
+        document, window: { AbortController, addEventListener() {} }, ui: {}, translate: (_key, fallback) => fallback, onDraftChange() {}
+    });
+    const source = fs.readFileSync(new URL(plugin + 'folderviewplus.js', import.meta.url), 'utf8');
+    const start = source.indexOf('const addAutoRule =');
+    const end = source.indexOf('const toggleAutoRule =', start);
+    const rule = { id: 'editing', enabled: true, folderId: 'alpha', effect: 'include', kind: 'name_regex', pattern: '^old' };
+    const neighbor = { ...rule, id: 'neighbor', pattern: '^changed-elsewhere' };
+    const prefsByType = { vm: { autoRules: [rule, neighbor], _metadata: { prefsRevision: 4 } } };
+    const writes = [], errors = [];
+    const addAutoRule = new Function('deps', `
+        const { $, getRulesWorkspaceApi, normalizeRuleBuilderRuleInput, utils, surfaceT, prefsByType,
+            postPrefs, showError, renderRulesTable } = deps;
+        const RULE_SIMPLE_KINDS = ['name_starts_with'];
+        const diagnosticsPrefsCoordinator = null;
+        ${source.slice(start, end)}
+        return addAutoRule;
+    `)({
+        $: selector => ({ val: () => node(selector.slice(1)).value }), getRulesWorkspaceApi: () => workspace,
+        normalizeRuleBuilderRuleInput: normalizeBuilderRule, utils: { normalizePrefs: value => value }, prefsByType,
+        surfaceT: (_key, fallback) => fallback, postPrefs: async (_type, prefs) => { writes.push(prefs); return prefs; },
+        showError: (_title, error) => errors.push(error.message), renderRulesTable() {}
+    });
+    workspace.edit('vm', rule);
+    node('vm-rule-pattern').value = 'draft';
+    const otherTabRule = { ...rule, folderId: 'beta' };
+    prefsByType.vm.autoRules = [otherTabRule, neighbor];
+    await addAutoRule('vm');
+    assert.deepEqual(writes, []);
+    assert.match(errors[0], /This rule changed while you were editing/);
+    assert.equal(node('vm-rule-pattern').value, 'draft');
+    workspace.edit('vm', otherTabRule);
+    node('vm-rule-pattern').value = 'revised';
+    prefsByType.vm.autoRules = [neighbor, { ...otherTabRule, enabled: false }];
+    await addAutoRule('vm');
+    assert.deepEqual(writes[0].autoRules.map(({ id, folderId, pattern, enabled }) => ({ id, folderId, pattern, enabled })), [
+        { id: 'neighbor', folderId: 'alpha', pattern: '^changed-elsewhere', enabled: true },
+        { id: 'editing', folderId: 'beta', pattern: '^revised', enabled: false }
+    ]);
 });

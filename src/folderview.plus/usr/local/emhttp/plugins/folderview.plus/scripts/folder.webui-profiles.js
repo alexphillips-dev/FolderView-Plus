@@ -1,36 +1,19 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folder.webui-profile-limits.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.folderWebuiProfiles = factory();
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    modules.folderWebuiProfiles = factory(modules.folderWebuiProfileLimits);
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(limits) {
     'use strict';
 
     const MAX_PROFILES = 100;
-    const MAX_PROFILE_MEMBERS = 250;
-    const MAX_PROFILE_NAME_LENGTH = 80;
-    const MAX_MEMBER_NAME_LENGTH = 160;
+    const { MAX_PROFILE_MEMBERS, MAX_PROFILE_NAME_LENGTH, MAX_MEMBER_NAME_LENGTH,
+        cleanText, profileNameTooLong, truncateProfileName, uniqueStrings } = limits;
     const PROFILE_ID_PATTERN = /^[A-Za-z0-9._:-]{1,64}$/;
     const isObject = (value) => value && typeof value === 'object' && !Array.isArray(value);
-    const cleanText = (value, maxLength) => String(value ?? '')
-        .replace(/[\u0000-\u001f\u007f]/g, '')
-        .trim()
-        .slice(0, maxLength);
-    const uniqueStrings = (value, maxItems = MAX_PROFILE_MEMBERS) => {
-        const seen = new Set();
-        const result = [];
-        for (const entry of Array.isArray(value) ? value : []) {
-            const text = cleanText(entry, MAX_MEMBER_NAME_LENGTH);
-            if (!text || seen.has(text)) continue;
-            seen.add(text);
-            result.push(text);
-            if (result.length >= maxItems) break;
-        }
-        return result;
-    };
     const createProfileId = (win = null) => {
         try {
             const generated = win?.crypto?.randomUUID?.();
@@ -59,7 +42,7 @@
             usedIds.add(id);
             result.push({
                 id,
-                name: cleanText(entry.name, MAX_PROFILE_NAME_LENGTH) || `Profile ${result.length + 1}`,
+                name: truncateProfileName(entry.name) || `Profile ${result.length + 1}`,
                 containers: uniqueStrings(entry.containers || entry.members)
             });
         }
@@ -195,7 +178,7 @@
             if (!hiddenInput) return;
             hiddenInput.value = JSON.stringify(profiles.map((profile) => ({
                 id: profile.id,
-                name: cleanText(profile.name, MAX_PROFILE_NAME_LENGTH),
+                name: cleanText(profile.name),
                 containers: uniqueStrings(profile.containers)
             })));
             if (notify) {
@@ -223,14 +206,18 @@
             node.textContent = message;
             node.className = `fv-webui-profiles-status${tone ? ` is-${tone}` : ''}`;
         };
+        const showMemberLimit = () => setStatus(translate('editor.webui-profiles.error-member-limit',
+            'A WebUI profile can select up to $1 members.', MAX_PROFILE_MEMBERS), 'error');
         const validate = () => {
             if (type !== 'docker') return true;
             const names = new Set();
             let message = '';
             profiles.forEach((profile) => {
-                const name = cleanText(profile.name, MAX_PROFILE_NAME_LENGTH);
+                const name = cleanText(profile.name);
                 const key = name.toLocaleLowerCase();
                 if (!message && !name) message = translate('editor.webui-profiles.error-name', 'Every WebUI profile needs a name.');
+                if (!message && profileNameTooLong(name)) message = translate('editor.webui-profiles.error-name-length',
+                    'WebUI profile names can be up to $1 UTF-8 bytes.', MAX_PROFILE_NAME_LENGTH);
                 if (!message && names.has(key)) message = translate('editor.webui-profiles.error-duplicate', 'WebUI profile names must be unique within this folder.');
                 names.add(key);
                 if (!message && uniqueStrings(profile.containers).length === 0) {
@@ -238,10 +225,11 @@
                 }
             });
             Array.from(host?.querySelectorAll?.('.fv-webui-profile-name') || []).forEach((input) => {
-                const name = cleanText(input.value, MAX_PROFILE_NAME_LENGTH).toLocaleLowerCase();
-                const count = profiles.filter((profile) => cleanText(profile.name, MAX_PROFILE_NAME_LENGTH).toLocaleLowerCase() === name).length;
-                input.classList.toggle('fv-input-error', !name || count > 1);
-                input.setAttribute('aria-invalid', !name || count > 1 ? 'true' : 'false');
+                const name = cleanText(input.value);
+                const count = profiles.filter((profile) => cleanText(profile.name).toLocaleLowerCase() === name.toLocaleLowerCase()).length;
+                const invalid = !name || profileNameTooLong(name) || count > 1;
+                input.classList.toggle('fv-input-error', invalid);
+                input.setAttribute('aria-invalid', String(invalid));
             });
             setStatus(message, message ? 'error' : 'ready');
             return !message;
@@ -263,6 +251,11 @@
                 checkbox.checked = profile.containers.includes(member.name);
                 checkbox.value = member.name;
                 checkbox.addEventListener('change', () => {
+                    if (checkbox.checked && profile.containers.length >= MAX_PROFILE_MEMBERS) {
+                        checkbox.checked = profile.containers.includes(member.name);
+                        showMemberLimit();
+                        return;
+                    }
                     profile.containers = checkbox.checked
                         ? uniqueStrings([...profile.containers, member.name])
                         : profile.containers.filter((name) => name !== member.name);
@@ -312,7 +305,7 @@
                     if (profiles.length >= MAX_PROFILES) return;
                     profiles.splice(index + 1, 0, {
                         id: createProfileId(win),
-                        name: `${cleanText(profile.name, 68) || 'Profile'} Copy`,
+                        name: `${truncateProfileName(profile.name, 68) || 'Profile'} Copy`,
                         containers: [...profile.containers]
                     });
                     writeHiddenInput();
@@ -349,7 +342,13 @@
             tools.append(
                 search,
                 button(translate('editor.webui-profiles.select-webui', 'Select all with WebUI'), 'fa-check-square-o', () => {
-                    profile.containers = uniqueStrings(readIncludedMembers().filter((member) => member.hasWebui).map((member) => member.name));
+                    const eligible = readIncludedMembers().filter((member) => member.hasWebui).map((member) => member.name);
+                    const selected = uniqueStrings(eligible, MAX_PROFILE_MEMBERS + 1);
+                    if (selected.length > MAX_PROFILE_MEMBERS) {
+                        showMemberLimit();
+                        return;
+                    }
+                    profile.containers = selected;
                     writeHiddenInput();
                     render();
                 }),

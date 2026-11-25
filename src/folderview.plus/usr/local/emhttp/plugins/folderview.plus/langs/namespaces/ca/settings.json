@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "content-revision": "16435b58653ef949b543475199c2bf278401dd30455d3cd20ea1a67a72bdbb4d"
+        "content-revision": "e3e5e262c32e5e925b4c8614f0e4591768051437a864490bcd9068fb571eeaba"
     },
     "settings.visibility.group-unassigned-items": "Agrupa els elements sense assignar",
     "settings.visibility.group-unassigned-items-help": "També s’aplica al bloc corresponent del tauler.",
@@ -25,6 +25,7 @@
     "settings.rules.showing": "Es mostren $1 de $2 regles",
     "settings.rules.selected": "· $1 seleccionat ($2 es mostra)",
     "settings.rules.edit-missing": "La regla que s'està editant ja no existeix. Cancel·la l'edició i selecciona una altra regla.",
+    "settings.rules.edit-conflict": "Aquesta regla ha canviat mentre l’editàveu. Cancel·leu l’edició i torneu a obrir la regla abans de desar-la.",
     "settings.rules.docker-description": "Organitzeu automàticament els vostres contenidors Docker a les carpetes adequades mitjançant regles flexibles.",
     "settings.rules.vm-description": "Organitzeu automàticament les vostres màquines virtuals a les carpetes adequades mitjançant regles flexibles.",
     "settings.folder-defaults.edit": "Edita els valors predeterminats de les carpetes",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "common",
-        "content-revision": "1ff0e5d9ba0144fef8e746c5d4934126eb43d2b3c59dcd645a22729aa91fd485"
+        "content-revision": "417cd8eebda58a74aa1020614502f09d20ce50b113655ac858cfc32f3520d49e"
     },
     "common.unassigned-group.title": "Nieprzypisane elementy",
     "runtime.action.requests-result": "Przyjęto: $1 · Niepowodzenia: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Nie znaleziono folderu docelowego.",
     "common.server.folder-id-is-required-d5216c": "Wymagany jest identyfikator folderu.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Wymagany jest starszy wzór wyrażenia regularnego.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Konwersja wyrażeń regularnych starszej wersji jest zajęta. Spróbuj ponownie.",
     "common.server.folder-not-found-ccbf07": "Nie znaleziono folderu.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "W tym folderze nie ma już starszego wyrażenia regularnego do konwersji.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Starsze wyrażenie regularne zmieniło się po załadowaniu tego edytora. Załaduj ponownie i przejrzyj go przed konwersją.",

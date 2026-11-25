@@ -18,7 +18,8 @@ New automatic regex rules use Unicode code-point matching. JavaScript uses Unico
 mode; PHP translates JavaScript Unicode escapes and evaluates UTF-8. A pattern
 such as `^..$` therefore counts two code points, rather than two UTF-16 code units.
 Converting a legacy folder regex keeps its existing UTF-16 interpretation in the
-saved rule. Editing the predicate switches it to the current rule syntax.
+saved rule. Converted rules match unset captures as empty strings in both
+evaluators. Editing the predicate switches it to the current rule syntax.
 Literal label contains/starts-with operators use Unicode simple case folding and
 escape regex punctuation.
 

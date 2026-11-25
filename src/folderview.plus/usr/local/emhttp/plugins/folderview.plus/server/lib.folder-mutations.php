@@ -294,98 +294,112 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             ];
         });
     }
-    function applyFolderMemberIdentityPatches(string $type, array $patches): array { $type = ensureType($type);
-        $fileData = readRawFolderMap($type);
-        $changedFolderIds = [];
-        $renameCount = 0;
-        $identityCount = 0;
-        foreach ($patches as $rawFolderId => $rawPatch) {
-            $folderId = truncateUtf8String(trim((string)$rawFolderId), 64);
-            if ($folderId === '' || !is_array($rawPatch) || !is_array($fileData[$folderId] ?? null)) {
-                continue;
-            }
-            $folder = normalizeFolderContentPayload((array)$fileData[$folderId]);
-            $renames = is_array($rawPatch['renames'] ?? null) ? $rawPatch['renames'] : [];
-            foreach ($renames as $rawOldName => $rawNewName) {
-                $oldName = truncateUtf8String(trim((string)$rawOldName), 512);
-                $newName = truncateUtf8String(trim((string)$rawNewName), 512);
-                if ($oldName === '' || $newName === '' || $oldName === $newName) {
+    function applyFolderMemberIdentityPatches(string $type, array $patches): array {
+        $type = ensureType($type);
+        return withConfigMutationLock(static function () use ($type, $patches): array {
+            $fileData = readRawFolderMap($type);
+            $claimed = array_fill_keys(array_merge(...array_column($fileData, 'containers')), true);
+            $changedFolderIds = [];
+            $renameCount = 0;
+            $identityCount = 0;
+            foreach ($patches as $rawFolderId => $rawPatch) {
+                $folderId = normalizeFolderIdValue($rawFolderId);
+                if ($folderId === '' || !is_array($rawPatch) || !is_array($fileData[$folderId] ?? null)) {
                     continue;
                 }
-                $oldIndex = array_search($oldName, $folder['containers'], true);
-                if ($oldIndex === false || in_array($newName, $folder['containers'], true)) {
-                    continue;
+                $folder = normalizeFolderContentPayload((array)$fileData[$folderId]);
+                $previous = is_array($rawPatch['previousIdentities'] ?? null) ? $rawPatch['previousIdentities'] : [];
+                $base = normalizeFolderContentPayload(['containers' => array_keys($previous), 'memberIdentities' => $previous]);
+                $eligible = [];
+                foreach ($folder['containers'] as $name) {
+                    if (array_key_exists($name, $previous)
+                        && ($folder['memberIdentities'][$name] ?? null) === ($base['memberIdentities'][$name] ?? null)) {
+                        $eligible[$name] = true;
+                    }
                 }
-                $folder['containers'][$oldIndex] = $newName;
-                $folder['hiddenPreviewMembers'] = array_map(static function ($name) use ($oldName, $newName) {
-                    return $name === $oldName ? $newName : $name;
-                }, normalizeFolderMembers($folder['hiddenPreviewMembers'] ?? []));
-                foreach ($folder['actions'] as &$action) {
-                    if (!is_array($action)) {
+                $renames = is_array($rawPatch['renames'] ?? null) ? $rawPatch['renames'] : [];
+                foreach ($renames as $rawOldName => $rawNewName) {
+                    $oldName = truncateUtf8String(trim((string)$rawOldName), 512);
+                    $newName = truncateUtf8String(trim((string)$rawNewName), 512);
+                    if ($oldName === '' || $newName === '' || $oldName === $newName) {
                         continue;
                     }
-                    foreach (['containers', 'conatiners'] as $targetKey) {
-                        if (!is_array($action[$targetKey] ?? null)) {
+                    $oldIndex = array_search($oldName, $folder['containers'], true);
+                    if ($oldIndex === false || !isset($eligible[$oldName]) || isset($claimed[$newName])) {
+                        continue;
+                    }
+                    $folder['containers'][$oldIndex] = $newName;
+                    $claimed[$newName] = $eligible[$newName] = true;
+                    $folder['hiddenPreviewMembers'] = array_map(static function ($name) use ($oldName, $newName) {
+                        return $name === $oldName ? $newName : $name;
+                    }, normalizeFolderMembers($folder['hiddenPreviewMembers'] ?? []));
+                    foreach ($folder['actions'] as &$action) {
+                        if (!is_array($action)) {
                             continue;
                         }
-                        $action[$targetKey] = array_map(static function ($name) use ($oldName, $newName) {
-                            return trim((string)$name) === $oldName ? $newName : trim((string)$name);
-                        }, $action[$targetKey]);
+                        foreach (['containers', 'conatiners'] as $targetKey) {
+                            if (!is_array($action[$targetKey] ?? null)) {
+                                continue;
+                            }
+                            $action[$targetKey] = array_map(static function ($name) use ($oldName, $newName) {
+                                return trim((string)$name) === $oldName ? $newName : trim((string)$name);
+                            }, $action[$targetKey]);
+                        }
+                    }
+                    unset($action);
+                    $profiles = fvplusNormalizeWebuiProfiles($folder['settings']['webui_profiles'] ?? []);
+                    foreach ($profiles as &$profile) $profile['containers'] = array_values(array_unique(array_map(static fn($name) => $name === $oldName ? $newName : $name, $profile['containers'])));
+                    unset($profile); $folder['settings']['webui_profiles'] = $profiles;
+                    if (is_array($folder['memberIdentities'][$oldName] ?? null)) {
+                        $folder['memberIdentities'][$newName] = $folder['memberIdentities'][$oldName];
+                        unset($folder['memberIdentities'][$oldName]);
+                    }
+                    $renameCount++;
+                }
+                $incomingIdentities = is_array($rawPatch['memberIdentities'] ?? null) ? $rawPatch['memberIdentities'] : [];
+                foreach ($folder['containers'] as $memberName) {
+                    if (!isset($eligible[$memberName]) || !is_array($incomingIdentities[$memberName] ?? null)) {
+                        continue;
+                    }
+                    $candidate = normalizeFolderContentPayload([
+                        'containers' => [$memberName],
+                        'memberIdentities' => [$memberName => $incomingIdentities[$memberName]]
+                    ]);
+                    $identity = $candidate['memberIdentities'][$memberName] ?? null;
+                    if (!is_array($identity)) {
+                        continue;
+                    }
+                    if (($folder['memberIdentities'][$memberName] ?? null) !== $identity) {
+                        $folder['memberIdentities'][$memberName] = $identity;
+                        $identityCount++;
                     }
                 }
-                unset($action);
-                $profiles = fvplusNormalizeWebuiProfiles($folder['settings']['webui_profiles'] ?? []);
-                foreach ($profiles as &$profile) $profile['containers'] = array_values(array_unique(array_map(static fn($name) => $name === $oldName ? $newName : $name, $profile['containers'])));
-                unset($profile); $folder['settings']['webui_profiles'] = $profiles;
-                if (is_array($folder['memberIdentities'][$oldName] ?? null)) {
-                    $folder['memberIdentities'][$newName] = $folder['memberIdentities'][$oldName];
-                    unset($folder['memberIdentities'][$oldName]);
-                }
-                $renameCount++;
-            }
-            $incomingIdentities = is_array($rawPatch['memberIdentities'] ?? null) ? $rawPatch['memberIdentities'] : [];
-            foreach ($folder['containers'] as $memberName) {
-                if (!is_array($incomingIdentities[$memberName] ?? null)) {
-                    continue;
-                }
-                $candidate = normalizeFolderContentPayload([
-                    'containers' => [$memberName],
-                    'memberIdentities' => [$memberName => $incomingIdentities[$memberName]]
-                ]);
-                $identity = $candidate['memberIdentities'][$memberName] ?? null;
-                if (!is_array($identity)) {
-                    continue;
-                }
-                if (($folder['memberIdentities'][$memberName] ?? null) !== $identity) {
-                    $folder['memberIdentities'][$memberName] = $identity;
-                    $identityCount++;
+                $nextFolder = normalizeFolderContentPayload($folder);
+                if (jsonObjectsDiffer($fileData[$folderId], $nextFolder)) {
+                    $nextFolder['updatedAt'] = gmdate('c');
+                    $fileData[$folderId] = $nextFolder;
+                    $changedFolderIds[] = $folderId;
                 }
             }
-            $nextFolder = normalizeFolderContentPayload($folder);
-            if (jsonObjectsDiffer($fileData[$folderId], $nextFolder)) {
-                $nextFolder['updatedAt'] = gmdate('c');
-                $fileData[$folderId] = $nextFolder;
-                $changedFolderIds[] = $folderId;
+            if (count($changedFolderIds) > 0) {
+                writeRawFolderMap($type, $fileData);
+                try {
+                    appendDiagnosticsHistoryEvent('member_identity_reconcile', $type, [
+                        'folderIds' => $changedFolderIds,
+                        'renameCount' => $renameCount,
+                        'identityCount' => $identityCount
+                    ], 'ok', 'runtime');
+                } catch (Throwable $err) {
+                    // Keep automatic reconciliation non-fatal.
+                }
             }
-        }
-        if (count($changedFolderIds) > 0) {
-            writeRawFolderMap($type, $fileData);
-            try {
-                appendDiagnosticsHistoryEvent('member_identity_reconcile', $type, [
-                    'folderIds' => $changedFolderIds,
-                    'renameCount' => $renameCount,
-                    'identityCount' => $identityCount
-                ], 'ok', 'runtime');
-            } catch (Throwable $err) {
-                // Keep automatic reconciliation non-fatal.
-            }
-        }
-        return [
-            'changedFolderIds' => $changedFolderIds,
-            'renameCount' => $renameCount,
-            'identityCount' => $identityCount,
-            'metadata' => readConfigMetadata($type, true)
-        ];
+            return [
+                'changedFolderIds' => $changedFolderIds,
+                'renameCount' => $renameCount,
+                'identityCount' => $identityCount,
+                'metadata' => readConfigMetadata($type, true)
+            ];
+        });
     }
     function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload, array $options = []): array {
         return applySelectiveFolderSettings($type, $targetIds, $settingsPayload, $options);

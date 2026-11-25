@@ -227,7 +227,7 @@
         $runtimeIntegrity = fvplus_get_runtime_integrity_snapshot($privacyMode);
         $runtimeConnectivity = diagnosticsRuntimeConnectivity();
         $securityAudit = fvplus_get_security_audit_snapshot();
-        return [
+        $report = [
             'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
             'privacyMode' => $privacyMode,
             'checkedAt' => gmdate('c'),
@@ -249,6 +249,7 @@
             'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit, $runtimeConnectivity),
             'types' => $typesData
         ];
+        return $privacyMode === 'full' ? $report : diagnosticsSanitizeReport($report);
     }
 
     require_once(__DIR__ . '/lib.diagnostics-support-bundle.php');

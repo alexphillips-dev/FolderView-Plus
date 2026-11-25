@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "content-revision": "479660e844d0d11ee495c71e6efff36a93a1cfc98ac07ef137f3ead63f2b4aac"
+        "content-revision": "be85f87a3adc8ad47f187d721a7d05c7ba4a8465610f1ec74deb1f60058d8b75"
     },
     "common.unassigned-group.title": "Nepiešķirtie vienumi",
     "runtime.action.requests-result": "Pieņemti: $1 · Neizdevās: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Mērķa mape nav atrasta.",
     "common.server.folder-id-is-required-d5216c": "Nepieciešams mapes ID.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Ir nepieciešams mantotais regulārās izteiksmes modelis.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Mantotā regex konvertēšana ir aizņemta. Mēģiniet vēlreiz.",
     "common.server.folder-not-found-ccbf07": "Mape nav atrasta.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Šai mapei vairs nav mantota regulārā izteiksme, ko konvertēt.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Mantotais regex mainījās pēc šī redaktora ielādes. Pirms konvertēšanas atkārtoti ielādējiet un pārskatiet to.",

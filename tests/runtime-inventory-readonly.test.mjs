@@ -71,6 +71,36 @@ test('explicit managed sync uses fresh authority to remove stale records in Dock
     }
 });
 
+test('start-order sync preserves a numeric container and uses it once in the native file', () => {
+    const result = runInventoryRepair({ type: 'docker', operation: 'start-sync', scenario: 'healthy',
+        docker: ['12', 'docker-extra'].map((name, index) => ({ Names: ['/' + name], Id: String(index + 1).repeat(64), State: 'exited' })),
+        nativeAutostart: 'docker-extra 19\n12 7\nstale-host-entry 31\n' });
+    assert.equal(result.response.syncOutcome, 'synced');
+    assert.deepEqual(result.response.preview.autostartOrder, ['12', 'docker-extra']);
+    assert.deepEqual(result.response.preview.staleAutostart, ['stale-host-entry']);
+    assert.equal(result.native, '12 7\ndocker-extra 19\n');
+});
+
+test('custom batch waits follow unique scheduled containers and the folder order toggle uses native order', () => {
+    const fixture = { type: 'docker', operation: 'start-sync', scenario: 'healthy',
+        dockerFolder: { name: 'Fixture', containers: ['docker-present', 'docker-extra'] } };
+    const folderItem = { type: 'folder', id: 'fixture' };
+    const overlapping = runInventoryRepair({ ...fixture, plan: { mode: 'custom-batches', batches: [
+        { id: 'first', delay: 10, items: [{ type: 'container', name: 'docker-extra' }] },
+        { id: 'second', delay: 40, items: [folderItem] }
+    ] } });
+    assert.equal(overlapping.response.syncOutcome, 'synced');
+    assert.deepEqual(overlapping.response.preview.batches.map(batch => batch.containers), [['docker-extra'], ['docker-present']]);
+    assert.equal(overlapping.native, 'docker-extra 10\ndocker-present 40\n');
+    for (const useFolderOrder of [true, false]) {
+        const result = runInventoryRepair({ ...fixture, plan: { mode: 'custom-batches',
+            batches: [{ id: 'single', useFolderOrder, items: [folderItem] }] } });
+        assert.equal(result.response.syncOutcome, 'synced');
+        assert.deepEqual(result.response.preview.autostartOrder, useFolderOrder
+            ? ['docker-present', 'docker-extra'] : ['docker-extra', 'docker-present']);
+    }
+});
+
 test('runtime responses stay valid JSON when the native Docker SDK writes a socket error', () => {
     for (const operation of ['read', 'snapshot']) for (const mode of ['state', 'full']) {
         const result = runInventoryRepair({ type: 'docker', operation, mode, scenario: 'socket-output' });

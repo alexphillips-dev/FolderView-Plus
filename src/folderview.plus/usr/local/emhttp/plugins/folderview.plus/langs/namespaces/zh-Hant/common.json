@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "content-revision": "83089a1159ea77eb29d98ae24679f1dc46b142b43b0a09828fbdba8a4f826a18"
+        "content-revision": "15a709759ee479f0e38da56ccd70a4b47bafcafffc7a350247f18c8644744e52"
     },
     "common.unassigned-group.title": "未分組的項目",
     "runtime.action.requests-result": "已接受 $1 項 · 失敗 $2 項",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "未找到目標資料夾。",
     "common.server.folder-id-is-required-d5216c": "需要資料夾 ID。",
     "common.server.legacy-regex-pattern-is-required-dc6828": "需要舊的正規表示式模式。",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "舊版正規表示式轉換正忙。再試一次。",
     "common.server.folder-not-found-ccbf07": "找不到資料夾。",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "此資料夾不再有要轉換的舊正規表示式。",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "載入此編輯器後，舊的正規表示式發生了變化。在轉換之前重新載入並檢查它。",

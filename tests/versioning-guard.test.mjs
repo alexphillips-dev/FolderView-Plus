@@ -144,7 +144,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /trap cleanup_tmpdir EXIT/);
     assert.match(pkgBuild, /ensure_repo_layout/);
     assert.match(pkgBuild, /acquire_build_lock/);
-    assert.match(pkgBuild, /flock -n 9/);
+    assert.match(pkgBuild, /mkdir "\$build_lock_dir"/);
     assert.match(pkgBuild, /--output-dir D/);
     assert.match(pkgBuild, /--keep-archives N/);
     assert.match(pkgBuild, /--no-prune-archives/);
@@ -180,7 +180,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 
-test('build contenders leave the occupied fallback lock in place', t => {
+test('all build contenders use the same lock and leave its owner in place', t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const lockDirectory = path.join(directory, 'tmp', 'pkg_build.lock.d');
@@ -195,9 +195,11 @@ test('build contenders leave the occupied fallback lock in place', t => {
     const shellPath = value => windows ? value.replaceAll('\\', '/').replace(/^([A-Z]):/i, (_, drive) => '/mnt/' + drive.toLowerCase()) : value;
     const command = windows ? 'wsl.exe' : 'bash';
     const prefix = windows ? ['--exec', 'bash'] : [];
-    const run = 'cd "$1" && exec env FVPLUS_PKG_BUILD_DISABLE_FLOCK=1 bash "$2" --dry-run';
-    for (let contender = 0; contender < 2; contender++) {
-        assert.throws(() => execFileSync(command, [...prefix, '-c', run, 'bash', shellPath(directory), shellPath(pkgBuildPath)], {
+    const run = 'cd "$1" && shift && exec "$@"';
+    for (const options of [[], ['FVPLUS_PKG_BUILD_DISABLE_FLOCK=1']]) {
+        assert.throws(() => execFileSync(command, [
+            ...prefix, '-c', run, 'bash', shellPath(directory), 'env', ...options, 'bash', shellPath(pkgBuildPath), '--dry-run'
+        ], {
             cwd: repoRoot,
             stdio: ['ignore', 'pipe', 'pipe'],
             encoding: 'utf8'
@@ -623,6 +625,21 @@ test('back-merge sync script preserves main ancestry while restoring dev release
     assert.match(syncMainToDev, /git restore --source="\$\{source_ref\}" --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
     assert.match(syncMainToDev, /git rm -f --ignore-unmatch -- "\$\{remove_paths\[@\]\}"/);
     assert.doesNotMatch(syncMainToDev, /git cherry-pick -x/);
+});
+
+test('synchronization stops if an initial pinned branch moves', () => {
+    const windows = process.platform === 'win32';
+    const command = windows ? 'wsl.exe' : 'bash';
+    const prefix = windows ? ['--exec', 'bash'] : [];
+    const output = execFileSync(command, [...prefix, 'tests/fixtures/release-sync-moving-refs.sh'], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        timeout: 30000
+    });
+    assert.match(output, /main moved during wait/);
+    assert.match(output, /dev moved during wait/);
+    assert.match(output, /main moved during nested fetch/);
+    assert.match(output, /dev moved during nested fetch/);
 });
 
 test('install smoke supports configurable archive directory override', () => {

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "content-revision": "6e57ac52ef6fd17f816987f9e8a359533a231eb20fd6d088ccbc09b138da14a8"
+        "content-revision": "be1387486800ac4148a1ed1bebb96e65b4e9366be9a821c847273b8c78ddaa1c"
     },
     "common.unassigned-group.title": "Непризначені елементи",
     "runtime.action.requests-result": "Прийнято: $1 · Помилок: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Цільова папка не знайдена.",
     "common.server.folder-id-is-required-d5216c": "Необхідний ідентифікатор папки.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Потрібен застарілий шаблон регулярного виразу.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Перетворення застарілого регулярного виразу зайняте. Спробуйте знову.",
     "common.server.folder-not-found-ccbf07": "Папка не знайдена.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "У цій папці більше немає застарілого регулярного виразу для перетворення.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Застарілий регулярний вираз змінився після завантаження цього редактора. Перезавантажте та перегляньте його перед конвертацією.",

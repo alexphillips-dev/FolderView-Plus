@@ -29,6 +29,7 @@ export const createDockerBadgeHost = async (page, initialBadges = { running: fal
 export const mountVmBadgeHost = async (page, baseUrl) => {
     await page.goto(`${baseUrl}/vm-lifecycle`, { waitUntil: 'load' });
     await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/runtime.folder-badges.js` });
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/runtime.host-adapter.js` });
     const source = fs.readFileSync(scriptRoot + 'vm.js', 'utf8');
     const section = (start, end) => {
         const from = source.indexOf(start), to = source.indexOf(end, from);
@@ -37,6 +38,7 @@ export const mountVmBadgeHost = async (page, baseUrl) => {
     };
     await page.addScriptTag({ content: `(() => {
         const $ = window.jQuery, folderBadgeApi = window.FolderViewPlusFolderBadges;
+        const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
         let folderTypePrefs = {};
         const vmRuntimeInfoByName = { fixture: { name: 'fixture', uuid: 'fixture-id', state: 'running' } };
         const translateVmText = (_key, fallback, ...values) => fallback.replace(/\\$(\\d+)/g, (_match, index) => values[Number(index)-1]);

@@ -18,7 +18,7 @@ export const createFilterViewSettingsHost = async page => {
     const host = createProductionPerfFixture(path.resolve('.'), { folders: 1, members: 2 });
     host.folders.empty = { name: 'Empty fixture', containers: [], settings: {}, actions: [] };
     const prefs = Object.fromEntries(['docker', 'vm'].map(type => [type, utils.normalizePrefs({
-        setupWizardCompleted: true, _metadata: { prefsRevision: 1 }
+        setupWizardCompleted: true, _metadata: { prefsRevision: 1, folderRevision: 1 }
     })]));
     const runtime = Object.fromEntries(['docker', 'vm'].map(type => [type, Object.fromEntries(host.names.map((name, index) => [name, {
         name, Name: name, uuid: `fixture-vm-${index}`, id: (index + 1).toString(16).padStart(12, '0').padEnd(64, '0'),

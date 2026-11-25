@@ -17,6 +17,8 @@
         "../tests/browser/cases/dashboard-unassigned-group.mjs",
         "../tests/browser/cases/runtime-native-identity.mjs",
         "../tests/browser/cases/dashboard-runtime-consistency.mjs",
+        "../tests/browser/cases/runtime-host-reconciliation.mjs",
+        "../tests/browser/cases/dashboard-native-reconciliation.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -57,6 +59,8 @@
     {"file": "tests/browser/cases/dashboard-unassigned-group.mjs", "limit": 170, "owner": "Independent Dashboard grouping and refresh-safe native identities"},
     {"file": "tests/browser/cases/runtime-native-identity.mjs", "limit": 80, "owner": "Dashboard membership and VM native controls when runtime names or identities coincide"},
     {"file": "tests/browser/cases/dashboard-runtime-consistency.mjs", "limit": 170, "owner": "Full and incremental Dashboard refresh, native filters, peer layout and keyboard focus"},
+    {"file": "tests/browser/cases/runtime-host-reconciliation.mjs", "limit": 160, "owner": "Native switch, deferred Docker config and shared Docker and VM focus"},
+    {"file": "tests/browser/cases/dashboard-native-reconciliation.mjs", "limit": 120, "owner": "Dashboard native summary and committed rules across browser tabs"},
     {"file": "tests/browser/helpers/dashboard-membership-host.mjs", "limit": 40, "owner": "Dashboard native row markup and membership snapshots"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
@@ -210,6 +214,8 @@
         "tests/browser/cases/runtime-native-identity.mjs",
         "tests/browser/cases/dashboard-lifecycle.mjs",
         "tests/browser/cases/dashboard-runtime-consistency.mjs",
+        "tests/browser/cases/runtime-host-reconciliation.mjs",
+        "tests/browser/cases/dashboard-native-reconciliation.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-privacy-diagnostics.mjs",
@@ -344,10 +350,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 188,
-      "assertionCount": 2403,
-      "pageEvaluateCount": 824,
-      "orderedTitleSha256": "8553da244cca35c9c03cda4d882ee2d3893d0a69730494c22cf3c8e4ce79544e"
+      "testCount": 193,
+      "assertionCount": 2422,
+      "pageEvaluateCount": 837,
+      "orderedTitleSha256": "5d933a67d8d21c8c23d481f74b761c7d0fc83f438cb066e57bbd03b727c3ff3e"
     }
   }
 }

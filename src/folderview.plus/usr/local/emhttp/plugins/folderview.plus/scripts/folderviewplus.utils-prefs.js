@@ -20,7 +20,7 @@
         DEFAULT_DASHBOARD_PREFS,
         DEFAULT_DOCKER_START_ORDER,
         clampNumber,
-        normalizeStringIdList,
+        normalizeFolderId, normalizeStringIdList,
         normalizeExpandedFolderStateMap,
         normalizeHealthProfile,
         normalizeHealthUpdatesMode,
@@ -169,9 +169,9 @@
                 }
                 const itemType = String(item.type || '').trim().toLowerCase();
                 if (itemType === 'folder') {
-                    const id = typeof item.id === 'string' ? item.id.trim() : '';
+                    const id = normalizeFolderId(item.id ?? item.folderId);
                     if (id) {
-                        items.push({ type: 'folder', id: id.slice(0, 64) });
+                        items.push({ type: 'folder', id });
                     }
                     return;
                 }

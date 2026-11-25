@@ -109,8 +109,8 @@
         });
     }
 
-    function createGlobalRollbackSnapshot(string $reason = 'manual', array $protectedNames = []): array {
-        return withConfigMutationLock(static function () use ($reason, $protectedNames): array {
+    function createGlobalRollbackSnapshot(string $reason = 'manual', array $protectedNames = [], bool $prune = true): array {
+        return withConfigMutationLock(static function () use ($reason, $protectedNames, $prune): array {
             $rollbackDir = getGlobalRollbackDirPath();
             if (!is_dir($rollbackDir)) {
                 @mkdir($rollbackDir, 0770, true);
@@ -145,7 +145,7 @@
                 'themeWorkspace' => readThemeWorkspace()
             ];
             writeJsonObjectAtomic("$rollbackDir/$filename", $payload);
-            $pruned = pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, $protectedNames);
+            $pruned = $prune ? pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, $protectedNames) : [];
             try {
                 appendDiagnosticsHistoryEvent('rollback_create', null, [
                     'name' => $filename,

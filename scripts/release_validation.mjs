@@ -57,7 +57,10 @@ if (mode === 'write') {
     await waitForWorkflow(repository, identity.commit, 'dependency-vulnerability-scan.yml', scanRef);
     write(evidence);
 } else if (mode === 'qualify') {
-    const base = execFileSync('git', ['rev-parse', identity.channel === 'main' ? 'origin/main' : 'origin/dev'], { encoding: 'utf8' }).trim();
+    const originRef = identity.channel === 'main' ? 'origin/main' : 'origin/dev';
+    const originBase = execFileSync('git', ['rev-parse', originRef], { encoding: 'utf8' }).trim();
+    const base = identity.channel === 'dev' ? process.env.FVPLUS_BACKMERGE_DEV_COMMIT || originBase : originBase;
+    assert.equal(base, originBase, 'Dev moved during synchronization before qualification');
     const prefix = identity.channel === 'main' ? 'fvplus-release-candidate-' : 'fvplus-sync-candidate-';
     const tag = prefix + identity.commit;
     assert.equal(execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim(), '', 'Candidate must be clean');

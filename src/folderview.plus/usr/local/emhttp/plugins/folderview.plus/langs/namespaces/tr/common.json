@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "content-revision": "d5a32b5d5cf87384097bf37d46a5d05c142ceeba40b3a6d7201ef33dc6a8927b"
+        "content-revision": "a5229393feb044e76ec8a896b5bcdcc9f839cd54b0f2a955509d19aab2491437"
     },
     "common.unassigned-group.title": "Atanmamış öğeler",
     "runtime.action.requests-result": "$1 kabul edildi · $2 başarısız",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Hedef klasör bulunamadı.",
     "common.server.folder-id-is-required-d5216c": "Klasör kimliği gerekli.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Eski normal ifade kalıbı gerekli.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Eski normal ifade dönüşümü meşgul. Tekrar deneyin.",
     "common.server.folder-not-found-ccbf07": "Klasör bulunamadı.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Bu klasörde artık dönüştürülecek eski bir normal ifade yok.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Bu düzenleyici yüklendikten sonra eski normal ifade değişti. Dönüştürmeden önce yeniden yükleyin ve inceleyin.",

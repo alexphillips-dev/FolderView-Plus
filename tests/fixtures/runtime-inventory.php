@@ -148,7 +148,8 @@ namespace {
     foreach (['docker', 'vm'] as $seedType) {
         $members = ["$seedType-present", "$seedType-missing"];
         if ($request['scenario'] === 'failed-detail' && $seedType === 'vm') $members[] = 'vm-extra';
-        $folder = ['name' => 'Fixture', 'containers' => $members];
+        $folder = $seedType === 'docker' && isset($request['dockerFolder'])
+            ? $request['dockerFolder'] : ['name' => 'Fixture', 'containers' => $members];
         if ($request['scenario'] === 'renamed') $folder['memberIdentities']["$seedType-present"] = $seedType === 'docker'
             ? ['kind' => 'docker', 'containerId' => str_repeat('a', 64)]
             : ['kind' => 'vm', 'uuid' => '00000000-0000-0000-0000-000000000001'];
@@ -159,6 +160,7 @@ namespace {
     }
     file_put_contents("$root/config/native-autostart", "docker-present 0\nstale-host-entry 0\n");
     if ($operation !== 'repair') file_put_contents("$root/config/native-autostart", "docker-extra 19\r\n\r\ndocker-present 7\nstale-host-entry 31\n");
+    if (isset($request['nativeAutostart'])) file_put_contents("$root/config/native-autostart", $request['nativeAutostart']);
     if ($request['scenario'] === 'stale-cache') {
         writeReadInfoCache($type, 'state', ['cached-gone' => []]);
         writeReadInfoCache($type, 'full', ['cached-gone' => []]);

@@ -81,9 +81,10 @@ test('legacy conversion endpoint uses guarded transactional migration with rollb
     assert.match(libSource, /hash_equals\(\$legacyPattern, \$expectedPattern\)/);
     assert.match(libSource, /\$legacyPattern = \(string\)\(\$folders\[\$folderId\]\['regex'\] \?\? ''\);/);
     assert.match(libSource, /normalizeBool\(\$rule\['enabled'\] \?\? true, true\) === true/);
-    assert.match(libSource, /createBackupSnapshot\(\$type, 'before-legacy-regex-conversion'\)/);
+    assert.match(libSource, /createBackupSnapshot\(\$type, 'before-legacy-regex-conversion', false\)/);
     assert.match(libSource, /writeTypePrefs\(\$type, \$nextPrefs\);[\s\S]*writeRawFolderMap\(\$type, \$nextFolders\);/);
-    assert.match(libSource, /writeTypePrefs\(\$type, \$prefs\);[\s\S]*writeRawFolderMap\(\$type, \$folders\);/);
+    assert.match(libSource, /withConfigMutationLock\(static function \(\) use \(\$type, \$folderId, \$expectedPattern\)/);
+    assert.match(libSource, /fvplusTransactionRestoreAfterFailure\(\$before, \$writeError, 'fvplusTransactionRestoreFiles'\)/);
     assert.match(libSource, /\$nextFolders\[\$folderId\]\['regex'\] = '';/);
     assert.match(libSource, /\/\/ Converted legacy matching is a fallback\. Existing advanced policy keeps priority\.[\s\S]*\$rules\[\] = \$existingRule;/);
 });

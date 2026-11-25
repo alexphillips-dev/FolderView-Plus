@@ -1414,14 +1414,14 @@ const getFolderBulkAssignmentSharedApi = (() => {
             utils,
             getFolderMap: () => allFoldersById,
             getFolderNameForId: (_managedType, id) => String(allFoldersById?.[id]?.name || id || '').trim(),
-            requestBulkAssign: async (managedType, folderId, items) => {
+            requestBulkAssign: async (managedType, folderId, items, expectedRevision) => {
                 if (!requestClient || typeof requestClient.postJson !== 'function') {
                     throw new Error('Bulk assignment request API unavailable.');
                 }
                 const response = await requestClient.postJson('/plugins/folderview.plus/server/bulk_assign.php', {
                     type: managedType,
                     folderId,
-                    items: JSON.stringify(items || [])
+                    items: JSON.stringify(items || []), expectedRevision
                 });
                 if (!response?.ok) {
                     throw new Error(response?.error || 'Bulk assignment failed.');
@@ -4050,8 +4050,19 @@ async function undoEditorMemberBulkMove() {
     }
 }
 
+const reconcileEditorFolderMutation = async (baseRevision, committedRevision) => {
+    if (!Number.isSafeInteger(committedRevision) || committedRevision <= baseRevision || folderEditorExpectedFolderRevision !== baseRevision) return;
+    try {
+        const snapshot = await requestClient.getJson('/plugins/folderview.plus/server/read.php', { data: { type, includeMetadata: 1 }, cache: false });
+        if (folderEditorExpectedFolderRevision !== baseRevision || snapshot?.metadata?.folderRevision !== committedRevision || !snapshot.folders) return;
+        allFoldersById = utils.normalizeFolderMap(snapshot.folders);
+        folderEditorExpectedFolderRevision = committedRevision;
+    } catch (_error) { /* Keep the previous revision fence if the saved map cannot be confirmed. */ }
+};
+
 async function applyEditorMemberBulkMove() {
-    if (memberBulkMoveInFlight) {
+    const expectedRevision = folderEditorExpectedFolderRevision;
+    if (memberBulkMoveInFlight || folderEditorMissingTarget || !Number.isSafeInteger(expectedRevision)) {
         return false;
     }
     if (getSectionChangeItems('members').length > 0) {
@@ -4150,6 +4161,7 @@ async function applyEditorMemberBulkMove() {
                 operationLabel: `${type === 'docker' ? 'Docker' : 'VM'} editor bulk move`,
                 backupReason: 'before-folder-editor-bulk-move',
                 preludeLines,
+                expectedRevision,
                 offerUndo: false,
                 trackDiagnostics: false,
                 onProgress: ({ chunkNumber, chunkCount, chunkSize }) => {
@@ -4164,6 +4176,7 @@ async function applyEditorMemberBulkMove() {
             }
             swal.close();
             applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
+            await reconcileEditorFolderMutation(expectedRevision, executionResult?.metadata?.folderRevision);
             const successMessage = executionResult?.summary || surfaceT("common.repair.items-moved-1-3c0fec", "Items moved: $1.", plan.actionableNames.length);
             setMemberBulkMoveUndoState(executionResult?.backup || null, successMessage);
             updateMemberBulkMoveUi();
@@ -4281,7 +4294,8 @@ const unbindFolderSettingsApplyDialogHelpers = () => {
 };
 
 const applyFolderSettingsToFolders = async () => {
-    if (!validateForm()) {
+    const expectedRevision = folderEditorExpectedFolderRevision;
+    if (folderEditorMissingTarget || !Number.isSafeInteger(expectedRevision) || !validateForm()) {
         return false;
     }
     const form = getForm();
@@ -4339,17 +4353,18 @@ const applyFolderSettingsToFolders = async () => {
             return false;
         }
         try {
-            const response = await securePost('/plugins/folderview.plus/server/apply_folder_settings.php', {
-                type,
-                targetIds: JSON.stringify(selectedIds),
-                settings: JSON.stringify(clipboardEntry.payload)
-            });
+            const endpoint = '/plugins/folderview.plus/server/apply_folder_settings.php';
+            const request = { type, targetIds: JSON.stringify(selectedIds), settings: JSON.stringify(clipboardEntry.payload), expectedRevision };
+            const preview = (await securePost(endpoint, { ...request, preview: '1' })).result;
+            const result = preview.updatedCount
+                ? (await securePost(endpoint, { ...request, expectedRevision: preview.folderRevision })).result : preview;
+            await reconcileEditorFolderMutation(expectedRevision, result.folderRevision);
             unbindFolderSettingsApplyDialogHelpers();
             swal.close();
             swal({
                 title: 'Folder settings applied',
-                text: response.result?.updatedCount
-                    ? surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", response.result.updatedCount)
+                text: result.updatedCount
+                    ? surfaceT("common.counts.folders-applied", "Folders updated: $1. A backup was created before the update.", result.updatedCount)
                     : surfaceT('common.settings-transfer.unchanged', 'Selected folders already match. No changes or backup were needed.'),
                 type: 'success'
             });

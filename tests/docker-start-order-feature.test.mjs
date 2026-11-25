@@ -36,7 +36,7 @@ test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'unmanaged'/);
     assert.match(prefsPhp, /'containerWaits'\s*=>\s*\$containerWaits/);
     assert.match(startOrderModelJs, /const MODES = Object\.freeze\(\['unmanaged', 'docker-page', 'custom-batches'\]\)/);
-    assert.match(startOrderModelJs, /modules\.startOrderModel = factory\(\)/);
+    assert.match(startOrderModelJs, /modules\.startOrderModel = factory\(modules\.utilityFoundation\)/);
 });
 
 test('server builds preview and sync order from Docker page or custom batches', () => {

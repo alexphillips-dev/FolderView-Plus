@@ -7,12 +7,22 @@ cd "$ROOT_DIR"
 [[ "${1:-}" == --push-dev ]] || fvplus::fail 'Usage: release_sync.sh --push-dev (only after an authorized stable release)'
 [[ -z "$(git status --porcelain)" ]] || fvplus::fail 'Synchronization requires a clean worktree.'
 git fetch --filter=blob:none --no-tags origin main dev
-[[ "$(git rev-parse HEAD)" == "$(git rev-parse origin/main)" ]] || fvplus::fail 'Run synchronization from the current published main release.'
+main_commit="$(git rev-parse origin/main)"
+dev_commit="$(git rev-parse origin/dev)"
+[[ "$(git rev-parse HEAD)" == "${main_commit}" ]] || fvplus::fail 'Run synchronization from the current published main release.'
+
+verify_origin_refs() {
+  [[ "$(git rev-parse origin/main)" == "${main_commit}" ]] || fvplus::fail 'Main moved during synchronization; no push performed.'
+  [[ "$(git rev-parse origin/dev)" == "${dev_commit}" ]] || fvplus::fail 'Dev moved during synchronization; no push performed.'
+}
+
 node scripts/release_validation.mjs wait
+git fetch --filter=blob:none --no-tags origin main dev
+verify_origin_refs
 mkdir -p "$ROOT_DIR/tmp"
 task_dir="$(mktemp -d "$ROOT_DIR/tmp/release-sync.XXXXXX")"
 worktree="$task_dir/worktree"
-git worktree add --detach "$worktree" origin/dev
+git worktree add --detach "$worktree" "${dev_commit}"
 (
   cd "$worktree"
   # WSL and native Windows Git both need a relative gitfile.
@@ -20,9 +30,10 @@ git worktree add --detach "$worktree" origin/dev
     worktree_git_dir="$(git rev-parse --absolute-git-dir)"
     printf 'gitdir: %s\n' "$(realpath --relative-to="$worktree" "$worktree_git_dir")" > .git
   fi
+  export FVPLUS_BACKMERGE_MAIN_COMMIT="${main_commit}" FVPLUS_BACKMERGE_DEV_COMMIT="${dev_commit}"
   FVPLUS_BACKMERGE_LOCAL_BRANCH=HEAD bash scripts/sync_main_to_dev.sh
   node scripts/sync_plan.mjs
-  if ! git diff --quiet origin/dev HEAD; then
+  if ! git diff --quiet "${dev_commit}" HEAD; then
     FVPLUS_BACKMERGE_LOCAL_BRANCH=HEAD FVPLUS_EXPECT_PLUGIN_BRANCH=dev bash scripts/prepare_backmerge_dev_package.sh
     git add --all
     if ! git diff --cached --quiet; then git commit --no-verify -m 'Rebuild dev package after stable synchronization'; fi
@@ -31,8 +42,7 @@ git worktree add --detach "$worktree" origin/dev
     echo 'Reusing the already-published dev tree; browser, benchmark, and security rescans are unnecessary.'
   fi
   git fetch --no-tags origin main dev
-  [[ "$(git rev-parse origin/main)" == "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("tmp/synchronization-plan.json")).mainCommit)')" ]] || { echo 'Main moved during synchronization; no push performed.' >&2; exit 1; }
-  [[ "$(git rev-parse origin/dev)" == "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("tmp/synchronization-plan.json")).devBaseCommit)')" ]] || { echo 'Dev moved during synchronization; no push performed.' >&2; exit 1; }
+  verify_origin_refs
   git push --no-verify origin HEAD:dev
   bash scripts/remote_publish_guard.sh
   git fetch --no-tags origin dev

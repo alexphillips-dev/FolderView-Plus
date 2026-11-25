@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "common",
-        "content-revision": "fc5a3301386b802ecd9ed206c3b9de19d3b2cb300949946423fe88060d8d95ac"
+        "content-revision": "2c592eed50771635445107c44159a206f98c225016eeaf5acd4c1f9c61fd8c04"
     },
     "common.unassigned-group.title": "Nicht zugeordnete Elemente",
     "runtime.action.requests-result": "$1 angenommen · $2 fehlgeschlagen",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Zielordner nicht gefunden.",
     "common.server.folder-id-is-required-d5216c": "Ordner-ID ist erforderlich.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Es ist ein Legacy-Regex-Muster erforderlich.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Die Konvertierung älterer regulärer Ausdrücke ist ausgelastet. Versuchen Sie es erneut.",
     "common.server.folder-not-found-ccbf07": "Ordner nicht gefunden.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Dieser Ordner verfügt nicht mehr über einen alten regulären Ausdruck, der konvertiert werden muss.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Der alte reguläre Ausdruck wurde nach dem Laden dieses Editors geändert. Laden Sie es erneut und überprüfen Sie es vor der Konvertierung.",

@@ -67,7 +67,8 @@ Use `Plugins -> Check for Updates`, then install the available FolderView Plus u
 - Keeps configuration under `/boot/config/plugins/folderview.plus`.
 - Downloads or reuses the pinned icon asset pack.
 - Recreates the scheduled-backup cron entry.
-- Keeps the core and icon archives referenced by the currently registered manifest while a replacement is installing. It removes obsolete archives after setup succeeds, while retaining the registered version's boot files until a later successful install or boot.
+- At boot, waits for any active FolderView Plus installation or removal before activating the registered package.
+- Keeps the core and icon archives referenced by the currently registered manifest while a replacement is installing. After setup succeeds, it removes older archives and retains core archives from the same release date or newer dates, along with newer icon packs. This keeps downloads staged for another update available.
 
 Reload the affected browser page after an update. FolderView Plus emits versioned assets and a page-version sentinel, but a hard refresh with `Ctrl+F5` is still useful when the browser or an intermediary cache serves stale markup.
 
@@ -175,5 +176,7 @@ Export anything you want to retain before uninstalling. The plugin remove action
 - Uploaded custom icons and custom overrides.
 - The icon-pack archive and runtime cache.
 - The scheduled-backup cron entry.
+
+If the native package manager reports a removal failure, the plugin keeps its registration and stops before deleting configuration, backups, or remaining runtime files.
 
 Uninstalling does not delete Docker containers, VMs, or their application data, but it does delete FolderView Plus organization and recovery data. A normal update is not an uninstall and preserves the persistent configuration directory.

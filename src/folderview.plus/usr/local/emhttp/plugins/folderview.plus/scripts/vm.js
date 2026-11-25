@@ -2654,6 +2654,7 @@ const copyVmFolderSettingsFromMenu = async (id) => {
 };
 
 const pasteVmFolderSettingsFromMenu = async (id) => {
+    const context = { userMessage: 'Failed to paste folder settings.', userVisible: true };
     await runVmGuardedAction('paste-folder-settings', async () => {
         if (!ensureVmFolderUnlocked(id, 'Paste folder settings')) {
             return;
@@ -2676,6 +2677,11 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
             });
             return;
         }
+        const endpoint = '/plugins/folderview.plus/server/apply_folder_settings.php';
+        const request = { type: 'vm', targetIds: JSON.stringify([id]),
+            categories: JSON.stringify(clipboardEntry.categories), settings: JSON.stringify(clipboardEntry.payload),
+            ...(lastVmRuntimeSnapshotRevisions.folder > 0 ? { expectedRevision: lastVmRuntimeSnapshotRevisions.folder } : {}) };
+        const preview = (await postVmJsonWithFallback(endpoint, { ...request, preview: '1' })).result;
         const summaryHtml = [
             `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
             `<div data-fvplus-style="fv-u-1tei6ul">${buildVmFolderSettingsSummaryHtml(clipboardEntry)}</div>`
@@ -2691,29 +2697,25 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
             closeOnConfirm: false,
             showLoaderOnConfirm: true
         }, async (confirmed) => {
-            if (!confirmed) {
+            if (!confirmed || !ensureVmFolderUnlocked(id, 'Paste folder settings')) {
                 return;
             }
-            try {
-                $('div.spinner.fixed').show('slow');
-                await postVmJsonWithFallback('/plugins/folderview.plus/server/apply_folder_settings.php', {
-                    type: 'vm',
-                    targetIds: JSON.stringify([id]),
-                    settings: JSON.stringify(clipboardEntry.payload)
-                }, {
-                    retries: 0,
-                    retryDelayMs: 260
-                });
-                swal.close();
-                queueLoadlistRefresh();
-            } finally {
-                $('div.spinner.fixed').hide('slow');
-            }
+            await runVmGuardedAction('paste-folder-settings', async () => {
+                try {
+                    $('div.spinner.fixed').show('slow');
+                    if (JSON.stringify(transferApi.readClipboardEntry('vm')) !== JSON.stringify(clipboardEntry)) {
+                        throw new Error('Clipboard changed during confirmation.');
+                    }
+                    await postVmJsonWithFallback(endpoint, { ...request, expectedRevision: preview.folderRevision },
+                        { retries: 0, retryDelayMs: 260 });
+                    swal.close();
+                    queueLoadlistRefresh();
+                } finally {
+                    $('div.spinner.fixed').hide('slow');
+                }
+            }, context);
         });
-    }, {
-        userMessage: 'Failed to paste folder settings.',
-        userVisible: true
-    });
+    }, context);
 };
 
 const VM_CONTEXT_QUICK_ACTION_LABELS = new Set([
@@ -3189,6 +3191,7 @@ const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
         $state.text(` ${label}`).removeClass('started paused stopped').addClass(meta.className);
     }
     $scope.toggleClass('autostart', entry?.autostart === true);
+    if ($surface.is('tr')) runtimeHostAdapters?.syncNativeSwitch?.($surface.find('input.autostart[type="checkbox"]').first(), entry?.autostart);
 };
 
 const findVmRuntimeRowsByName = (name) => $(window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.findVmRows(document, name));
@@ -3262,7 +3265,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
     else if (autostartStarted === 0) $folderRow.addClass('autostart-off');
     else if (autostartStarted < autostart) $folderRow.addClass('autostart-partial');
     else $folderRow.addClass('autostart-full');
-    $(`#folder-${id}-auto`).prop('checked', autostart > 0);
+    runtimeHostAdapters?.syncNativeSwitch?.($(`#folder-${id}-auto`), autostart > 0);
     const expanded = folder?.status?.expanded === true;
     folder.status = { started, paused, stopped, autostart, autostartStarted, expanded };
 };
@@ -3703,6 +3706,7 @@ markVmFatalBannerStep('VM request bundle primed');
 
 // Route the Unraid host lifecycle through the same adapter contract as Docker.
 vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
+    vmUnassignedGroup?.preserveFocus?.();
     vmUnassignedGroup?.clear();
     vmUnassignedNames.clear();
     loadedFolder = false;
@@ -3844,7 +3848,7 @@ window.addEventListener('pagehide', function releaseVmPage(event) {
     window.removeEventListener('pagehide', releaseVmPage);
     vmRuntimePageDisposed = true;
     vmNativeListRequest?.abort();
-    vmUnassignedGroup?.clear();
+    vmUnassignedGroup?.clear({ resetFocus: true });
     window.clearTimeout(vmFolderActionRefreshTimer);
     vmQuickFinderApi?.dispose();
     vmLiveRefreshController.dispose();

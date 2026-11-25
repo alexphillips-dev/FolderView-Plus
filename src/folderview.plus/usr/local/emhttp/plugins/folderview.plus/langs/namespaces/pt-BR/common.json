@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "common",
-        "content-revision": "7776298f0eb250929b73e8a20ab5572cab25200eba0f882ebaf13c4f9e2bc729"
+        "content-revision": "fa46179263dc355d4333b0b0fee258945e09c4edc65221f20e3b5f349195e754"
     },
     "common.unassigned-group.title": "Itens não atribuídos",
     "runtime.action.requests-result": "$1 aceitas · $2 falharam",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Pasta de destino não encontrada.",
     "common.server.folder-id-is-required-d5216c": "O ID da pasta é obrigatório.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "O padrão regex legado é obrigatório.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "A conversão de regex herdada está ocupada. Tente novamente.",
     "common.server.folder-not-found-ccbf07": "Pasta não encontrada.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Esta pasta não possui mais um regex herdado para converter.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "O regex herdado foi alterado após o carregamento deste editor. Recarregue e revise-o antes de converter.",

@@ -23,7 +23,7 @@ test('shared bulk assignment module provides plan building and atomic execution 
     assert.match(bulkSharedJs, /const buildBulkAssignmentPlan = \(type,\s*folderId,\s*namesInput = null\) =>/);
     assert.match(bulkSharedJs, /const buildBulkAssignmentPreludeLines = \(plan,\s*options = \{\}\) =>/);
     assert.match(bulkSharedJs, /const executeBulkAssignmentPlan = async \(type,\s*planInput,\s*options = \{\}\) =>/);
-    assert.match(bulkSharedJs, /const result = await requestBulkAssign\(resolvedType, targetFolderId, actionableNames\);/);
+    assert.match(bulkSharedJs, /const result = await requestBulkAssign\(resolvedType, targetFolderId, actionableNames, options\.expectedRevision\);/);
     assert.doesNotMatch(bulkSharedJs, /DEFAULT_BULK_ASSIGN_CHUNK/);
 });
 
@@ -53,4 +53,28 @@ test('folder editor styles include dedicated member bulk move layout hooks', () 
     assert.match(folderCss, /\.fv-member-bulk-controls\s*\{/);
     assert.match(folderCss, /\.fv-member-bulk-summary\s*\{/);
     assert.match(folderCss, /\.fv-member-bulk-inline-action\s*\{/);
+});
+
+test('editor only publishes a mutation revision alongside its matching folder map', async () => {
+    const start = folderJs.indexOf('const reconcileEditorFolderMutation =');
+    const end = folderJs.indexOf('async function applyEditorMemberBulkMove()', start);
+    const load = new Function('requestClient', 'utils', 'type', `
+        let folderEditorExpectedFolderRevision = 3;
+        let allFoldersById = { original: { name: 'Original' } };
+        ${folderJs.slice(start, end)}
+        return { reconcile: reconcileEditorFolderMutation, state: () => ({ folderEditorExpectedFolderRevision, allFoldersById }) };
+    `);
+    const folders = { updated: { name: 'Updated' } };
+    for (const revision of [4, 5]) {
+        const runtime = load({
+            getJson: async (_endpoint, options) => {
+                assert.equal(options.data.includeMetadata, 1);
+                return { folders, metadata: { folderRevision: revision } };
+            }
+        }, { normalizeFolderMap: value => value }, 'vm');
+        await runtime.reconcile(3, 4);
+        assert.deepEqual(runtime.state(), revision === 4
+            ? { folderEditorExpectedFolderRevision: 4, allFoldersById: folders }
+            : { folderEditorExpectedFolderRevision: 3, allFoldersById: { original: { name: 'Original' } } });
+    }
 });

@@ -32,7 +32,7 @@ $candidate = '2026.01.01.02';
 $pluginName = 'folderview.plus';
 $scriptSource = __DIR__ . '/../../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts';
 $iconArchives = [];
-foreach (['1.0.0', '2.0.0'] as $iconVersion) {
+foreach (['1.0.0', '2.0.0', '3.0.0'] as $iconVersion) {
     $iconRoot = "$root/icons-$iconVersion";
     mkdir("$iconRoot/third-party-icons", 0700, true);
     file_put_contents("$iconRoot/asset-pack.json", "{\"version\": \"$iconVersion\", \"fileCount\": 1}\n");
@@ -48,7 +48,8 @@ $cases = $cliSource === null
     : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
-        'update-success', 'install-success', 'install-reinstall-success'];
+        'update-success', 'install-success', 'install-reinstall-success',
+        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -154,8 +155,16 @@ printf "PACKAGE NAME: %s\n" "${package%.txz}" > "$FVPLUS_FIXTURE_PACKAGES/${pack
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
 if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
-        "$dir/bin/removepkg" => '[ "$1" = folderview.plus-2026.01.01.02 ] || exit 28
+        "$dir/bin/removepkg" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
+    printf "Native removal fixture failed\n" >&2
+    exit 28
+fi
+[ -f "$FVPLUS_FIXTURE_PACKAGES/$1" ] || exit 29
 rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_PACKAGES/$1"',
+        "$dir/bin/flock" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-boot-contention-success ] && [ "$#" -eq 1 ] && [ "$1" = 9 ]; then
+    touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
+fi
+exec /usr/bin/flock "$@"',
         "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" == *-version && "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
     [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ] && [ "${FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT:-}" != 1 ]; then
     if [ "${FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION:-}" = 1 ]; then
@@ -213,6 +222,60 @@ exec /bin/mv "$@"'
             : [PHP_BINARY, $cli, 'install', "$dir/manual/$pluginName.plg", 'forced'];
     } else {
         $command = $activateHook;
+    }
+    if ($case === 'install-native-remove-failure') {
+        [$status, $output] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        verifyInstallFixture($status !== 0 && str_contains($output, 'Native removal fixture failed') && !str_contains($output, "$pluginName.plg removed"),
+            "$case treated native removal failure as success: $output");
+        verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
+            && file_get_contents("$config/docker.json") === '{"previous":"Docker"}' && is_file("$config/vm.json")
+            && is_file("$packages/$pluginName-$previous") && is_file("$runtime/FolderViewPlus.page")
+            && is_link("$runtime/images/third-party-icons") && file_get_contents($cronFile) === $priorCron,
+            "$case damaged the active installation, registration, schedule, or configuration.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'install-boot-contention-success') {
+        unlink($runningLink);
+        unlink("$packages/$pluginName-$previous");
+        unlink("$dir/core-installed");
+        unlink("$runtime/FolderViewPlus.page");
+        $lock = fopen("$dir/install.lock", 'a+');
+        verifyInstallFixture(is_resource($lock) && flock($lock, LOCK_EX | LOCK_NB), "$case could not reserve the test lock.");
+        $bootTask = $start([PHP_BINARY, $cli, 'install', $bootManifest]);
+        for ($attempt = 0; $attempt < 160 && !is_file("$dir/boot-lock-waiting"); $attempt++) usleep(50000);
+        $waited = is_file("$dir/boot-lock-waiting") && proc_get_status($bootTask[0])['running'] && is_file($bootManifest);
+        flock($lock, LOCK_UN);
+        fclose($lock);
+        [$status, $output] = $finish($bootTask);
+        verifyInstallFixture($waited && $status === 0, "$case could not resume boot after the lock was released: $output");
+        verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
+            && !is_file("$boot-error/$pluginName.plg") && is_file("$packages/$pluginName-$previous")
+            && str_contains(readlink("$runtime/images/third-party-icons"), '/icons-1.0.0/'),
+            "$case failed to retain and activate the registered boot installation.");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'update-staged-peer-success') {
+        $peerVersion = '2026.01.01.00';
+        $stagedVersion = '2026.01.01.03';
+        file_put_contents("$config/$pluginName-$peerVersion.txz", "core $peerVersion");
+        file_put_contents("$config/$pluginName-$stagedVersion.txz", "core $stagedVersion");
+        [$firstStatus, $firstOutput] = $run($command);
+        clearstatcache();
+        verifyInstallFixture($firstStatus === 0 && file_get_contents($bootManifest) === $newManifest
+            && is_file("$config/$pluginName-$peerVersion.txz") && is_file("$config/$pluginName-$stagedVersion.txz")
+            && is_file("$config/$pluginName-icons-3.0.0.txz") && !is_file("$config/$pluginName-2025.01.01.01.txz")
+            && !is_file("$config/$pluginName-icons-0.9.0.txz"),
+            "$case pruned a staged or peer archive, or kept an obsolete archive: $firstOutput");
+        $stagedManifest = $manifest($stagedVersion, '3.0.0');
+        file_put_contents("$dir/manual/$pluginName.plg", $stagedManifest);
+        [$secondStatus, $secondOutput] = $run([PHP_BINARY, $cli, 'install', "$dir/manual/$pluginName.plg", 'forced']);
+        verifyInstallFixture($secondStatus === 0 && file_get_contents($bootManifest) === $stagedManifest
+            && is_file("$packages/$pluginName-$stagedVersion") && str_contains(readlink("$runtime/images/third-party-icons"), '/icons-3.0.0/'),
+            "$case could not install the staged downloads offline: $secondOutput");
+        $check[] = $case;
+        continue;
     }
     if ($case === 'update-registration-version') {
         [$firstStatus, $firstOutput] = $run($activateHook, ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);

@@ -84,3 +84,19 @@ test('invalid categories and missing targets fail atomically before a backup or 
         assert.deepEqual(result.target, result.original);
     }
 });
+
+test('folder settings transfer accepts the full canonical folder ID length', () => {
+    for (const [type, length] of [['docker', 65], ['vm', 128]]) {
+        const id = 'a'.repeat(length);
+        const accepted = run({ type, configuredTargetId: id });
+        assert.equal(accepted.error, '');
+        assert.deepEqual(accepted.result.updatedIds, [id]);
+        assert.equal(accepted.target.icon, 'source.svg');
+    }
+    for (const id of ['a'.repeat(129), 'a b', '__proto__']) {
+        const rejected = run({ targetIds: ['target', id] });
+        assert.match(rejected.error, /Invalid target folder list/);
+        assert.equal(rejected.backups.length, 0);
+        assert.deepEqual(rejected.after, rejected.before);
+    }
+});

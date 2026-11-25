@@ -1,13 +1,32 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 const identity = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.member-identity.js');
+
+const persistPatches = (request) => {
+    const temporary = fs.realpathSync(os.tmpdir());
+    const root = fs.mkdtempSync(path.join(temporary, 'fvplus-identity-'));
+    try {
+        fs.mkdirSync(path.join(root, 'config'));
+        fs.mkdirSync(path.join(root, 'host'));
+        fs.writeFileSync(path.join(root, 'request.json'), JSON.stringify(request));
+        const server = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
+        return JSON.parse(execFileSync('php', ['tests/fixtures/member-identity-reconciliation.php', root, server], {
+            encoding: 'utf8', timeout: 30000
+        }));
+    } finally {
+        assert.equal(path.dirname(fs.realpathSync(root)), temporary);
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+};
 
 test('a uniquely identified renamed Docker member keeps folder state and action targets', () => {
     const folders = {
@@ -105,6 +124,38 @@ test('VM members reconcile by UUID and live members backfill their identities', 
     });
     assert.equal(backfilled.folders.lab.memberIdentities['Current VM'].uuid, 'vm-uuid-2');
     assert.equal(backfilled.diagnostics.backfilled, 1);
+});
+
+test('identity writes preserve a newer manual claim in a different folder', () => {
+    const uuid = '00000000-0000-0000-0000-000000000001';
+    const folders = { source: { containers: ['Old'], memberIdentities: { Old: { kind: 'vm', uuid } } },
+        destination: { containers: [] } };
+    const inventory = { Renamed: { name: 'Renamed', uuid } };
+    const { patches } = identity.reconcileFolders('vm', folders, inventory);
+    const saved = persistPatches({ folders, patches, inventory, assignTo: 'destination' });
+    assert.equal(saved.result.renameCount, 0);
+    assert.equal(saved.result.metadata.folderRevision, saved.before.folderRevision);
+    assert.deepEqual(saved.folders.source.containers, ['Old']);
+    assert.deepEqual(saved.folders.destination.containers, ['Renamed']);
+});
+
+test('a renamed VM keeps its UUID even after another VM takes its old name', () => {
+    const uuid = '00000000-0000-0000-0000-000000000001';
+    const replacementUuid = '00000000-0000-0000-0000-000000000002';
+    const prefix = 'x'.repeat(64);
+    const folderId = prefix + 'target';
+    const folders = { [prefix]: { containers: ['Old'] },
+        [folderId]: { containers: ['Old'], memberIdentities: { Old: { kind: 'vm', uuid } } } };
+    const inventory = { Old: { name: 'Old', uuid: replacementUuid }, Renamed: { name: 'Renamed', uuid } };
+    const { folders: optimistic, patches } = identity.reconcileFolders('vm', folders, inventory);
+    assert.deepEqual(optimistic[folderId].containers, ['Renamed']);
+    const saved = persistPatches({ folders, patches });
+    assert.equal(saved.result.renameCount, 1);
+    assert.deepEqual(saved.folders[prefix].containers, ['Old']);
+    assert.deepEqual(saved.folders[folderId].containers, ['Renamed']);
+    assert.equal(saved.folders[folderId].memberIdentities.Renamed.uuid, uuid);
+    const unavailable = identity.reconcileFolders('vm', { [folderId]: folders[folderId] }, { Old: inventory.Old });
+    assert.equal(Object.hasOwn(unavailable.patches, folderId), false);
 });
 
 test('editor, server, and runtime wire identity and per-member preview persistence', () => {

@@ -5,6 +5,7 @@ fvplus_json_try(function (): array {
     requireMutationRequestGuard();
 
     $type = ensureType((string)($_POST['type'] ?? ''));
+    if (isset($_POST['expectedRevision'])) assertExpectedConfigRevision($type, 'folder', $_POST['expectedRevision']);
     $assignmentsRaw = (string)($_POST['assignments'] ?? '');
     if ($assignmentsRaw !== '') {
         if (strlen($assignmentsRaw) > FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES) {

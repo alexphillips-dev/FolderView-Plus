@@ -309,7 +309,6 @@
   "common.server.target-folder-not-found-b0f5ad": "Target folder not found.",
   "common.server.folder-id-is-required-d5216c": "Folder ID is required.",
   "common.server.legacy-regex-pattern-is-required-dc6828": "Legacy regex pattern is required.",
-  "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Legacy regex conversion is busy. Try again.",
   "common.server.folder-not-found-ccbf07": "Folder not found.",
   "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "This folder no longer has a legacy regex to convert.",
   "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "The legacy regex changed after this editor loaded. Reload and review it before converting.",

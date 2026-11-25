@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "content-revision": "4cda0331a1e22d58810acbc8e5d0e389e806508654e7f4cbdc32d89dd842b8f2"
+        "content-revision": "14f207af18b571be4ef36480a00fed1f5502286d5c4659345541d7f4f6c5df48"
     },
     "common.unassigned-group.title": "Ikke-tildelte elementer",
     "runtime.action.requests-result": "$1 accepteret · $2 mislykkedes",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Målmappe blev ikke fundet.",
     "common.server.folder-id-is-required-d5216c": "Mappe-id er påkrævet.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Ældre regex-mønster er påkrævet.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Ældre regex-konvertering er optaget. Prøv igen.",
     "common.server.folder-not-found-ccbf07": "Mappe ikke fundet.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Denne mappe har ikke længere et ældre regex, der skal konverteres.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Det gamle regex ændrede sig, efter at denne editor blev indlæst. Genindlæs og gennemgå den før konvertering.",

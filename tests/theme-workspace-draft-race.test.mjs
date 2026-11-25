@@ -196,3 +196,54 @@ test('copying a profile preserves newer scope edits on the source profile', asyn
     handlers.get('change.fvthemescope')({ target: { value: 'global' } });
     assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#3b82f6');
 });
+
+test('preset undo survives leaving a scope and restores its original values', () => {
+    const handlers = new Map();
+    const undo = { disabled: true };
+    const nodes = {
+        'fv-theme-presets': { firstElementChild: {} },
+        'fv-theme-preset-controls': { querySelector: () => ({}), querySelectorAll: () => [] },
+        'fv-theme-preset-undo': undo
+    };
+    const document = { getElementById: id => nodes[id] || null, querySelector: () => null };
+    const $ = () => ({ off: () => ({ on: (event, _selector, handler) => handlers.set(event, handler) }) });
+    const api = createApi({ document, $ });
+    api.setWorkspace({ variables: { '--fvplus-theme-accent': '#123456' } });
+    api.bindEvents();
+    api.previewPreset('blue');
+    const scope = handlers.get('change.fvthemescope');
+    scope({ target: { value: 'docker' } });
+    assert.equal(undo.disabled, true);
+    scope({ target: { value: 'global' } });
+    assert.equal(undo.disabled, false);
+    api.undoPreset();
+    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#123456');
+    assert.equal(undo.disabled, true);
+});
+
+test('queued Appearance saves keep their draft and compare to their own prior successful save', async () => {
+    const requests = [];
+    const token = '--fvplus-theme-accent';
+    const initial = { id: 'default', name: 'Default', layers: { global: { variables: { [token]: '#123456' } } } };
+    const api = createApi({ apiPostJson: (_endpoint, payload) => new Promise((resolve, reject) => {
+        requests.push({ payload, resolve, reject });
+    }) });
+    api.setWorkspace({ profiles: [initial] });
+    api.previewPreset('blue');
+    const first = api.saveCustomize();
+    assert.equal(JSON.parse(requests[0].payload.expectedLayer).variables[token], '#123456');
+    requests[0].resolve({});
+    await new Promise(setImmediate);
+    api.previewPreset('green');
+    const next = api.saveCustomize();
+    const blue = JSON.parse(requests[1].payload.variables);
+    requests[1].resolve({ workspace: { profiles: [{ ...initial, layers: { global: { variables: blue } } }] } });
+    await first;
+    await new Promise(setImmediate);
+    assert.equal(JSON.parse(requests[2].payload.expectedLayer).variables[token], '#3b82f6');
+    requests[2].reject(Object.assign(new Error('Synthetic changed scope'), { status: 409 }));
+    await assert.rejects(next, /changed scope/);
+    assert.equal(api.getWorkspace().variables[token], '#22c55e');
+    api.undoPreset();
+    assert.equal(api.getWorkspace().variables[token], '#3b82f6');
+});

@@ -1149,6 +1149,7 @@
             if (!$row || !$row.length) {
                 return;
             }
+            win.FolderViewPlusRuntimeHostAdapters?.syncNativeSwitch?.($row.find('input.autostart[type="checkbox"]').first(), entry?.autostart);
             const statusMeta = getDockerPreviewStatusMeta(entry);
             const localizedLabel = typeof jq?.i18n === 'function'
                 ? String(jq.i18n(statusMeta.key) || statusMeta.key).trim()

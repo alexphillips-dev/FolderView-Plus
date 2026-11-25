@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4791,
-        "total-source-messages": 4791,
+        "translated-messages": 4790,
+        "total-source-messages": 4790,
         "content-revision": "25c661c42ddc5deb7cd4b62058b6d3063f8d947b510554f28d2051ef94a47cb1",
-        "locale-content-revision": "538405aed726c032a772461ad761ebe8e48c30033fcc7202e6d4aa58d2556750"
+        "locale-content-revision": "eb45a4a07560a6640ef5d75b49fac206994c1572e40ef4a2ad07e967486f05a7"
     },
     "add-folder": "Legg til mappe",
     "up-to-date": "oppdatert",

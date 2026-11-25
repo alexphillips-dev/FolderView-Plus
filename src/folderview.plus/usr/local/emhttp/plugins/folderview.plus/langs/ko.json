@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4791,
-        "total-source-messages": 4791,
+        "translated-messages": 4790,
+        "total-source-messages": 4790,
         "content-revision": "c88e03df12dedd1e998c94716902a946cfe978fc9bb7dd5967f28fc47ffdc5e2",
-        "locale-content-revision": "e506e0e4fafa69047cc0ef12923ad6d9070a5ca02f94cf9057e3d0d5ecccf0f3"
+        "locale-content-revision": "b88df332630f166d18bfd5b558a3b919f66aaf121dc8b5a0042e5b7ea08fd1d9"
     },
     "add-folder": "폴더 추가",
     "up-to-date": "최신 상태",

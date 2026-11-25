@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/lib.update-channel.php';
+require_once __DIR__ . '/lib.diagnostics-report-privacy.php';
 function diagnosticsResolveSupportBundleChannel(): string {
         return resolveInstalledPluginChannel();
     }
@@ -283,7 +284,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'templates' => (int)($typeData['templateCount'] ?? 0),
                 'backups' => (int)($typeData['backupCount'] ?? 0)
             ],
-            'lastBackup' => $lastBackup
+            'lastBackup' => diagnosticsProjectBackupRecord($lastBackup, 'pluginState.' . $type . '.lastBackup', $redactor)
         ];
     }
 
@@ -522,48 +523,20 @@ function diagnosticsResolveSupportBundleChannel(): string {
     function diagnosticsBuildSupportBundleHealthAndHistorySection(array $diagnostics, array $integrityFindings, array &$redactor): array {
         $summary = is_array($diagnostics['summary'] ?? null) ? $diagnostics['summary'] : [];
         $history = is_array($diagnostics['importExportHistory'] ?? null) ? $diagnostics['importExportHistory'] : [];
-        $timelineRows = [];
-        foreach (array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []) as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            $timelineRows[] = [
-                'timestamp' => (string)($row['timestamp'] ?? ''),
-                'action' => diagnosticsSupportBundleEventLabel((string)($row['action'] ?? ''), 'action', 'healthAndHistory.recentTimeline.*.action', $redactor),
-                'type' => isset($row['type']) ? diagnosticsSupportBundleEventLabel((string)$row['type'], 'type', 'healthAndHistory.recentTimeline.*.type', $redactor) : null,
-                'status' => diagnosticsSupportBundleEventLabel((string)($row['status'] ?? 'ok'), 'status', 'healthAndHistory.recentTimeline.*.status', $redactor),
-                'summary' => diagnosticsSupportBundleRedactRecentTimelineSummary((string)($row['summary'] ?? ''), $redactor)
-            ];
-        }
-        if (count($timelineRows) < count(array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []))) {
-            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', 'healthAndHistory.recentTimeline');
-        }
-
-        $historyEvents = [];
-        foreach (array_values(is_array($history['events'] ?? null) ? $history['events'] : []) as $event) {
-            if (!is_array($event)) {
-                continue;
-            }
-            $historyEvents[] = [
-                'id' => (string)($event['id'] ?? ''),
-                'timestamp' => (string)($event['timestamp'] ?? ''),
-                'action' => diagnosticsSupportBundleEventLabel((string)($event['action'] ?? ''), 'action', 'healthAndHistory.recentMutations.events.*.action', $redactor),
-                'type' => isset($event['type']) ? diagnosticsSupportBundleEventLabel((string)$event['type'], 'type', 'healthAndHistory.recentMutations.events.*.type', $redactor) : null,
-                'status' => diagnosticsSupportBundleEventLabel((string)($event['status'] ?? 'ok'), 'status', 'healthAndHistory.recentMutations.events.*.status', $redactor),
-                'source' => diagnosticsSupportBundleEventLabel((string)($event['source'] ?? 'server'), 'source', 'healthAndHistory.recentMutations.events.*.source', $redactor),
-                'traceId' => (string)($event['traceId'] ?? ''),
-                'transactionId' => (string)($event['transactionId'] ?? ''),
-                'details' => diagnosticsSupportBundleRedactEventDetails(
-                    is_array($event['details'] ?? null) ? $event['details'] : [],
-                    'healthAndHistory.recentMutations.events.*.details',
-                    $redactor
-                )
-            ];
+        $timelineRows = diagnosticsProjectTimeline(
+            is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : [], 'healthAndHistory.recentTimeline', $redactor
+        );
+        $historyEvents = diagnosticsProjectHistoryEvents(
+            is_array($history['events'] ?? null) ? $history['events'] : [], 'healthAndHistory.recentMutations.events.*', $redactor
+        );
+        $integrity = diagnosticsSupportBundleRedactIntegrityFindings($integrityFindings, $redactor);
+        foreach ($integrity as $type => &$findings) {
+            $findings = diagnosticsRedactIntegrityIdentifiers($findings, $type, 'healthAndHistory.integrityFindings.' . $type, $redactor);
         }
 
         return [
             'summary' => $summary,
-            'integrityFindings' => diagnosticsSupportBundleRedactIntegrityFindings($integrityFindings, $redactor),
+            'integrityFindings' => $integrity,
             'recommendedActions' => array_values(is_array($summary['recommendedActions'] ?? null) ? $summary['recommendedActions'] : []),
             'recentActions' => diagnosticsBuildSupportBundleRecentActions(
                 array_values(is_array($history['events'] ?? null) ? $history['events'] : []),

@@ -121,6 +121,27 @@
             return true;
         };
 
+        const syncHostSummary = (type, runtime, startedOnly) => {
+            const isVm = type === 'vm';
+            const host = doc.getElementById(isVm ? 'vm_view' : 'docker_view');
+            const section = isVm ? 'vms' : 'apps';
+            const entries = Object.values(runtime || {});
+            if (!host || (!entries.length && host.querySelector(`span.outer.${section}`))) return;
+            const counts = { started: 0, stopped: 0, paused: 0 };
+            entries.forEach(entry => { counts[getRuntimeStateMeta(type, entry).key] += 1; });
+            const summary = doc.querySelector(`span.${section}.switch`);
+            const text = summary?.textContent || '';
+            // The host has already localized the labels. Keep them and update its count fields.
+            const fields = /(: )\d+(?=,|$)/g;
+            if (summary && [...text.matchAll(fields)].length === 3) {
+                const values = [counts.started, counts.stopped, counts.paused];
+                const next = text.replace(fields, (_match, separator) => separator + values.shift());
+                if (text !== next) summary.textContent = next;
+            }
+            const empty = host.querySelector(isVm ? '#no_vms' : '#no_apps');
+            if (empty) jquery(empty).toggle(startedOnly ? counts.started + counts.paused === 0 : entries.length === 0);
+        };
+
         const collectDiagnostics = (containerId = '') => {
             const safeContainerId = String(containerId || '').trim();
             const control = safeContainerId ? doc.getElementById(safeContainerId) : null;
@@ -155,6 +176,7 @@
             captureSurface,
             restoreSurfaceIcons,
             syncSurface,
+            syncHostSummary,
             collectDiagnostics,
             persistDiagnostics
         });

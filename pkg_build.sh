@@ -24,7 +24,7 @@ validate_after_build=true
 dry_run=false
 run_install_smoke=false
 tmpdir=""
-lockfile="tmp/pkg_build.lock"
+build_lock_dir="tmp/pkg_build.lock.d"
 lockdir=""
 branch_override="${FVPLUS_BUILD_BRANCH:-}"
 
@@ -208,21 +208,12 @@ sync_ca_template_metadata() {
 }
 
 acquire_build_lock() {
-    local fallback_lockdir="${lockfile}.d"
-    mkdir -p "$(dirname "$lockfile")"
-    if command -v flock >/dev/null 2>&1 && [ "${FVPLUS_PKG_BUILD_DISABLE_FLOCK:-0}" != "1" ]; then
-        exec 9>"$lockfile"
-        if ! flock -n 9; then
-            echo "ERROR: Another pkg_build.sh instance is already running (lock: $lockfile)." >&2
-            exit 1
-        fi
-        return
-    fi
-    if ! mkdir "$fallback_lockdir" 2>/dev/null; then
-        echo "ERROR: Another pkg_build.sh instance is already running (lock: $fallback_lockdir)." >&2
+    mkdir -p "$(dirname "$build_lock_dir")"
+    if ! mkdir "$build_lock_dir" 2>/dev/null; then
+        echo "ERROR: Another pkg_build.sh instance is already running (lock: $build_lock_dir)." >&2
         exit 1
     fi
-    lockdir="$fallback_lockdir"
+    lockdir="$build_lock_dir"
 }
 
 is_stable_version() {

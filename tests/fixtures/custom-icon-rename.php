@@ -4,7 +4,8 @@ $_SERVER['DOCUMENT_ROOT'] = "$root/host";
 $request = json_decode(file_get_contents($argv[3] ?? "$root/request.json"), true, 512, JSON_THROW_ON_ERROR);
 if (($request['runtimeMode'] ?? 'copy') === 'copy') {
     @mkdir("$root/source/images/custom", 0770, true);
-    file_put_contents("$root/source/images/custom/fixture-unmanaged.txt", 'keep');
+    $unmanaged = !empty($request['runtimeMetadata']) ? '!fixture-unmanaged.txt' : 'fixture-unmanaged.txt';
+    file_put_contents("$root/source/images/custom/$unmanaged", 'keep');
 }
 require "$server/lib.php";
 require "$server/lib.custom-icon-endpoint-foundation.php";
@@ -60,6 +61,9 @@ if (empty($request['skipSeed'])) {
     }
     syncCustomIconMetadataIndex($customDir);
     syncCustomIconPublicRuntime();
+    if (!empty($request['runtimeMetadata'])) {
+        copy(customIconMetadataPath(), fvplusCustomIconRuntimeDirPath() . '/.metadata.json');
+    }
 }
 if (!empty($request['seedOnly'])) { echo json_encode(['seeded' => true]); exit; }
 if (!empty($request['holdSave'])) {

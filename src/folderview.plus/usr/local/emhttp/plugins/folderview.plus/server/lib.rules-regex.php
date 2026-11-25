@@ -13,9 +13,9 @@ function fvplusLegacyRegexCodeUnits(string $value): string {
         return html_entity_decode('&#' . (0xe000 + ($point >> 10)) . ';&#' . (0xe400 + ($point & 1023)) . ';', ENT_HTML5, 'UTF-8');
     }, $value) ?? $value;
 }
-
-function serverRuleRegex(string $pattern, bool $unicode = true): string {
-    if ($unicode) $pattern = fvplusTranslateRuleBackreferences($pattern);
+function serverRuleRegex(string $pattern, bool $unicode = true, bool $managed = false): string {
+    if ($unicode || $managed) $pattern = fvplusTranslateRuleBackreferences($pattern, !$unicode);
+    $legacyEscapes = $managed ? 'bBcdDfnrtwWxkg' : 'bBcdDfnrtwWxk';
     $whitespace = '\x{9}-\x{d}\x{20}\x{a0}\x{1680}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}\x{feff}';
     $nonWhitespace = '\x{0}-\x{8}\x{e}-\x{1f}\x{21}-\x{9f}\x{a1}-\x{167f}\x{1681}-\x{1fff}'
         . '\x{200b}-\x{2027}\x{202a}-\x{202e}\x{2030}-\x{205e}\x{2060}-\x{2fff}\x{3001}-\x{fefe}\x{ff00}-\x{10ffff}';
@@ -52,7 +52,7 @@ function serverRuleRegex(string $pattern, bool $unicode = true): string {
                 $index++;
                 continue;
             }
-            if (!$unicode && ctype_alpha($escape) && !str_contains('bBcdDfnrtwWxk', $escape)) {
+            if (!$unicode && ctype_alpha($escape) && !str_contains($legacyEscapes, $escape)) {
                 $translated .= $escape; $index++; continue;
             }
             $translated .= $char . $pattern[++$index]; continue;

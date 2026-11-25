@@ -148,6 +148,7 @@ const phpScope = extra => {
     let reads = 0;
     const scope = mainScope({
         dockerRuntimePerformanceTelemetry: null, dockerQuickFinderApi: null,
+        dockerDeferredConfigurationRebuild: false, getDockerRuntimeReconcileApi: () => null,
         dockerRuntimeInfoByName: { app: { state: 'original' } },
         lastLiveRefreshStateSignature: '', lastLiveRefreshStateEntityCount: 1,
         runtimeSnapshotApi: {
@@ -167,6 +168,7 @@ const phpScope = extra => {
         window: { setTimeout: callback => { timers.push(callback); } },
         ...extra
     });
+    scope.queueDockerConfigurationRebuild = loadMain('queueDockerConfigurationRebuild', 'const buildDockerRuntimeInfoUrl =', scope);
     return { scope, queued, stored, accepted, timers, reads: () => reads };
 };
 
@@ -208,7 +210,8 @@ test('PHP scheduled configuration replacement queues once, while explicit lifecy
         const refresh = loadMain('refreshDockerRuntimeStateFromPhp', 'const refreshDockerRuntimeStateInPlace =', item.scope);
         assert.equal(await refresh({ preserveGroupedDom }), preserveGroupedDom);
         assert.equal(item.queued.length, preserveGroupedDom ? 0 : 1);
-        assert.equal(item.accepted.length, preserveGroupedDom ? 1 : 0);
+        assert.equal(item.accepted.length, 0);
+        assert.equal(item.scope.dockerDeferredConfigurationRebuild, preserveGroupedDom);
         assert.equal(item.stored.some(value => value.deferredConfigurationRebuild), preserveGroupedDom);
     }
 });

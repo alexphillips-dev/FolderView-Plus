@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "content-revision": "e40d09dc17110a1e60e963e08ae4ea0b74efc66100b1d1fe3e026bf9df0fa16f"
+        "content-revision": "0d4320ffa624e8d44bd97da5bcfa8975ff42a5d73528014f997a990dacc81920"
     },
     "common.unassigned-group.title": "Elements sense assignar",
     "runtime.action.requests-result": "$1 acceptades · $2 fallides",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "No s'ha trobat la carpeta de destinació.",
     "common.server.folder-id-is-required-d5216c": "L'identificador de carpeta és obligatori.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Es requereix un patró d'expressió regular heretat.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "La conversió d'expressions regulars heretades està ocupada. Torna-ho a provar.",
     "common.server.folder-not-found-ccbf07": "No s'ha trobat la carpeta.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Aquesta carpeta ja no té una expressió regular heretada per convertir.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "L'expressió regular heretada va canviar després de carregar aquest editor. Torneu a carregar-lo i reviseu-lo abans de convertir-lo.",

@@ -51,6 +51,30 @@ test('public environment boundaries reject incomplete and unsupported envelopes 
     } finally { harness.cleanup(); }
 });
 
+test('failed environment transactions preserve backup and checkpoint history before verification', () => {
+    const harness = setup();
+    try {
+        const result = harness.run('environment-retention');
+        assert.match(result.error, /Injected late environment failure.*restored/);
+        assert.equal(result.unchanged, true);
+        assert.equal(result.oldTypesPreserved, true);
+        assert.equal(result.oldGlobalsPreserved, true);
+        assert.equal(result.afterSuccess, true);
+    } finally { harness.cleanup(); }
+});
+
+test('failed environment transactions restore legacy adoption eligibility as well as active files', () => {
+    const harness = setup();
+    try {
+        const result = harness.run('environment-legacy-markers');
+        assert.match(result.error, /Injected legacy environment failure.*restored/);
+        assert.equal(result.unchanged, true);
+        assert.equal(result.noMarkers, true);
+        assert.deepEqual(result.legacyFolders, ['legacy']);
+        assert.equal(result.legacyPrefs, true);
+    } finally { harness.cleanup(); }
+});
+
 for (const kind of ['folders', 'prefs', 'theme']) test(`${kind} read repair holds the mutation lock before deriving replacement state`, async () => {
     const harness = setup(); const children = [];
     const launch = operation => {

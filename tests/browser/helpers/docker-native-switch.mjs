@@ -12,7 +12,7 @@ jQuery.widget = (name, definition) => {
             if (widget) { for (const [key, value] of Object.entries(options)) widget._setOption(key, value); return; }
             widget = Object.create(definition); widget.element = jQuery(this);
             widget.options = { ...definition.options, ...options };
-            jQuery(this).data('fixture-native-switch', widget);
+            jQuery(this).data('fixture-native-switch', widget).data('sylightsUI-switchButton', widget);
             window.fixtureSwitchCreates = (window.fixtureSwitchCreates || 0) + 1;
             widget._create();
         });

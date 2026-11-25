@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "common",
-        "content-revision": "d1981588586b7cce341b131b58464b92ef1eda7fd352756dc446d75f7cd60530"
+        "content-revision": "99a25dad08e5f03c83b996512534bfbb1344e473aebaab8fbe929d3814566039"
     },
     "common.unassigned-group.title": "عناصر غير معيّنة",
     "runtime.action.requests-result": "تم قبول $1 · فشل $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "لم يتم العثور على المجلد الهدف.",
     "common.server.folder-id-is-required-d5216c": "معرف المجلد مطلوب.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "مطلوب نمط regex القديم.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "تحويل التعبير العادي القديم مشغول. حاول ثانية.",
     "common.server.folder-not-found-ccbf07": "لم يتم العثور على المجلد.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "لم يعد هذا المجلد يحتوي على تعبير عادي قديم لتحويله.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "تم تغيير التعبير العادي القديم بعد تحميل هذا المحرر. قم بإعادة تحميله ومراجعته قبل التحويل.",

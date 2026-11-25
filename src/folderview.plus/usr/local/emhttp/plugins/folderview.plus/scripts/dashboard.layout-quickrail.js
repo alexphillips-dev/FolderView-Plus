@@ -211,6 +211,7 @@
                 }
             });
 
+            deps.syncDashboardHostSummary?.(resolvedType, enabled);
             scheduleDashboardCompactMatrixSyncForType(resolvedType, 'started-only-filter');
             return {
                 enabled,

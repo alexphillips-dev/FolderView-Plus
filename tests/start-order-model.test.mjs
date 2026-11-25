@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const model = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-model.js');
+const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
 test('start-order model normalizes unmanaged plans and bounded waits', () => {
     assert.deepEqual(model.normalizePlan({
@@ -30,4 +31,12 @@ test('start-order model applies patches through normalization', () => {
     const result = model.patchPlan({ mode: 'docker-page' }, { mode: 'unmanaged', containerWaits: { app: -1 } });
     assert.equal(result.mode, 'unmanaged');
     assert.equal(result.containerWaits.app, 0);
+});
+
+test('start-order authoring and preference hydration keep the exact canonical folder ID', () => {
+    const ids = ['a'.repeat(64), 'a'.repeat(64) + 'b'.repeat(16), 'z'.repeat(128), 'x'.repeat(129), 'bad id'];
+    const plan = { mode: 'custom-batches', batches: [{ items: ids.map(id => ({ type: 'folder', id })) }] };
+    for (const normalized of [model.normalizePlan(plan), utils.normalizePrefs({ dockerStartOrder: plan }).dockerStartOrder]) {
+        assert.deepEqual(normalized.batches[0].items.map(item => item.id), ids.slice(0, 3));
+    }
 });

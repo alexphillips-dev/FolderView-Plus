@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common",
-        "content-revision": "1bd22f76569abf08ef5300ad344936234101f7f3f0dca64e7de97269aaab2d75"
+        "content-revision": "cdc5b5a392575972774b7f429c777c6ae12effacf5660834e5f3b27332a9b40a"
     },
     "common.unassigned-group.title": "未分组的项目",
     "runtime.action.requests-result": "已接受 $1 项 · 失败 $2 项",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "未找到目标文件夹。",
     "common.server.folder-id-is-required-d5216c": "需要文件夹 ID。",
     "common.server.legacy-regex-pattern-is-required-dc6828": "需要旧的正则表达式模式。",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "旧版正则表达式转换正忙。再试一次。",
     "common.server.folder-not-found-ccbf07": "找不到文件夹。",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "此文件夹不再有要转换的旧正则表达式。",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "加载此编辑器后，旧的正则表达式发生了变化。在转换之前重新加载并检查它。",

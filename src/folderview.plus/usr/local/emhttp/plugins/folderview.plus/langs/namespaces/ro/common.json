@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "content-revision": "cb8f0f49c575f5c29961927fc5ab357274cf94fbe91df367cb0eaecc0d3052fd"
+        "content-revision": "02e262a6ee66a93ec43fe03d2b2a60d510e64beab1f1b9f23b06a33404410cb1"
     },
     "common.unassigned-group.title": "Elemente nealocate",
     "runtime.action.requests-result": "Acceptate: $1 · Eșuate: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Dosarul țintă nu a fost găsit.",
     "common.server.folder-id-is-required-d5216c": "ID-ul dosarului este necesar.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Este necesar un model regex vechi.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Conversia regex vechi este ocupată. Încearcă din nou.",
     "common.server.folder-not-found-ccbf07": "Dosarul nu a fost găsit.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Acest folder nu mai are o expresie regex veche de convertit.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Expresia regex moștenită s-a schimbat după încărcarea acestui editor. Reîncărcați-l și examinați-l înainte de conversie.",

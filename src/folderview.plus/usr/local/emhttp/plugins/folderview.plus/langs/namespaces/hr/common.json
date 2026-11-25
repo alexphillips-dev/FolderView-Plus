@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "content-revision": "ef6edf39b053686189b272b462ed7d860745626a60d303568c1f8e47cec8bf64"
+        "content-revision": "ed39385072f22c7b9e546e2c54ecf43e6a5e21b4d1c05b99f5bf03356584b894"
     },
     "common.unassigned-group.title": "Nedodijeljene stavke",
     "runtime.action.requests-result": "Prihvaćeno $1 · Neuspjelo $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Ciljna mapa nije pronađena.",
     "common.server.folder-id-is-required-d5216c": "Potreban je ID mape.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Potreban je naslijeđeni uzorak regularnog izraza.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Pretvorba naslijeđenog regularnog izraza je zauzeta. Pokušajte ponovno.",
     "common.server.folder-not-found-ccbf07": "Mapa nije pronađena.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Ova mapa više nema naslijeđeni regularni izraz za pretvaranje.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Naslijeđeni regularni izraz promijenio se nakon učitavanja ovog uređivača. Ponovno učitajte i pregledajte prije pretvaranja.",

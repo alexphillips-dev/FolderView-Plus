@@ -14,7 +14,13 @@ class DockerClient {
     public function getDockerContainers(): array { return []; }
     public function getDockerJSON(string $path): array { return []; }
 }
+if ($operation === 'environment-legacy-markers') {
+    define('FVPLUS_LEGACY_CONFIG_DIRS', [$root . '/folder.view2']);
+    set_error_handler(static fn(int $level, string $message): bool =>
+        $level === E_WARNING && str_contains($message, 'Constant FVPLUS_LEGACY_CONFIG_DIRS already defined'));
+}
 require $server . '/lib.php';
+if ($operation === 'environment-legacy-markers') restore_error_handler();
 
 function seedState(string $label): void {
     foreach (['docker', 'vm'] as $type) {
@@ -123,6 +129,61 @@ if ($operation === 'seed-export') {
 }
 if ($operation === 'export-current') {
     echo json_encode(exportEnvironmentSnapshotPayload(), JSON_THROW_ON_ERROR); exit;
+}
+
+if ($operation === 'environment-retention') {
+    seedState('older');
+    foreach (FVPLUS_ALLOWED_TYPES as $type) {
+        writeTypePrefs($type, ['backupSchedule' => ['retention' => 1], 'dockerStartOrder' => ['mode' => 'unmanaged']]);
+        $old[$type] = createBackupSnapshot($type, 'manual')['name'];
+    }
+    $checkpoint = createGlobalRollbackSnapshot('previous-manual-point')['name'];
+    for ($index = 1; $index < FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX; ++$index) {
+        copy(getGlobalRollbackSnapshotPath($checkpoint), getGlobalRollbackSnapshotPath("global-20260101-000000-copy-$index.json"));
+    }
+    $globalBefore = array_column(listGlobalRollbackSnapshots(), 'name');
+    foreach (FVPLUS_ALLOWED_TYPES as $type) writeRawFolderMap($type, ['current' => ['name' => 'Current']]);
+    $target = exportEnvironmentSnapshotPayload();
+    $target['types']['vm']['folders'] = ['target' => ['name' => 'Target']];
+    $before = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths());
+    $error = '';
+    try {
+        applyEnvironmentSnapshotTransaction($target, '', ['syncDockerOrder' => false, 'afterStage' => static function (string $stage): void {
+            if ($stage === 'verified') throw new RuntimeException('Injected late environment failure.');
+        }]);
+    } catch (RuntimeException $failure) { $error = $failure->getMessage(); }
+    $unchanged = $before === fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths());
+    $oldTypesPreserved = is_file(getBackupSnapshotPath('docker', $old['docker']))
+        && is_file(getBackupSnapshotPath('vm', $old['vm']));
+    $oldGlobalsPreserved = array_diff($globalBefore, array_column(listGlobalRollbackSnapshots(), 'name')) === [];
+    $result = applyEnvironmentSnapshotTransaction($target, '', ['syncDockerOrder' => false]);
+    $afterSuccess = count(listGlobalRollbackSnapshots()) === FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX
+        && is_file(getGlobalRollbackSnapshotPath($result['rollback']['name']));
+    foreach (FVPLUS_ALLOWED_TYPES as $type) {
+        $afterSuccess = $afterSuccess && count(listBackupSnapshots($type)) === 1
+            && is_file(getBackupSnapshotPath($type, $result['types'][$type]['backup']['name']));
+    }
+    echo json_encode(compact('error', 'unchanged', 'oldTypesPreserved', 'oldGlobalsPreserved', 'afterSuccess'), JSON_THROW_ON_ERROR); exit;
+}
+
+if ($operation === 'environment-legacy-markers') {
+    $legacy = $root . '/folder.view2';
+    mkdir($legacy, 0700);
+    file_put_contents($legacy . '/vm.json', json_encode(['legacy' => ['name' => 'Legacy VM folder']]));
+    file_put_contents($legacy . '/vm.prefs.json', json_encode(['groupUnassignedItems' => true]));
+    $target = ['types' => ['docker' => ['folders' => []], 'vm' => ['folders' => ['target' => ['name' => 'Target']]]]];
+    $before = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths());
+    $error = '';
+    try {
+        applyEnvironmentSnapshotTransaction($target, '', ['syncDockerOrder' => false, 'afterStage' => static function (string $stage): void {
+            if ($stage === 'vm-prefs') throw new RuntimeException('Injected legacy environment failure.');
+        }]);
+    } catch (RuntimeException $failure) { $error = $failure->getMessage(); }
+    $unchanged = $before === fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths());
+    $noMarkers = !is_file(getLegacyMigrationMarkerPath('vm', 'folders')) && !is_file(getLegacyMigrationMarkerPath('vm', 'prefs'));
+    $legacyFolders = array_keys(readRawFolderMap('vm'));
+    $legacyPrefs = readTypePrefs('vm')['groupUnassignedItems'];
+    echo json_encode(compact('error', 'unchanged', 'noMarkers', 'legacyFolders', 'legacyPrefs'), JSON_THROW_ON_ERROR); exit;
 }
 
 if ($operation === 'rollback') {

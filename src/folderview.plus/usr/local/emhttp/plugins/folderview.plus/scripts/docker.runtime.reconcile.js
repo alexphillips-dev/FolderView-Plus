@@ -241,6 +241,7 @@
         let dockerPostUpdateRuntimePollRemaining = 0;
         const dockerLifecycleRefreshes = new Map();
         const dockerLifecycleCallbacks = new Map();
+        const hasPendingLifecycleActions = () => dockerLifecycleRefreshes.size > 0 || dockerLifecycleCallbacks.size > 0;
         let dockerLifecycleCallbackCount = 0;
         let dockerLifecycleDisposed = false;
         let pendingDockerLifecycleRequest = {};
@@ -598,6 +599,7 @@
                 if ([...dockerLifecycleCallbacks.values()].some((entry) => entry.request.container === refreshKey)) return;
                 try {
                     finalizeDockerLifecycleSurface(request, { ...outcome, reason: failureReason || outcome.reason });
+                    if (!hasPendingLifecycleActions()) deps.onLifecycleIdle?.();
                 } catch (_error) {
                     // Diagnostics and visual cleanup must never break host lifecycle actions.
                 }
@@ -792,6 +794,7 @@
             bindUpdateActionClickCapture,
             bindDockerContainerContextStatePatch,
             isDockerLifecycleRequest,
+            hasPendingLifecycleActions,
             runDockerLifecycleRefresh,
             bindLifecycleEventControlPatch,
             disposeLifecycleRefreshes,

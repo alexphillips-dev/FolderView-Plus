@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.07">
-<!ENTITY md5 "74b64da25d3629c3e64f055bcc30aa4c">
-<!ENTITY sha256 "e418345662718405664aa421acae43986056818c85217a80653501f774b8c26d">
+<!ENTITY version "2026.11.24.08">
+<!ENTITY md5 "16861ff25f6d4d8d57c651b8ef6db207">
+<!ENTITY sha256 "6cfdde3d1a4c42acceb0627ec18e0601905e36643962837cff4a56aa99e2fe54">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.08
+- Reliability: Preserve backup history and legacy migration eligibility after failed restores. Keep concurrent saves intact during legacy rule conversion.
+- Fix: Preserve native autostart for numeric container names, schedule each container once, and use the native order when folder member order is disabled.
+- Fix: Preserve saved VM identities after renames, protect recent folder assignments, and keep full folder IDs in settings transfers and Docker startup plans.
+- Fix: Reject stale folder settings and Appearance saves, keep editors current after their own changes, and retain Undo when switching Appearance scopes.
+- Fix: Refresh native Docker and VM autostart controls and Dashboard membership, counts, and filters. Preserve Unassigned keyboard focus after native reloads.
+- Fix: Align converted regex backreferences across the browser, Simulator, and Docker startup. Preserve icon metadata and image formats when renaming icons.
+- Security: Redact private folder, history, and backup details in sanitized Diagnostics.
+- Reliability: Preserve plugin registration on removal failure, protect staged updates, and require the qualified branch tips and functional manifest settings during release synchronization.
+
 
 ###2026.11.24.07
 - Reliability: Recovery checks folder IDs and membership before restoring snapshots, preserves current data before legacy migration, and reports backup files removed only after deletion succeeds.
@@ -10171,13 +10182,18 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     <FILE Run="/bin/bash">
         <INLINE>
             set -e
+            config_dir="/boot/config/plugins/&name;"
+            registered_manifest="/boot/config/plugins/&name;.plg"
+            lock_options=(-n)
+            # Unraid quarantines the boot manifest if this hook fails during startup.
+            if [ -r "${registered_manifest}" ] &amp;&amp; [ ! -L "/var/log/plugins/&name;.plg" ]; then
+                lock_options=()
+            fi
             exec 9>>/run/folderview.plus-install.lock
-            if ! flock -n 9; then
+            if ! flock "${lock_options[@]}" 9; then
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
             fi
-            config_dir="/boot/config/plugins/&name;"
-            registered_manifest="/boot/config/plugins/&name;.plg"
             cron_file="/etc/cron.d/folderview.plus"
             candidate_archive="${config_dir}/&name;-&version;.txz"
             install_stage="rollback preparation"
@@ -10246,6 +10262,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 else
                     return 1
                 fi
+            }
+
+            version_before() {
+                [ "$1" != "$2" ] &amp;&amp; [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n 1)" = "$1" ]
             }
 
             previous_package_is_active() {
@@ -10381,10 +10401,21 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     &amp;&amp; registered_icon_pack="$(read_manifest_value iconPackVersion)" \
                     &amp;&amp; [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
                     &amp;&amp; [[ "${registered_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    find /boot/config/plugins/&name; -maxdepth 1 -regextype posix-extended -type f \( \
-                        -regex '.*/folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.txz' ! -name '&name;-&version;.txz' ! -name "&name;-${registered_version}.txz" -o \
-                        -regex '.*/folderview[.]plus-icons-[0-9]+\.[0-9]+\.[0-9]+\.txz' ! -name '&name;-icons-&iconPackVersion;.txz' ! -name "&name;-icons-${registered_icon_pack}.txz" \
-                        \) -delete || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
+                    incoming_version="&version;"
+                    for local_archive in "${config_dir}"/&name;-*.txz; do
+                        [ -f "${local_archive}" ] &amp;&amp; [ ! -L "${local_archive}" ] || continue
+                        archive_name="${local_archive##*/}"
+                        if [[ "${archive_name}" =~ ^folderview[.]plus-([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+[.]txz$ ]]; then
+                            archive_date="${BASH_REMATCH[1]}"
+                            version_before "${archive_date}" "${incoming_version%.*}" &amp;&amp; version_before "${archive_date}" "${registered_version%.*}" || continue
+                        elif [[ "${archive_name}" =~ ^folderview[.]plus-icons-([0-9]+\.[0-9]+\.[0-9]+)[.]txz$ ]]; then
+                            archive_version="${BASH_REMATCH[1]}"
+                            version_before "${archive_version}" "&iconPackVersion;" &amp;&amp; version_before "${archive_version}" "${registered_icon_pack}" || continue
+                        else
+                            continue
+                        fi
+                        rm -f -- "${local_archive}" || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
+                    done
                 fi
             fi
         </INLINE>
@@ -10404,7 +10435,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     exit 1
                 fi
             done
-            removepkg &name;-&version; 9>&amp;- || true
+            removepkg &name;-&version; 9>&amp;- || exit $?
             rm -f /etc/cron.d/folderview.plus
             /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || true
             rm -rf &plugdir;

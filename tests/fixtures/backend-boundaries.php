@@ -38,7 +38,7 @@ if ($request['operation'] === 'convert') {
     $pattern = $request['pattern']; $type = $request['type'] ?? 'vm';
     writeRawFolderMap($type, ['fixture' => ['name' => 'Fixture', 'containers' => [], 'regex' => $pattern]]);
     writeTypePrefs($type, defaultTypePrefs());
-    touch(legacyRegexMigrationLockPath($type));
+    touch(getConfigMutationLockPath());
     $capture = static function () use ($root): array {
         $result = [];
         foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/config', FilesystemIterator::SKIP_DOTS)) as $file) {
@@ -72,6 +72,36 @@ if ($request['operation'] === 'convert') {
         'issues' => $afterMembership['issues']], JSON_THROW_ON_ERROR);
     exit;
 }
+if ($request['operation'] === 'report-privacy') {
+    $folderId = 'PRIVATE_REPORT_FOLDER';
+    $childId = 'PRIVATE_CHILD_FOLDER';
+    writeRawFolderMap('vm', [
+        $folderId => ['name' => 'Fixture VM folder', 'containers' => ['PRIVATE_ORPHAN_VM'],
+            'icon' => '/plugins/folderview.plus/images/custom/PRIVATE_MISSING_ICON.png'],
+        $childId => ['name' => 'Fixture VM folder', 'parentId' => $folderId, 'containers' => ['PRIVATE_ORPHAN_VM']]
+    ]);
+    writeTypePrefs('vm', [
+        'pinnedFolderIds' => [$folderId], 'hiddenFolderIds' => [$folderId, 'PRIVATE_STALE_FOLDER'],
+        'expandedFolderState' => [$folderId => true, $childId => false]
+    ]);
+    $backup = createBackupSnapshot('vm', 'PRIVATE_SNAPSHOT_REASON');
+    appendDiagnosticsHistoryEvent('environment_import', 'vm', ['name' => 'PRIVATE_HISTORY_NAME', 'folderCount' => 1]);
+    $_SERVER['SCRIPT_FILENAME'] = $server . '/diagnostics.php';
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $endpoint = file_get_contents($_SERVER['SCRIPT_FILENAME']);
+    $endpoint = substr($endpoint, strpos($endpoint, 'fvplus_json_try'));
+    $results = [];
+    foreach (['report', 'support_bundle'] as $action) {
+        foreach (['sanitized', 'full'] as $privacy) {
+            $_GET = $_REQUEST = compact('action', 'privacy');
+            ob_start(); eval($endpoint); $response = json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR);
+            $results[$action][$privacy] = $response[$action === 'report' ? 'diagnostics' : 'bundle'];
+        }
+    }
+    echo json_encode(['results' => $results, 'backupName' => $backup['name']], JSON_THROW_ON_ERROR);
+    exit;
+}
+
 if ($request['operation'] === 'bundle') {
     writeRawFolderMap('vm', ['PRIVATE_ID' => ['name' => 'PRIVATE_FOLDER',
         'icon' => '/plugins/folderview.plus/images/custom/PRIVATE_ICON.png', 'containers' => []]]);

@@ -11,12 +11,13 @@ fvplus::require_commands bash git sed
 if [[ "$(git branch --show-current)" != "dev" && "${FVPLUS_BACKMERGE_LOCAL_BRANCH:-}" != HEAD ]]; then
   fvplus::fail "Back-merge package preparation must run on dev."
 fi
-if ! git rev-parse -q --verify "origin/dev^{commit}" >/dev/null 2>&1; then
+dev_base="${FVPLUS_BACKMERGE_DEV_COMMIT:-origin/dev}"
+if ! git rev-parse -q --verify "${dev_base}^{commit}" >/dev/null 2>&1; then
   fvplus::fail "origin/dev is required to prepare a back-merge package."
 fi
 
 mapfile -t changed_source_paths < <(
-  git diff --name-only origin/dev HEAD -- src
+  git diff --name-only "${dev_base}" HEAD -- src
 )
 if [[ "${#changed_source_paths[@]}" -eq 0 ]]; then
   echo "Synchronization changes no shipped plugin files; package preparation skipped."

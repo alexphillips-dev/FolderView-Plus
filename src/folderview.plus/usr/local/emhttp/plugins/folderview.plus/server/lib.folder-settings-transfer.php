@@ -38,7 +38,7 @@ function applySelectiveFolderSettings(string $type, array $targetIds, array $set
     $type = ensureType($type);
     $categories = normalizeFolderSettingsTransferCategories($options['categories'] ?? folderSettingsTransferSchema()['categories']);
     $payload = normalizeFolderSettingsTransferPayload($settingsPayload);
-    foreach ($targetIds as $id) if (!is_string($id) || strlen($id) > 64) throw new InvalidArgumentException('Invalid target folder list.');
+    foreach ($targetIds as $id) if (!is_string($id) || normalizeFolderIdValue($id) === '') throw new InvalidArgumentException('Invalid target folder list.');
     $ids = array_values(array_unique(array_map('trim', $targetIds)));
     if (!$ids || in_array('', $ids, true)) throw new InvalidArgumentException('Select at least one target folder.');
     return withConfigMutationLock(static function() use ($type, $categories, $payload, $ids, $options): array {

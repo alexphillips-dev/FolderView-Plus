@@ -192,14 +192,14 @@ test('sync_main_to_dev records main ancestry even when main differs only by rele
     assert.doesNotMatch(runGit(['ls-tree', '-r', '--name-only', 'backmerge/test'], workDir), /2026\.04\.05\.13/);
 });
 
-test('sync_main_to_dev refuses to drop an inline installer change from main', (t) => {
+test('sync_main_to_dev refuses to drop installer hooks or compatibility requirements from main', (t) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-sync-hooks-'));
     t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
     const remoteDir = path.join(tempDir, 'remote.git');
     const workDir = path.join(tempDir, 'work');
-    const manifest = (branch, version, command) => [
+    const manifest = (branch, version, command, min = '7.0.0') => [
         `<!ENTITY version "${version}">`,
-        '<PLUGIN>',
+        `<PLUGIN min="${min}">`,
         '  <FILE Name="archive">',
         `    <URL>https://raw.githubusercontent.com/&github;/${branch}/archive/&name;-&version;.txz</URL>`,
         '  </FILE>',
@@ -230,7 +230,7 @@ test('sync_main_to_dev refuses to drop an inline installer change from main', (t
     runGit(['commit', '-am', 'Correct the stable installer'], workDir);
     runGit(['push', '-u', 'origin', 'main'], workDir);
     runGit(['checkout', 'dev'], workDir);
-    assert.throws(() => runSyncMainToDev(workDir, 'dev'), error => /manifest installation or removal hooks/.test(error.stderr));
+    assert.throws(() => runSyncMainToDev(workDir, 'dev'), error => /manifest installation requirements or hooks/.test(error.stderr));
     assert.equal(runGit(['rev-parse', 'HEAD'], workDir), originalDev);
     assert.equal(runGit(['status', '--porcelain'], workDir), '');
 
@@ -240,5 +240,16 @@ test('sync_main_to_dev refuses to drop an inline installer change from main', (t
     runGit(['push', 'origin', 'dev'], workDir);
     runSyncMainToDev(workDir, 'dev');
     assert.doesNotThrow(() => runGit(['merge-base', '--is-ancestor', 'origin/main', 'HEAD'], workDir));
+    assert.equal(fs.readFileSync(manifestPath, 'utf8'), correctedDev);
+
+    const devWithCorrectedHook = runGit(['rev-parse', 'HEAD'], workDir);
+    runGit(['push', 'origin', 'dev'], workDir);
+    runGit(['checkout', 'main'], workDir);
+    writeFile(manifestPath, manifest('main', '2026.04.05.16', 'corrected install command', '7.1.0'));
+    runGit(['commit', '-am', 'Update minimum Unraid version'], workDir);
+    runGit(['push', 'origin', 'main'], workDir);
+    runGit(['checkout', 'dev'], workDir);
+    assert.throws(() => runSyncMainToDev(workDir, 'dev'), error => /manifest installation requirements or hooks/.test(error.stderr));
+    assert.equal(runGit(['rev-parse', 'HEAD'], workDir), devWithCorrectedHook);
     assert.equal(fs.readFileSync(manifestPath, 'utf8'), correctedDev);
 });

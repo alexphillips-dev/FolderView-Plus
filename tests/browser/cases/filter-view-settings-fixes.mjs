@@ -70,9 +70,20 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
         host.folders['fixture-folder-0'].settings = { preview: 4, preview_rows: 3 };
         host.folders.empty.settings = { preview: 1 };
         let applied = false;
-        await page.route('**/server/apply_folder_settings.php', route => route.fulfill({ json: { ok: true, result: applied
-            ? { updatedCount: 0, unchangedCount: 2, skippedIds: ['fixture-folder-0', 'empty'] }
-            : (applied = true, { updatedCount: 1, unchangedCount: 1, skippedIds: ['empty'] }) } }));
+        const requests = [];
+        await page.route('**/server/apply_folder_settings.php', route => {
+            const payload = new URLSearchParams(route.request().postData());
+            requests.push([payload.get('preview'), payload.get('expectedRevision')]);
+            const metadata = host.prefs('docker')._metadata;
+            const result = applied
+                ? { updatedCount: 0, unchangedCount: 2, skippedIds: ['fixture-folder-0', 'empty'] }
+                : { updatedCount: 1, unchangedCount: 1, skippedIds: ['empty'] };
+            if (!payload.has('preview') && !applied) {
+                applied = true;
+                metadata.folderRevision++;
+            }
+            return route.fulfill({ json: { ok: true, result: { ...result, folderRevision: metadata.folderRevision } } });
+        });
         try {
             for (const type of ['docker', 'vm']) {
                 await openSettings(page, host);
@@ -94,6 +105,7 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
                         await page.waitForFunction(count => window.fixtureAnnouncements.length > count, count);
                         assert.ok((await page.evaluate(() => window.fixtureAnnouncements.at(-1).message)).includes(expected));
                     }
+                    assert.deepEqual(requests, [['1', '1'], [null, '1'], ['1', '2']]);
                 }
                 await page.locator('#' + type + '-view-settings').evaluate(node => { node.open = true; });
                 await page.locator('.fv-folder-defaults-clear[data-fv-onclick*="' + type + '"]').click();
@@ -183,6 +195,7 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
     test('Docker view preferences reconcile badges, updates, empty folders and page modes without reload', async ({ page }) => {
         const host = await createDockerBadgeHost(page, { running: true, stopped: true, updates: true });
         try {
+            host.prefs().expandedFolderState = { parent: false };
             await page.goto(host.url, { waitUntil: 'load' });
             await page.waitForFunction(() => document.querySelector('tr.folder-id-direct'));
             const foldersBefore = JSON.stringify(host.folders);
@@ -195,8 +208,12 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
             });
             await save({ badges: { running: true, stopped: true, updates: true }, hideEmptyFolders: false });
             await page.waitForFunction(() => document.querySelector('tr.folder-id-empty') && document.querySelector('tr.folder-id-parent > td.updatecolumn'));
+            await page.waitForFunction(() => window.fixtureDockerBadges.refreshSettled());
             await page.locator('.dropDown-parent').click();
             await page.locator('tr.folder-id-branch').waitFor({ state: 'visible' });
+            // The badge test starts from committed expansion before testing unrelated preference changes.
+            await save({ expandedFolderState: { parent: true } });
+            assert.equal(host.prefs().expandedFolderState?.parent, true);
             for (const entry of Object.values(host.runtime)) {
                 entry.running = false; entry.state = 'stopped'; entry.State.Running = false; entry.info.State.Running = false;
             }
@@ -216,6 +233,7 @@ export const registerFilterViewSettingsFixes = ({ test }) => {
                 const row = document.querySelector('tr.folder-id-parent');
                 return row && !row.querySelector('td.updatecolumn');
             });
+            await page.waitForFunction(() => window.fixtureDockerBadges.refreshSettled());
             await page.locator('tr.folder-id-branch').waitFor({ state: 'visible' });
             for (const mode of ['host', 'command', 'folderview', 'host', 'folderview']) {
                 await save({ pageViewMode: mode });

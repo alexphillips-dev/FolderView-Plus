@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "common",
-        "content-revision": "18b1e36fc78e852c601bb07cd00265b1c1dadc073c35048ec8bab3058258667d"
+        "content-revision": "54053ccafab0c7307e5336023199bb3d119ca1e46c51f312086efd76956d4c44"
     },
     "common.unassigned-group.title": "Elementos sin asignar",
     "runtime.action.requests-result": "$1 aceptadas · $2 fallidas",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Carpeta de destino no encontrada.",
     "common.server.folder-id-is-required-d5216c": "Se requiere ID de carpeta.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Se requiere un patrón de expresiones regulares heredado.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "La conversión de expresiones regulares heredadas está ocupada. Intentar otra vez.",
     "common.server.folder-not-found-ccbf07": "Carpeta no encontrada.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Esta carpeta ya no tiene una expresión regular heredada para convertir.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "La expresión regular heredada cambió después de cargar este editor. Vuelva a cargarlo y revíselo antes de realizar la conversión.",

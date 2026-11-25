@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common",
-        "content-revision": "0c1fe300df9ccac4ec420249ef1d4f1e056fec5aee93b2ed91dc3f0d3b31b915"
+        "content-revision": "ffac7e0823ebec803779ff6e7d98374c5be4a99652f2d8514a7db9c19b2f0db0"
     },
     "common.unassigned-group.title": "Elementi non assegnati",
     "runtime.action.requests-result": "$1 accettate · $2 non riuscite",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Cartella di destinazione non trovata.",
     "common.server.folder-id-is-required-d5216c": "L'ID della cartella è obbligatorio.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Il modello regex legacy è obbligatorio.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "La conversione regex legacy è occupata. Riprova.",
     "common.server.folder-not-found-ccbf07": "Cartella non trovata.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Questa cartella non ha più un'espressione regolare legacy da convertire.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "L'espressione regolare legacy è cambiata dopo il caricamento di questo editor. Ricaricalo e rivedilo prima di convertirlo.",

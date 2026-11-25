@@ -4,7 +4,9 @@ function renameCustomIconUnlocked(): array {
     $from = normalizeCustomIconFileNameInput((string)($_POST['from'] ?? ''));
     $fromPath = "$customDir/$from";
     if (!is_file($fromPath) || is_link($fromPath)) throw new RuntimeException('Icon not found.');
-    $to = sanitizeCustomIconTargetName((string)($_POST['to'] ?? ''), strtolower((string)pathinfo($from, PATHINFO_EXTENSION)));
+    $extension = strtolower((string)pathinfo($from, PATHINFO_EXTENSION));
+    $to = sanitizeCustomIconTargetName((string)($_POST['to'] ?? ''), $extension);
+    if (pathinfo($to, PATHINFO_EXTENSION) !== $extension) throw new RuntimeException('Unsupported icon format.');
     if ($from === $to) {
         $meta = readCustomIconMetadataIndex();
         return ['icon' => buildCustomIconUploadResponse($from, $meta, false, false, '', 'multipart', customIconUsageMap()),
@@ -18,7 +20,7 @@ function renameCustomIconUnlocked(): array {
 
     $runtimeDir = fvplusCustomIconRuntimeDirPath();
     $paths = [$fromPath, $toPath, customIconMetadataPath(), getLastGoodJsonPath(customIconMetadataPath())];
-    if (!is_link($runtimeDir)) $paths = array_merge($paths, ["$runtimeDir/$from", "$runtimeDir/$to"]);
+    if (!is_link($runtimeDir)) $paths = array_merge($paths, ["$runtimeDir/$from", "$runtimeDir/$to", "$runtimeDir/.metadata.json"]);
     $snapshots = array_map('fvplusTransactionCaptureFile', $paths);
     try {
         if (!@rename($fromPath, $toPath)) throw new RuntimeException('Failed to rename icon.');
@@ -31,9 +33,13 @@ function renameCustomIconUnlocked(): array {
         if (trim((string)($entry['originalName'] ?? '')) === '') $entry['originalName'] = $from;
         $meta[$to] = $entry;
         writeCustomIconMetadataIndex($meta);
-        // Storage bootstrap already migrated legacy files before the icon lock.
-        // Mirror directly here so the old public copy cannot be re-imported.
-        if (!is_link($runtimeDir)) fvplusMirrorPersistentCustomIconsToRuntime();
+        if (!is_link($runtimeDir)) {
+            // Storage bootstrap already migrated the old public index.
+            if (is_file("$runtimeDir/.metadata.json") && !@unlink("$runtimeDir/.metadata.json")) {
+                throw new RuntimeException('Failed to rename icon.');
+            }
+            fvplusMirrorPersistentCustomIconsToRuntime();
+        }
         $hash = computeCustomIconHash($toPath);
         if ($hash === '' || computeCustomIconHash("$runtimeDir/$to") !== $hash || file_exists("$runtimeDir/$from")) {
             throw new RuntimeException('Failed to rename icon.');

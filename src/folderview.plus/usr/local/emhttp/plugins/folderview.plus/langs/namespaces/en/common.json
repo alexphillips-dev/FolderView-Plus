@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "common",
-        "content-revision": "ea3a1f63b974f39485900db0a12aecc211a89506482e8c47dc52983f762a12ba"
+        "content-revision": "119cb0a440878b813b5123c91db2f1d5b16bb28dd1bf610074798c26e3ce0d97"
     },
     "common.labels.optional": "Optional",
     "common.badges.recommended": "Recommended",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Target folder not found.",
     "common.server.folder-id-is-required-d5216c": "Folder ID is required.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Legacy regex pattern is required.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Legacy regex conversion is busy. Try again.",
     "common.server.folder-not-found-ccbf07": "Folder not found.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "This folder no longer has a legacy regex to convert.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "The legacy regex changed after this editor loaded. Reload and review it before converting.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "content-revision": "f6a47f4cffedc8083829ab5acc1b0373b3253e7bd3c1416e4f0e404786f2a26e"
+        "content-revision": "b35c862b47b9de896d33d2ef435fb18caf0e1842144f93856222cca16e39d525"
     },
     "common.unassigned-group.title": "Niet-toegewezen items",
     "runtime.action.requests-result": "$1 geaccepteerd · $2 mislukt",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Doelmap niet gevonden.",
     "common.server.folder-id-is-required-d5216c": "Map-ID is vereist.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Verouderd regex-patroon is vereist.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Verouderde regex-conversie is bezig. Probeer het opnieuw.",
     "common.server.folder-not-found-ccbf07": "Map niet gevonden.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Deze map heeft niet langer een verouderde regex om te converteren.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "De oude regex is gewijzigd nadat deze editor is geladen. Herlaad en bekijk het voordat u het converteert.",

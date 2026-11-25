@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "content-revision": "fa20bff4a9c56485ed2960aa4c949971caa9e28c8485084de049456687e01051"
+        "content-revision": "13f22b50662e750a8d0138673fad38557ca8846b632465799a7d12df958cf191"
     },
     "common.unassigned-group.title": "Hozzá nem rendelt elemek",
     "runtime.action.requests-result": "Elfogadva: $1 · Sikertelen: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "A célmappa nem található.",
     "common.server.folder-id-is-required-d5216c": "A mappaazonosító kötelező.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Régi regex minta szükséges.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Az örökölt reguláris kifejezések átalakítása elfoglalt. Próbáld újra.",
     "common.server.folder-not-found-ccbf07": "A mappa nem található.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Ebben a mappában már nincs konvertálandó régi regex.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "A régi regex megváltozott a szerkesztő betöltése után. Töltse be újra és tekintse át a konvertálás előtt.",

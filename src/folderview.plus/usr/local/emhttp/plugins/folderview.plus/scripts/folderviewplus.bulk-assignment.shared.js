@@ -26,14 +26,15 @@
             : null;
         const requestBulkAssign = typeof deps.requestBulkAssign === 'function'
             ? deps.requestBulkAssign
-            : (async (type, folderId, items) => {
+            : (async (type, folderId, items, expectedRevision) => {
                 if (typeof apiPostJson !== 'function') {
                     throw new Error('Bulk assignment request API unavailable.');
                 }
                 const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
                     type,
                     folderId,
-                    items: JSON.stringify(items || [])
+                    items: JSON.stringify(items || []),
+                    ...(Number.isSafeInteger(expectedRevision) ? { expectedRevision } : {})
                 });
                 if (!response?.ok) {
                     throw new Error(response?.error || 'Bulk assignment failed.');
@@ -293,6 +294,7 @@
             }
 
             let backup = null;
+            let metadata = null;
             const failedNames = [];
             const resultLines = preludeLines.slice();
 
@@ -310,7 +312,8 @@
                     });
                 }
                 try {
-                    const result = await requestBulkAssign(resolvedType, targetFolderId, actionableNames);
+                    const result = await requestBulkAssign(resolvedType, targetFolderId, actionableNames, options.expectedRevision);
+                    metadata = result?.metadata || null;
                     const assignedSet = new Set(
                         (Array.isArray(result?.assigned) ? result.assigned : [])
                             .map((name) => sanitizeBulkItemName(name))
@@ -385,6 +388,7 @@
                     ok: true,
                     type: resolvedType,
                     backup,
+                    metadata,
                     plan,
                     level,
                     summary,

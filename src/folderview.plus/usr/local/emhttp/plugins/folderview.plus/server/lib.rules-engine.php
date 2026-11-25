@@ -39,7 +39,7 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
         $kind = (string)($rule['kind'] ?? 'name_regex');
         if ($kind === 'name_regex') {
             $legacy = fvplusRuleUsesLegacyRegex($rule);
-            $regex = $compiledRegex ?? serverRuleRegex((string)($rule['pattern'] ?? ''), !$legacy);
+            $regex = $compiledRegex ?? serverRuleRegex((string)($rule['pattern'] ?? ''), !$legacy, true);
             return ($rule['pattern'] ?? '') !== '' && @preg_match($regex, $legacy ? fvplusLegacyRegexCodeUnits($name) : $name) === 1;
         }
         if ($type !== 'docker') {
@@ -136,7 +136,7 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
             $regex = null; $valid = in_array($kind, FVPLUS_RULE_KINDS, true) && ($type === 'docker' || $kind === 'name_regex');
             if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
                 $pattern = (string)($rule['pattern'] ?? '');
-                $regex = serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule));
+                $regex = serverRuleRegex($pattern, !fvplusRuleUsesLegacyRegex($rule), true);
                 // PCRE-only constructs have no matching browser rule meaning.
                 $valid = $valid && $pattern !== '' && @preg_match($regex, '') !== false
                     && fvplusRulePatternIsPortable($pattern);

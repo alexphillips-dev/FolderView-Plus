@@ -15,9 +15,20 @@
     const createApi = ({ window: win = globalThis } = {}) => {
         let current = null;
         let expanded = false;
-
-        const clear = ({ resetExpansion = false } = {}) => {
+        let focusDocument = null;
+        const resetPendingFocus = () => {
+            focusDocument?.removeEventListener('focusin', resetPendingFocus);
+            focusDocument = null;
+        };
+        const preserveFocus = () => {
+            const doc = current?.host.ownerDocument;
+            if (!doc || doc.activeElement !== current.button) return;
+            focusDocument = doc;
+            doc.addEventListener('focusin', resetPendingFocus, { once: true });
+        };
+        const clear = ({ resetExpansion = false, resetFocus = false } = {}) => {
             if (resetExpansion) expanded = false;
+            if (resetExpansion || resetFocus) resetPendingFocus();
             if (!current) return;
             const { host, header, entries } = current;
             current = null;
@@ -63,7 +74,9 @@
                 return;
             }
             const doc = host.ownerDocument;
-            const restoreFocus = current && current.button === doc.activeElement;
+            const restoreFocus = current?.button === doc.activeElement
+                || (focusDocument === doc && doc.activeElement === doc.body);
+            resetPendingFocus();
             clear();
             if (!groups.length) return;
 
@@ -114,7 +127,7 @@
                 ? byAnchor.get(node).filter(row => row.parentNode === host)
                 : node.nodeType === 1 && !moved.has(node) && !isHeader(node) ? [node] : []);
         };
-        return Object.freeze({ render, clear, isMember, isHeader, reveal, setExpanded, getUngroupedRows });
+        return Object.freeze({ render, clear, preserveFocus, isMember, isHeader, reveal, setExpanded, getUngroupedRows });
     };
 
     return Object.freeze({ createApi, getNames });

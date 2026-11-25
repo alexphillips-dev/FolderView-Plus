@@ -289,11 +289,11 @@
                 }
                 $type = strtolower(trim((string)($item['type'] ?? 'container')));
                 if ($type === 'folder') {
-                    $folderId = trim((string)($item['id'] ?? $item['folderId'] ?? ''));
+                    $folderId = normalizeFolderIdValue($item['id'] ?? $item['folderId'] ?? '');
                     if ($folderId !== '') {
                         $items[] = [
                             'type' => 'folder',
-                            'id' => truncateUtf8String($folderId, 64)
+                            'id' => $folderId
                         ];
                     }
                     continue;

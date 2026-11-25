@@ -658,6 +658,7 @@ const getDashboardQuickRailController = () => {
         isDashboardRenderCompleteForType: (type) => dashboardFolderRenderCompleteByType[type === 'vm' ? 'vm' : 'docker'] === true,
         getDashboardStartedOnlySelectorForType,
         isDashboardStartedOnlyEnabledForType: (type) => isDashboardStartedOnlyEnabledForType(type),
+        syncDashboardHostSummary: (type, enabled) => dashboardRuntimeSurfaceApi.syncHostSummary(type, dashboardRuntimeInfoByType[type], enabled),
         readDashboardHealthEmphasisStateForType: (type) => readDashboardHealthEmphasisStateForType(type),
         readDashboardCompactDensityStateForType: (type) => readDashboardCompactDensityStateForType(type),
         isDashboardLegacyLayoutForType: (type) => isDashboardLegacyLayoutForType(type),
@@ -1659,6 +1660,7 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
             dashboardUnassignedMembersByType[type] = members;
         }
         applyDashboardRuntimePrefs();
+        dashboardRenderedRuleSignatures[type] = getDashboardRuleSignature(type);
         if (fullRender?.snapshot) rememberDashboardRuntimeSnapshot(type, fullRender.snapshot);
         return true;
     } catch (error) {
@@ -2346,6 +2348,8 @@ let folderReq = {
     vm: []
 };
 const dashboardPendingFullRenders = new WeakMap();
+const dashboardRenderedRuleSignatures = { docker: '', vm: '' };
+const getDashboardRuleSignature = (type) => utils.getMembershipSignature({ type, rules: folderTypePrefs[type]?.autoRules || [] });
 let dashboardPerformancePolicies = { docker: null, vm: null };
 let dashboardDockerRuntimeReconcileApi = null;
 const dashboardDockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
@@ -2925,7 +2929,9 @@ const bindDashboardPreferenceSync = () => {
         const groupWasEnabled = folderTypePrefs[type]?.groupUnassignedItems === true;
         folderTypePrefs[type] = utils.normalizePrefs(snapshot.prefs);
         applyDashboardRuntimePrefs();
-        if (wasLegacy !== isDashboardLegacyLayoutForType(type) && dashboardFolderRenderCompleteByType[type]
+        const isLegacy = isDashboardLegacyLayoutForType(type);
+        const rulesChanged = !isLegacy && snapshot.pending !== true && getDashboardRuleSignature(type) !== dashboardRenderedRuleSignatures[type];
+        if ((wasLegacy !== isLegacy || rulesChanged) && dashboardFolderRenderCompleteByType[type]
             && !dashboardLayoutTransitionInFlightByType[type] && !dashboardPendingFullRenders.has(folderReq[type])) {
             void rerenderDashboardWidgetStructureForType(type).catch(() => {
                 if (!dashboardHostAdapter?.isDisposed?.()) queueLoadlistRefresh();

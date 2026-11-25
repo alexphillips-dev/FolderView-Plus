@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "content-revision": "163e355bd01defb21ba41973ac2db8d02d8e4d806112eb76215a36e6fcf3029d"
+        "content-revision": "fa1c707f2588cf00068512431842ebd566e4cf75ba40d734d7da7577986b7036"
     },
     "common.unassigned-group.title": "Неназначенные элементы",
     "runtime.action.requests-result": "Принято: $1 · Ошибок: $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Целевая папка не найдена.",
     "common.server.folder-id-is-required-d5216c": "Требуется идентификатор папки.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Требуется устаревший шаблон регулярного выражения.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Преобразование устаревших регулярных выражений занято. Попробуйте еще раз.",
     "common.server.folder-not-found-ccbf07": "Папка не найдена.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "В этой папке больше нет устаревшего регулярного выражения для преобразования.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Устаревшее регулярное выражение изменилось после загрузки этого редактора. Перезагрузите и просмотрите его перед преобразованием.",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "common",
-        "content-revision": "9454f03ae66ec5d0eb54bbe19e20d840d5428c6b52aabab2c5d498fac49ec72d"
+        "content-revision": "7767bbeb10fb9163624bd7ee07719b6a72d42f1302e86845a1d61caf9e168476"
     },
     "common.unassigned-group.title": "Otilldelade objekt",
     "runtime.action.requests-result": "$1 godkända · $2 misslyckade",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Målmappen hittades inte.",
     "common.server.folder-id-is-required-d5216c": "Mapp-ID krävs.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Äldre regexmönster krävs.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Äldre regex-konvertering är upptagen. Försök igen.",
     "common.server.folder-not-found-ccbf07": "Mappen hittades inte.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Den här mappen har inte längre ett äldre regex att konvertera.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Det äldre regexet ändrades efter att den här redigeraren laddades. Ladda om och granska den innan du konverterar.",

@@ -1,6 +1,7 @@
 <?php
 function fvplusTypeTransactionPaths(string $type, bool $includeNative = true): array {
-    $type = ensureType($type); $paths = [];
+    $type = ensureType($type);
+    $paths = [getLegacyMigrationMarkerPath($type, 'folders'), getLegacyMigrationMarkerPath($type, 'prefs')];
     foreach ([getFolderFilePath($type), getTypePrefsPath($type), getConfigMetadataPath($type)] as $path) {
         $paths[] = $path; $paths[] = getLastGoodJsonPath($path);
     }
@@ -113,20 +114,18 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
         $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($extraPaths));
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
-            $rollback = createGlobalRollbackSnapshot('before-' . $reason, (array)($options['preserveRollbackNames'] ?? []));
+            $rollback = createGlobalRollbackSnapshot('before-' . $reason, [], false);
             $checkpointAvailable = true;
-            $typeResults = [];
+            $typeResults = []; $retention = [];
             foreach (FVPLUS_ALLOWED_TYPES as $type) {
-                $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason)];
+                $retention[$type] = getTypeBackupRetention($type);
+                $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason, false)];
             }
             $phase = 'writing'; $notify();
             $written = fvplusEnvironmentWriteTarget($normalized, $options);
             $phase = 'verification'; $notify();
             fvplusEnvironmentVerifyTarget($normalized);
             fvplusEnvironmentTransactionStage($options, 'verified');
-            foreach (FVPLUS_ALLOWED_TYPES as $type) {
-                $typeResults[$type]['folderCount'] = (int)($written['counts'][$type] ?? 0);
-            }
         } catch (Throwable $error) {
             try {
                 fvplusEnvironmentRestoreFiles($snapshots);
@@ -136,6 +135,13 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             }
             $notify('complete');
             throw new RuntimeException($error->getMessage() . ' All changed configuration was restored.', 0, $error);
+        }
+        $protected = array_merge((array)($options['preserveRollbackNames'] ?? []), [$rollback['name']]);
+        $rollback['pruned'] = pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, $protected);
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $backup = $typeResults[$type]['backup'];
+            $backup['pruned'] = pruneBackupSnapshots($type, $retention[$type], [$backup['name']]);
+            $typeResults[$type] = ['backup' => $backup, 'folderCount' => (int)($written['counts'][$type] ?? 0)];
         }
         $phase = 'verified'; $notify();
         $summary = buildEnvironmentSnapshotSummary($normalized, $sourceName);

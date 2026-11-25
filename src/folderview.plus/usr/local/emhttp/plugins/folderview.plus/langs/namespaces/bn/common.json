@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "content-revision": "97d73c2da234993cfa55b697feafb1ed7e080d5f1b41c0f25d94ab2951166399"
+        "content-revision": "e7e55413afb8e1817786c2161cfe3bbf818f86d23040be2914cbf1f6060c2d82"
     },
     "common.unassigned-group.title": "অনির্ধারিত আইটেম",
     "runtime.action.requests-result": "$1টি গৃহীত · $2টি ব্যর্থ",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "লক্ষ্য ফোল্ডার পাওয়া যায়নি.",
     "common.server.folder-id-is-required-d5216c": "ফোল্ডার আইডি প্রয়োজন.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "লিগ্যাসি রেজেক্স প্যাটার্ন প্রয়োজন।",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "লিগ্যাসি রেজেক্স রূপান্তর ব্যস্ত। আবার চেষ্টা করুন",
     "common.server.folder-not-found-ccbf07": "ফোল্ডার পাওয়া যায়নি.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "এই ফোল্ডারে রূপান্তর করার জন্য আর একটি লিগ্যাসি রেজেক্স নেই৷",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "এই সম্পাদক লোড হওয়ার পরে উত্তরাধিকার রেজেক্স পরিবর্তিত হয়েছে৷ রূপান্তর করার আগে এটি পুনরায় লোড করুন এবং পর্যালোচনা করুন।",

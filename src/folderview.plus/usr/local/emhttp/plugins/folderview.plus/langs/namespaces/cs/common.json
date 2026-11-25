@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "content-revision": "5dc0a6cf7c66c69b6faea088772a8b6c5f41c06204b77218eddb877315e33185"
+        "content-revision": "e3aa3300c249c00ef2129d0b386c6b2ae7745d5855fac22237617920c85d4001"
     },
     "common.unassigned-group.title": "Nepřiřazené položky",
     "runtime.action.requests-result": "Přijato $1 · Selhalo $2",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Cílová složka nebyla nalezena.",
     "common.server.folder-id-is-required-d5216c": "Je vyžadováno ID složky.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Je vyžadován starší vzor regulárního výrazu.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "Převod původního regulárního výrazu je zaneprázdněn. Zkuste to znovu.",
     "common.server.folder-not-found-ccbf07": "Složka nenalezena.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Tato složka již nemá starší regulární výraz k převodu.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "Po načtení tohoto editoru se původní regulární výraz změnil. Před převodem jej znovu načtěte a zkontrolujte.",

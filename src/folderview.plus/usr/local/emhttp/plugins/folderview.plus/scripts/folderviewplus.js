@@ -2955,12 +2955,13 @@ const applySavedFolderDefaultsToAll = async (type) => {
     }
 
     try {
-        const response = await apiPostJson('/plugins/folderview.plus/server/apply_folder_settings.php', {
-            type: resolvedType,
-            targetIds: JSON.stringify(targetIds),
-            settings: JSON.stringify(defaults.profile)
-        });
-        const result = response?.result || {};
+        const expectedRevision = readFolderConfigurationRevision(resolvedType);
+        if (expectedRevision === null) throw new Error('The current folder configuration revision is unavailable.');
+        const endpoint = '/plugins/folderview.plus/server/apply_folder_settings.php';
+        const request = { type: resolvedType, targetIds: JSON.stringify(targetIds), settings: JSON.stringify(defaults.profile), expectedRevision };
+        const preview = (await apiPostJson(endpoint, { ...request, preview: '1' })).result;
+        const result = preview.updatedCount
+            ? (await apiPostJson(endpoint, { ...request, expectedRevision: preview.folderRevision })).result : preview;
         await Promise.allSettled([
             refreshType(resolvedType),
             refreshBackups(resolvedType, { quiet: true })

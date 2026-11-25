@@ -1,14 +1,14 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.startOrderModel = factory();
-}(typeof window !== 'undefined' ? window : globalThis, function() {
+    modules.startOrderModel = factory(modules.utilityFoundation);
+}(typeof window !== 'undefined' ? window : globalThis, function(utilityFoundation) {
     'use strict';
-
+    const { normalizeFolderId } = utilityFoundation;
     const MODES = Object.freeze(['unmanaged', 'docker-page', 'custom-batches']);
     const REMAINING_MODES = Object.freeze(['after', 'before', 'keep']);
     const DEFAULT_PLAN = Object.freeze({
@@ -31,7 +31,7 @@
             return null;
         }
         if (String(item.type || '').toLowerCase() === 'folder') {
-            const id = boundedText(item.id || item.folderId, 64);
+            const id = normalizeFolderId(item.id || item.folderId);
             return id ? { type: 'folder', id } : null;
         }
         const name = boundedText(item.name, 255);

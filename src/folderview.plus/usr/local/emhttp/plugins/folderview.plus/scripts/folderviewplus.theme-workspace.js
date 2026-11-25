@@ -87,19 +87,20 @@
         let importingTheme = false;
         let workspaceMutation = null;
         let activeScope = 'global';
-        let presetBeforeLayer = null;
-        let selectedPreset = '';
 
         const getActiveProfile = () => themeProfiles.getActiveProfile(workspace);
         const getEditingLayer = () => themeProfiles.normalizeLayer(getActiveProfile().layers?.[activeScope]);
+        const getEditingDraft = () => draftLayersByProfile.get(workspace.activeProfileId)?.[activeScope];
         const syncEditingAliases = () => {
             const layer = getEditingLayer();
             workspace = { ...workspace, variables: layer.variables, customCss: layer.customCss };
             return layer;
         };
-        const updateEditingLayer = (patch = {}) => {
+        const updateEditingLayer = (patch = {}, draftOptions = {}) => {
             workspaceRevision += 1;
             const profileId = workspace.activeProfileId;
+            const draft = getEditingDraft();
+            const base = draft?.base || { layer: getEditingLayer() };
             workspace = {
                 ...workspace,
                 profiles: workspace.profiles.map((profile) => profile.id !== profileId ? profile : {
@@ -108,7 +109,8 @@
                 })
             };
             const layer = syncEditingAliases();
-            draftLayersByProfile.set(profileId, { ...draftLayersByProfile.get(profileId), [activeScope]: layer });
+            draftLayersByProfile.set(profileId, { ...draftLayersByProfile.get(profileId),
+                [activeScope]: { ...draft, ...draftOptions, layer, base } });
             return layer;
         };
 
@@ -268,11 +270,12 @@
                 };
                 host.innerHTML = Object.keys(PRESETS).map((id) => `<button type="button" data-fv-theme-preset="${id}" aria-pressed="false"><span aria-hidden="true" class="fv-theme-preset-swatch"></span>${escapeHtml(labels[id])}</button>`).join('');
             }
+            const draft = getEditingDraft();
             host.querySelectorAll('[data-fv-theme-preset]').forEach((button) => {
-                button.setAttribute('aria-pressed', String(button.getAttribute('data-fv-theme-preset') === selectedPreset));
+                button.setAttribute('aria-pressed', String(button.getAttribute('data-fv-theme-preset') === draft?.selectedPreset));
             });
             const undo = documentRef.getElementById('fv-theme-preset-undo');
-            if (undo) undo.disabled = presetBeforeLayer === null;
+            if (undo) undo.disabled = !draft?.presetBeforeLayer;
         };
 
         const renderScanResult = (scanResult = null) => {
@@ -449,7 +452,6 @@
         const setWorkspace = (nextWorkspace, { preserveDrafts = false } = {}) => {
             workspaceRevision += 1;
             publishedWorkspaceRevision += 1;
-            const previousProfileId = workspace.activeProfileId;
             workspace = normalizeWorkspace(nextWorkspace);
             if (!preserveDrafts) draftLayersByProfile.clear();
             if (draftLayersByProfile.size) {
@@ -457,12 +459,9 @@
                 for (const id of draftLayersByProfile.keys()) if (!profileIds.has(id)) draftLayersByProfile.delete(id);
                 workspace.profiles = workspace.profiles.map((profile) => {
                     const drafts = draftLayersByProfile.get(profile.id);
-                    return drafts ? { ...profile, layers: { ...profile.layers, ...drafts } } : profile;
+                    const draftLayers = Object.fromEntries(Object.entries(drafts || {}).map(([scope, draft]) => [scope, draft.layer]));
+                    return drafts ? { ...profile, layers: { ...profile.layers, ...draftLayers } } : profile;
                 });
-            }
-            if (previousProfileId !== workspace.activeProfileId || !draftLayersByProfile.get(workspace.activeProfileId)?.[activeScope]) {
-                presetBeforeLayer = null;
-                selectedPreset = '';
             }
             renderWorkspace();
             return workspace;
@@ -562,7 +561,8 @@
             const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
             const profileId = workspace.activeProfileId;
             const scope = activeScope;
-            const submittedDraft = draftLayersByProfile.get(profileId)?.[scope];
+            const submittedDraft = getEditingDraft();
+            const base = submittedDraft?.base || { layer: getEditingLayer() };
             const payload = {
                 profileId,
                 scope,
@@ -570,14 +570,24 @@
                 customCss
             };
             return queueWorkspaceMutation(async () => {
-                const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...payload });
+                const guarded = { ...payload, expectedLayer: JSON.stringify(base.layer) };
+                const preview = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'preview_profile', ...guarded });
                 const planNode = documentRef?.getElementById('fv-theme-profile-plan');
                 if (planNode) planNode.textContent = preview?.plan?.changed ? `Updating: ${(preview.plan.changedScopes || []).join(', ') || scope}` : surfaceT("common.audit.no-output-changes", "No generated output changes.");
-                const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...payload });
+                const response = await apiPostJson('/plugins/folderview.plus/server/theme_workspace.php', { action: 'save_profile', ...guarded });
                 const drafts = draftLayersByProfile.get(profileId);
-                if (submittedDraft && drafts?.[scope] === submittedDraft) {
+                const latestDraft = drafts?.[scope];
+                if (submittedDraft && latestDraft === submittedDraft) {
                     delete drafts[scope];
                     if (!Object.keys(drafts).length) draftLayersByProfile.delete(profileId);
+                } else if (latestDraft?.base === base) {
+                    const saved = normalizeWorkspace(response.workspace).profiles.find(profile => profile.id === profileId)?.layers[scope];
+                    if (saved) {
+                        base.layer = saved;
+                        if (latestDraft.presetBeforeLayer && latestDraft.presetBeforeLayer === submittedDraft?.presetBeforeLayer) {
+                            latestDraft.presetBeforeLayer = saved;
+                        }
+                    }
                 }
                 return setWorkspace(response.workspace || {}, { preserveDrafts: true });
             });
@@ -609,15 +619,14 @@
         const previewPreset = (presetId) => {
             const before = getEditingLayer();
             const layer = applyPresetToLayer(before, presetId);
-            presetBeforeLayer = presetBeforeLayer || before;
-            selectedPreset = presetId;
-            updateEditingLayer(layer);
+            updateEditingLayer(layer, { presetBeforeLayer: getEditingDraft()?.presetBeforeLayer || before, selectedPreset: presetId });
             renderWorkspace();
             setStatus(translate('settings.theme.preset-preview-status', 'Preview only. Save the customization layer or save as a new profile to apply these colors.'));
             return workspace;
         };
 
         const undoPreset = () => {
+            const presetBeforeLayer = getEditingDraft()?.presetBeforeLayer;
             if (presetBeforeLayer) {
                 const current = getEditingLayer();
                 const variables = { ...current.variables };
@@ -625,10 +634,8 @@
                     if (Object.prototype.hasOwnProperty.call(presetBeforeLayer.variables, token)) variables[token] = presetBeforeLayer.variables[token];
                     else delete variables[token];
                 });
-                updateEditingLayer({ ...current, variables });
+                updateEditingLayer({ ...current, variables }, { presetBeforeLayer: null, selectedPreset: '' });
             }
-            presetBeforeLayer = null;
-            selectedPreset = '';
             renderWorkspace();
             return workspace;
         };
@@ -706,8 +713,7 @@
                 if (!token || !value) {
                     return;
                 }
-                updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } });
-                selectedPreset = '';
+                updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } }, { selectedPreset: '' });
                 renderPresetControls();
                 renderVariableGrid();
                 applyPreviewCss();
@@ -737,8 +743,6 @@
             $(documentRef).off('change.fvthemescope', '#fv-theme-profile-scope').on('change.fvthemescope', '#fv-theme-profile-scope', (event) => {
                 const scope = String(event?.target?.value || 'global');
                 activeScope = themeProfiles.SCOPES.includes(scope) ? scope : 'global';
-                presetBeforeLayer = null;
-                selectedPreset = '';
                 renderWorkspace();
             });
             $(documentRef).off('click.fvthemepreset', '[data-fv-theme-preset]').on('click.fvthemepreset', '[data-fv-theme-preset]', (event) => {

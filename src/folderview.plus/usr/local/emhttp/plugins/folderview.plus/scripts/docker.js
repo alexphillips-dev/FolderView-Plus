@@ -1119,6 +1119,7 @@ const getDockerRuntimeReconcileApi = () => {
             suspendDockerHostUpdateSync: (durationMs = 0) => suspendDockerHostUpdateSync(durationMs),
             isDockerHostUpdateSyncSuspended: () => isDockerHostUpdateSyncSuspended(),
             refreshDockerRuntimeStateInPlace: (options = {}) => refreshDockerRuntimeStateInPlace(options),
+            onLifecycleIdle: () => { if (dockerDeferredConfigurationRebuild) queueDockerConfigurationRebuild(); },
             waitForDockerRenderFrame: () => waitForDockerRenderFrame(),
             appendDockerBulkUpdateTrace: (eventType, details = {}) => appendDockerBulkUpdateTrace(eventType, details),
             queueDockerSupportBundlePageSnapshot: (reason = 'runtime-sync', delayMs = 180) =>
@@ -3463,7 +3464,7 @@ const clearDockerUnassignedGroup = (options) => {
 };
 const renderDockerUnassignedGroup = (snapshot = dockerUnassignedMembership) => {
     if (!dockerUnassignedGroup || folderTypePrefs?.groupUnassignedItems !== true || resolveDockerPageViewMode() !== 'folderview') {
-        clearDockerUnassignedGroup({ resetExpansion: folderTypePrefs?.groupUnassignedItems !== true });
+        clearDockerUnassignedGroup({ resetExpansion: folderTypePrefs?.groupUnassignedItems !== true, resetFocus: true });
         return;
     }
     const tbody = document.getElementById('docker_list');
@@ -6033,6 +6034,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     if (hierarchyApi && typeof hierarchyApi.updateFolderRowStatusFromContainers === 'function') {
         hierarchyApi.updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
+        runtimeHostAdapters?.syncNativeSwitch?.($(`#folder-${id}-auto`), Number(folder?.status?.autostart) > 0);
     }
 };
 
@@ -6984,6 +6986,7 @@ if (typeof window.LockButton === 'function') {
 }
 getDockerHostGuardsApi()?.wrapHostHook?.('loadlist', ({ invokeOriginal }) => {
     dockerRuntimeLayoutStabilityTracker?.recordColumnTrigger?.('host-loadlist');
+    dockerUnassignedGroup?.preserveFocus?.();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
@@ -7203,6 +7206,7 @@ let lastLiveRefreshStateSignature = '';
 let lastLiveRefreshStateEntityCount = 0;
 let lastDockerRuntimeSnapshotToken = '';
 let lastDockerRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
+let dockerDeferredConfigurationRebuild = false;
 let lastDockerOrderReconciliation = { available: false };
 let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
@@ -7318,6 +7322,10 @@ const queueLoadlistRefresh = (options = {}) => {
         loadlist();
     }, delayMs);
 };
+const queueDockerConfigurationRebuild = () => {
+    dockerDeferredConfigurationRebuild = getDockerRuntimeReconcileApi()?.hasPendingLifecycleActions?.() === true;
+    if (!dockerDeferredConfigurationRebuild) queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-config-revision' });
+};
 const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), options = {}) => {
     const liveUpdateQuery = mode === 'state' && options?.liveUpdateStatus === true
         ? '&liveupdate=1'
@@ -7357,7 +7365,10 @@ const getDockerApiIntegration = () => {
             },
             onStatus: (status) => dockerHostCompatibilityController?.updateProviderEvidence?.({ provider: { apiRead: status } }),
             onIdentityMismatch: (details) => getDockerRuntimeDiagnosticsApi()?.recordApiMismatch?.(details),
-            requestStructuralRefresh: (details = {}) => queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: details?.reason === 'config-revision-changed' ? 'plugin-config-revision' : 'plugin-action-followup' }),
+            requestStructuralRefresh: (details = {}) => {
+                if (details.reason === 'config-revision-changed') queueDockerConfigurationRebuild();
+                else queueLoadlistRefresh({ suppressLoadingUi: true, reloadSource: 'plugin-action-followup' });
+            },
             readConfigSnapshot: async () => runtimeSnapshotApi?.parsePayload?.(await pluginRequestClient.getJson(
                 runtimeSnapshotApi.buildUrl('docker', 'config', { forceRefresh: false }), { cache: false })),
             isConfigCurrent: dockerRuntimeSnapshotConfigMatches,
@@ -7379,6 +7390,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
     let fallbackReason = 'request-error';
     const fallbackToLoadlist = () => {
         if (!isCurrent()) return;
+        if (fallbackReason === 'configuration-changed') return queueDockerConfigurationRebuild();
         if (preserveGroupedDom) {
             dockerRuntimeStateStore.set({
                 rowReconciliation: {
@@ -7414,6 +7426,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             return false;
         }
         if (configurationChanged) {
+            dockerDeferredConfigurationRebuild = true;
             dockerRuntimeStateStore.set({
                 deferredConfigurationRebuild: {
                     reason: 'lifecycle-runtime-refresh',
@@ -7438,9 +7451,6 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             lastLiveRefreshStateSignature = nextSignature;
             lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
         }
-        if (snapshot) {
-            rememberDockerRuntimeSnapshot(snapshot);
-        }
         if (rowDiff.structuralChanged) {
             fallbackReason = 'transient-runtime-structure';
             dockerRuntimeStateStore.set({
@@ -7454,6 +7464,7 @@ const refreshDockerRuntimeStateFromPhp = async (options = {}) => {
             });
             return false;
         }
+        if (snapshot && !configurationChanged) rememberDockerRuntimeSnapshot(snapshot);
         if (rowDiff.hasChanges || getDockerRuntimeInfoApi().membershipInputsChanged(nextRuntimeInfo)) {
             syncDockerVisibleFoldersFromRuntimeCache(rowDiff.changed);
         }
@@ -7648,7 +7659,7 @@ const bindDockerRuntimePreferenceSync = () => {
         const nextPrefs = dockerHiddenFoldersApi.reconcilePrefs(applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs)));
         folderTypePrefs = nextPrefs;
         if (nextPrefs.groupUnassignedItems !== true || resolveDockerPageViewMode(nextPrefs) !== 'folderview') {
-            clearDockerUnassignedGroup({ resetExpansion: nextPrefs.groupUnassignedItems !== true });
+            clearDockerUnassignedGroup({ resetExpansion: nextPrefs.groupUnassignedItems !== true, resetFocus: true });
         }
         applyRuntimePrefs(nextPrefs); applyDockerRuntimeToolbarFilterState(); renderDockerRuntimeActionBar(resolveDockerPageViewMode(nextPrefs));
         if (previousPrefs && (
@@ -7894,7 +7905,7 @@ window.addEventListener('pagehide', function releaseDockerPage(event) {
     if (event?.persisted) return;
     window.removeEventListener('pagehide', releaseDockerPage);
     dockerRuntimePageDisposed = true;
-    clearDockerUnassignedGroup();
+    clearDockerUnassignedGroup({ resetFocus: true });
     dockerBootstrapGeneration += 1;
     dockerRuntimeRefreshGeneration += 1;
     getDockerRuntimeReconcileApi()?.disposeLifecycleRefreshes?.();

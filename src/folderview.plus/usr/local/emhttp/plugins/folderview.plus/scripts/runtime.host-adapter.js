@@ -15,6 +15,26 @@
     const WRAPPER_MARK = '__fvplusHostAdapterHook';
     const registry = new WeakMap();
 
+    // The native widget's checked setter fires change, which writes autostart back to Unraid.
+    const syncNativeSwitch = ($input, checked) => {
+        if (!$input?.length || typeof checked !== 'boolean') return;
+        if ($input.prop('checked') !== checked) $input.prop('checked', checked);
+        const widget = $input.data('sylightsUI-switchButton');
+        if (!widget?.options || widget.options.checked === checked) return;
+        const { options, button, button_bg: background, on_label: onLabel, off_label: offLabel } = widget;
+        options.checked = checked;
+        background.toggleClass('checked', checked);
+        button.stop(true).css('left', checked ? options.width - options.button_width - 1 : -1);
+        const showLabels = options.show_labels !== false;
+        if (options.labels_placement === 'both') {
+            onLabel.toggleClass('on', checked).toggleClass('off', !checked).toggle(showLabels);
+            offLabel.toggleClass('on', !checked).toggleClass('off', checked).toggle(showLabels);
+        } else {
+            onLabel.toggle(showLabels && checked);
+            offLabel.toggle(showLabels && !checked);
+        }
+    };
+
     const freezeContract = (contract) => Object.freeze({
         ...contract,
         requiredSelectors: Object.freeze(contract.requiredSelectors.map((entry) => Object.freeze({ ...entry }))),
@@ -354,6 +374,7 @@
         WRAPPER_MARK,
         CONTRACTS,
         normalizeType,
+        syncNativeSwitch,
         createHostAdapter,
         getOrCreate,
         release

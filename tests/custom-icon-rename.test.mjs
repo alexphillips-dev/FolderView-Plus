@@ -47,6 +47,31 @@ test('unused rename normalizes the extension and updates real metadata and publi
     assert.deepEqual(result.after['config/images/custom/after.png'], result.before['config/images/custom/before.png']);
     assert.equal(result.after['source/images/custom/after.png'][0], result.before['source/images/custom/before.png'][0]);
 });
+
+test('mirror-mode rename retires the legacy runtime metadata and preserves the new index', () => {
+    const result = run({ to: 'longer-after', runtimeMetadata: true });
+    assert.equal(result.runtimeLinked, false);
+    assert.equal(result.error, null);
+    assert.equal(result.response.icon.name, 'longer-after.png');
+    assert.ok(result.before['source/images/custom/.metadata.json']);
+    assert.equal(result.after['source/images/custom/.metadata.json'], undefined);
+    const readIndex = file => JSON.parse(Buffer.from(result.after[file][0], 'base64').toString('utf8')).items;
+    const index = readIndex('config/images/custom/.metadata.json');
+    assert.deepEqual(Object.keys(index), ['longer-after.png']);
+    assert.deepEqual(readIndex('config/images/custom/.metadata.json.lastgood'), index);
+    assert.equal(index['longer-after.png'].originalName, 'before.png');
+    assert.ok(result.after['source/images/custom/longer-after.png']);
+
+    const failed = run({ to: 'longer-after', runtimeMetadata: true, fault: 'mirror' });
+    assert.match(failed.error, /Synthetic mirror failure/);
+    assert.deepEqual(failed.after, failed.before, 'the previous runtime metadata must be restored on rollback');
+});
+
+test('rename rejects an extension change before changing image bytes or metadata', () => {
+    const result = run({ to: 'after.svg' });
+    assert.match(result.error, /Unsupported icon format/);
+    assert.deepEqual(result.after, result.before);
+});
 test('same-name no-op is allowed even for a referenced icon; collision preserves all bytes', () => {
     const noop = run({ kind: 'folder', reference: aliases[0], to: 'before.png' });
     assert.equal(noop.error, null);

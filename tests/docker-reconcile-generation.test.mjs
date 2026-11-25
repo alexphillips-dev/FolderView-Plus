@@ -58,3 +58,27 @@ test('current Docker lifecycle failure still exhausts attempts and finalizes onc
     assert.equal(finalized[0].reason, 'attempts-exhausted');
     assert.equal(finalized[0].success, false);
 });
+
+test('Docker lifecycle runs deferred work only after every active container action settles', async () => {
+    const timers = [];
+    let idleCount = 0;
+    const api = createApi({
+        window: { setTimeout: callback => timers.push(callback) },
+        lifecycleRefreshDelaysMs: [0],
+        refreshDockerRuntimeStateInPlace: async () => true,
+        isDockerLifecycleStateSettled: () => true,
+        finalizeDockerLifecycleSurface: () => {},
+        onLifecycleIdle: () => { idleCount++; }
+    });
+    api.runDockerLifecycleRefresh({ action: 'stop', container: 'first' });
+    api.runDockerLifecycleRefresh({ action: 'start', container: 'second' });
+    assert.equal(api.hasPendingLifecycleActions(), true);
+    timers[0]();
+    await flush();
+    assert.equal(idleCount, 0);
+    assert.equal(api.hasPendingLifecycleActions(), true);
+    timers[1]();
+    await flush();
+    assert.equal(idleCount, 1);
+    assert.equal(api.hasPendingLifecycleActions(), false);
+});

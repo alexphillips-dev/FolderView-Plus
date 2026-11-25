@@ -1,12 +1,8 @@
 <?php
 function legacyRegexMigrationLockPath(string $type): string {
-        global $configDir;
-        $type = ensureType($type);
-        if (!is_dir($configDir)) {
-            @mkdir($configDir, 0770, true);
-        }
-        return $configDir . '/' . $type . '-legacy-regex-migration.lock';
-    }
+    ensureType($type);
+    return getConfigMutationLockPath();
+}
 
     function migrateLegacyRegexToAutoRule(string $type, string $folderId, string $expectedPattern): array {
         $type = ensureType($type);
@@ -19,16 +15,7 @@ function legacyRegexMigrationLockPath(string $type): string {
             throw new RuntimeException('Legacy regex pattern is required.');
         }
 
-        $lockHandle = @fopen(legacyRegexMigrationLockPath($type), 'c+');
-        if (!is_resource($lockHandle) || !@flock($lockHandle, LOCK_EX)) {
-            if (is_resource($lockHandle)) {
-                @fclose($lockHandle);
-            }
-            throw new RuntimeException('Legacy regex conversion is busy. Try again.');
-        }
-
-        $result = null;
-        try {
+        $result = withConfigMutationLock(static function () use ($type, $folderId, $expectedPattern): array {
             $folders = readRawFolderMap($type);
             if (!array_key_exists($folderId, $folders) || !is_array($folders[$folderId])) {
                 throw new RuntimeException('Folder not found.');
@@ -93,29 +80,25 @@ function legacyRegexMigrationLockPath(string $type): string {
                 throw new RuntimeException('The legacy regex is not supported by managed rules and cannot be converted.');
             }
 
-            $nextPrefs = normalizeTypePrefs(array_merge($prefs, ['autoRules' => $rules]));
             $nextFolders = $folders;
             $nextFolders[$folderId]['regex'] = '';
-            $backup = createBackupSnapshot($type, 'before-legacy-regex-conversion');
+            $nextPrefs = normalizeTypePrefs(reconcileManualOrderPrefs(array_replace($prefs, ['autoRules' => $rules]), $nextFolders));
+            $before = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type, false));
+            $backup = createBackupSnapshot($type, 'before-legacy-regex-conversion', false);
 
             try {
                 $savedPrefs = writeTypePrefs($type, $nextPrefs);
                 writeRawFolderMap($type, $nextFolders);
-            } catch (Throwable $writeError) {
-                try {
-                    writeTypePrefs($type, $prefs);
-                    writeRawFolderMap($type, $folders);
-                } catch (Throwable $rollbackError) {
-                    throw new RuntimeException(
-                        'Legacy regex conversion failed and rollback also failed: ' . $rollbackError->getMessage(),
-                        0,
-                        $writeError
-                    );
+                if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type)) || jsonObjectsDiffer($savedPrefs, readTypePrefs($type))) {
+                    throw new RuntimeException('Legacy regex conversion did not complete.');
                 }
+            } catch (Throwable $writeError) {
+                fvplusTransactionRestoreAfterFailure($before, $writeError, 'fvplusTransactionRestoreFiles');
                 throw new RuntimeException('Legacy regex conversion failed; original data was restored.', 0, $writeError);
             }
 
-            $result = [
+            $backup['pruned'] = pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
+            return [
                 'type' => $type,
                 'folderId' => $folderId,
                 'pattern' => $legacyPattern,
@@ -125,16 +108,8 @@ function legacyRegexMigrationLockPath(string $type): string {
                 'folder' => $nextFolders[$folderId],
                 'backup' => $backup
             ];
-        } finally {
-            @flock($lockHandle, LOCK_UN);
-            @fclose($lockHandle);
-        }
-
-        if (!is_array($result)) {
-            throw new RuntimeException('Legacy regex conversion did not complete.');
-        }
+        });
         try {
-            syncManualOrderWithFolders($type, readRawFolderMap($type));
             if ($type === 'docker') {
                 syncContainerOrder('docker');
             }

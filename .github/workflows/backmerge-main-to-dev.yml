@@ -37,10 +37,12 @@ jobs:
           EXPECTED_MAIN: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN"
-          node scripts/release_validation.mjs wait
-          expected_main=$(git rev-parse HEAD)
           git fetch --filter=blob:none --no-tags origin main dev
-          test "$expected_main" = "$(git rev-parse origin/main)"
+          test "$EXPECTED_MAIN" = "$(git rev-parse origin/main)"
+          FVPLUS_BACKMERGE_MAIN_COMMIT="$EXPECTED_MAIN"
+          FVPLUS_BACKMERGE_DEV_COMMIT="$(git rev-parse origin/dev)"
+          export FVPLUS_BACKMERGE_MAIN_COMMIT FVPLUS_BACKMERGE_DEV_COMMIT
+          node scripts/release_validation.mjs wait
           bash scripts/sync_main_to_dev.sh
           node scripts/sync_plan.mjs
       - name: Explain owner synchronization action

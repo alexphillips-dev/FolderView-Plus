@@ -27,8 +27,6 @@ read_host_env_var() {
 
 DEV_BRANCH="$(read_host_env_var FVPLUS_BACKMERGE_LOCAL_BRANCH)"
 DEV_BRANCH="${DEV_BRANCH:-dev}"
-MAIN_REF="origin/main"
-DEV_REF="origin/dev"
 
 normalize_local_remote_url() {
   local url="${1:-}"
@@ -64,6 +62,16 @@ ensure_origin_remote_usable() {
 
 ensure_origin_remote_usable
 git fetch --filter=blob:none --no-tags origin main dev
+MAIN_REF="$(git rev-parse origin/main)"
+DEV_REF="$(git rev-parse origin/dev)"
+if [[ "${MAIN_REF}" != "${FVPLUS_BACKMERGE_MAIN_COMMIT:-${MAIN_REF}}" ]]; then
+  echo 'Main moved during synchronization; no push performed.' >&2
+  exit 1
+fi
+if [[ "${DEV_REF}" != "${FVPLUS_BACKMERGE_DEV_COMMIT:-${DEV_REF}}" ]]; then
+  echo 'Dev moved during synchronization; no push performed.' >&2
+  exit 1
+fi
 
 release_only_path() {
   local path="${1:-}"
@@ -129,8 +137,14 @@ changed_paths_since_ref() {
 
 manifest_install_contract() {
   git show "$1:folderview.plus.plg" \
-    | sed -nE '/^[[:space:]]*<FILE([[:space:]>])/,$p' \
-    | sed -E 's#(<URL>https://raw[.]githubusercontent[.]com/&github;/)(main|dev)(/archive/&name;-&version;[.]txz</URL>)#\1channel\3#'
+    | sed -nE '/^<!ENTITY[[:space:]]/p; /^[[:space:]]*<PLUGIN([[:space:]>])/,$p' \
+    | sed -E '
+        /^[[:space:]]*<CHANGES([[:space:]>])/,/^[[:space:]]*<\/CHANGES>/d
+        /^<!ENTITY (version|md5|sha256)[[:space:]]/d
+        s#(^<!ENTITY pluginURL "https://raw[.]githubusercontent[.]com/&github;/)(main|dev)(/folderview[.]plus[.]plg">)$#\1channel\3#
+        s#(^<!ENTITY iconPackURL "https://raw[.]githubusercontent[.]com/&github;/)(main|dev)(/asset-packs/folderview[.]plus-icons-&iconPackVersion;[.]txz">)$#\1channel\3#
+        s#(<URL>https://raw[.]githubusercontent[.]com/&github;/)(main|dev)(/archive/&name;-&version;[.]txz</URL>)#\1channel\3#
+      '
 }
 
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -144,6 +158,7 @@ elif git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
   git checkout "${DEV_BRANCH}"
 else
   git checkout -b "${DEV_BRANCH}" "${DEV_REF}"
+  git branch --set-upstream-to=origin/dev "${DEV_BRANCH}"
 fi
 
 if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then
@@ -157,7 +172,7 @@ main_install_contract="$(manifest_install_contract "${MAIN_REF}")"
 base_install_contract="$(manifest_install_contract "${merge_base}")"
 dev_install_contract="$(manifest_install_contract "${PRE_MERGE_REF}")"
 if [[ "${main_install_contract}" != "${base_install_contract}" && "${main_install_contract}" != "${dev_install_contract}" ]]; then
-  echo 'Main changes the FolderView Plus manifest installation or removal hooks. Apply the hook changes to dev before synchronizing release metadata.' >&2
+  echo 'Main changes the FolderView Plus manifest installation requirements or hooks. Apply those changes to dev before synchronizing release metadata.' >&2
   exit 1
 fi
 

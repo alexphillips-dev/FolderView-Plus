@@ -24,8 +24,9 @@ test('environment snapshot helpers export folders, prefs, and theme workspace to
 test('environment snapshot import routes through the atomic rollback and verification transaction', () => {
     assert.match(libPhp, /function importEnvironmentSnapshotPayload\(array \$snapshot, string \$sourceName = ''\): array/);
     assert.match(libPhp, /applyEnvironmentSnapshotTransaction\(\$normalized, \$sourceName/);
-    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \(array\)\(\$options\['preserveRollbackNames'\]/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason\)/);
+    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \[\], false\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason, false\)/);
+    assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized\);[\s\S]*pruneGlobalRollbackSnapshots\(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, \$protected\)/);
     assert.match(libPhp, /writeRawFolderMap\(\$type, \$folders\);/);
     assert.match(libPhp, /writeTypePrefs\(\$type, \$prefs\);/);
     assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized\);/);

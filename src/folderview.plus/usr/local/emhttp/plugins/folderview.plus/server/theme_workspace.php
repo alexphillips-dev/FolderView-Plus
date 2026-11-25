@@ -97,9 +97,12 @@ fvplus_json_try(function (): array {
         $profileId = (string)($_POST['profileId'] ?? '');
         $scope = (string)($_POST['scope'] ?? 'global');
         $customCss = (string)($_POST['customCss'] ?? '');
+        $expectedLayerRaw = $_POST['expectedLayer'] ?? null;
+        $expectedLayer = is_string($expectedLayerRaw) ? json_decode($expectedLayerRaw, true) : $expectedLayerRaw;
+        if ($expectedLayerRaw !== null && !is_array($expectedLayer)) throw new InvalidArgumentException('Invalid theme variable payload.');
         $result = $action === 'save_profile'
-            ? saveThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss)
-            : prepareThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss);
+            ? saveThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss, $expectedLayer)
+            : prepareThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss, null, $expectedLayer);
         return $result;
     }
 

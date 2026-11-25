@@ -99,6 +99,44 @@ test('theme rollback distinguishes empty/missing assets and restores captured mo
     assert.equal(result.missingExists, false);
 });
 
+test('profile preview and save reject a changed scope without replacing the newer layer', () => {
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-profile-revision-'));
+    const quote = value => JSON.stringify(value.replaceAll('\\', '/'));
+    const php = `
+        define('FVPLUS_CONFIG_ONLY_BOOTSTRAP', true);
+        define('FVPLUS_THEME_WORKSPACE_REQUEST', true);
+        $_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+        require_once ${quote(path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'))};
+        $base = writeThemeWorkspace(defaultThemeWorkspace())['profiles'][0]['layers']['global'];
+        $panel = ['--fvplus-theme-surface-panel' => '#445566'];
+        prepareThemeWorkspaceProfileLayer('default', 'global', $panel, '', null, $base);
+        saveThemeWorkspaceProfileLayer('default', 'global', ['--fvplus-theme-accent' => '#112233'], '', $base);
+        $bytes = file_get_contents(getThemeWorkspacePath());
+        $statuses = [];
+        foreach (['preview', 'save'] as $operation) {
+            try {
+                if ($operation === 'preview') prepareThemeWorkspaceProfileLayer('default', 'global', $panel, '', null, $base);
+                else saveThemeWorkspaceProfileLayer('default', 'global', $panel, '', $base);
+            } catch (FVPlusConfigConflictException $conflict) { $statuses[] = fvplus_get_api_error_status($conflict); }
+        }
+        $unchanged = $bytes === file_get_contents(getThemeWorkspacePath());
+        saveThemeWorkspaceProfileLayer('default', 'docker', $panel, '', $base);
+        echo json_encode(['statuses' => $statuses, 'unchanged' => $unchanged, 'layers' => readThemeWorkspace(false)['profiles'][0]['layers']]);
+    `;
+    try {
+        const host = path.join(sandbox, 'host');
+        fs.mkdirSync(host);
+        const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: {
+            ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(sandbox, 'config'),
+            FVPLUS_TEST_SOURCE_DIR: path.join(sandbox, 'source'), FVPLUS_TEST_DOCUMENT_ROOT: host
+        } }));
+        assert.deepEqual(result.statuses, [409, 409]);
+        assert.equal(result.unchanged, true);
+        assert.deepEqual(result.layers.global.variables, { '--fvplus-theme-accent': '#112233' });
+        assert.deepEqual(result.layers.docker.variables, { '--fvplus-theme-surface-panel': '#445566' });
+    } finally { fs.rmSync(sandbox, { recursive: true, force: true }); }
+});
+
 test('managed theme actions persist independently of customization layers and generate the correct page assets', () => {
     const sandbox = fs.mkdtempSync(path.join(process.cwd(), 'tmp', 'fvplus-theme-actions-'));
     const quote = value => `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;

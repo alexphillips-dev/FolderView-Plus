@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "content-revision": "094ed24f3ca7f7213cac31e80a97712f261b43fd96dc58160e51d14cc8982ce2"
+        "content-revision": "3532a3d3eb338d13f3c597e0d2a7d4607b57a17439b447f5f3271b6741ca1bc4"
     },
     "common.unassigned-group.title": "Éléments non affectés",
     "runtime.action.requests-result": "$1 acceptées · $2 en échec",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "Dossier cible introuvable.",
     "common.server.folder-id-is-required-d5216c": "L’ID du dossier est requis.",
     "common.server.legacy-regex-pattern-is-required-dc6828": "Un modèle d’expression régulière hérité est requis.",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "La conversion des expressions régulières héritées est occupée. Essayer à nouveau.",
     "common.server.folder-not-found-ccbf07": "Dossier introuvable.",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "Ce dossier n'a plus d'expression régulière héritée à convertir.",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "L'ancienne expression régulière a changé après le chargement de cet éditeur. Rechargez-le et vérifiez-le avant de le convertir.",

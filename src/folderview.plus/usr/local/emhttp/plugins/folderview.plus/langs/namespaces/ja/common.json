@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "content-revision": "ad8d97208e884f35a9c652e1cf13edb95533d264aa65193fbdd744bc87e5b84b"
+        "content-revision": "697c06320cd30dde90f413f39c244b0f914c6a11794d6f6dee919daa5f1c84fc"
     },
     "common.unassigned-group.title": "未割り当ての項目",
     "runtime.action.requests-result": "受付 $1 件 · 失敗 $2 件",
@@ -582,7 +582,6 @@
     "common.server.target-folder-not-found-b0f5ad": "対象のフォルダーが見つかりません。",
     "common.server.folder-id-is-required-d5216c": "フォルダーIDは必須です。",
     "common.server.legacy-regex-pattern-is-required-dc6828": "従来の正規表現パターンが必要です。",
-    "common.server.legacy-regex-conversion-is-busy-try-again-29ae37": "従来の正規表現変換がビジー状態です。もう一度やり直してください。",
     "common.server.folder-not-found-ccbf07": "フォルダーが見つかりません。",
     "common.server.this-folder-no-longer-has-a-legacy-regex-to-convert-39629e": "このフォルダーには変換するレガシー正規表現がありません。",
     "common.server.the-legacy-regex-changed-after-this-editor-loaded-reload-and-revi-497972": "このエディターがロードされた後、従来の正規表現が変更されました。変換する前にリロードして確認してください。",

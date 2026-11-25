@@ -207,20 +207,21 @@
         });
 
         Object.entries(output).forEach(([folderId, folder]) => {
-            const renames = {};
-            let identityChanged = false;
+            const renames = Object.create(null);
+            const previousIdentities = Object.create(null);
+            const memberIdentities = Object.create(null);
             const members = [...folder.containers];
             for (const oldName of members) {
                 const live = runtimeByName.get(oldName);
-                if (live) {
-                    if (!identitiesEqual(folder.memberIdentities[oldName], live.identity)) {
-                        folder.memberIdentities[oldName] = live.identity;
-                        identityChanged = true;
+                const savedIdentity = folder.memberIdentities[oldName];
+                if (live && (safeType !== 'vm' || !savedIdentity?.uuid || live.identity.uuid === savedIdentity.uuid)) {
+                    if (hasUsefulIdentity(live.identity) && !identitiesEqual(savedIdentity, live.identity)) {
+                        previousIdentities[oldName] = savedIdentity ?? null;
+                        folder.memberIdentities[oldName] = memberIdentities[oldName] = live.identity;
                         diagnostics.backfilled += 1;
                     }
                     continue;
                 }
-                const savedIdentity = folder.memberIdentities[oldName];
                 const resolution = resolveRenameCandidate(safeType, savedIdentity, runtimeByName.values());
                 if (resolution.status !== 'resolved' || !resolution.candidate || claimedNames.has(resolution.candidate.name)) {
                     const record = { folderId, member: oldName };
@@ -239,17 +240,14 @@
                     folder.settings.webui_profiles = webuiProfiles.renameProfileMember(folder.settings.webui_profiles, oldName, newName);
                 }
                 delete folder.memberIdentities[oldName];
-                folder.memberIdentities[newName] = resolution.candidate.identity;
+                previousIdentities[oldName] = savedIdentity ?? null;
+                folder.memberIdentities[newName] = memberIdentities[newName] = resolution.candidate.identity;
                 renames[oldName] = newName;
                 claimedNames.add(newName);
-                identityChanged = true;
                 diagnostics.renamed += 1;
             }
-            if (identityChanged || Object.keys(renames).length > 0) {
-                patches[folderId] = {
-                    renames,
-                    memberIdentities: folder.memberIdentities
-                };
+            if (Object.keys(previousIdentities).length > 0) {
+                patches[folderId] = { renames, previousIdentities, memberIdentities };
             }
         });
         return { folders: output, patches, diagnostics };

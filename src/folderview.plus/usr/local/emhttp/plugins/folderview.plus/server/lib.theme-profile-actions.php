@@ -32,19 +32,24 @@ function deleteThemeWorkspaceProfile(string $profileId): array {
     });
 }
 
-function prepareThemeWorkspaceProfileLayer(string $profileId, string $scope, $variables, string $customCss, ?array $workspace = null): array {
+function prepareThemeWorkspaceProfileLayer(string $profileId, string $scope, $variables, string $customCss, ?array $workspace = null, ?array $expectedLayer = null): array {
     $workspace ??= readThemeWorkspace(false);
+    $profileId = truncateUtf8String(trim($profileId), 64);
+    $previous = array_column($workspace['profiles'], 'layers', 'id')[$profileId][$scope] ?? null;
+    if ($expectedLayer !== null && $previous !== null && fvplus_security_canonicalize($previous) !== fvplus_security_canonicalize(fvplusThemeProfileNormalizeLayer($expectedLayer))) {
+        throw new FVPlusConfigConflictException('The preview changed. Run the preview again before applying.');
+    }
     $scan = fvplusThemeWorkspaceScanCss($customCss);
     if (count((array)($scan['severe'] ?? [])) > 0) {
         throw new RuntimeException(implode(' ', (array)$scan['severe']));
     }
-    $proposed = fvplusThemeProfileUpdateLayer($workspace, truncateUtf8String(trim($profileId), 64), $scope, $variables, $customCss);
+    $proposed = fvplusThemeProfileUpdateLayer($workspace, $profileId, $scope, $variables, $customCss);
     return ['workspace' => $proposed, 'plan' => fvplusThemeWorkspaceBuildUpdatePlan($workspace, $proposed)];
 }
 
-function saveThemeWorkspaceProfileLayer(string $profileId, string $scope, $variables, string $customCss): array {
-    return withConfigMutationLock(static function () use ($profileId, $scope, $variables, $customCss): array {
-        $prepared = prepareThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss);
+function saveThemeWorkspaceProfileLayer(string $profileId, string $scope, $variables, string $customCss, ?array $expectedLayer = null): array {
+    return withConfigMutationLock(static function () use ($profileId, $scope, $variables, $customCss, $expectedLayer): array {
+        $prepared = prepareThemeWorkspaceProfileLayer($profileId, $scope, $variables, $customCss, null, $expectedLayer);
         return ['workspace' => writeThemeWorkspace($prepared['workspace']), 'plan' => $prepared['plan']];
     });
 }

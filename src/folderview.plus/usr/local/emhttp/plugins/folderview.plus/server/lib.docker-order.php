@@ -116,7 +116,7 @@ function dockerSyncOrderLockPath(): string {
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
         $infoByName = $verifiedInventory ?? readInfoState('docker');
         if (count($allContainerNames) <= 0) {
-            $allContainerNames = array_keys($infoByName);
+            $allContainerNames = array_map('strval', array_keys($infoByName));
         }
 
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders, $prefs);
@@ -193,12 +193,12 @@ function dockerSyncOrderLockPath(): string {
         $allContainerNames = (array)($context['allContainerNames'] ?? []);
         $folderContainers = (array)($context['folderContainers'] ?? []);
         $autoStartMap = (array)($context['autoStartMap'] ?? []);
+        $nativeNames = array_map('strval', array_keys($autoStartMap));
         $pageOrder = buildDockerPageStartOrder($context);
         $plannedOrder = [];
         $seen = [];
         $batchesOut = [];
         $warnings = [];
-
         foreach ((array)($plan['batches'] ?? []) as $batch) {
             if (!is_array($batch)) {
                 continue;
@@ -215,9 +215,11 @@ function dockerSyncOrderLockPath(): string {
                         $warnings[] = 'Folder in start plan no longer exists: ' . $placeholder;
                         continue;
                     }
-                    foreach ((array)$folderContainers[$placeholder] as $ct) {
-                        $batchNames[] = (string)$ct;
+                    $members = array_map('strval', (array)$folderContainers[$placeholder]);
+                    if (($batch['useFolderOrder'] ?? true) === false) {
+                        $members = array_merge(array_intersect($nativeNames, $members), array_diff($members, $nativeNames));
                     }
+                    $batchNames = array_merge($batchNames, $members);
                     continue;
                 }
                 $name = trim((string)($item['name'] ?? ''));
@@ -232,14 +234,14 @@ function dockerSyncOrderLockPath(): string {
             }
 
             $batchAutostartNames = [];
-            $seenBatch = [];
             foreach ($batchNames as $name) {
                 if (!isset($autoStartMap[$name])) {
                     $warnings[] = $name . ' is in the start plan but Docker autostart is off.';
                     continue;
                 }
+                if (isset($seen[$name])) continue;
                 fvplus_append_unique_name($plannedOrder, $seen, $name);
-                fvplus_append_unique_name($batchAutostartNames, $seenBatch, $name);
+                $batchAutostartNames[] = $name;
             }
             $batchesOut[] = [
                 'id' => (string)($batch['id'] ?? ''),
@@ -254,7 +256,7 @@ function dockerSyncOrderLockPath(): string {
         $remainingOrder = [];
         $remainingSeen = [];
         if ($remaining === 'keep') {
-            foreach (array_keys($autoStartMap) as $name) {
+            foreach ($nativeNames as $name) {
                 if (!isset($seen[$name])) {
                     fvplus_append_unique_name($remainingOrder, $remainingSeen, (string)$name);
                 }
@@ -266,7 +268,6 @@ function dockerSyncOrderLockPath(): string {
                 }
             }
         }
-
         $ordered = $remaining === 'before'
             ? array_values(array_merge($remainingOrder, $plannedOrder))
             : array_values(array_merge($plannedOrder, $remainingOrder));
@@ -284,11 +285,12 @@ function dockerSyncOrderLockPath(): string {
         $prefs = is_array($context['prefs'] ?? null) ? $context['prefs'] : readTypePrefs('docker');
         $plan = normalizeDockerStartOrderPrefs($prefs['dockerStartOrder'] ?? []);
         $autoStartMap = (array)($context['autoStartMap'] ?? []);
+        $nativeNames = array_map('strval', array_keys($autoStartMap));
         $mode = (string)($plan['mode'] ?? 'docker-page');
         $warnings = [];
         $batches = [];
         $remaining = [];
-        if ($mode === 'unmanaged') { $order = array_keys($autoStartMap); } elseif ($mode === 'custom-batches') {
+        if ($mode === 'unmanaged') { $order = $nativeNames; } elseif ($mode === 'custom-batches') {
             $custom = buildDockerCustomStartOrder($context, $plan);
             $order = (array)($custom['order'] ?? []);
             $warnings = (array)($custom['warnings'] ?? []);
@@ -303,7 +305,7 @@ function dockerSyncOrderLockPath(): string {
                 $autoStartOrder[] = $name;
             }
         }
-        foreach (array_keys($autoStartMap) as $name) {
+        foreach ($nativeNames as $name) {
             if (!in_array($name, $autoStartOrder, true)) {
                 $autoStartOrder[] = $name;
             }

@@ -48,6 +48,7 @@ function fixture(type, failure = '', { dryRun = false, cancelled = false, revisi
                 throw new Error('This folder configuration changed in another page or browser tab.');
             }
             assert.equal(operations.backupReason, 'before-import-transaction-merge');
+            assert.equal(operations.preserveParentLinks, true);
             if (failure === 'backup') throw new Error('Backup failed');
             events.push('backup');
             if (failure !== 'conflict') state.folders.push('concurrent');
@@ -168,6 +169,7 @@ test('Settings clear submits the ids and revision captured before confirmation',
     assert.deepEqual(requests[0].deletes, ['original']);
     assert.equal(requests[0].revision, '4');
     assert.equal(requests[0].backupReason, 'before-clear-all');
+    assert.equal(requests[0].preserveParentLinks, undefined);
 });
 
 test('ordinary import without a verifiable snapshot never opens a write transaction', async () => {

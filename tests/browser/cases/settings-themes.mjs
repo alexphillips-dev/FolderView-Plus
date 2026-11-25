@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { registerSettingsAppearanceValidationCases } from './settings-appearance-validation.mjs';
+import { registerSettingsAppearanceAlphaCase } from './settings-appearance-alpha.mjs';
 
 const settingsSource = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js', 'utf8');
 const functions = ['getSettingsSectionRegistrySignature', 'buildSettingsSections', 'getVisibleSections', 'renderAdvancedNav', 'readSettingsLaunchOverrides']
@@ -274,6 +275,7 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
     });
 
     registerSettingsAppearanceValidationCases({ test, baseUrl, mount, chooseTab });
+    registerSettingsAppearanceAlphaCase({ test, baseUrl, mount, chooseTab });
 
     test('Appearance keeps scoped preview, profile saves and errors visible after the tab split', async ({ page }) => {
         await mount(page, baseUrl);
@@ -297,7 +299,9 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await page.evaluate(() => { window.fixtureResetButton = document.activeElement; });
         await page.keyboard.press('Enter');
         assert.equal(await page.evaluate(() => document.activeElement === window.fixtureResetButton), true);
-        assert.equal(await page.locator('[data-fv-theme-token="--fvplus-theme-accent"]').evaluate(input => input.value === input.dataset.fvThemeFallback), true);
+        assert.equal(await page.locator('[data-fv-theme-token="--fvplus-theme-accent"]').evaluate(input => {
+            const reference = input.cloneNode(); reference.value = input.dataset.fvThemeFallback; return input.value === reference.value;
+        }), true);
         assert.equal(await page.evaluate(() => themeApi.getWorkspace().variables['--fvplus-theme-accent']), undefined);
         await page.locator('#fv-theme-custom-css').fill('.draft { opacity: .9; }');
         await page.locator('[data-fv-theme-preset="green"]').click();

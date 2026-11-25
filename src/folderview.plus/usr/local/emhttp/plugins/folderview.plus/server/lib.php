@@ -1673,9 +1673,9 @@
         return normalizeFolderMapPayload($folders, false);
     }
 
-    function readRawFolderMap(string $type, bool $requireVerified = false): array {
+    function readRawFolderMap(string $type, bool $requireVerified = false, bool $preserveHierarchy = false): array {
         $type = ensureType($type);
-        return withConfigMutationLock(static function () use ($type, $requireVerified): array {
+        return withConfigMutationLock(static function () use ($type, $requireVerified, $preserveHierarchy): array {
             $path = getFolderFilePath($type);
             $decoded = readJsonObjectFile($path);
             $verify = !$requireVerified ? null : static function (array $folders): bool {
@@ -1715,13 +1715,42 @@
                 // Keep original relationships available for inspection and reviewed repair.
                 fvplusWriteConfigPayload($type, 'folder', $path, $normalized);
             }
-            return normalizeFolderParentLinks($normalized);
+            return $preserveHierarchy ? $normalized : normalizeFolderParentLinks($normalized);
         });
     }
 
-    function writeRawFolderMap(string $type, array $folders): void {
+    function preserveUnchangedFolderParentLinks(array $folders, array $stored): array {
+        $visible = normalizeFolderParentLinks($stored);
+        if ($stored === $visible) return $folders;
+        $next = $folders;
+        foreach ($next as $id => &$folder) {
+            $storedParent = $stored[$id]['parentId'] ?? '';
+            $visibleParent = $visible[$id]['parentId'] ?? '';
+            // Keep an unrelated saved link hidden by the safe read projection.
+            if ($storedParent !== $visibleParent && $folder['parentId'] === $visibleParent
+                && (!isset($stored[$storedParent]) || isset($next[$storedParent]))) {
+                $folder['parentId'] = $storedParent;
+            }
+        }
+        unset($folder);
+        // A newly available parent or a broken legacy cycle cannot silently reattach a folder.
+        if (normalizeFolderParentLinks($next) !== $folders) {
+            throw new FVPlusConfigConflictException('The preview changed. Run the preview again before applying.');
+        }
+        return $next;
+    }
+
+    function writeRawFolderMap(string $type, array $folders, bool $replaceHierarchy = false): array {
         $type = ensureType($type);
-        fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), normalizeFolderMapPayload($folders));
+        return withConfigMutationLock(static function () use ($type, $folders, $replaceHierarchy): array {
+            $path = getFolderFilePath($type);
+            $next = normalizeFolderMapPayload($folders);
+            if (!$replaceHierarchy) {
+                $next = preserveUnchangedFolderParentLinks($next, normalizeFolderMapPayload(readJsonObjectFile($path), false));
+            }
+            fvplusWriteConfigPayload($type, 'folder', $path, $next);
+            return $next;
+        });
     }
 
     function reorderFoldersByIdList(string $type, array $orderedIds): array {
@@ -2298,7 +2327,9 @@
         $folder = is_array($folders[$folderId]) ? $folders[$folderId] : [];
         $folder['icon'] = (string)($template['icon'] ?? ($folder['icon'] ?? ''));
         $folder['regex'] = (string)($template['regex'] ?? ($folder['regex'] ?? ''));
+        $targetProfiles = $folder['settings']['webui_profiles'] ?? [];
         $folder['settings'] = is_array($template['settings'] ?? null) ? $template['settings'] : (is_array($folder['settings'] ?? null) ? $folder['settings'] : []);
+        $folder['settings']['webui_profiles'] = $targetProfiles;
         $folder['actions'] = is_array($template['actions'] ?? null) ? $template['actions'] : (is_array($folder['actions'] ?? null) ? $folder['actions'] : []);
         $folders[$folderId] = $folder;
         writeRawFolderMap($type, $folders);
@@ -2571,6 +2602,7 @@
     require_once(__DIR__ . '/lib.docker-order.php');
 
     require_once(__DIR__ . '/lib.folder-batch-order.php');
+    require_once(__DIR__ . '/lib.folder-batch-operations.php');
     require_once(__DIR__ . '/lib.folder-settings-transfer.php');
     require_once(__DIR__ . '/lib.folder-mutations.php');
 

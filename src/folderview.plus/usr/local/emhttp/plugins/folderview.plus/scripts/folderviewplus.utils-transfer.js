@@ -13,6 +13,7 @@
         isPlainObject,
         EXPORT_SCHEMA_VERSION,
         normalizeFolderRecord,
+        normalizeFolderMembers,
         normalizeFolderMap
     } = utilityDependencies;
 
@@ -377,6 +378,12 @@
         const current = normalizeFolderMap(existingFolders);
         const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
         const incoming = parsed.mode === 'single' ? null : normalizeFolderMap(parsed.folders);
+        const singleFolder = incoming ? null : cloneJson(parsed.folder);
+        const parentId = singleFolder?.parentId;
+        if (parentId && (!Object.hasOwn(current, parentId) || (mode === 'replace' && parentId !== parsed.folderId))) {
+            // A single-folder export does not include its source ancestry.
+            singleFolder.parentId = '';
+        }
         const pathResolution = incoming ? resolveImportPathCollisions(current, incoming) : null;
         const entries = [], targetIds = new Set();
         for (const [sourceId, folder] of Object.entries(incoming || {})) {
@@ -386,13 +393,13 @@
             const resolvedFolder = remapImportedFolderParent(folder, incoming, pathResolution.resolvedIdByIncomingId);
             const existing = current[id];
             entries.push({ id, sourceId, folder: resolvedFolder, pathMapped: id !== sourceId, existing,
-                same: Boolean(existing) && JSON.stringify(existing) === JSON.stringify(resolvedFolder) });
+                same: Boolean(existing) && diffFolderFields(existing, resolvedFolder).length === 0 });
         }
-        return { current, mode, entries, targetIds, pathResolution };
+        return { current, mode, entries, targetIds, pathResolution, singleFolder };
     };
 
     const summarizeImport = (existingFolders, parsed, importMode, resolvedPlan = null) => {
-        const { current, mode, entries, targetIds, pathResolution } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
+        const { current, mode, entries, targetIds, pathResolution, singleFolder } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
         const existingIds = Object.keys(current);
         const result = {
             mode,
@@ -409,10 +416,9 @@
             if (parsed.folderId) {
                 const exists = Object.prototype.hasOwnProperty.call(current, parsed.folderId);
                 if (exists) {
-                    const same = JSON.stringify(current[parsed.folderId]) === JSON.stringify(parsed.folder);
                     if (mode === 'skip') {
                         result.skipped.push({ id: parsed.folderId, name: singleName });
-                    } else if (same) {
+                    } else if (diffFolderFields(current[parsed.folderId], singleFolder).length === 0) {
                         result.unchanged.push({ id: parsed.folderId, name: singleName });
                     } else {
                         result.updates.push({ id: parsed.folderId, name: singleName });
@@ -463,7 +469,7 @@
     };
 
     const buildImportOperations = (existingFolders, parsed, importMode, resolvedPlan = null) => {
-        const { current, mode, entries, targetIds, pathResolution } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
+        const { current, mode, entries, targetIds, pathResolution, singleFolder } = resolvedPlan || resolveImportPlan(existingFolders, parsed, importMode);
         const operations = {
             mode,
             upserts: [],
@@ -473,12 +479,11 @@
 
         if (parsed.mode === 'single') {
             if (mode === 'replace') {
-                operations.deletes = Object.keys(current);
+                operations.deletes = Object.keys(current).filter(id => id !== parsed.folderId);
             }
-
             if (parsed.folderId) {
                 if (!(mode === 'skip' && Object.prototype.hasOwnProperty.call(current, parsed.folderId))) {
-                    operations.upserts.push({ id: parsed.folderId, folder: cloneJson(parsed.folder) });
+                    operations.upserts.push({ id: parsed.folderId, folder: singleFolder });
                 }
                 return operations;
             }
@@ -486,7 +491,7 @@
             const singleName = String(parsed.folder?.name || '');
             const sameNameId = Object.keys(current).find((id) => String(current[id]?.name || '') === singleName);
             if (!(mode === 'skip' && sameNameId)) {
-                operations.creates.push({ folder: cloneJson(parsed.folder) });
+                operations.creates.push({ folder: singleFolder });
             }
             return operations;
         }
@@ -505,14 +510,22 @@
     };
 
     const normalizeMemberList = (value) => {
-        if (Array.isArray(value)) {
-            return value.map((item) => String(item)).filter((item) => item !== '');
-        }
-        if (isPlainObject(value)) {
-            return Object.keys(value).map((item) => String(item)).filter((item) => item !== '');
-        }
-        return [];
+        const names = Array.isArray(value) ? value : isPlainObject(value) ? Object.keys(value) : [];
+        return names.map(item => String(item)).filter(item => item !== '');
     };
+
+    const comparableJson = (value) => JSON.stringify(value, (_key, item) => isPlainObject(item)
+        ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
+
+    const comparableFolderSettings = ({ settings = {}, child_folder_order, childFolderOrder }) => {
+        const { child_folder_order: savedOrder, childFolderOrder: legacyOrder, ...otherSettings } = settings || {};
+        const order = savedOrder ?? legacyOrder ?? child_folder_order ?? childFolderOrder;
+        return { ...otherSettings, child_folder_order: normalizeFolderMembers(order ? Object.values(order) : []) };
+    };
+
+    const hiddenPreviewMembers = (folder) => normalizeFolderMembers(folder.hiddenPreviewMembers ?? folder.hidden_preview);
+    const memberIdentities = (folder, members) => Object.fromEntries(Object.entries(folder.memberIdentities ?? folder.member_identities ?? {})
+        .filter(([name, identity]) => members.includes(name) && isPlainObject(identity)));
 
     const diffFolderFields = (existingFolder, incomingFolder) => {
         const current = isPlainObject(existingFolder) ? existingFolder : {};
@@ -531,16 +544,17 @@
         if (String(current.parentId || '') !== String(next.parentId || '')) {
             fields.push('parent');
         }
-        if (JSON.stringify(current.settings || {}) !== JSON.stringify(next.settings || {})) {
+        if (comparableJson(comparableFolderSettings(current)) !== comparableJson(comparableFolderSettings(next))) {
             fields.push('settings');
         }
-        if (JSON.stringify(current.actions || []) !== JSON.stringify(next.actions || [])) {
+        if (comparableJson(current.actions || []) !== comparableJson(next.actions || [])) {
             fields.push('actions');
         }
 
-        const currentMembers = normalizeMemberList(current.containers);
-        const nextMembers = normalizeMemberList(next.containers);
-        if (JSON.stringify(currentMembers) !== JSON.stringify(nextMembers)) {
+        const members = normalizeFolderMembers(current.containers), nextMembers = normalizeFolderMembers(next.containers);
+        if (JSON.stringify(members) !== JSON.stringify(nextMembers) || JSON.stringify(hiddenPreviewMembers(current)) !== JSON.stringify(hiddenPreviewMembers(next))
+            || (current.membershipPolicy || '') !== (next.membershipPolicy || '')
+            || comparableJson(memberIdentities(current, members)) !== comparableJson(memberIdentities(next, nextMembers))) {
             fields.push('members');
         }
 

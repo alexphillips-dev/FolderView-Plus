@@ -17,6 +17,7 @@
         <div id="vm-download-status" class="fv-download-status" role="status" aria-live="polite" hidden></div>
     </div>
     <div id="import-preview-selection"></div>
+    <div id="import-preview-diff"></div>
     <div id="import-apply-progress-overlay" hidden aria-hidden="true"></div>
     <div id="import-apply-progress-dialog" hidden role="dialog" aria-modal="true" aria-live="polite" aria-hidden="true">
         <div id="import-apply-progress-kicker"></div>
@@ -36,6 +37,7 @@
     <script src="/fixtures/import.fixture.js"></script>
     <script src="/plugin/scripts/folderviewplus.download-diagnostics.js"></script>
     <script src="/plugin/scripts/folderviewplus.download-status.js"></script>
+    <script src="/plugin/scripts/folderviewplus.import-selection.js"></script>
     <script src="/plugin/scripts/folderviewplus.import.js"></script>
     <script>
         document.body.dataset.fvThemeClass = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -51,6 +53,7 @@
                 importSelectionState = buildOperationSelectionState(operations, folders);
                 renderOperationSelection();
             },
+            renderDiff: (rows) => renderImportDiffTable(rows, { resetPage: true }),
             filteredSelection: (operations) => filterOperationsBySelection(operations),
             requestDownload: () => downloadFile('FolderView Plus Docker.json', '{"folders":{}}', {
                 type: 'docker',

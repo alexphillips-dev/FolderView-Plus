@@ -60,10 +60,10 @@ test('self-heal JSON helpers exist and are used in folder/prefs readers', () => 
     assert.match(libPhp, /function writeJsonObjectWithLastGood\(string \$path, array \$payload\): void/);
     assert.match(libPhp, /function recoverJsonObjectFromLastGood\(string \$path, \?callable \$verify = null\): \?array/);
     assert.match(libPhp, /function normalizeFolderMapPayload\(\$value, bool \$repairHierarchy = true\): array/);
-    assert.match(libPhp, /function readRawFolderMap\(string \$type, bool \$requireVerified = false\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path, \$verify\)/);
+    assert.match(libPhp, /function readRawFolderMap\(string \$type, bool \$requireVerified = false, bool \$preserveHierarchy = false\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path, \$verify\)/);
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
     assert.match(libPrefsPhp, /function readTypePrefs\(string \$type\): array[\s\S]*readJsonObjectFile\(getLastGoodJsonPath\(\$path\)\)[\s\S]*writeTypePrefs\(\$type, \$lastGood\)[\s\S]*migrateLegacyTypeDataIfNeeded/);
-    assert.match(libPhp, /function writeRawFolderMap\(string \$type, array \$folders\): void[\s\S]*fvplusWriteConfigPayload\(\$type, 'folder', getFolderFilePath\(\$type\), normalizeFolderMapPayload\(\$folders\)\)/);
+    assert.match(libPhp, /function writeRawFolderMap\(string \$type, array \$folders, bool \$replaceHierarchy = false\): array[\s\S]*fvplusWriteConfigPayload\(\$type, 'folder', \$path, \$next\)/);
     assert.match(libPrefsPhp, /fvplusWriteConfigPayload\(\$type, 'prefs', getTypePrefsPath\(\$type\), \$normalized, \$mutationReceipt, \$authoritative\)/);
 });
 

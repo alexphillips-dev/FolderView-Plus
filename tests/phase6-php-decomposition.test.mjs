@@ -42,12 +42,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 69);
+    assert.equal(architecture.serverModuleContracts.length, 70);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
     }
-    assert.doesNotMatch(coreFacade, /function (?:readInstalledVersion|writeDurableFileAtomic|getThemeWorkspacePath|createBackupSnapshot|bulkAssignItemsToFolders|syncContainerOrder|updateFolder|fvplusCustomIconDirPath|readInfo)\s*\(/);
+    assert.doesNotMatch(coreFacade, /function (?:readInstalledVersion|writeDurableFileAtomic|getThemeWorkspacePath|createBackupSnapshot|bulkAssignItemsToFolders|syncContainerOrder|updateFolder|normalizeBatchFolderOperations|fvplusCustomIconDirPath|readInfo)\s*\(/);
     assert.doesNotMatch(diagnosticsFacade, /function (?:diagnosticsHashShort|diagnosticsBuildIntegrityChecks|diagnosticsBuildOverviewSummary|getSupportBundleV2Snapshot)\s*\(/);
     assert.doesNotMatch(iconEndpoint, /^function\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/m);
 });
@@ -88,6 +88,8 @@ test('decomposition preserves every historical public PHP function name', () => 
             'dockerPageUnslottedNames', 'dockerPageStartOrderUsesSavedLayout', 'fvplusFolderNameSortKey',
             'fvplusCompareFolderNameSortKeys']) additions.add(name);
         additions.add('readFolderMapForTreeIntegrity');
+        additions.add('preserveUnchangedFolderParentLinks');
+        additions.add('normalizeBatchFolderOperations');
         additions.add('createFolderBatchSafetyBackup');
         for (const name of ['fvplusRulePatternIsPortable', 'serverRuleRegex', 'fvplusCompileRuleSet', 'fvplusEvaluateRules', 'fvplusBuildMembershipSnapshot', 'fvplusRuleFacts', 'fvplusRulesInputDigest']) additions.add(name);
         for (const name of ['fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences', 'fvplusRegexBackreferencesArePortable']) additions.add(name);
@@ -153,6 +155,7 @@ test('requiring the compatibility facade publishes representative functions from
         'readInstalledVersion', 'writeDurableFileAtomic', 'getThemeWorkspacePath', 'diagnosticsFirstMatchingRule',
         'normalizeEnvironmentSnapshotPayload', 'scanThemeWorkspaceGithub', 'getTypeBackupSchedule',
         'createBackupSnapshot', 'bulkAssignItemsToFolders', 'syncContainerOrder', 'updateFolder',
+        'preserveUnchangedFolderParentLinks', 'normalizeBatchFolderOperations',
         'fvplusCustomIconDirPath', 'readInfo', 'diagnosticsHashShort', 'diagnosticsBuildIntegrityChecks',
         'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot', 'truncateUtf8String',
         'fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences'

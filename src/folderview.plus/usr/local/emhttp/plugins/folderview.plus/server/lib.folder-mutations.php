@@ -124,57 +124,18 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             || trim((string)$expectedRevision) === ''))) {
             throw new RuntimeException('Invalid folder batch safety backup request.');
         }
+        $preserveParentLinks = $operations['preserveParentLinks'] ?? false;
+        if (!is_bool($preserveParentLinks) || ($preserveParentLinks && trim((string)$expectedRevision) === '')) {
+            throw new RuntimeException('Invalid folder payload.');
+        }
+        $importing = $preserveParentLinks || str_starts_with($backupReason, 'before-import-transaction-');
         [$manualOrder, $expectedPrefsRevision] = parseBatchManualOrder($operations);
         if (!is_array($deletes) || !is_array($upserts) || !is_array($creates)) {
             throw new RuntimeException('Batch operations must contain delete, update, and create arrays.');
         }
         $operationCount = assertBatchFolderOperationCount($deletes, $upserts, $creates);
-        $normalizedDeletes = [];
-        foreach ($deletes as $rawId) {
-            $id = trim((string)$rawId);
-            if ($id === '' || strlen($id) > 128) {
-                throw new RuntimeException('Batch delete contains an invalid folder ID.');
-            }
-            $normalizedDeletes[] = $id;
-        }
-
-        $normalizeBatchFolder = static function ($rawEntry, bool $requiresId) use ($type): array {
-            if (!is_array($rawEntry)) {
-                throw new RuntimeException('Batch folder operation must be an object.');
-            }
-            $id = $requiresId ? trim((string)($rawEntry['id'] ?? '')) : '';
-            if ($requiresId && ($id === '' || strlen($id) > 128)) {
-                throw new RuntimeException('Batch update contains an invalid folder ID.');
-            }
-            $folder = $rawEntry['folder'] ?? null;
-            if (!is_array($folder)) {
-                throw new RuntimeException('Batch folder operation is missing a valid folder payload.');
-            }
-            fvplus_assert_folder_payload_shape($folder);
-            if ($type === 'docker') fvplusAssertWebuiProfileLimits($folder['settings'] ?? []);
-            $rawPreview = json_encode($folder, JSON_UNESCAPED_SLASHES);
-            if (!is_string($rawPreview) || strlen($rawPreview) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
-                throw new RuntimeException('Batch folder payload exceeds the raw upload limit.');
-            }
-            $normalized = normalizeFolderContentPayload($folder);
-            $normalizedPreview = json_encode($normalized, JSON_UNESCAPED_SLASHES);
-            if (!is_string($normalizedPreview) || strlen($normalizedPreview) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
-                throw new RuntimeException('Batch folder payload is too large after normalization.');
-            }
-            return [
-                'id' => $id,
-                'folder' => $normalized
-            ];
-        };
-
-        $normalizedUpserts = [];
-        foreach ($upserts as $entry) {
-            $normalizedUpserts[] = $normalizeBatchFolder($entry, true);
-        }
-        $normalizedCreates = [];
-        foreach ($creates as $entry) {
-            $normalizedCreates[] = $normalizeBatchFolder($entry, false);
-        }
+        [$normalizedDeletes, $normalizedUpserts, $normalizedCreates] =
+            normalizeBatchFolderOperations($type, $deletes, $upserts, $creates, $expectedRevision);
 
         return withConfigMutationLock(static function () use (
             $type,
@@ -185,13 +146,20 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $expectedPrefsRevision,
             $operationCount,
             $expectedRevision,
-            $backupReason
+            $backupReason,
+            $importing
         ): array {
             $startedAt = microtime(true);
             assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             assertBatchManualOrderRevision($type, $manualOrder, $expectedPrefsRevision);
             $repairingHierarchy = $backupReason === 'before-tree-integrity-repair';
-            $originalFolders = $repairingHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
+            $storedFolders = $repairingHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type, false, true);
+            $originalFolders = $repairingHierarchy ? $storedFolders : normalizeFolderParentLinks($storedFolders);
+            foreach ($normalizedUpserts as $entry) {
+                if ($entry['createOnly'] && array_key_exists($entry['id'], $originalFolders)) {
+                    throw new FVPlusConfigConflictException('The preview changed. Run the preview again before applying.');
+                }
+            }
             $originalPrefs = readTypePrefs($type);
             $nextFolders = $originalFolders;
             $deletedIds = [];
@@ -205,6 +173,9 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 }
                 $deletedParentId = normalizeFolderParentIdValue($nextFolders[$id]['parentId'] ?? '');
                 unset($nextFolders[$id]);
+                $deletedIds[] = $id;
+                // Import applies the reviewed parent links exactly. A normal delete promotes children.
+                if ($importing) continue;
                 foreach ($nextFolders as &$folder) {
                     if (!is_array($folder)) {
                         continue;
@@ -215,7 +186,6 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                     }
                 }
                 unset($folder);
-                $deletedIds[] = $id;
             }
 
             foreach ($normalizedUpserts as $entry) {
@@ -237,7 +207,8 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 $nextFolder['createdAt'] = $createdAt;
                 $nextFolder['updatedAt'] = $now;
                 $nextFolders[$id] = $nextFolder;
-                $updatedIds[] = $id;
+                if ($entry['createOnly']) $createdIds[] = $id;
+                else $updatedIds[] = $id;
             }
 
             foreach ($normalizedCreates as $entry) {
@@ -252,7 +223,12 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
                 $createdIds[] = $id;
             }
 
-            $nextFolders = normalizeFolderParentLinks($nextFolders);
+            $validFolders = normalizeFolderParentLinks($nextFolders);
+            if (!$repairingHierarchy && $validFolders !== $nextFolders) {
+                throw new FVPlusConfigConflictException('The preview changed. Run the preview again before applying.');
+            }
+            $nextFolders = $validFolders;
+            if (!$repairingHierarchy) preserveUnchangedFolderParentLinks($nextFolders, $storedFolders);
             $nextPrefs = reconcileManualOrderPrefs($originalPrefs, $nextFolders);
             if ($manualOrder !== null) {
                 $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
@@ -260,10 +236,10 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
             $backup = createFolderBatchSafetyBackup($type, $backupReason, $originalFolders, $nextFolders, $repairingHierarchy);
             try {
-                writeRawFolderMap($type, $nextFolders);
+                $writtenFolders = writeRawFolderMap($type, $nextFolders, $repairingHierarchy);
                 if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);
                 $dockerSync = $type === 'docker' ? syncContainerOrder($type) : null;
-                if (jsonObjectsDiffer($nextFolders, readRawFolderMap($type))
+                if (jsonObjectsDiffer($writtenFolders, readRawFolderMap($type, false, true))
                     || jsonObjectsDiffer($nextPrefs, readTypePrefs($type))) {
                     throw new RuntimeException('Folder batch transaction verification failed.');
                 }

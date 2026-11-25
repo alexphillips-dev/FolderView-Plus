@@ -12,10 +12,11 @@ const server = fileURLToPath(new URL('../src/folderview.plus/usr/local/emhttp/pl
 const withFixture = (callback) => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-backend-integrity-'));
     try {
-        for (const directory of ['config', 'host', 'source']) fs.mkdirSync(path.join(root, directory));
+        for (const directory of ['config', 'host', 'source', 'temp']) fs.mkdirSync(path.join(root, directory));
         const env = { ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(root, 'config'),
             FVPLUS_TEST_SOURCE_DIR: path.join(root, 'source'), FVPLUS_TEST_STORAGE_DIR: root,
-            FVPLUS_TEST_DOCKER_AUTOSTART_FILE: path.join(root, 'autostart-fixture') };
+            FVPLUS_TEST_DOCKER_AUTOSTART_FILE: path.join(root, 'autostart-fixture'),
+            FVPLUS_TEST_SECURITY_STATE_PATH: path.join(root, 'security', 'state.json'), TMPDIR: path.join(root, 'temp') };
         const run = scenario => JSON.parse(execFileSync('php', [fixture, server, root, scenario],
             { env, encoding: 'utf8', timeout: 30000 }));
         return callback({ root, run });
@@ -95,6 +96,54 @@ test('tree integrity cannot report healthy from a missing primary when a recover
         assert.equal(fs.existsSync(primary), false);
         assert.deepEqual(fs.readFileSync(mirror), bytes);
     });
+});
+
+test('partial import rejects a new hierarchy cycle before writing or creating a backup', () => {
+    const result = withFixture(({ run }) => run('partial-import-cycle'));
+    assert.match(result.error, /preview changed/);
+    assert.match(result.deleteError, /preview changed/);
+    assert.equal(result.unchanged, true);
+    assert.deepEqual(result.updated, ['alpha', 'beta']);
+    assert.deepEqual(result.parents, ['beta', '']);
+    assert.ok(result.backup.name);
+});
+
+test('ordinary edit, delete and undo preserve unrelated raw hierarchy while an explicit restore replaces it', () => {
+    const result = withFixture(({ run }) => run('ordinary-hierarchy-writes'));
+    const expectedLinks = { alpha: '', orphan: 'missing', 'cycle-a': 'cycle-b', 'cycle-b': 'cycle-a', parent: 'alpha', child: 'parent' };
+    assert.deepEqual(result.afterEdit, expectedLinks);
+    assert.equal(result.archivesAfterEdit, 1);
+    assert.equal(result.reactivationConflicts, 2);
+    assert.equal(result.reactivationUnchanged, true);
+    assert.deepEqual(result.afterDelete, { alpha: '', orphan: 'missing', 'cycle-a': 'cycle-b', 'cycle-b': 'cycle-a', child: 'alpha' });
+    assert.equal(result.mirrored, true);
+    assert.equal(result.checkpointPreserved, true);
+    assert.equal(result.undoRestoredBatch, true);
+    assert.deepEqual(result.afterUndo, expectedLinks);
+    assert.equal(result.scheduledUnchanged, true);
+    assert.deepEqual(result.afterExplicitRestore, { alpha: '', orphan: '', 'cycle-a': '', 'cycle-b': '', parent: 'alpha', child: 'parent' });
+});
+
+test('create-only batch validates explicit IDs and commits a new ordered branch once without overwriting folders', () => {
+    const result = withFixture(({ run }) => run('batch-create-only'));
+    const longId = 'a'.repeat(128);
+    assert.equal(result.failures, 6);
+    assert.equal(result.unchanged, true);
+    assert.deepEqual(result.created, [longId, 'clone-child']);
+    assert.deepEqual(result.updated, []);
+    assert.deepEqual(result.edited, [longId]);
+    assert.equal(result.folderRevisionDelta, 1);
+    assert.equal(result.parent, longId);
+    assert.deepEqual(result.children, ['clone-child']);
+    assert.deepEqual(result.manualOrder, ['source', longId, 'clone-child']);
+});
+
+test('applying a reusable Operations template preserves destination WebUI profiles and members', () => {
+    const result = withFixture(({ run }) => run('template-target-profiles'));
+    assert.equal(result.templateProfiles, null);
+    assert.deepEqual(result.targetProfiles, result.beforeProfiles);
+    assert.deepEqual(result.targetMembers, ['target-app']);
+    assert.equal(result.targetIcon, '/source.png');
 });
 
 test('Operations template listing and creation preserve existing rows through last-good recovery', () => {

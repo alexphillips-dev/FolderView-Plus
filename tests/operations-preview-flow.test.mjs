@@ -1,9 +1,50 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import test from 'node:test';
+import { runInventoryRepair } from './helpers/runtime-inventory-fixture.mjs';
 
 const require = createRequire(import.meta.url);
 const { createApi } = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js');
+const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+
+test('Settings Branch Import plans against the fresh revision and only creates remapped IDs', async () => {
+    const root = { name: 'Target folder' };
+    const folders = { root, branch: { name: 'Peer folder' } };
+    const payload = utils.buildFullExportPayload({ type: 'docker', pluginVersion: 'fixture', folders: {
+        branch: { name: 'New branch' }, leaf: { name: 'New leaf', parentId: 'branch' }
+    } });
+    for (const folderRevision of [1, null]) {
+        const results = [], errors = [], checkpoints = [];
+        const api = createApi({
+            utils,
+            getFolderMap: () => ({ root }),
+            fetchFolders: async () => ({ folders, folderRevision }),
+            selectJsonFile: async () => ({ text: JSON.stringify(payload) }),
+            createBackup: async () => checkpoints.push('checkpoint'),
+            showError: (_title, error) => errors.push(error.message),
+            applyImportOperations: async (type, operations, _progress, { expectedRevision }) => {
+                assert.equal(expectedRevision, folderRevision);
+                results.push(runInventoryRepair({ type, operation: 'batch', scenario: 'healthy',
+                    dockerFolders: folders, expectedRevision, batchOperations: { ...operations, preserveParentLinks: true } }));
+            }
+        });
+        await api.importFolderBranch('docker', 'root');
+        if (folderRevision === null) {
+            assert.equal(errors.length, 1);
+            assert.deepEqual(checkpoints, []);
+            assert.deepEqual(results, []);
+            continue;
+        }
+        assert.deepEqual(errors, []);
+        assert.deepEqual(checkpoints, ['checkpoint']);
+        const [result] = results;
+        assert.equal(result.responseStatus, 200);
+        assert.deepEqual(result.response.result.createdIds, ['branch-1', 'leaf']);
+        assert.equal(result.folders.branch.name, 'Peer folder');
+        assert.equal(result.folders['branch-1'].parentId, 'root');
+        assert.equal(result.folders.leaf.parentId, 'branch-1');
+    }
+});
 
 test('folder actions require a current eligible preview before opening confirmation', async () => {
     const values = new Map([

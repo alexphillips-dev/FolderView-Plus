@@ -3,6 +3,7 @@ import { registerRecoverySupportCases } from './recovery-support.mjs';
 import { registerDiagnosticsOrphanFixtureCases } from './diagnostics-orphans.mjs';
 import { registerLocalizedEditorStateCases } from './localization-editor-state.mjs';
 import { registerLocalizationAuditCases } from './localization-audit.mjs';
+import { registerLocalizedImportReviewCase } from './localization-import.mjs';
 import { registerLocalizationRepairBoundaryCases } from './localization-repair-boundaries.mjs'; import { registerSettingsStartupRepairCases } from './settings-startup-repair.mjs';
 
 const loadI18n = async (page, baseUrl) => {
@@ -35,6 +36,8 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
     registerLocalizationAuditCases({ test, baseUrl, loadI18n });
     registerLocalizationRepairBoundaryCases({ test, baseUrl, loadI18n }); registerSettingsStartupRepairCases({ test, baseUrl, loadI18n });
     registerDiagnosticsOrphanFixtureCases({ test, baseUrl });
+    registerLocalizedImportReviewCase({ test, baseUrl, loadI18n, configureGerman });
+
     test('delayed German catalogs translate Docker controls in place across navigation', async ({ page }) => {
         for (let visit = 0; visit < 2; visit += 1) {
             await page.goto(baseUrl + '/runtime');

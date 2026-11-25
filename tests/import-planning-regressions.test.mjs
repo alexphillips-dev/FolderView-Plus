@@ -35,6 +35,51 @@ test('partial import reviews only selected changes and blocks implicit reparenti
     assert.deepEqual(reviewImportSelection({}, merge, merge).hierarchyConflicts, []);
 });
 
+test('import review detects a cycle formed across selected and retained parent links', () => {
+    const current = { a: folder('A'), b: folder('B', 'a') };
+    const incoming = { mode: 'full', folders: { a: folder('A', 'b'), b: folder('B') } };
+    const { operations } = utils.buildImportPlan(current, incoming, 'merge');
+    const partial = { ...operations, upserts: operations.upserts.filter(row => row.id === 'a') };
+    assert.deepEqual(reviewImportSelection(current, operations, partial).hierarchyConflicts, [{ folderName: 'A', parentName: 'B' }]);
+    assert.deepEqual(reviewImportSelection(current, operations, operations).hierarchyConflicts, []);
+
+    const bad = { ...operations, upserts: [{ id: 'another', folder: folder('Another', 'another') }] };
+    assert.deepEqual(reviewImportSelection(current, bad, bad).hierarchyConflicts, [{ folderName: 'Another', parentName: 'Another' }]);
+});
+
+test('replacing from one folder keeps a matching target and discards unavailable source ancestry', () => {
+    const current = { root: folder('Parent'), child: { ...folder('Child', 'root'), createdAt: '2020-01-01T00:00:00+00:00' } };
+    const payload = { mode: 'single', folderId: 'child', folder: { ...folder('New title', 'root'), createdAt: '2022-01-01T00:00:00+00:00' } };
+    const { operations, diffRows, summary } = utils.buildImportPlan(current, payload, 'replace');
+    assert.deepEqual(operations.deletes, ['root']);
+    assert.deepEqual(summary.deletes.map(row => row.id), ['root']);
+    assert.deepEqual(diffRows.map(row => [row.id, row.action]), [['root', 'delete'], ['child', 'update']]);
+    assert.equal(operations.upserts[0].folder.parentId, '');
+    assert.deepEqual(reviewImportSelection(current, operations, operations).hierarchyConflicts, []);
+    assert.equal(utils.buildImportPlan(current, payload, 'merge').operations.upserts[0].folder.parentId, 'root');
+    assert.equal(utils.buildImportPlan({}, payload, 'merge').operations.upserts[0].folder.parentId, '');
+    assert.equal(payload.folder.parentId, 'root');
+});
+
+test('import review reports hidden members, identity changes, and legacy child order', () => {
+    const current = { original: { ...folder('Media'), containers: ['app'], hiddenPreviewMembers: [], memberIdentities: [] } };
+    const existing = current.original;
+    for (const [incoming, expectedField] of [
+        [{ ...existing, hiddenPreviewMembers: ['app'] }, 'members'],
+        [{ ...existing, member_identities: { app: { kind: 'vm', uuid: 'synthetic' } }, memberIdentities: undefined }, 'members'],
+        [{ ...existing, membershipPolicy: 'folderview3' }, 'members'],
+        [{ ...existing, child_folder_order: ['child-b', 'child-a'] }, 'settings']
+    ]) {
+        const { summary, operations } = utils.buildImportPlan(current, { mode: 'full', folders: { original: incoming } }, 'merge');
+        assert.equal(summary.updates.length, 1);
+        assert.deepEqual(reviewImportSelection(current, operations, operations).diffRows[0].fields, [expectedField]);
+    }
+    const unchanged = { ...existing, memberIdentities: {}, hiddenPreviewMembers: undefined, hidden_preview: [] };
+    const plan = utils.buildImportPlan(current, { mode: 'full', folders: { original: unchanged } }, 'merge');
+    assert.equal(plan.diffRows[0].action, 'unchanged');
+    assert.equal(plan.summary.unchanged.length, 1);
+});
+
 test('starter application replans from authoritative folder names and fences competing creates', async () => {
     const folderGroupApi = require(path.join(scripts, 'folderviewplus.folder-groups.js'));
     let folders = { first: folder('Media') }, revision = 8;

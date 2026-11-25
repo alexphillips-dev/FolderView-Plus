@@ -69,9 +69,11 @@ function getBackupSnapshotPath(string $type, string $name): string {
     function createBackupSnapshot(string $type, string $reason = 'manual', bool $prune = true, array $options = []): array {
         return withConfigMutationLock(static function () use ($type, $reason, $prune, $options): array {
             $type = ensureType($type);
-            $folders = ($options['preserveHierarchy'] ?? false)
+            $preserveHierarchy = ($options['preserveHierarchy'] ?? false) === true;
+            $folders = $preserveHierarchy
                 ? readFolderMapForTreeIntegrity($type)
-                : readRawFolderMap($type);
+                : readRawFolderMap($type, false, true);
+            $preserveHierarchy = $preserveHierarchy || normalizeFolderParentLinks($folders) !== $folders;
             $folderCount = count($folders);
             if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
                 try {
@@ -122,7 +124,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 'folders' => $folders,
                 'prefs' => $prefs
             ];
-            if (($options['preserveHierarchy'] ?? false) === true) $payload['preserveHierarchy'] = true;
+            if ($preserveHierarchy) $payload['preserveHierarchy'] = true;
             if (isset($options['templateRecords'])) $payload['templates'] = $options['templateRecords'];
             writeJsonObjectAtomic("$backupDir/$filename", fvplusJsonTypeConfig($payload));
             $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type), [$filename]) : [];
@@ -256,7 +258,8 @@ function getBackupSnapshotPath(string $type, string $name): string {
         $templates = fvplusBackupTemplateRecords($decoded);
         $reason = (string)($decoded['reason'] ?? '');
         $preserveHierarchy = ($decoded['preserveHierarchy'] ?? false) === true
-            && ($reason === 'before-tree-integrity-repair' || preg_match('/^before-restore-[a-f0-9]{12}$/D', $reason));
+            && ($decoded['schemaVersion'] ?? null) === FVPLUS_EXPORT_SCHEMA_VERSION
+            && ($decoded['mode'] ?? null) === 'full';
 
         return [
             'name' => $safeName,

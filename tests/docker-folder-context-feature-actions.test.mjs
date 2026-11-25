@@ -128,12 +128,11 @@ test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerRuntimeActionsScript, /const getDockerFolderBranchCloneOrder = \(rootId, folders = getFolderMap\(\)\) =>/);
     assert.match(dockerRuntimeActionsScript, /const buildDockerFolderCloneIdFallback = \(reservedIds = new Set\(\)\) =>/);
     assert.match(dockerRuntimeActionsScript, /const generateDockerFolderCloneId = typeof deps\.generateDockerFolderCloneId === 'function'/);
-    assert.match(dockerRuntimeActionsScript, /const rollbackClonedDockerFoldersFallback = async \(createdIds = \[\]\) =>/);
-    assert.match(dockerRuntimeActionsScript, /const rollbackClonedDockerFolders = typeof deps\.rollbackClonedDockerFolders === 'function'/);
+    assert.match(dockerRuntimeActionsScript, /createOnly: true/);
     assert.match(dockerRuntimeActionsScript, /promptFn\(surfaceT\("common\.repair\.clone-folder-name-[a-f0-9]+", "Clone folder name"\), defaultName\)/);
     assert.match(dockerRuntimeActionsScript, /promptFn\(surfaceT\("common\.repair\.clone-branch-root-name-[a-f0-9]+", "Clone branch root name"\), defaultName\)/);
     assert.match(dockerRuntimeActionsScript, /\/server\/create\.php/);
-    assert.match(dockerRuntimeActionsScript, /\/server\/update\.php/);
+    assert.match(dockerRuntimeActionsScript, /\/server\/batch\.php/);
     assert.match(dockerRuntimeActionsScript, /FolderViewPlusFolderSettingsMenu\?\.createApi/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-folder',\s*'Clone folder'\)/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-menu',\s*'Clone'\)/);

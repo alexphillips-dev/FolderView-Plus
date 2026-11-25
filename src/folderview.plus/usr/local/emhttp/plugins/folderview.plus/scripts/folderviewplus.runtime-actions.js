@@ -197,8 +197,7 @@
         const importFolderBranch = async (type, targetFolderId) => {
             const resolvedType = normalizeManagedType(type);
             const targetId = String(targetFolderId || '').trim();
-            const folders = getFolderMap(resolvedType);
-            if (!targetId || !Object.prototype.hasOwnProperty.call(folders, targetId)) {
+            if (!targetId || !Object.hasOwn(getFolderMap(resolvedType), targetId)) {
                 swal({ title: 'Import failed', text: 'Target folder is required.', type: 'error' });
                 return;
             }
@@ -236,6 +235,19 @@
                 swal({ title: 'Import failed', text: 'No folders found in selected file.', type: 'error' });
                 return;
             }
+            let folders, folderRevision;
+            try {
+                ({ folders, folderRevision } = await deps.fetchFolders(resolvedType));
+                if (!Number.isSafeInteger(folderRevision) || folderRevision < 1) {
+                    throw new Error(surfaceT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
+                }
+                if (!Object.hasOwn(folders, targetId)) {
+                    throw new Error(surfaceT('common.server.target-folder-not-found-b0f5ad', 'Target folder not found.'));
+                }
+            } catch (error) {
+                showError(surfaceT("common.repair.branch-import-failed-a0d261", "Branch import failed"), error);
+                return;
+            }
             const existingIds = new Set(Object.keys(folders || {}));
             const remapId = {};
             const uniqueIdFor = (base, index) => {
@@ -263,6 +275,7 @@
                     : targetId;
                 return {
                     id: mappedId,
+                    createOnly: true,
                     folder: {
                         ...(folder || {}),
                         parentId: remappedParentId
@@ -277,7 +290,7 @@
             let backup = null;
             try {
                 backup = await createBackup(resolvedType, `before-branch-import-${targetId}`);
-                await applyImportOperations(resolvedType, operations);
+                await applyImportOperations(resolvedType, operations, null, { expectedRevision: folderRevision });
                 await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
                 await offerUndoAction(resolvedType, backup, 'Branch import');
                 showToastMessage({

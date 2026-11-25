@@ -10,7 +10,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
             throw new FVPlusConfigConflictException('Undo failed.');
         }
         if ($editorUndo) assertExpectedConfigRevision($type, 'folder', $options['expectedFolderRevision']);
-        $preserveHierarchy = !$editorUndo && ($snapshot['preserveHierarchy'] ?? false) === true;
+        $preserveHierarchy = ($snapshot['preserveHierarchy'] ?? false) === true;
         $folders = normalizeFolderMapPayload($snapshot['folders'], !$preserveHierarchy);
         $templates = $editorUndo ? null : ($snapshot['templates'] ?? null);
         $templatePath = getTemplatePath($type);
@@ -31,7 +31,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
                 $backup = createBackupSnapshot($type, 'before-restore-' . bin2hex(random_bytes(6)), false, $backupOptions);
             }
             if ($preserveHierarchy) fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), $folders);
-            else writeRawFolderMap($type, $folders);
+            else writeRawFolderMap($type, $folders, true);
             fvplusEnvironmentTransactionStage($options, 'folders');
             if (!$editorUndo) {
                 writeTypePrefs($type, $prefs);

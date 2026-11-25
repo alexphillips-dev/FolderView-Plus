@@ -104,8 +104,9 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
     api.bindLifecycleEventControlPatch();
     window.eventControl({ action: 'start', container: 'abc123' }, 'loadlist');
 
+    assert.deepEqual(hostCalls[0][0], { action: 'start', container: 'abc123' });
     assert.match(hostCalls[0][1], /^__fvplusDashboardDockerLifecycleRefresh_\d+$/);
-    assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123' }]);
+    assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123', containerIdentityType: 'id' }]);
     assert.deepEqual(scheduled.filter(({ delayMs }) => delayMs !== 120000).map(({ delayMs }) => delayMs), [0, 300, 750, 1500, 2500]);
 
     for (const item of scheduled.filter(({ delayMs }) => delayMs !== 120000)) {
@@ -190,6 +191,48 @@ test('Docker page lifecycle defaults resolve container ids and clear expanded pr
     assert.equal(finalized.details.settled, true);
     assert.equal(finalized.details.observedState.state, 'running');
     assert.equal(finalized.details.remainingBusyPreviewActionIconCount, 0);
+});
+
+test('Docker lifecycle reconciles a native ID instead of a container whose name matches that ID', async () => {
+    const shortId = 'abc123def456';
+    const target = { shortId, info: { Id: `sha256:${shortId}${'a'.repeat(52)}`, Name: 'fixture-app', State: { Running: true } } };
+    const sameName = { shortId: 'def456abc123', info: { Name: shortId, State: { Running: false } } };
+    const scheduled = [];
+    const traces = [];
+    const syncedNames = [];
+    const refreshedIds = [];
+    const entries = [target, sameName];
+    const byName = (name) => entries.find(entry => entry.info.Name === name);
+    const api = reconcileModule.createApi({
+        window: { setTimeout: (handler) => scheduled.push(handler) },
+        document: { querySelectorAll: () => [] },
+        getDockerRuntimeContainerInfo: byName,
+        getDockerRuntimeInfoEntries: () => entries,
+        refreshDockerRuntimeStateInPlace: async ({ containerId }) => { refreshedIds.push(containerId); return true; },
+        syncDockerVisibleFoldersFromRuntimeCache: (names) => syncedNames.push([...names]),
+        appendDockerBulkUpdateTrace: (eventType, details) => traces.push({ eventType, details }),
+        lifecycleRefreshDelaysMs: [0, 750]
+    });
+
+    api.runDockerLifecycleRefresh({ action: 'stop', container: shortId });
+    scheduled.shift()();
+    await flushPromises();
+    assert.equal(traces.find(trace => trace.eventType === 'lifecycleRefreshResult').details.observedState.state, 'running');
+    assert.ok(!traces.some(trace => trace.eventType === 'lifecycleSurfaceFinalized'));
+    target.info.State.Running = false;
+    scheduled.shift()();
+    await flushPromises();
+    assert.equal(traces.find(trace => trace.eventType === 'lifecycleSurfaceFinalized').details.settled, true);
+    assert.deepEqual(syncedNames, [['fixture-app']]);
+    assert.equal(reconcileModule.resolveLifecycleEntry({ container: 'fixture-app' }, entries, byName), target);
+    assert.equal(reconcileModule.resolveLifecycleEntry({ container: shortId, containerIdentityType: 'id' }, [sameName], byName), null);
+    assert.equal(reconcileModule.resolveLifecycleEntry({ container: `${shortId}${'b'.repeat(52)}` }, entries, byName), null);
+
+    api.runDockerLifecycleRefresh({ action: 'stop', container: shortId, containerIdentityType: 'name' });
+    scheduled.shift()();
+    await flushPromises();
+    assert.deepEqual(syncedNames, [['fixture-app'], [shortId]]);
+    assert.deepEqual(refreshedIds, [shortId, shortId, sameName.shortId]);
 });
 
 test('Docker restart lifecycle keeps its pending surface through the initial running snapshot', async () => {
@@ -402,7 +445,7 @@ test('Dashboard runtime refresh ignores superseded generations, lifecycle action
         lastDashboardStateSignatures: { docker: '' },
         buildDockerStateSignature: () => '',
         rememberDashboardRuntimeSnapshot: () => {},
-        syncDashboardRuntimeRows: () => patchedStates.push(scope.dashboardRuntimeInfoByType.docker.app.state)
+        syncDashboardRuntimeRows: (_type, _names, nextRows) => patchedStates.push(nextRows.app.state)
     };
     const refresh = vm.runInNewContext(dashboardSource.slice(start, end) + '\nrefreshDashboardTypeRuntimeStateInPlace;', scope);
     const reply = (state) => ({ runtime: { app: { state } } });

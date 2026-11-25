@@ -156,7 +156,7 @@
             return $member.is('.started, .running, .paused, .pmsuspended, .unknown');
         };
 
-        const applyDashboardStartedOnlyFilterForType = (type) => {
+        const applyDashboardStartedOnlyFilterForType = (type, runtimeMap) => {
             const resolvedType = normalizeDashboardType(type);
             const meta = dashboardTypeMeta(resolvedType);
             const $tbody = jq(meta.tbodySelector).first();
@@ -211,7 +211,7 @@
                 }
             });
 
-            deps.syncDashboardHostSummary?.(resolvedType, enabled);
+            deps.syncDashboardHostSummary?.(resolvedType, enabled, runtimeMap);
             scheduleDashboardCompactMatrixSyncForType(resolvedType, 'started-only-filter');
             return {
                 enabled,

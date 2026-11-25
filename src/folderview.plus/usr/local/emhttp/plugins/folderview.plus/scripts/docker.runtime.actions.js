@@ -793,65 +793,29 @@
             return orderedIds;
         };
 
-        const persistDockerFolderClonePayloadFallback = async (payload, folderId = '') => {
-            const safeFolderId = String(folderId || '').trim();
-            const request = {
+        const persistDockerFolderClonePayloadFallback = async (payload) => {
+            await requestClient.postJson('/plugins/folderview.plus/server/create.php', {
                 type: 'docker',
                 content: JSON.stringify(payload)
-            };
-            if (safeFolderId) {
-                request.id = safeFolderId;
-            }
-            await requestClient.postJson(
-                safeFolderId
-                    ? '/plugins/folderview.plus/server/update.php'
-                    : '/plugins/folderview.plus/server/create.php',
-                request
-            );
+            });
         };
 
         const persistDockerFolderClonePayload = typeof deps.persistDockerFolderClonePayload === 'function'
             ? deps.persistDockerFolderClonePayload
             : persistDockerFolderClonePayloadFallback;
 
-        const rollbackClonedDockerFoldersFallback = async (createdIds = []) => {
-            const ids = Array.isArray(createdIds)
-                ? createdIds.filter((entry) => String(entry || '').trim() !== '')
-                : [];
-            for (const createdId of ids.slice().reverse()) {
-                try {
-                    await requestClient.postJson('/plugins/folderview.plus/server/delete.php', {
-                        type: 'docker',
-                        id: createdId
-                    });
-                } catch (_error) {
-                    // Best-effort rollback only.
-                }
-            }
-            if (ids.length > 0) {
-                try {
-                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
-                } catch (_error) {
-                    // Best-effort rollback only.
-                }
-            }
-        };
-
-        const rollbackClonedDockerFolders = typeof deps.rollbackClonedDockerFolders === 'function'
-            ? deps.rollbackClonedDockerFolders
-            : rollbackClonedDockerFoldersFallback;
-
         const readDockerCloneDefinitions = async () => {
-            const folders = await requestClient.getJson('/plugins/folderview.plus/server/read.php?type=docker', { cache: false });
+            const snapshot = await requestClient.getJson('/plugins/folderview.plus/server/read.php?type=docker&includeMetadata=1', { cache: false });
+            const folders = snapshot?.folders;
             if (!folders || typeof folders !== 'object' || Array.isArray(folders) || folders.ok === false) throw new Error('Folder definitions are unavailable.');
-            return folders;
+            return { folders, folderRevision: snapshot.metadata?.folderRevision };
         };
         const cloneDockerFolderFromMenu = async (id, definitions = null) => {
             await runDockerGuardedAction('clone-folder', async () => {
                 if (!ensureDockerFolderUnlocked(id, 'Clone folder')) {
                     return;
                 }
-                const folders = definitions || await readDockerCloneDefinitions();
+                const folders = definitions || (await readDockerCloneDefinitions()).folders;
                 const source = folders[id];
                 if (!source || typeof source !== 'object') {
                     return;
@@ -881,7 +845,7 @@
                 if (!ensureDockerFolderUnlocked(id, 'Clone branch')) {
                     return;
                 }
-                const folders = await readDockerCloneDefinitions();
+                const { folders, folderRevision } = await readDockerCloneDefinitions();
                 const source = folders[id];
                 if (!source || typeof source !== 'object') {
                     return;
@@ -897,51 +861,48 @@
                 if (!nextName) {
                     return;
                 }
+                if (!Number.isSafeInteger(folderRevision) || folderRevision < 1) {
+                    throw new Error(surfaceT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
+                }
                 const sourceParentId = normalizeFolderParentId(source?.parentId || source?.parent_id || '');
                 const reservedIds = new Set([...Object.keys(folders), ...Object.keys(getFolderMap())]);
                 const cloneIdMap = new Map();
                 branchIds.forEach((sourceId) => {
                     const cloneId = String(generateDockerFolderCloneId(reservedIds) || '').trim();
-                    if (!cloneId || reservedIds.has(cloneId)) throw new Error('A unique clone identifier could not be generated.');
+                    if (!cloneId) {
+                        const sourceFolder = folders[sourceId];
+                        throw new Error(`Clone branch failed because a clone id was not generated for folder "${sourceFolder?.name || sourceId}".`);
+                    }
+                    if (reservedIds.has(cloneId)) throw new Error('A unique clone identifier could not be generated.');
                     reservedIds.add(cloneId);
                     cloneIdMap.set(sourceId, cloneId);
                 });
-                const createdIds = [];
+                const upserts = branchIds.map((sourceId) => {
+                    const sourceFolder = folders[sourceId];
+                    const rawParentId = normalizeFolderParentId(sourceFolder.parentId || sourceFolder.parent_id || '');
+                    const clonedParentId = sourceId === id ? sourceParentId : cloneIdMap.get(rawParentId);
+                    if (sourceId !== id && !clonedParentId) {
+                        throw new Error(`Clone branch failed because parent mapping was missing for nested folder "${sourceFolder.name || sourceId}".`);
+                    }
+                    const clonePayload = buildDockerFolderClonePayload(sourceFolder, {
+                        name: sourceId === id ? nextName : sourceFolder.name,
+                        parentId: clonedParentId
+                    });
+                    for (const key of ['child_folder_order', 'childFolderOrder']) {
+                        if (Array.isArray(clonePayload.settings[key])) {
+                            clonePayload.settings[key] = clonePayload.settings[key].map(childId => cloneIdMap.get(childId)).filter(Boolean);
+                        }
+                    }
+                    return { id: cloneIdMap.get(sourceId), createOnly: true, folder: clonePayload };
+                });
                 getSpinner()?.show('slow');
                 try {
-                    for (const sourceId of branchIds) {
-                        const sourceFolder = folders[sourceId];
-                        if (!sourceFolder || typeof sourceFolder !== 'object') {
-                            continue;
-                        }
-                        const rawParentId = normalizeFolderParentId(sourceFolder?.parentId || sourceFolder?.parent_id || '');
-                        const clonedParentId = sourceId === id
-                            ? sourceParentId
-                            : String(cloneIdMap.get(rawParentId) || '').trim();
-                        if (sourceId !== id && !clonedParentId) {
-                            throw new Error(`Clone branch failed because parent mapping was missing for nested folder "${sourceFolder?.name || sourceId}".`);
-                        }
-                        const clonePayload = buildDockerFolderClonePayload(sourceFolder, {
-                            name: sourceId === id ? nextName : String(sourceFolder?.name || '').trim() || 'Folder',
-                            parentId: clonedParentId
-                        });
-                        for (const key of ['child_folder_order', 'childFolderOrder']) {
-                            if (Array.isArray(clonePayload.settings[key])) {
-                                clonePayload.settings[key] = clonePayload.settings[key].map(childId => cloneIdMap.get(childId)).filter(Boolean);
-                            }
-                        }
-                        const cloneId = String(cloneIdMap.get(sourceId) || '').trim();
-                        if (!cloneId) {
-                            throw new Error(`Clone branch failed because a clone id was not generated for folder "${sourceFolder?.name || sourceId}".`);
-                        }
-                        await persistDockerFolderClonePayload(clonePayload, cloneId);
-                        createdIds.push(cloneId);
-                    }
-                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
+                    await requestClient.postJson('/plugins/folderview.plus/server/batch.php', {
+                        type: 'docker',
+                        expectedRevision: folderRevision,
+                        operations: JSON.stringify({ upserts })
+                    }, { retries: 0 });
                     refreshDockerList();
-                } catch (error) {
-                    await rollbackClonedDockerFolders(createdIds);
-                    throw error;
                 } finally {
                     getSpinner()?.hide('slow');
                 }
@@ -989,7 +950,6 @@
             generateDockerFolderCloneId,
             getDockerFolderBranchCloneOrder,
             persistDockerFolderClonePayload,
-            rollbackClonedDockerFolders,
             cloneDockerFolderBranchFromMenu,
             actionFolder
         });

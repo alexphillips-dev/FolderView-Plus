@@ -282,7 +282,7 @@ function dockerSyncOrderLockPath(): string {
                 $autoStartOrder[] = $name;
             }
         }
-        $sequence = buildDockerStartOrderSequence($autoStartOrder, $context, $plan, $batches);
+        $sequence = buildDockerStartOrderSequence($autoStartOrder, $context, $mode === 'unmanaged' ? [] : $plan, $batches);
         return [
             'mode' => $mode,
             'managed' => $mode !== 'unmanaged',

@@ -74,7 +74,37 @@ test('preview activation hydrates once per visit and permits a fresh load after 
 });
 
 test('unmanaged sequence previews are visibly read-only', () => {
-    assert.match(view.buildPreviewHtml({ managed: false, sequence: [] }), /Unmanaged mode: this sequence is read-only/);
+    const html = view.buildPreviewHtml({
+        managed: false,
+        sequence: [{ name: 'alpha', wait: 19, waitSource: 'native' }],
+        staleAutostart: ['removed-app']
+    }, { disabledNames: ['beta'] });
+    assert.match(html, /Unmanaged mode: this sequence is read-only/);
+    assert.match(html, /value="19" readonly/);
+    assert.match(html, /aria-label="Autostart enabled for alpha" disabled/);
+    assert.doesNotMatch(html, /will be removed|updateDockerStartOrderWait|toggleDockerStartOrderAutostart/);
+});
+
+test('unmanaged order blocks wait edits and full-list native autostart mutations', async () => {
+    const plan = { mode: 'unmanaged', containerWaits: { alpha: 73 } };
+    const info = { alpha: { id: 'alpha-id', autostart: true }, beta: { id: 'beta-id', autostart: false } };
+    const writes = [];
+    const controller = moduleApi.createApi({
+        getInfo: () => info, getPlan: () => plan,
+        savePlan: async (patch) => writes.push(patch),
+        runDockerMutation: async (payload) => writes.push(payload),
+        refreshPreview: async () => {}, setStatus: () => {}, showError: (_message, error) => { throw error; }
+    });
+    await controller.updateWait('alpha', 23);
+    await controller.toggleAutostart('beta', true);
+    assert.deepEqual(writes, []);
+    assert.equal(info.beta.autostart, false);
+    assert.equal(plan.containerWaits.alpha, 73);
+
+    plan.mode = 'docker-page';
+    await controller.toggleAutostart('beta', true);
+    assert.equal(writes[0].entries[0].wait, 73);
+    assert.equal(info.beta.autostart, true);
 });
 
 test('start-order view escapes names and rejects executable icon URLs', () => {

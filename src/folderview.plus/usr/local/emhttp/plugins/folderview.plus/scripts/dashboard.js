@@ -657,7 +657,9 @@ const getDashboardQuickRailController = () => {
         isDashboardRenderCompleteForType: (type) => dashboardFolderRenderCompleteByType[type === 'vm' ? 'vm' : 'docker'] === true,
         getDashboardStartedOnlySelectorForType,
         isDashboardStartedOnlyEnabledForType: (type) => isDashboardStartedOnlyEnabledForType(type),
-        syncDashboardHostSummary: (type, enabled) => dashboardRuntimeSurfaceApi.syncHostSummary(type, dashboardRuntimeInfoByType[type], enabled),
+        syncDashboardHostSummary: (type, enabled, runtimeMap = dashboardRuntimeInfoByType[type]) => (
+            dashboardRuntimeSurfaceApi.syncHostSummary(type, runtimeMap, enabled)
+        ),
         readDashboardHealthEmphasisStateForType: (type) => readDashboardHealthEmphasisStateForType(type),
         readDashboardCompactDensityStateForType: (type) => readDashboardCompactDensityStateForType(type),
         isDashboardLegacyLayoutForType: (type) => isDashboardLegacyLayoutForType(type),
@@ -1085,13 +1087,6 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
             preferenceRevision: readDashboardPrefsRevision(committedPrefs),
             outcome: 'committed'
         });
-        if (requiresStructureReload) {
-            await rerenderDashboardWidgetStructureForType(resolvedType);
-            return { ok: true };
-        }
-        scheduleDashboardLayoutApplyForType(resolvedType);
-        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-        return { ok: true };
     } catch (error) {
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
             if (requiresStructureReload) {
@@ -1117,6 +1112,21 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
         return { ok: false, error };
     }
+
+    if (requiresStructureReload) {
+        try {
+            await rerenderDashboardWidgetStructureForType(resolvedType);
+        } catch (_error) {
+            if (dashboardLayoutPersistTokenByType[resolvedType] === saveToken && !dashboardHostAdapter?.isDisposed?.()) {
+                showDashboardRuntimeFailedRow(resolvedType);
+                queueLoadlistRefresh();
+            }
+        }
+    } else {
+        scheduleDashboardLayoutApplyForType(resolvedType);
+        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+    }
+    return { ok: true };
 };
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);
@@ -1205,10 +1215,10 @@ const bindDashboardQuickActionSyncHandlers = () => {
     }
 };
 
-const applyDashboardStartedOnlyFilterForType = (type) => {
+const applyDashboardStartedOnlyFilterForType = (type, runtimeMap) => {
     const controller = getDashboardQuickRailController();
     return controller && typeof controller.applyDashboardStartedOnlyFilterForType === 'function'
-        ? controller.applyDashboardStartedOnlyFilterForType(type)
+        ? controller.applyDashboardStartedOnlyFilterForType(type, runtimeMap)
         : null;
 };
 
@@ -1232,6 +1242,7 @@ const hideDashboardRuntimeLoadingRow = (type) => {
 
 const showDashboardRuntimeFailedRow = (type) => {
     const tbody = $(dashboardTypeMeta(type).tbodySelector);
+    if (tbody.children('tr.fv-dashboard-load-failed').length) return;
     const row = $('<tr class="fv-dashboard-load-failed"><td colspan="18"><span role="status"></span></td></tr>');
     row.find('[role="status"]').text(dashboardT('common.folder-render.title', 'Some folders could not be displayed.'));
     tbody.children('tr.updated').before(row);
@@ -2549,15 +2560,13 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
 
 const getDashboardRuntimeStateMeta = dashboardRuntimeSurfaceApi.getRuntimeStateMeta;
 const DASHBOARD_RUNTIME_ICON_CLASSES = dashboardRuntimeSurfaceModule.RUNTIME_ICON_CLASSES;
-const captureDashboardRuntimeSurface = dashboardRuntimeSurfaceApi.captureSurface;
 const restoreDashboardRuntimeSurfaceIcons = dashboardRuntimeSurfaceApi.restoreSurfaceIcons;
 const collectDashboardRuntimeSurfaceDiagnostics = dashboardRuntimeSurfaceApi.collectDiagnostics;
 const persistDashboardLifecycleDiagnostics = dashboardRuntimeSurfaceApi.persistDiagnostics;
 const syncDashboardRuntimeSurface = dashboardRuntimeSurfaceApi.syncSurface;
 
-const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
+const updateDashboardFolderRuntimeSummary = (type, id, folder, runtimeMap) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const runtimeMap = dashboardRuntimeInfoByType[resolvedType] || {};
     const entries = Object.keys(folder?.containers || {}).map((name) => runtimeMap[name]).filter(Boolean);
     let started = 0;
     let paused = 0;
@@ -2618,10 +2627,9 @@ const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
     folder.status = { started, paused, stopped, autostart, autostartStarted, managed, upToDate, managerTypes: Array.from(managerTypes), expanded };
 };
 
-const syncDashboardRuntimeRows = (type, changedNames) => {
+const syncDashboardRuntimeRows = (type, changedNames, runtimeMap) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const changedSet = new Set(Array.isArray(changedNames) ? changedNames : []);
-    const runtimeMap = dashboardRuntimeInfoByType[resolvedType] || {};
     const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
     changedSet.forEach((name) => {
         const entry = runtimeMap[name];
@@ -2636,10 +2644,10 @@ const syncDashboardRuntimeRows = (type, changedNames) => {
     let patchedFolders = 0;
     Object.entries(folderMap).forEach(([id, folder]) => {
         if (!Object.keys(folder?.containers || {}).some((name) => changedSet.has(name))) return;
-        updateDashboardFolderRuntimeSummary(resolvedType, id, folder);
+        updateDashboardFolderRuntimeSummary(resolvedType, id, folder, runtimeMap);
         patchedFolders += 1;
     });
-    applyDashboardStartedOnlyFilterForType(resolvedType);
+    applyDashboardStartedOnlyFilterForType(resolvedType, runtimeMap);
     window.FolderViewPlusDashboardRowReconciliation = {
         ...(window.FolderViewPlusDashboardRowReconciliation || {}),
         [resolvedType]: {
@@ -2680,11 +2688,6 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type, { isCurrent = () =>
         const membershipChanged = utils.getMembershipSignature({ ...matchingInputs, infoByName: dashboardRuntimeInfoByType[resolvedType] })
             !== utils.getMembershipSignature({ ...matchingInputs, infoByName: nextRuntimeInfo });
         reads.applied = revision;
-        dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
-        lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
-            ? buildDockerStateSignature(parsed, true)
-            : buildVmStateSignature(parsed, true);
-        if (snapshot) rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
         if (rowDiff.structuralChanged || membershipChanged) {
             window.FolderViewPlusDashboardRowReconciliation = {
                 ...(window.FolderViewPlusDashboardRowReconciliation || {}),
@@ -2698,7 +2701,12 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type, { isCurrent = () =>
             };
             return false;
         }
-        if (rowDiff.hasChanges) syncDashboardRuntimeRows(resolvedType, rowDiff.changed);
+        if (rowDiff.hasChanges) syncDashboardRuntimeRows(resolvedType, rowDiff.changed, nextRuntimeInfo);
+        dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
+        lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
+            ? buildDockerStateSignature(parsed, true)
+            : buildVmStateSignature(parsed, true);
+        if (snapshot) rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
         return true;
     } catch (_error) {
         return isActive() ? false : null;
@@ -2706,15 +2714,20 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type, { isCurrent = () =>
 };
 
 const resolveDashboardDockerLifecycleEntry = (request = {}) => {
-    const containerToken = String(request?.container || '').replace(/^sha256:/i, '').trim();
-    if (!containerToken) return null;
     const runtimeMap = dashboardRuntimeInfoByType.docker || {};
-    const directEntry = runtimeMap[containerToken];
-    return directEntry || Object.values(runtimeMap).find((entry) => {
-        const id = String(entry?.id || entry?.shortId || '').replace(/^sha256:/i, '').trim();
-        return id === containerToken || id.slice(0, 12) === containerToken.slice(0, 12);
-    }) || null;
+    return dockerRuntimeReconcileModule.resolveLifecycleEntry(
+        request, Object.values(runtimeMap), (name) => Object.hasOwn(runtimeMap, name) ? runtimeMap[name] : null
+    );
 };
+
+const getDashboardDockerLifecycleControlId = (request) => {
+    const entry = resolveDashboardDockerLifecycleEntry(request);
+    const id = entry?.shortId || entry?.id || (request.containerIdentityType === 'name' ? '' : request.container);
+    return String(id || '').trim().split(':').pop().slice(0, 12);
+};
+const captureDashboardRuntimeSurface = (request) => dashboardRuntimeSurfaceApi.captureSurface({
+    container: getDashboardDockerLifecycleControlId(request)
+});
 
 const resolveDashboardDockerLifecycleRuntime = (request = {}) => {
     const entry = resolveDashboardDockerLifecycleEntry(request);
@@ -2767,7 +2780,7 @@ const appendDashboardLifecycleTrace = (eventType, details = {}) => {
 };
 
 const finalizeDashboardDockerLifecycleSurface = (request = {}, outcome = {}) => {
-    const containerId = String(request?.container || '').trim();
+    const containerId = getDashboardDockerLifecycleControlId(request);
     const control = containerId ? document.getElementById(containerId) : null;
     const $surface = control ? $(control).parent('span.outer').first() : $();
     if ($surface.length) {

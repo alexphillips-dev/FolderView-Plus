@@ -166,10 +166,16 @@ namespace {
         if ($request['scenario'] === 'renamed') $folder['memberIdentities']["$seedType-present"] = $seedType === 'docker'
             ? ['kind' => 'docker', 'containerId' => str_repeat('a', 64)]
             : ['kind' => 'vm', 'uuid' => '00000000-0000-0000-0000-000000000001'];
-        writeRawFolderMap($seedType, ['fixture' => $folder]);
+        writeRawFolderMap($seedType, $seedType === 'docker' && isset($request['dockerFolders'])
+            ? $request['dockerFolders'] : ['fixture' => $folder]);
         $prefs = ['backupSchedule' => ['enabled' => false, 'retention' => empty($request['retainPriorBackup']) ? 25 : 1]];
         if ($operation !== 'repair' && $seedType === 'docker') $prefs['dockerStartOrder'] = $request['plan'] ?? ['mode' => 'docker-page'];
         writeTypePrefs($seedType, $prefs);
+    }
+    if (isset($request['peerFolderName'])) {
+        $peerFolders = readRawFolderMap($type);
+        $peerFolders['root']['name'] = $request['peerFolderName'];
+        writeRawFolderMap($type, $peerFolders);
     }
     $priorBackup = !empty($request['retainPriorBackup']) ? createBackupSnapshot($type, 'manual') : null;
     $priorPath = $priorBackup === null ? null : getBackupSnapshotPath($type, $priorBackup['name']);
@@ -245,7 +251,11 @@ namespace {
             $_POST = $isMutationRequest ? ['type' => $type] : [];
             if ($operation === 'start-sync') $_POST['action'] = 'sync';
             if ($operation === 'diagnostics-sync') $_POST['action'] = 'sync_docker_order';
-            if ($operation === 'batch') $_POST['operations'] = json_encode(['creates' => [['folder' => ['name' => 'Persisted while native unavailable']]]]);
+            if ($operation === 'batch') {
+                $_POST['operations'] = json_encode($request['batchOperations']
+                    ?? ['creates' => [['folder' => ['name' => 'Persisted while native unavailable']]]]);
+                if (isset($request['expectedRevision'])) $_POST['expectedRevision'] = (string)$request['expectedRevision'];
+            }
             $_REQUEST = array_merge($_GET, $_POST);
             if ($isMutationRequest) {
                 $token = getConfiguredRequestToken();

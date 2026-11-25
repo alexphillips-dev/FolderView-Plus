@@ -219,7 +219,7 @@ const renderImportDiffTable = (rows, options = {}) => {
         const id = row.id ? escapeHtml(String(row.id)) : '-';
         const name = escapeHtml(String(row.name || '-'));
         const fields = Array.isArray(row.fields) ? row.fields.join(', ') : '';
-        return `<tr><td>${escapeHtml(action)}</td><td>${id}</td><td>${name}</td><td>${escapeHtml(fields || '-')}</td></tr>`;
+        return `<tr><td>${escapeHtml(action)}</td><td data-fvplus-user-content>${id}</td><td data-fvplus-user-content>${name}</td><td>${escapeHtml(fields || '-')}</td></tr>`;
     }).join('');
 
     container.html(`
@@ -263,23 +263,7 @@ const buildOperationSelectionState = (operations, existingFolders) => {
     };
 };
 
-const filterOperationsBySelection = (operations) => {
-    if (!importSelectionState) {
-        return operations;
-    }
-    const createIndexes = new Set(importSelectionState.creates.filter((item) => item.checked).map((item) => item.index));
-    const upsertIndexes = new Set(importSelectionState.upserts.filter((item) => item.checked).map((item) => item.index));
-    const deleteIndexes = new Set(importSelectionState.deletes.filter((item) => item.checked).map((item) => item.index));
-
-    return {
-        mode: operations.mode,
-        creates: operations.creates.filter((_, index) => createIndexes.has(index)),
-        upserts: operations.upserts.filter((_, index) => upsertIndexes.has(index)),
-        deletes: operations.deletes.filter((_, index) => deleteIndexes.has(index)),
-        pathMappings: Array.isArray(operations.pathMappings) ? operations.pathMappings.slice() : [],
-        pathConflicts: Array.isArray(operations.pathConflicts) ? operations.pathConflicts.slice() : []
-    };
-};
+const filterOperationsBySelection = operations => window.FolderViewPlusFoundationModules.importSelection.filterOperationsBySelection(operations, importSelectionState);
 
 const renderOperationSelection = (onSelectionChanged = null) => {
     const container = $('#import-preview-selection');
@@ -300,7 +284,7 @@ const renderOperationSelection = (onSelectionChanged = null) => {
             return '';
         }
         const allChecked = section.items.every((item) => item.checked);
-        const rows = section.items.map((item) => (`<label class="import-selection-item"><input type="checkbox" data-group="${section.key}" data-index="${item.index}" ${item.checked ? 'checked' : ''}> ${escapeHtml(item.label)}</label>`)).join('');
+        const rows = section.items.map((item) => (`<label class="import-selection-item"><input type="checkbox" data-group="${section.key}" data-index="${item.index}" ${item.checked ? 'checked' : ''}> <span data-fvplus-user-content>${escapeHtml(item.label)}</span></label>`)).join('');
         return `<div class="import-selection-group"><h4><label><input type="checkbox" data-group-toggle="${section.key}" ${allChecked ? 'checked' : ''}> ${section.title} (${section.items.length})</label></h4>${rows}</div>`;
     }).join('');
 
@@ -338,7 +322,7 @@ const renderOperationSelection = (onSelectionChanged = null) => {
     }
 };
 
-const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve) => {
+const showImportPreviewDialog = (type, parsed, folders, { initialMode } = {}) => new Promise((resolve) => {
     const dialog = $('#import-preview-dialog');
     dialog.removeClass('fv-section-hidden fv-section-content-hidden');
     const modeSelect = $('#import-mode-select');
@@ -675,6 +659,12 @@ const showImportPreviewDialog = (type, parsed, folders) => new Promise((resolve)
         setImportDryRunOnly(false);
         activePresetId = '__custom__';
     }
+    if (initialMode) {
+        modeSelect.val(normalizeImportMode(initialMode));
+        setImportDryRunOnly(false);
+        activePresetId = '__custom__';
+        refreshPresetControls();
+    }
 
     const renderPreview = () => {
         const mode = modeSelect.val();
@@ -913,9 +903,12 @@ const applyImportOperations = async (type, operations, onProgress = null, { expe
     if (totalSteps <= 0) {
         return { completed: 0, total: 0 };
     }
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+        throw new Error(importT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
+    }
 
     emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1...", totalSteps));
-    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates }, { expectedRevision, backupReason });
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates, preserveParentLinks: true }, { expectedRevision, backupReason });
     emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {

@@ -407,7 +407,7 @@ test('runtime pages patch state changes incrementally and retain structural fall
     assert.match(vmJs, /syncVmRuntimeRows\(rowDiff\.changed\)/);
     assert.match(dashboardJs, /const refreshDashboardTypeRuntimeStateInPlace = async \(type, \{ isCurrent = \(\) => true \} = \{\}\) =>/);
     assert.match(dashboardJs, /runtimeSnapshotApi\.diffRuntimeRows\(resolvedType,\s*dashboardRuntimeInfoByType\[resolvedType\],\s*nextRuntimeInfo\)/);
-    assert.match(dashboardJs, /syncDashboardRuntimeRows\(resolvedType,\s*rowDiff\.changed\)/);
+    assert.match(dashboardJs, /syncDashboardRuntimeRows\(resolvedType,\s*rowDiff\.changed,\s*nextRuntimeInfo\)/);
 });
 
 test('runtime bootstraps use coherent snapshots while Docker polling is API-first', () => {

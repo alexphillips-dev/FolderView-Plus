@@ -40,7 +40,7 @@ function getTypeBackupSchedule(string $type): array {
                 return;
             }
 
-            $folders = readRawFolderMap($type);
+            $folders = readRawFolderMap($type, false, true);
             if (count($folders) === 0) {
                 $result = ['skipped' => true, 'skipReason' => 'empty-folder-map', 'count' => 0];
             } else {

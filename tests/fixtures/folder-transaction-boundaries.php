@@ -1,8 +1,10 @@
 <?php
 namespace FolderBoundary {
-    function writeRawFolderMap(string $type, array $folders): void {
-        \writeRawFolderMap($type, $folders); $GLOBALS['folder_boundary']['written'] = true;
+    function writeRawFolderMap(string $type, array $folders, bool $replaceHierarchy = false): array {
+        $written = \writeRawFolderMap($type, $folders, $replaceHierarchy);
+        $GLOBALS['folder_boundary']['written'] = true;
         if (($GLOBALS['folder_boundary']['stage'] ?? '') === 'folders') throw new \RuntimeException('Injected folder write failure.');
+        return $written;
     }
     function writeTypePrefs(string $type, array $prefs): array {
         $result = \writeTypePrefs($type, $prefs);
@@ -15,8 +17,8 @@ namespace FolderBoundary {
             throw new \RuntimeException('Injected native order failure.');
         }
     }
-    function readRawFolderMap(string $type): array {
-        $value = \readRawFolderMap($type);
+    function readRawFolderMap(string $type, bool $requireVerified = false, bool $preserveHierarchy = false): array {
+        $value = \readRawFolderMap($type, $requireVerified, $preserveHierarchy);
         return !empty($GLOBALS['folder_boundary']['written']) && ($GLOBALS['folder_boundary']['stage'] ?? '') === 'readback'
             ? ['tampered' => []] : $value;
     }

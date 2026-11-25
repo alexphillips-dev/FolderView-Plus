@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { runInventoryRepair } from './helpers/runtime-inventory-fixture.mjs';
 const require = createRequire(import.meta.url);
 const { createApi } = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const transferModule = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
 const transferSchema = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/schemas/folder-settings-transfer.schema.json');
 const hierarchyModule = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 
-function fixture({ failRead = false, lockedChild = false, collision = false } = {}) {
+function fixture({ failRead = false, lockedChild = false, collision = false, realBatch = false, changeRevision = false } = {}) {
     const saved = {
         root: { name: 'Saved root', parentId: '', containers: ['explicit', 'offline'], regex: '^rule-',
             memberIdentities: { offline: { kind: 'docker', containerId: 'fixture-offline' } },
@@ -22,7 +23,7 @@ function fixture({ failRead = false, lockedChild = false, collision = false } = 
         child: { ...saved.child, parentId: '', containers: {} },
         unrelated: { ...saved.unrelated, parentId: 'root' }
     };
-    const writes = [], errors = [], reads = [];
+    const writes = [], errors = [], reads = [], results = [];
     let nextId = 0;
     const api = createApi({
         window: { prompt: () => 'Copied root' },
@@ -34,8 +35,24 @@ function fixture({ failRead = false, lockedChild = false, collision = false } = 
         isDockerFolderLocked: id => lockedChild && id === 'child',
         ensureDockerFolderUnlocked: () => true,
         requestClient: {
-            getJson: async url => { reads.push(url); if (failRead) throw new Error('Fixture read failed'); return structuredClone(saved); },
-            postJson: async (url, payload) => { writes.push({ url, payload }); return { ok: true }; }
+            getJson: async url => {
+                reads.push(url);
+                if (failRead) throw new Error('Fixture read failed');
+                return { folders: structuredClone(saved), metadata: { folderRevision: 1 } };
+            },
+            postJson: async (url, payload) => {
+                writes.push({ url, payload });
+                if (!realBatch || !url.endsWith('/batch.php')) return { ok: true };
+                const result = runInventoryRepair({
+                    operation: 'batch', type: 'docker', scenario: 'healthy', dockerFolders: saved,
+                    batchOperations: JSON.parse(payload.operations),
+                    expectedRevision: payload.expectedRevision,
+                    ...(changeRevision ? { peerFolderName: 'New peer name' } : {})
+                });
+                results.push(result);
+                if (result.response?.ok !== true) throw new Error(result.response?.error || result.error);
+                return result.response;
+            }
         },
         generateDockerFolderCloneId: () => collision ? 'unrelated' : `copy${++nextId}`,
         persistDockerFolderClonePayload: async (payload, id = '') => writes.push({ id, payload }),
@@ -43,8 +60,16 @@ function fixture({ failRead = false, lockedChild = false, collision = false } = 
             try { await action(); return { ok: true }; } catch (error) { errors.push(error.message); return { ok: false }; }
         }
     });
-    return { api, saved, live, writes, errors, reads };
+    return { api, saved, live, writes, errors, reads, results };
 }
+
+const getClones = (f) => {
+    assert.equal(f.writes.length, 1);
+    const [{ url, payload }] = f.writes;
+    assert.match(url, /\/server\/batch\.php$/);
+    assert.equal(payload.expectedRevision, 1);
+    return JSON.parse(payload.operations).upserts;
+};
 
 test('Docker clone uses persisted explicit and offline members, identity and rule configuration', async () => {
     const f = fixture();
@@ -67,12 +92,13 @@ test('Docker clone uses persisted explicit and offline members, identity and rul
 test('Docker branch cloning derives all descendants from one persisted snapshot despite runtime hierarchy drift', async () => {
     const f = fixture();
     await f.api.cloneDockerFolderBranchFromMenu('root');
-    const clones = f.writes.filter(write => write.id);
+    const clones = getClones(f);
     assert.equal(clones.length, 2);
-    assert.deepEqual(clones[0].payload.containers, ['explicit', 'offline']);
-    assert.deepEqual(clones[1].payload.containers, ['child-offline']);
-    assert.equal(clones[1].payload.parentId, clones[0].id);
-    assert.equal(clones[1].payload.name, 'Saved child');
+    assert.ok(clones.every(clone => clone.createOnly === true));
+    assert.deepEqual(clones[0].folder.containers, ['explicit', 'offline']);
+    assert.deepEqual(clones[1].folder.containers, ['child-offline']);
+    assert.equal(clones[1].folder.parentId, clones[0].id);
+    assert.equal(clones[1].folder.name, 'Saved child');
     assert.equal(f.reads.length, 1);
 });
 
@@ -82,8 +108,8 @@ test('Docker branch cloning remaps saved child order to the cloned sibling ident
     f.saved.root.settings.child_folder_order = ['second', 'child'];
     f.saved.root.settings.childFolderOrder = ['second', 'child'];
     await f.api.cloneDockerFolderBranchFromMenu('root');
-    const clones = f.writes.filter(write => write.id);
-    const folders = Object.fromEntries(clones.map(write => [write.id, write.payload]));
+    const clones = getClones(f);
+    const folders = Object.fromEntries(clones.map(write => [write.id, write.folder]));
     const rootId = clones[0].id;
     const childIds = clones.slice(1).map(write => write.id);
     const hierarchy = hierarchyModule.createApi({
@@ -94,6 +120,34 @@ test('Docker branch cloning remaps saved child order to the cloned sibling ident
     assert.deepEqual(folders[rootId].settings.child_folder_order, [...childIds].reverse());
     assert.deepEqual(folders[rootId].settings.childFolderOrder, [...childIds].reverse());
     assert.deepEqual(f.saved.root.settings.child_folder_order, ['second', 'child']);
+});
+
+test('Docker branch clone commits the full remapped branch through the guarded PHP batch endpoint', async () => {
+    const f = fixture({ realBatch: true });
+    f.saved.second = { name: 'Second child', parentId: 'root', containers: [], settings: {} };
+    f.saved.root.settings.child_folder_order = ['second', 'child'];
+    await f.api.cloneDockerFolderBranchFromMenu('root');
+    assert.deepEqual(f.errors, []);
+    const [root, firstChild, secondChild] = getClones(f);
+    const [{ response, folders }] = f.results;
+    assert.deepEqual(response.result.createdIds, [root.id, firstChild.id, secondChild.id]);
+    assert.deepEqual(response.result.updatedIds, []);
+    assert.deepEqual(folders[root.id].settings.child_folder_order, [secondChild.id, firstChild.id]);
+    assert.equal(folders[firstChild.id].parentId, root.id);
+    assert.equal(folders[secondChild.id].parentId, root.id);
+    assert.equal(folders.child.parentId, 'root');
+});
+
+test('Docker branch clone keeps every original folder after a conflicting peer edit', async () => {
+    const f = fixture({ realBatch: true, changeRevision: true });
+    await f.api.cloneDockerFolderBranchFromMenu('root');
+    assert.equal(f.errors.length, 1);
+    const [{ responseStatus, folders, native, nativeBefore }] = f.results;
+    assert.equal(responseStatus, 409);
+    assert.deepEqual(Object.keys(folders), Object.keys(f.saved));
+    assert.equal(folders.root.name, 'New peer name');
+    assert.equal(folders.child.parentId, 'root');
+    assert.equal(native, nativeBefore);
 });
 
 for (const method of ['cloneDockerFolderFromMenu', 'cloneDockerFolderBranchFromMenu']) {

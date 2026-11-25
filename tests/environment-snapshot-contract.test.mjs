@@ -28,7 +28,7 @@ test('environment snapshot import routes through the atomic rollback and verific
     assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \[\], false, \$nativeBackup\)/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason, false\)/);
     assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized\);[\s\S]*pruneGlobalRollbackSnapshots\(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, \$protected\)/);
-    assert.match(libPhp, /writeRawFolderMap\(\$type, \$folders\);/);
+    assert.match(libPhp, /writeRawFolderMap\(\$type, \$folders, true\);/);
     assert.match(libPhp, /writeTypePrefs\(\$type, \$prefs\);/);
     assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized\);/);
     assert.match(libPhp, /fvplusEnvironmentRestoreFiles\(\$snapshots\);/);

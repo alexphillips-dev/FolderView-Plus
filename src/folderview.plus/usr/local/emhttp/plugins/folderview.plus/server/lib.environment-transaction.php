@@ -56,7 +56,7 @@ function fvplusEnvironmentWriteTarget(array $normalized, array $options, string 
         $entry = (array)($normalized['types'][$type] ?? []);
         $folders = (array)($entry['folders'] ?? []);
         $prefs = (array)($entry['prefs'] ?? defaultTypePrefs());
-        writeRawFolderMap($type, $folders);
+        writeRawFolderMap($type, $folders, true);
         fvplusEnvironmentTransactionStage($options, $type . '-folders');
         writeTypePrefs($type, $prefs);
         fvplusEnvironmentTransactionStage($options, $type . '-prefs');

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.04">
-<!ENTITY md5 "2a3d99e732e73463272efa051e69c266">
-<!ENTITY sha256 "73f5c618dd50e0385fa48702ec0521e87ef7a58419fee9a61c189cfa9a975caf">
+<!ENTITY version "2026.11.25.05">
+<!ENTITY md5 "e9a299085242f10edeff05717e14ab3c">
+<!ENTITY sha256 "e90244cef1602fd9d9f6139affe6a5a80240e1d33168c903d813e8b614373394">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.05
+- Fix: Setup Assistant checks the reviewed folder revision before assigning template members or importing folders. Import review shows the fields that will change, preserves folder names across languages, and prevents unchecked folders from being moved or a matching folder from being deleted during Replace.
+- Fix: Keep saved parent links available for Tree Integrity repair after unrelated edits, and preserve the destination folder’s WebUI profiles when applying a reusable template.
+- Fix: Docker Clone Branch saves the complete hierarchy and its saved child order in one transaction.
+- Fix: Docker and Dashboard use the intended container’s state to confirm lifecycle actions. Dashboard retries failed native refreshes and keeps a saved layout selected when the widget cannot redraw.
+- Fix: Unmanaged Docker startup previews show native waits and stay read-only. Saved plugin waits remain available when you return to a managed mode.
+- Reliability: Protect a pre-existing runtime during failed fresh installs and keep interrupted removals from reactivating the old boot manifest.
+- Fix: The Appearance editor displays saved color opacity and preserves it when editing across browsers.
+
 
 ###2026.11.25.04
 - Reliability: Tree Integrity reports saved parent links before changing them, and confirmed repairs create a recoverable checkpoint. Undo and Redo protect newer hierarchy and ordering changes.
@@ -10305,6 +10315,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
             fi
+            removal_state="/boot/config/plugins/.folderview.plus-removal"
             cron_file="/etc/cron.d/folderview.plus"
             candidate_archive="${config_dir}/&name;-&version;.txz"
             install_stage="rollback preparation"
@@ -10609,6 +10620,25 @@ FOLDER_VIEW_PLUS_RECOVERY
                 exit "${exit_code}"
             }
             trap install_failure EXIT
+            if [ -f "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ]; then
+                read -r _ removal_digest removal_phase &lt; "${removal_state}" || exit 1
+                if [[ "${removal_digest}" =~ ^[a-f0-9]{64}$ ]]; then
+                    removed_dir="/boot/config/plugins-removed"
+                    if [ ! -e "${registered_manifest}" ] &amp;&amp; [ ! -L "${registered_manifest}" ] &amp;&amp; \
+                        [ "${removal_phase}" = ready ] &amp;&amp; [ ! -L "${removed_dir}" ] &amp;&amp; \
+                        archive_matches "${removed_dir}/&name;.plg" "${removal_digest}"; then
+                        # A successful native move may precede its callback.
+                        # Retire the journal before an identical reinstall can publish.
+                        sync -f /boot/config/plugins
+                        rm -f -- "${removal_state}" /boot/config/plugins/.folderview.plus-removal.sh \
+                            /boot/config/plugins/00-folderview.plus-removal-recovery.plg \
+                            /usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-removal
+                    elif [ ! -e "${registered_manifest}" ] || archive_matches "${registered_manifest}" "${removal_digest}"; then
+                        printf 'FolderView Plus has an unfinished removal. Complete removal before activating this manifest.\n' >&amp;2
+                        exit 1
+                    fi
+                fi
+            fi
             archive_matches "${candidate_archive}" "&sha256;" || exit 1
             if [ -d "${registration_dir}" ] || [ -d "${legacy_registration_dir}" ]; then
                 recover_native_registration || exit 1
@@ -10672,6 +10702,9 @@ FOLDER_VIEW_PLUS_RECOVERY
             fi
             if [ ! -e "&plugdir;" ]; then
                 runtime_was_absent=1
+            elif [ -z "${previous_archive}" ]; then
+                printf 'FolderView Plus cannot verify the existing runtime for rollback. The runtime was kept.\n' >&amp;2
+                exit 1
             fi
 
             if [ -n "${staged_method}" ]; then
@@ -10720,6 +10753,10 @@ FOLDER_VIEW_PLUS_RECOVERY
             fi
             trap - EXIT
             rm -f -- "${cron_backup}" "${staged_repair}" || true
+            if [ ! -e "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ] &amp;&amp; \
+                [ ! -e /boot/config/plugins/.folderview.plus-removal.sh ] &amp;&amp; [ ! -L /boot/config/plugins/.folderview.plus-removal.sh ]; then
+                rm -f -- /boot/config/plugins/00-folderview.plus-removal-recovery.plg || true
+            fi
             cleanup_install_context || true
             if [ -z "${staged_method}" ]; then
                 printf '%s\n' "${install_summary}"
@@ -10777,11 +10814,26 @@ FOLDER_VIEW_PLUS_RECOVERY
             elif [ -d /run/folderview.plus-registration ]; then
                 /bin/bash "&plugdir;/scripts/complete_native_registration.sh" recover remove || exit 1
             fi
+            registered_manifest="/boot/config/plugins/&name;.plg"
+            removed_dir="/boot/config/plugins-removed"
+            removed_manifest="${removed_dir}/&name;.plg"
+            removal_hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-removal"
+            removal_recovery="/boot/config/plugins/00-folderview.plus-removal-recovery.plg"
+            removal_helper="/boot/config/plugins/.folderview.plus-removal.sh"
+            if [ -L "${removed_dir}" ] || ! mkdir -p -- "${removed_dir}" ||
+                [ -L "${removed_manifest}" ] || { [ -e "${removed_manifest}" ] &amp;&amp; [ ! -f "${removed_manifest}" ]; }; then
+                printf 'FolderView Plus cannot archive its boot manifest. Correct the removal destination and retry.\n' >&amp;2
+                exit 1
+            fi
+            if [ ! -f "${registered_manifest}" ] || [ -L "${registered_manifest}" ]; then
+                printf 'FolderView Plus cannot identify its active boot manifest. Retry removal.\n' >&amp;2
+                exit 1
+            fi
             removal_state="/boot/config/plugins/.folderview.plus-removal"
             removal_version=""
             if [ -e "${removal_state}" ] || [ -L "${removal_state}" ]; then
                 [ -f "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ] || exit 1
-                removal_version="$(cat "${removal_state}")" || exit 1
+                read -r removal_version _ &lt; "${removal_state}" || exit 1
             fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
             if [ -n "${deployed_version}" ]; then
@@ -10807,6 +10859,89 @@ FOLDER_VIEW_PLUS_RECOVERY
                     exit 1
                 fi
             fi
+            # Save the recovery before arming the removal. It must survive
+            # package removal and boot before the primary manifest is replayed.
+            removal_helper_stage="$(mktemp "${removal_helper}.XXXXXX")" || exit 1
+            cat > "${removal_helper_stage}" &lt;&lt;'FOLDER_VIEW_PLUS_REMOVAL'
+#!/bin/bash
+set -eu
+mode="${1:-}"
+[[ "${mode}" = boot || "${1:-}:${2:-}:${3:-}:${4:-}" = plugin:remove:folderview.plus.plg: ]] || exit 0
+exec 9>>/run/folderview.plus-install.lock
+flock 9
+state="/boot/config/plugins/.folderview.plus-removal"
+[[ -f "${state}" &amp;&amp; ! -L "${state}" ]] || exit 0
+read -r _ digest phase &lt; "${state}"
+[[ "${digest}" =~ ^[a-f0-9]{64}$ ]] || exit 0
+active="/boot/config/plugins/folderview.plus.plg"
+archive="/boot/config/plugins-removed/folderview.plus.plg"
+running="/var/log/plugins/folderview.plus.plg"
+hook="/usr/local/emhttp/plugins/dynamix.plugin.manager/post-hooks/00-folderview.plus-removal"
+wrapper="/boot/config/plugins/00-folderview.plus-removal-recovery.plg"
+matches_manifest() {
+    [[ -f "$1" &amp;&amp; ! -L "$1" ]] &amp;&amp; printf '%s  %s\n' "${digest}" "$1" | sha256sum --check --status
+}
+restore_retry_entry() {
+    if [[ ! -e "${running}" &amp;&amp; ! -L "${running}" ]]; then
+        mkdir -p -- "${running%/*}" &amp;&amp; ln -sT -- "${active}" "${running}"
+    fi
+}
+if [[ "${phase}" != ready ]]; then
+    if [[ "${mode}" = boot ]] &amp;&amp; matches_manifest "${active}"; then
+        restore_retry_entry
+        printf 'FolderView Plus has an unfinished removal. Retry removal from Plugin Manager.\n'
+    fi
+    exit 0
+fi
+if matches_manifest "${active}"; then
+    if [[ -L "${archive%/*}" || -L "${archive}" || ( -e "${archive}" &amp;&amp; ! -f "${archive}" ) ]] ||
+        ! mkdir -p -- "${archive%/*}" ||
+        ! mv -fT -- "${active}" "${archive}"; then
+        # Native remove already detached this link. Restore the retry entry.
+        restore_retry_entry || true
+        printf 'FolderView Plus could not archive its boot manifest. Removal is pending. Correct the removal destination and retry.\n' >&amp;2
+        if [[ "${mode}" = boot ]]; then exit 0; fi
+        exit 1
+    fi
+fi
+if [[ ! -e "${active}" &amp;&amp; ! -L "${active}" &amp;&amp; ! -L "${archive%/*}" ]] &amp;&amp; matches_manifest "${archive}"; then
+    sync -f /boot/config/plugins
+    if [[ "$(readlink -- "${running}" 2>/dev/null || true)" = "${active}" ]]; then rm -f -- "${running}"; fi
+    rm -f -- "${state}" "${hook}" "$0"
+    # The boot CLI rereads the wrapper's noInstall attribute after the hook.
+    if [[ "${mode}" != boot ]]; then rm -f -- "${wrapper}"; fi
+fi
+FOLDER_VIEW_PLUS_REMOVAL
+            if [ "$?" -ne 0 ] || ! mv -fT -- "${removal_helper_stage}" "${removal_helper}"; then
+                rm -f -- "${removal_helper_stage}"
+                exit 1
+            fi
+            removal_wrapper_stage="$(mktemp "${removal_recovery}.XXXXXX")" || exit 1
+            cat > "${removal_wrapper_stage}" &lt;&lt;'FOLDER_VIEW_PLUS_REMOVAL_BOOT'
+&lt;?xml version="1.0" standalone="yes"?>
+&lt;PLUGIN name="00-folderview.plus-removal-recovery" author="Alexander Phillips" version="1" noInstall="true">
+    &lt;FILE Run="/bin/bash">
+        &lt;INLINE>
+            { # Parse the entire script before Unraid reuses the inline file.
+            helper="/boot/config/plugins/.folderview.plus-removal.sh"
+            if [ -f "$helper" ] &amp;amp;&amp;amp; [ ! -L "$helper" ]; then
+                exec /bin/bash "$helper" boot
+            fi
+            }
+        &lt;/INLINE>
+    &lt;/FILE>
+&lt;/PLUGIN>
+FOLDER_VIEW_PLUS_REMOVAL_BOOT
+            if [ "$?" -ne 0 ] || ! mv -fT -- "${removal_wrapper_stage}" "${removal_recovery}"; then
+                rm -f -- "${removal_wrapper_stage}"
+                exit 1
+            fi
+            removal_hook_stage="$(mktemp "${removal_hook%/*}/.folderview.plus-removal.XXXXXX")" || exit 1
+            if ! printf '#!/bin/bash\nexec /bin/bash "%s" "$@"\n' "${removal_helper}" > "${removal_hook_stage}" ||
+                ! chmod 0755 "${removal_hook_stage}" || ! mv -fT -- "${removal_hook_stage}" "${removal_hook}"; then
+                rm -f -- "${removal_hook_stage}"
+                exit 1
+            fi
             cron_file="/etc/cron.d/folderview.plus"
             cron_backup=""
             restore_remove_scheduler() {
@@ -10828,6 +10963,22 @@ FOLDER_VIEW_PLUS_RECOVERY
                 printf 'FolderView Plus could not disable scheduled backups. Retry removal.\n' >&amp;2
                 exit 1
             fi
+            record_removal() {
+                local stage
+                stage="$(mktemp "${removal_state}.XXXXXX")" || return 1
+                if ! printf '%s %s %s\n' "&version;" "${removal_digest%% *}" "$1" > "${stage}" ||
+                    ! mv -fT -- "${stage}" "${removal_state}" || ! sync -f /boot/config/plugins; then
+                    rm -f -- "${stage}"
+                    return 1
+                fi
+            }
+            # Arm the exact manifest before native package removal can leave
+            # the runtime and package record incomplete.
+            removal_digest="$(sha256sum -- "${registered_manifest}")" || exit 1
+            if ! record_removal cleanup; then
+                restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                exit 1
+            fi
             if [ -n "${deployed_version}" ] || [ "${removal_version}" != "&version;" ] ||
                 [ -f "&plugdir;/FolderViewPlus.page" ] ||
                 [ -f "/var/lib/pkgtools/packages/&name;-&version;" ] || [ -f "/var/log/packages/&name;-&version;" ]; then
@@ -10838,10 +10989,11 @@ FOLDER_VIEW_PLUS_RECOVERY
             fi
             if ! rm -f -- "${cron_backup}" ||
                 ! rm -rf -- "&plugdir;" /tmp/folderview.plus-assets "/boot/config/plugins/&name;" ||
-                ! rm -f -- /boot/config/plugins/00-folderview.plus-registration-recovery.plg "${removal_state}"; then
+                ! rm -f -- /boot/config/plugins/00-folderview.plus-registration-recovery.plg; then
                 printf 'FolderView Plus could not complete file cleanup. Retry removal.\n' >&amp;2
                 exit 1
             fi
+            record_removal ready
             }
         </INLINE>
     </FILE>

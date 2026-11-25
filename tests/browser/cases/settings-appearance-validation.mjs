@@ -9,7 +9,7 @@ export const registerSettingsAppearanceValidationCases = ({ test, baseUrl, mount
         }] }));
         await page.locator('#fv-theme-profile-scope').selectOption('docker');
         const accent = page.locator('[data-fv-theme-token="--fvplus-theme-accent"]');
-        assert.equal(await accent.inputValue(), '#334455');
+        assert.equal(await accent.evaluate(input => { const reference = input.cloneNode(); reference.value = '#334455'; return input.value === reference.value; }), true);
         assert.match(await accent.locator('xpath=..').locator('code').textContent(), /Inherited/);
         assert.deepEqual(await page.evaluate(() => themeApi.getWorkspace().variables), {});
         const css = `/*${'ä'.repeat(32767)}*/`;

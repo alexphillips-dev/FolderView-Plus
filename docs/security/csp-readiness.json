@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 317,
+    "scannedFiles": 318,
     "exclusions": [
       "third-party icon asset pack",
       "vendored scripts",
@@ -352,7 +352,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
-      "line": 5599,
+      "line": 5601,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -382,7 +382,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 218,
+      "line": 250,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -392,7 +392,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 223,
+      "line": 255,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -402,7 +402,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 241,
+      "line": 273,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -412,7 +412,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 268,
+      "line": 300,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -422,7 +422,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 291,
+      "line": 323,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -432,7 +432,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 331,
+      "line": 363,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -442,7 +442,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 340,
+      "line": 372,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",
@@ -452,7 +452,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 386,
+      "line": 418,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -462,7 +462,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 410,
+      "line": 442,
       "sink": ".innerHTML =",
       "risk": "reviewed",
       "dataClass": "static-or-controlled-ui-template",
@@ -472,7 +472,7 @@
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js",
-      "line": 418,
+      "line": 450,
       "sink": ".innerHTML =",
       "risk": "high",
       "dataClass": "persisted-or-runtime-data",

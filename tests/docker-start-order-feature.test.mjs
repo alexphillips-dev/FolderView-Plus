@@ -88,6 +88,40 @@ test('Settings acknowledges only a verified sync and keeps queued or unmanaged p
     }
 });
 
+test('Settings clears the old preview on mode changes and ignores an earlier response', async () => {
+    const startMode = settingsJs.indexOf('const updateDockerStartOrderMode =');
+    const endMode = settingsJs.indexOf('const updateDockerStartOrderRemaining =', startMode);
+    const startPreview = settingsJs.indexOf('const refreshDockerStartOrderPreview =');
+    const endPreview = settingsJs.indexOf('const syncDockerStartOrderNow =', startPreview);
+    const requests = [], renders = [], saves = [];
+    const { change, refresh } = vm.runInNewContext(`
+        let dockerStartOrderPreviewTimer = null;
+        let dockerStartOrderPreviewGeneration = 0;
+        ${settingsJs.slice(startMode, endMode)}
+        ${settingsJs.slice(startPreview, endPreview)}
+        ({ change: updateDockerStartOrderMode, refresh: refreshDockerStartOrderPreview });
+    `, {
+        dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page'] },
+        saveDockerStartOrderPlan: async (...args) => saves.push(args),
+        flushDockerStartOrderSaveQueue: async () => {},
+        $: () => ({ length: 0 }),
+        apiGetJson: () => new Promise(resolve => requests.push(resolve)),
+        renderDockerStartOrderPreview: preview => renders.push(preview),
+        showError: (_label, error) => { throw error; }
+    });
+    const previous = refresh({ flush: false });
+    await change('unmanaged');
+    assert.deepEqual(JSON.parse(JSON.stringify(saves)), [
+        [{ mode: 'unmanaged' }, { preservePreview: false, refreshPreview: true }]
+    ]);
+    const latest = refresh({ flush: false });
+    requests[1]({ preview: { mode: 'unmanaged' } });
+    await latest;
+    requests[0]({ preview: { mode: 'docker-page' } });
+    await previous;
+    assert.deepEqual(renders, [{ mode: 'unmanaged' }]);
+});
+
 test('settings page exposes a user-friendly Docker start-order workspace', () => {
     assert.match(settingsPage, /id="docker-start-order-stage"/);
     assert.match(settingsPage, /Docker start order/);

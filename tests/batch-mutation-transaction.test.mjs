@@ -317,7 +317,7 @@ test('batch endpoint is guarded, bounded, and delegates one transaction', () => 
     assert.match(lib, /withConfigMutationLock\(static function/);
     assert.match(lib, /assertExpectedConfigRevision\(\$type, 'folder', \$expectedRevision\)/);
     assert.match(lib, /assertExpectedConfigRevision\(\$type, 'prefs', \$expectedPrefsRevision\)/);
-    assert.match(lib, /writeRawFolderMap\(\$type, \$nextFolders\)/);
+    assert.match(lib, /writeRawFolderMap\(\$type, \$nextFolders, \$repairingHierarchy\)/);
     assert.match(lib, /reconcileManualOrderPrefs\(\$originalPrefs, \$nextFolders\)/);
     assert.match(lib, /appendDiagnosticsHistoryEvent\('folder_batch_mutation'/);
 });
@@ -327,7 +327,7 @@ test('imports and deletes use one batch request instead of per-folder endpoints'
     assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
     assert.match(fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.folder-editor.js'), 'utf8'), /await requestFolderBatchMutation\(resolvedType, \{/);
-    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}, \{ expectedRevision, backupReason \}\)/);
+    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates, preserveParentLinks: true \}, \{ expectedRevision, backupReason \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);
     assert.doesNotMatch(importRuntime, /runImportChunked/);
     assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}, \{ expectedRevision, backupReason:/);

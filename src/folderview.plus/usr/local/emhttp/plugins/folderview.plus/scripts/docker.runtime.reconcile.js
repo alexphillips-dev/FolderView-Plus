@@ -34,6 +34,38 @@
     const DOCKER_LIFECYCLE_ICON_SNAPSHOT_ATTRIBUTE = 'data-fv-lifecycle-icon-class';
     const DOCKER_LIFECYCLE_SURFACE_PENDING_ATTRIBUTE = 'data-fv-lifecycle-pending';
 
+    const normalizeLifecycleId = (value) => String(value || '').trim().split(':').pop().toLowerCase();
+    const isLifecycleId = (value) => /^[a-f0-9]{12,64}$/.test(value);
+    const getLifecycleEntryIds = (entry) => [entry?.id, entry?.shortId, entry?.info?.Id]
+        .map(normalizeLifecycleId).filter(isLifecycleId);
+    const getLifecycleTargetType = (request) => ['id', 'name'].includes(request.containerIdentityType)
+        ? request.containerIdentityType : (isLifecycleId(normalizeLifecycleId(request.container)) ? 'id' : 'name');
+    const getLifecycleKey = (request) => `${getLifecycleTargetType(request)}:${String(request.container || '').trim()}`;
+    const resolveLifecycleEntry = (request, entries, getEntryByName) => {
+        const token = String(request.container || '').trim();
+        if (!token) return null;
+        if (getLifecycleTargetType(request) === 'id') {
+            const id = normalizeLifecycleId(token);
+            if (!isLifecycleId(id)) return null;
+            const exact = id.length === 64 ? entries.filter((entry) => getLifecycleEntryIds(entry).includes(id)) : [];
+            if (exact.length) return exact.length === 1 ? exact[0] : null;
+            const matches = entries.filter((entry) => {
+                const ids = getLifecycleEntryIds(entry);
+                const candidates = ids.some((candidate) => candidate.length > 12)
+                    ? ids.filter((candidate) => candidate.length > 12) : ids;
+                return candidates.some((candidate) => candidate.startsWith(id)
+                    || (candidate.length === 12 && id.startsWith(candidate)));
+            });
+            return matches.length === 1 ? matches[0] : null;
+        }
+        const direct = getEntryByName(token);
+        if (direct) return direct;
+        const containers = entries.map((entry) => containerModel?.normalizeContainer?.(entry));
+        const name = containerModel?.normalizeName?.(token);
+        const matches = entries.filter((_, index) => containers[index]?.names?.includes(name));
+        return matches.length === 1 ? matches[0] : null;
+    };
+
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win.document || null;
@@ -74,16 +106,9 @@
         const syncDockerVisibleFoldersFromRuntimeCache = typeof deps.syncDockerVisibleFoldersFromRuntimeCache === 'function'
             ? deps.syncDockerVisibleFoldersFromRuntimeCache
             : (() => 0);
-        const resolveDockerLifecycleEntry = (request = {}) => {
-            const token = String(request?.container || '').replace(/^sha256:/i, '').trim();
-            if (!token) return null;
-            const direct = getDockerRuntimeContainerInfo(token);
-            if (direct) return direct;
-            const entries = getDockerRuntimeInfoEntries() || [];
-            const containers = entries.map((entry) => containerModel?.normalizeContainer?.(entry));
-            const resolved = containerModel?.resolveContainerIdentity?.(token, containers);
-            return resolved ? entries[containers.indexOf(resolved)] || null : null;
-        };
+        const resolveDockerLifecycleEntry = (request = {}) => resolveLifecycleEntry(
+            request, getDockerRuntimeInfoEntries() || [], getDockerRuntimeContainerInfo
+        );
         const defaultLifecycleStateSnapshot = (request = {}) => {
             const state = resolveDockerLifecycleEntry(request)?.info?.State;
             if (!state || typeof state.Running !== 'boolean') return null;
@@ -101,7 +126,7 @@
         };
         const getDockerLifecyclePreviewSurfaces = (request = {}) => {
             const entry = resolveDockerLifecycleEntry(request);
-            const requestId = String(request?.container || '').replace(/^sha256:/i, '').trim();
+            const requestId = getLifecycleTargetType(request) === 'id' ? request.container : '';
             const entryIds = [
                 requestId,
                 entry?.shortId,
@@ -588,15 +613,16 @@
         };
         const runDockerLifecycleRefresh = (request = {}, failureReason = '') => {
             const action = String(request?.action || '').trim().toLowerCase();
-            const refreshKey = String(request?.container || '').trim();
-            if (dockerLifecycleDisposed || !refreshKey) return;
+            const container = String(request?.container || '').trim();
+            if (dockerLifecycleDisposed || !container) return;
+            const refreshKey = getLifecycleKey(request);
             const refresh = {};
             dockerLifecycleRefreshes.set(refreshKey, refresh);
             const isCurrentRefresh = () => !dockerLifecycleDisposed && dockerLifecycleRefreshes.get(refreshKey) === refresh;
             const finalizeGeneration = (outcome = {}) => {
                 if (!isCurrentRefresh()) return;
                 dockerLifecycleRefreshes.delete(refreshKey);
-                if ([...dockerLifecycleCallbacks.values()].some((entry) => entry.request.container === refreshKey)) return;
+                if ([...dockerLifecycleCallbacks.values()].some((entry) => getLifecycleKey(entry.request) === refreshKey)) return;
                 try {
                     finalizeDockerLifecycleSurface(request, { ...outcome, reason: failureReason || outcome.reason });
                     if (!hasPendingLifecycleActions()) deps.onLifecycleIdle?.();
@@ -616,10 +642,11 @@
                     : setTimeout;
                 schedule(() => {
                     if (!isCurrentRefresh()) return;
+                    const namedEntry = getLifecycleTargetType(request) === 'name' ? resolveDockerLifecycleEntry(request) : null;
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
                         liveUpdateStatus: true,
                         preserveGroupedDom: true,
-                        containerId: refreshKey,
+                        containerId: namedEntry?.id || namedEntry?.info?.Id || namedEntry?.shortId || container,
                         isCurrent: isCurrentRefresh
                     }))
                         .then((success) => {
@@ -733,8 +760,14 @@
                     const interceptedHostLoadlist = refreshTarget === 'loadlist';
                     const callbackRequest = {
                         action: String(request.action || '').trim().toLowerCase(),
-                        container: String(request.container || '').trim()
+                        container: String(request.container || '').trim(),
+                        // Native controls pass an ID. Keep an explicitly named target distinct.
+                        containerIdentityType: request.containerIdentityType === 'name' ? 'name' : 'id'
                     };
+                    if (Object.hasOwn(request, 'containerIdentityType')) {
+                        args[0] = { ...request };
+                        delete args[0].containerIdentityType;
+                    }
                     const callbackName = `${dockerLifecycleRefreshCallbackName}_${++dockerLifecycleCallbackCount}`;
                     const callback = () => {
                         removeLifecycleCallback(callbackName);
@@ -742,7 +775,7 @@
                     };
                     const timer = win.setTimeout?.(() => failLifecycleCallback(callbackName, 'callback-timeout'), 120000) ?? null;
                     dockerLifecycleCallbacks.set(callbackName, { request: callbackRequest, callback, timer });
-                    dockerLifecycleRefreshes.delete(callbackRequest.container);
+                    dockerLifecycleRefreshes.delete(getLifecycleKey(callbackRequest));
                     win[callbackName] = callback;
                     args[1] = callbackName;
                     pendingDockerLifecycleRequest = callbackRequest;
@@ -810,6 +843,7 @@
         DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME,
         DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME,
         DOCKER_LIFECYCLE_REFRESH_DELAYS_MS,
+        resolveLifecycleEntry,
         createApi
     };
 }));

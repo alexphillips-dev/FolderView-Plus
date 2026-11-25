@@ -40,6 +40,38 @@
     const surfaceT = (key, fallback, ...params) => globalThis.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback.replace(/\$(\d+)/g, (token, n) => String(params[Number(n) - 1] ?? token));
     const MAX_CUSTOM_CSS_BYTES = 65536;
     const measureCssBytes = (css) => new TextEncoder().encode(css).byteLength;
+    const getTokenOpacity = (value) => {
+        const hex = String(value || '').match(/^#(?:[a-f0-9]{3}([a-f0-9])|[a-f0-9]{6}([a-f0-9]{2}))$/i);
+        if (hex) return parseInt(hex[2] || hex[1].repeat(2), 16) / 255;
+        const functional = String(value || '').match(/^(?:rgba?|hsla?)\([^,]+,[^,]+,[^,]+,\s*(\d*\.?\d+)\s*\)$/i);
+        return functional ? Number(functional[1]) : 1;
+    };
+
+    const normalizeNativeTokenColor = (color, documentRef, previousOpacity, supportsAlpha) => {
+        const formatColor = (channels, nativeOpacity = 1) => {
+            if (channels.length !== 3 || ![...channels, nativeOpacity].every(Number.isFinite)) return '';
+            // An 8-bit native picker can round opacity even when the user edits only RGB.
+            const previousNativeOpacity = Math.round(previousOpacity * 255) / 255;
+            const opacity = !supportsAlpha || Math.abs(nativeOpacity - previousNativeOpacity) <= 0.000001
+                ? previousOpacity : nativeOpacity;
+            if (opacity >= 1) return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+            return `rgba(${channels.join(', ')}, ${opacity.toLocaleString('en-US', { maximumFractionDigits: 20 })})`;
+        };
+        const hex = color.match(/^#([a-f0-9]{3,4}|[a-f0-9]{6}|[a-f0-9]{8})$/i);
+        if (hex) {
+            const channels = hex[1].length <= 4 ? Array.from(hex[1], digit => digit.repeat(2)) : hex[1].match(/../g);
+            return formatColor(channels.slice(0, 3).map(channel => parseInt(channel, 16)), getTokenOpacity(color));
+        }
+        const style = documentRef.createElement('span').style;
+        style.color = color;
+        const rgb = style.color.match(/^rgba?\(([^)]+)\)$/i);
+        if (rgb && rgb[1].includes(',')) return formatColor(rgb[1].split(',').slice(0, 3).map(Number), getTokenOpacity(style.color));
+        const srgb = style.color.match(/^color\(srgb ([^/]+?)(?:\s*\/\s*([^)]+))?\)$/i);
+        if (!srgb) return '';
+        const clamp = number => Math.max(0, Math.min(1, number));
+        const channels = srgb[1].trim().split(/\s+/).map(channel => Math.round(clamp(Number(channel)) * 255));
+        return formatColor(channels, clamp(Number(srgb[2] ?? 1)));
+    };
     const normalizeWorkspace = (value) => {
         const source = value && typeof value === 'object' ? value : {};
         const rawThemes = Array.isArray(source.themes) ? source.themes : [];
@@ -370,7 +402,7 @@
                 const suffix = hasOverride ? translate('settings.theme.override-suffix', ' · customized')
                     : inherited ? ` · ${translate('settings.theme.preset-inherited', 'Inherited')}`
                         : translate('settings.theme.default-suffix', ' · default');
-                row.querySelector('code').textContent = token + suffix;
+                row.querySelector('code').textContent = token + suffix + (getTokenOpacity(value) < 1 ? ` · ${value}` : '');
             }
         };
 
@@ -389,7 +421,7 @@
                             <span>${escapeHtml(definition.label)}</span>
                             <code></code>
                         </span>
-                        <input type="color" data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback)}">
+                        <input type="color" alpha data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback)}">
                         <button type="button" class="fv-theme-token-reset" data-fv-theme-token-reset="${escapeHtml(definition.token)}" title="${escapeHtml(translate("settings.theme.reset-token", "Reset $1", definition.label))}"><i class="fa fa-undo"></i></button>
                     </label>
                 `).join('');
@@ -763,8 +795,14 @@
             $(documentRef).off('input.fvthemeworkspace', '[data-fv-theme-token]').on('input.fvthemeworkspace', '[data-fv-theme-token]', (event) => {
                 if (!workspaceLoaded) return;
                 const token = String(event?.target?.getAttribute('data-fv-theme-token') || '').trim();
-                const value = String(event?.target?.value || '').trim();
-                if (!token || !value) {
+                const color = String(event?.target?.value || '').trim();
+                if (!token || !color) {
+                    return;
+                }
+                const resolved = themeProfiles.resolveLayer(workspace, activeScope).variables;
+                const value = normalizeNativeTokenColor(color, documentRef, getTokenOpacity(resolved[token]), event.target.alpha === true);
+                if (!value) {
+                    syncVariableControl(event.target, resolved);
                     return;
                 }
                 updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } }, { selectedPreset: '' });

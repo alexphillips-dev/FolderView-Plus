@@ -872,27 +872,34 @@ const ensureSetupAssistantDom = () => {
     ensureSetupAssistantThemeSurfaceBinding();
 };
 
-const getSetupAssistantEffectiveImportMode = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    if (setupAssistantState.experienceMode !== 'expert') {
-        return 'merge';
-    }
-    return normalizeImportMode(setupAssistantState.importPlans?.[resolvedType]?.mode);
-};
+const getSetupAssistantEffectiveImportMode = type => setupAssistantState.experienceMode === 'expert'
+    ? normalizeImportMode(setupAssistantState.importPlans?.[normalizeManagedType(type)]?.mode)
+    : 'merge';
 
-const summarizeSetupAssistantImportPlan = (type) => {
+const requireSetupAssistantFolderRevision = revision => window.FolderViewPlusFoundationModules.importSelection.requireFolderRevision(revision, setupAssistantT);
+const setupAssistantImportReviewChanged = () => window.FolderViewPlusFoundationModules.importSelection.importReviewChanged(setupAssistantT);
+
+const summarizeSetupAssistantImportPlan = (type, snapshot = null) => {
     const resolvedType = normalizeManagedType(type);
     const plan = setupAssistantState.importPlans?.[resolvedType];
     if (!plan || !plan.parsed) {
         return null;
     }
-    const folders = getFolderMap(resolvedType);
+    if (snapshot) plan.reviewSnapshot = snapshot;
+    const liveRevision = readFolderConfigurationRevision(resolvedType);
+    const previewSnapshot = snapshot ?? (plan.reviewSnapshot && (liveRevision === null || plan.reviewSnapshot.folderRevision > liveRevision)
+        ? plan.reviewSnapshot : null);
+    const folders = previewSnapshot?.folders ?? getFolderMap(resolvedType);
     const mode = getSetupAssistantEffectiveImportMode(resolvedType);
     const { summary, operations, diffRows } = utils.buildImportPlan(folders, plan.parsed, mode);
     plan.summary = summary;
     plan.operations = operations;
     plan.diffRows = diffRows;
+    plan.folderRevision = previewSnapshot?.folderRevision ?? liveRevision;
+    const importSelection = window.FolderViewPlusFoundationModules.importSelection;
+    plan.hierarchyConflicts = importSelection.readSelectedParentConflicts(folders, operations, operations);
     plan.warnings = [];
+    if (plan.hierarchyConflicts.length) plan.warnings.push(importSelection.formatParentConflicts(plan.hierarchyConflicts, setupAssistantT));
     if (plan.parsed.legacy === true) {
         plan.warnings.push('Legacy export detected. Verify icon/settings fields before apply.');
     }
@@ -1218,7 +1225,7 @@ const applySetupAssistantBehaviorToPrefs = (prefs, behavior) => {
 };
 
 const resolveSetupAssistantFolderId = (type, folderName, folderIdHint = '', options = {}) => {
-    const folders = getFolderMap(type);
+    const folders = options.folders ?? getFolderMap(type);
     const hint = String(folderIdHint || '').trim();
     const allowPlanned = options.allowPlanned !== false;
     if (hint && Object.prototype.hasOwnProperty.call(folders, hint)) {
@@ -1288,14 +1295,15 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
         };
     }
 
-    const folders = getFolderMap(resolvedType);
+    const { folders, folderRevision } = await fetchFolders(resolvedType);
+    requireSetupAssistantFolderRevision(folderRevision);
     const targetFolderIdsByName = {};
     selectedBlueprints.forEach((blueprint) => {
         const templateName = String(blueprint?.name || '').trim();
         if (!templateName) {
             return;
         }
-        const targetFolderId = resolveSetupAssistantFolderId(resolvedType, templateName, '', { allowPlanned: false });
+        const targetFolderId = resolveSetupAssistantFolderId(resolvedType, templateName, '', { allowPlanned: false, folders });
         if (!targetFolderId || !Object.prototype.hasOwnProperty.call(folders, targetFolderId)) {
             throw new Error(setupAssistantT('common.server.target-folder-not-found-b0f5ad', 'Target folder not found.'));
         }
@@ -1390,7 +1398,7 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             id: folderId,
             folder: nextFolders[folderId]
         }))
-    });
+    }, { expectedRevision: folderRevision });
     await refreshType(resolvedType);
     return {
         enabled: true,
@@ -3206,7 +3214,7 @@ const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
     })
 );
 
-const retrySetupAssistantFailures = async (failures = []) => {
+const retrySetupAssistantFailures = async (failures = [], reviewedImports = {}) => {
     const queue = Array.isArray(failures) ? failures : [];
     const remaining = [];
     let resolved = 0;
@@ -3217,10 +3225,17 @@ const retrySetupAssistantFailures = async (failures = []) => {
         const progressBase = Math.round((index / Math.max(1, queue.length)) * 100);
         try {
             if (phase === 'import') {
-                const plan = setupAssistantState.importPlans[type];
-                if (plan?.include && plan?.parsed) {
-                    summarizeSetupAssistantImportPlan(type);
-                    const operations = plan.operations || { creates: [], upserts: [], deletes: [] };
+                const reviewed = reviewedImports[type];
+                if (reviewed) {
+                    let operations = reviewed.operations;
+                    const snapshot = await fetchFolders(type);
+                    const expectedRevision = requireSetupAssistantFolderRevision(snapshot.folderRevision);
+                    if (expectedRevision !== reviewed.expectedRevision) {
+                        if (typeof swal.close === 'function') swal.close();
+                        const approval = await showImportPreviewDialog(type, reviewed.parsed, snapshot.folders, { initialMode: operations.mode });
+                        if (!approval || approval.dryRunOnly) throw setupAssistantImportReviewChanged();
+                        operations = approval.operations;
+                    }
                     const operationCount = countImportOperations(operations);
                     if (operationCount > 0) {
                         setSetupAssistantProgress(`Retrying ${type.toUpperCase()} import...`, progressBase);
@@ -3231,7 +3246,7 @@ const retrySetupAssistantFailures = async (failures = []) => {
                             const progress = progressBase + Math.round((safeCompleted / safeTotal) * Math.round(100 / Math.max(1, queue.length)));
                             setSetupAssistantProgress(label || `Retrying ${type} import...`, progress);
                             renderSetupAssistant();
-                        });
+                        }, { expectedRevision });
                         await Promise.all([refreshType(type), refreshBackups(type)]);
                     }
                 }
@@ -3318,6 +3333,16 @@ const applySetupAssistantPlan = async () => {
         renderSetupAssistant();
         return;
     }
+    let reviewedImports;
+    try {
+        reviewedImports = await window.FolderViewPlusFoundationModules.importSelection.readReviewedSetupImports({
+            getPlans: () => setupAssistantState.importPlans, fetchFolders, updatePlan: summarizeSetupAssistantImportPlan, translate: setupAssistantT
+        });
+    } catch (error) {
+        renderSetupAssistant();
+        showError(setupAssistantT('common.repair.setup-assistant-failed-a4a89a', 'Setup assistant failed'), error);
+        return;
+    }
     const impactSummary = buildSetupAssistantImpactSummary();
     const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
     if (safetyMode === 'strict' && reviewValidation.warnings.length > 0 && setupAssistantState.dryRunOnly !== true) {
@@ -3332,7 +3357,7 @@ const applySetupAssistantPlan = async () => {
     }
 
     const confirmed = await confirmSetupAssistantApply(impactSummary, reviewValidation);
-    if (!confirmed) {
+    if (!confirmed || setupAssistantState.applying) {
         return;
     }
 
@@ -3343,6 +3368,7 @@ const applySetupAssistantPlan = async () => {
     renderSetupAssistant();
 
     let rollbackCreated = false;
+    let folderConflict = false;
     const applyFailures = [];
     const ruleOutcomes = { docker: { created: 0, skipped: 0 }, vm: { created: 0, skipped: 0 } };
     const importOutcomes = { docker: 0, vm: 0 };
@@ -3435,12 +3461,9 @@ const applySetupAssistantPlan = async () => {
         setSetupAssistantProgress(setupAssistantT("common.repair.applying-imports-357422", "Applying imports..."), 36);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
-            const plan = setupAssistantState.importPlans[type];
-            if (!(plan?.include && plan?.parsed)) {
-                continue;
-            }
-            summarizeSetupAssistantImportPlan(type);
-            const operations = plan.operations || { creates: [], upserts: [], deletes: [] };
+            const reviewed = reviewedImports[type];
+            if (!reviewed) continue;
+            const { operations, expectedRevision } = reviewed;
             const operationCount = countImportOperations(operations);
             if (operationCount <= 0) {
                 continue;
@@ -3455,9 +3478,10 @@ const applySetupAssistantPlan = async () => {
                     const progress = startPercent + Math.round((safeCompleted / safeTotal) * span);
                     setSetupAssistantProgress(label || `Applying ${type} import...`, progress);
                     renderSetupAssistant();
-                });
+                }, { expectedRevision });
                 await Promise.all([refreshType(type), refreshBackups(type)]);
             } catch (error) {
+                folderConflict ||= Number(error?.status) === 409;
                 applyFailures.push({
                     phase: 'import',
                     type,
@@ -3475,6 +3499,7 @@ const applySetupAssistantPlan = async () => {
                 renderSetupAssistant();
                 templateOutcomes[type] = await applySetupAssistantTemplatesForType(type);
             } catch (error) {
+                folderConflict ||= Number(error?.status) === 409;
                 applyFailures.push({
                     phase: 'templates',
                     type,
@@ -3522,6 +3547,7 @@ const applySetupAssistantPlan = async () => {
 
         const verification = buildSetupAssistantVerificationReport(importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings);
         if (safetyMode === 'strict' && (validationWarnings.length > 0 || applyFailures.length > 0 || verification.passed < verification.total)) {
+            if (folderConflict) throw setupAssistantImportReviewChanged();
             throw new Error('Strict safety checks failed after apply. Rolling back to previous checkpoint.');
         }
 
@@ -3642,7 +3668,7 @@ const applySetupAssistantPlan = async () => {
 
             if (retryNow) {
                 try {
-                    const retryReport = await retrySetupAssistantFailures(applyFailures);
+                    const retryReport = await retrySetupAssistantFailures(applyFailures, reviewedImports);
                     const retryLines = [
                         `Retried tasks: ${retryReport.retried}`,
                         `Resolved: ${retryReport.resolved}`,
@@ -3708,7 +3734,8 @@ const applySetupAssistantPlan = async () => {
             });
         }
         let rollbackMessage = '';
-        if (rollbackCreated) {
+        // A full checkpoint can contain settings that predate a competing folder write.
+        if (rollbackCreated && !folderConflict) {
             try {
                 await globalRollbackApi('rollback_restore_named', { name: setupAssistantState.rollbackCheckpointName });
                 await refreshAll();

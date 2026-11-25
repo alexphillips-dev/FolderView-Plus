@@ -112,6 +112,7 @@
       "server/lib.folderview3-apply.php": { "limit": 76, "target": 75, "history": [76] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
       "server/lib.folder-batch-order.php": { "limit": 37, "target": 37, "history": [37] },
+      "server/lib.folder-batch-operations.php": { "limit": 60, "target": 55, "history": [60] },
       "server/lib.legacy-regex-conversion.php": { "limit": 160, "target": 150, "history": [160] },
       "server/lib.folder-rules.php": { "limit": 354, "target": 320, "history": [354] },
       "server/lib.release-notes.php": { "limit": 464, "target": 400, "history": [464] },
@@ -318,6 +319,7 @@
         "server/lib.docker-start-order-sequence.php",
         "server/lib.docker-order.php",
         "server/lib.folder-batch-order.php",
+        "server/lib.folder-batch-operations.php",
         "server/lib.folder-settings-transfer.php",
         "server/lib.folder-mutations.php",
         "server/lib.custom-icon-storage.php",
@@ -809,11 +811,21 @@
       "functionInventory": { "count": 4, "sha256": "f7a01455a0a3d6540cbb2f5596eda8734ce0a8f5ad9a407527cf72bcd020b254" }
     },
     {
+      "file": "server/lib.folder-batch-operations.php",
+      "owner": "server-folder-batch-operation-validation",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.php", "server/lib.input-security.php", "server/lib.validation.php", "server/lib.webui-profile-limits.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.php",
+      "functionInventory": { "count": 1, "sha256": "9808ebb88f47cb2c8feabe4d153ffb515604d3817e31bdc9197f38e4ec91211a" }
+    },
+    {
       "file": "server/lib.folder-mutations.php",
       "owner": "server-folder-mutations",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.webui-profile-limits.php", "server/lib.folder-batch-order.php", "server/lib.folder-settings-transfer.php"],
+      "dependsOn": ["server/lib.storage.php", "server/lib.config-write.php", "server/lib.backup-snapshots.php", "server/lib.environment-transaction.php", "server/lib.docker-order.php", "server/lib.webui-profiles.php", "server/lib.webui-profile-limits.php", "server/lib.folder-batch-order.php", "server/lib.folder-batch-operations.php", "server/lib.folder-settings-transfer.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 8, "sha256": "0d64ee0403812b75078edc9b28171760713a86554673bb86b5da356998c6ea30" }

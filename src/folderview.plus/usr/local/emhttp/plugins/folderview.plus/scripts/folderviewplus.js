@@ -3596,6 +3596,7 @@ const getSettingsRuntimeActionsApi = (() => {
             trackDiagnosticsEvent,
             getPluginVersion: () => pluginVersion,
             selectJsonFile,
+            fetchFolders,
             applyImportOperations,
             requestFolderBatchMutation,
             ensureRuntimeConflictActionAllowed,
@@ -4266,6 +4267,7 @@ const requestFolderBatchMutation = async (type, operations, options = {}) => {
             upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
             creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : [],
             ...(options.backupReason ? { backupReason: options.backupReason } : {}),
+            ...(safeOperations.preserveParentLinks === true ? { preserveParentLinks: true } : {}),
             ...(Array.isArray(safeOperations.manualOrder) ? {
                 manualOrder: safeOperations.manualOrder,
                 expectedPrefsRevision: safeOperations.expectedPrefsRevision
@@ -7562,6 +7564,7 @@ const buildDockerStartOrderContainerSelectOptions = () => {
 };
 
 let dockerStartOrderPreviewTimer = null;
+let dockerStartOrderPreviewGeneration = 0;
 let dockerStartOrderSaveTimer = null;
 let dockerStartOrderQueuedPrefs = null;
 let dockerStartOrderSaveChain = Promise.resolve();
@@ -7637,8 +7640,9 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
 
 const updateDockerStartOrderMode = async (mode) => {
     const normalized = dockerStartOrderModel.MODES.includes(String(mode || '').trim()) ? String(mode || '').trim() : 'docker-page';
+    dockerStartOrderPreviewGeneration += 1;
     try {
-        await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
+        await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: false, refreshPreview: true });
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
     }
@@ -7828,6 +7832,7 @@ const renderDockerStartOrderWorkspace = (options = {}) => {
 };
 
 const renderDockerStartOrderPreview = (preview) => {
+    if (preview?.mode && preview.mode !== normalizeDockerStartOrderPrefsForUi().mode) return;
     const host = $('#docker-start-order-preview');
     if (!host.length) {
         return;
@@ -7838,6 +7843,7 @@ const renderDockerStartOrderPreview = (preview) => {
 };
 
 const refreshDockerStartOrderPreview = async (options = {}) => {
+    const generation = ++dockerStartOrderPreviewGeneration;
     if (dockerStartOrderPreviewTimer) {
         window.clearTimeout(dockerStartOrderPreviewTimer);
         dockerStartOrderPreviewTimer = null;
@@ -7845,15 +7851,17 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
     if (options.flush !== false) {
         await flushDockerStartOrderSaveQueue();
     }
+    if (generation !== dockerStartOrderPreviewGeneration) return;
     const host = $('#docker-start-order-preview');
     if (host.length && !options.passive) {
         host.html('<div class="fv-recovery-empty-state"><strong>Loading Docker start order preview...</strong><span>Reading current folders, Docker autostart, and saved start batches.</span></div>');
     }
     try {
         const response = await apiGetJson(`/plugins/folderview.plus/server/docker_start_order.php?action=preview&_=${Date.now()}`);
+        if (generation !== dockerStartOrderPreviewGeneration) return;
         renderDockerStartOrderPreview(response?.preview || {});
     } catch (error) {
-        if (host.length) {
+        if (host.length && generation === dockerStartOrderPreviewGeneration) {
             host.html(`<div class="fv-recovery-empty-state is-warning"><strong>Preview failed.</strong><span>${escapeHtml(error?.message || error || 'Unable to load preview.')}</span></div>`);
         }
     }

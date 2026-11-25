@@ -303,7 +303,7 @@ test('Dashboard visual diagnostics loads before runtime and captures bounded pri
 });
 
 test('Dashboard Started only reconciles folder members without a full widget reload', () => {
-    assert.match(dashboardQuickRailScript, /const applyDashboardStartedOnlyFilterForType = \(type\) =>/);
+    assert.match(dashboardQuickRailScript, /const applyDashboardStartedOnlyFilterForType = \(type, runtimeMap\) =>/);
     assert.match(dashboardQuickRailScript, /span\.folder-element-vm/);
     assert.match(dashboardQuickRailScript, /span\.folder-element-docker/);
     assert.match(dashboardQuickRailScript, /\.folder-storage/);
@@ -312,7 +312,7 @@ test('Dashboard Started only reconciles folder members without a full widget rel
     assert.match(dashboardQuickRailScript, /input#apps, input#vms[\s\S]*applyDashboardStartedOnlyFilterForType\('docker'\)[\s\S]*applyDashboardStartedOnlyFilterForType\('vm'\)/);
     assert.match(dashboardScript, /'data-fv-runtime-state': getDashboardRuntimeStateMeta\('docker', ct\)\.state/);
     assert.match(dashboardScript, /'data-fv-runtime-state': getDashboardRuntimeStateMeta\('vm', ct\)\.state/);
-    assert.match(dashboardScript, /syncDashboardRuntimeRows[\s\S]*applyDashboardStartedOnlyFilterForType\(resolvedType\)/);
+    assert.match(dashboardScript, /syncDashboardRuntimeRows[\s\S]*applyDashboardStartedOnlyFilterForType\(resolvedType, runtimeMap\)/);
     assert.match(dashboardScript, /toggleFolderExpansion[\s\S]*applyDashboardStartedOnlyFilterForType\(meta\.type\)/);
     assert.doesNotMatch(dashboardScript, /tbody#docker_view > tr\.updated > td > div > span\.outer\.stopped/);
     assert.doesNotMatch(dashboardScript, /tbody#vm_view > tr\.updated > td > div > span\.outer\.stopped/);

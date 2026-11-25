@@ -27,6 +27,19 @@ test('state reads, VM reads and start-order previews leave native autostart unch
     }
 });
 
+test('unmanaged start-order preview keeps native wait values and managed mode still uses saved overrides', () => {
+    for (const [mode, wait, waitSource] of [['unmanaged', 19, 'native'], ['docker-page', 73, 'container']]) {
+        const result = runInventoryRepair({ type: 'docker', operation: 'preview', scenario: 'healthy',
+            plan: { mode, containerWaits: { 'docker-extra': 73 } } });
+        assert.equal(result.error, '');
+        assert.equal(result.responseStatus, 200);
+        assert.equal(result.native, result.nativeBefore);
+        const preview = result.response.preview;
+        assert.deepEqual(preview.sequence.find(entry => entry.name === 'docker-extra'),
+            { name: 'docker-extra', wait, waitSource, batchId: '' });
+    }
+});
+
 test('cached full and state reads preserve native bytes without runtime discovery', () => {
     for (const operation of ['read', 'snapshot']) for (const mode of ['full', 'state']) {
         const result = runInventoryRepair({ type: 'docker', operation, scenario: 'stale-cache', mode, force: false });

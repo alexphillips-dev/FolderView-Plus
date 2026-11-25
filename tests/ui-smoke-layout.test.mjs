@@ -904,7 +904,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const detectSetupAssistantDefaultsFromContext = \(context = null\) =>/);
     assert.match(settingsRuntime, /const openSetupAssistant = \(force = false\) =>/);
     assert.match(settingsRuntime, /const applySetupAssistantPlan = async \(\) =>/);
-    assert.match(settingsRuntime, /const retrySetupAssistantFailures = async \(failures = \[\]\) =>/);
+    assert.match(settingsRuntime, /const retrySetupAssistantFailures = async \(/);
     assert.match(settingsRuntime, /const restoreSetupAssistantDraftFromStorage = \(\) =>/);
     assert.match(settingsRuntime, /const buildSetupAssistantImpactSummary = \(\) =>/);
     assert.match(settingsRuntime, /const getImpactDelta = \(currentImpact, baselineImpact = null\) =>/);

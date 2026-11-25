@@ -1,20 +1,6 @@
 import assert from 'node:assert/strict';
 import { installDashboardLoadingFixture } from './dashboard-tile-loading.mjs';
-import { membershipSnapshot, nativeMarkupFor } from '../helpers/dashboard-membership-host.mjs';
-
-const rows = {
-    docker: { 'fixture-docker': 'abcdabcd0001', 'leftover-docker': 'abcdabcd0002' },
-    vm: { 'fixture-vm': 'fixture-uuid', 'leftover-vm': 'leftover-uuid' }
-};
-const payload = (type, token, revisions = { folder: 1, prefs: 1 }) => ({
-    ok: true, kind: 'runtime_snapshot', schemaVersion: 1, type, revisions, snapshotToken: token.repeat(64)
-});
-const loadReady = async (fixture, docker, vm = membershipSnapshot('vm', rows.vm)) => {
-    await fixture.load();
-    fixture.settle('docker', 0, 1, false, docker);
-    fixture.settle('vm', 0, 1, false, vm);
-    await Promise.all(['docker', 'vm'].map(type => fixture.waitForState(type, 'ready')));
-};
+import { dashboardFixtureRows as rows, loadReadyDashboardWidgets as loadReady, membershipSnapshot, nativeMarkupFor, runtimeSnapshotPayload as payload } from '../helpers/dashboard-membership-host.mjs';
 
 export const registerDashboardNativeReconciliationCases = ({ test, baseUrl }) => {
     test('Dashboard Started only updates the localized native summary and empty message', async ({ page }) => {
@@ -61,6 +47,7 @@ export const registerDashboardNativeReconciliationCases = ({ test, baseUrl }) =>
             assert.equal(await summary.textContent(), running
                 ? 'Contenedores -- Activos: 1, Detenidos: 1, En pausa: 0'
                 : 'Contenedores -- Activos: 0, Detenidos: 2, En pausa: 0');
+            await page.clock.runFor(600);
         }
     });
 

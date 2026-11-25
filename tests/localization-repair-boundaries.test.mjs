@@ -110,7 +110,7 @@ test('aliased clone prompts preserve the suggested name and cancel before creati
             surfaceT: (key, fallback, ...args) => interpolate(messages[key] || fallback, args),
             runDockerGuardedAction: async (_action, run) => run(), ensureDockerFolderUnlocked: () => true, ensureDockerBranchUnlocked: () => true,
             cloneName: source => source.name + ' (Copy)', getFolderById: () => ({ name: 'Order <custom>' }), getFolderMap: () => ({ root: { name: 'Order <custom>' } }),
-            readDockerCloneDefinitions: async () => { reads++; return { root: { name: 'Order <custom>' }, child: { name: 'Child', parentId: 'root' } }; },
+            readDockerCloneDefinitions: async () => { reads++; return { folders: { root: { name: 'Order <custom>' }, child: { name: 'Child', parentId: 'root' } }, folderRevision: 1 }; },
             getFolderDescendants: () => ['child'], promptFn: (message, suggested) => { prompts.push({ message, suggested }); return null; },
             getDockerFolderBranchCloneOrder: () => ['root', 'child'],
             getDockerMenuLabel: (_key, fallback) => fallback, persistDockerFolderClonePayload: () => { mutations++; },

@@ -64,7 +64,10 @@ $cases = $cliSource === null
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
         'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
         'install-remove-stale-cleanup-retry-success', 'install-renamed-local-success',
-        'install-fresh-extract-success', 'install-fresh-extract-retry-success'];
+        'install-fresh-extract-success', 'install-fresh-extract-retry-success', 'install-fresh-unverified-runtime',
+        'install-remove-archive-obstructed-success', 'install-remove-native-handoff-success',
+        'install-remove-boot-finalize-success', 'install-remove-prepared-before-reboot-success',
+        'install-remove-archived-reinstall-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -78,6 +81,9 @@ foreach ($cases as $case) {
     $runtime = "$dir/emhttp/plugins/$pluginName";
     $postHooks = "$dir/emhttp/plugins/dynamix.plugin.manager/post-hooks";
     $registrationHook = "$postHooks/00-folderview.plus-registration";
+    $removalHook = "$postHooks/00-folderview.plus-removal";
+    $removalWrapper = "$boot/00-folderview.plus-removal-recovery.plg";
+    $removalHelper = "$boot/.folderview.plus-removal.sh";
     $recoveryWrapper = "$boot/00-folderview.plus-registration-recovery.plg";
     $journal = "$config/.native-registration";
     $packages = str_contains($case, '-legacy-') ? "$dir/legacy-packages" : "$dir/packages";
@@ -233,7 +239,11 @@ if [[ "$FVPLUS_FIXTURE_CASE" = update-early-activation-interrupted-success || "$
     fi
 fi
 if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
-        "$dir/bin/removepkg" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
+        "$dir/bin/removepkg" => 'if [ "${FVPLUS_FIXTURE_INTERRUPT_REMOVAL:-}" = 1 ]; then
+    kill -KILL "$PPID"
+    exit 0
+fi
+if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
     printf "Native removal fixture failed\n" >&2
     exit 28
 fi
@@ -337,7 +347,13 @@ exec /bin/mv "$@"'
     if ($cliSource !== null) {
         $cli = "$dir/plugin.php";
         $nativeCode = strtr($cliSource, $rewrite);
-        if ($case === 'update-late-check-interrupted-boot-success') {
+        if (in_array($case, ['install-remove-native-handoff-success', 'install-remove-boot-finalize-success'], true)) {
+            // Inject a destination conflict after the remove hook has finished.
+            $needle = 'return rename($src_file, $tar_dir."/".basename($src_file));';
+            $nativeCode = str_replace($needle, 'if (getenv("FVPLUS_FIXTURE_FAIL_NATIVE_REMOVE_MOVE") === "1" && $tar_dir === "'
+                . "$boot-removed" . '") mkdir($tar_dir."/".basename($src_file));' . "\n  " . $needle, $nativeCode, $replaced);
+            verifyInstallFixture($replaced === 1, 'Could not inject the final native move failure.');
+        } elseif (in_array($case, ['update-late-check-interrupted-boot-success', 'install-remove-archived-reinstall-success'], true)) {
             // Stop the native owner after its flash copy, before it decides which post-hooks to run.
             $needle = 'function post_hooks($error=\'\') {';
             $nativeCode = str_replace($needle, $needle . "\n" . '  if (getenv("FVPLUS_FIXTURE_INTERRUPT") === "1" && $error === "") exit(137);', $nativeCode, $replaced);
@@ -350,14 +366,14 @@ exec /bin/mv "$@"'
     } else {
         $command = $activateHook;
     }
-    if ($case === 'update-missing-runtime-core' || $case === 'install-remove-reinstall-stale-success'
-        || str_starts_with($case, 'install-fresh-extract-')) {
-        mkdir("$dir/package-scripts");
-        foreach (glob("$runtime/scripts/*.sh") as $script) {
-            $packagedScript = "$dir/package-scripts/" . basename($script);
-            copy($script, $packagedScript);
-            chmod($packagedScript, 0700);
-        }
+    mkdir("$dir/package-scripts");
+    foreach (glob("$runtime/scripts/*.sh") as $script) {
+        $packagedScript = "$dir/package-scripts/" . basename($script);
+        copy($script, $packagedScript);
+        chmod($packagedScript, 0700);
+    }
+    if ($fresh && $case !== 'install-fresh-unverified-runtime') {
+        rename($runtime, "$dir/prepared-runtime");
     }
     if ($case === 'update-missing-runtime-core') {
         rename($runtime, "$dir/missing-runtime");
@@ -373,7 +389,6 @@ exec /bin/mv "$@"'
         $command = [PHP_BINARY, $cli, 'update', "$pluginName.plg"];
     }
     if (str_starts_with($case, 'install-fresh-extract-')) {
-        rename($runtime, "$dir/prepared-runtime");
         $sibling = "$dir/emhttp/plugins/sibling-marker";
         file_put_contents($sibling, 'unrelated');
         $needsRetry = $case === 'install-fresh-extract-retry-success';
@@ -400,6 +415,19 @@ exec /bin/mv "$@"'
             verifyInstallFixture(str_contains($failedOutput, 'restored the previous installation state'),
                 "$case did not report verified rollback: $failedOutput");
         }
+    }
+    if ($case === 'install-fresh-unverified-runtime') {
+        file_put_contents("$runtime/pre-existing", 'keep');
+        [$status, $output] = $run($command, ['FVPLUS_FIXTURE_STOP_EXTRACTION' => 'before-metadata']);
+        verifyInstallFixture($status !== 0 && str_contains($output, 'cannot verify the existing runtime for rollback')
+            && !str_contains($output, 'Exit code      36') && !is_file($bootManifest) && !is_link($runningLink)
+            && !is_file("$runtime/FolderViewPlus.page")
+            && file_get_contents("$runtime/pre-existing") === 'keep' && !is_file("$runtime/build-metadata.json")
+            && !is_dir($journal) && !is_file("$packages/$pluginName-$candidate")
+            && file_get_contents("$config/docker.json") === '{"previous":"Docker"}',
+            "$case changed the pre-existing runtime or entered package extraction: $output");
+        $check[] = $case;
+        continue;
     }
     if ($case === 'update-rollback-retry-success') {
         [$failedStatus, $failedOutput] = $run($command, [
@@ -441,6 +469,7 @@ exec /bin/mv "$@"'
         unlink("$runtime/FolderViewPlus.page");
         unlink("$runtime/build-metadata.json");
         unlink("$packages/$pluginName-$candidate");
+        rename($runtime, "$dir/runtime-before-reboot");
         foreach ([$recoveryWrapper, $bootManifest] as $bootFile) {
             [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootFile]);
             verifyInstallFixture($bootStatus === 0, "$case could not boot from " . basename($bootFile) . ": $bootOutput");
@@ -468,6 +497,97 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
+    if (in_array($case, ['install-remove-archive-obstructed-success', 'install-remove-native-handoff-success',
+        'install-remove-boot-finalize-success', 'install-remove-prepared-before-reboot-success'], true)) {
+        $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+        $removedManifest = "$boot-removed/$pluginName.plg";
+        $removalMarker = "$boot/.$pluginName-removal";
+        $earlyObstacle = $case === 'install-remove-archive-obstructed-success';
+        $interruptedPackage = $case === 'install-remove-prepared-before-reboot-success';
+        $canFinalizeOnBoot = $case === 'install-remove-boot-finalize-success';
+        if ($earlyObstacle) mkdir($removedManifest, 0700, true);
+        $options = $interruptedPackage ? ['FVPLUS_FIXTURE_INTERRUPT_REMOVAL' => '1']
+            : ($earlyObstacle ? [] : ['FVPLUS_FIXTURE_FAIL_NATIVE_REMOVE_MOVE' => '1']);
+        [$removeStatus, $removeOutput] = $run($remove, $options);
+        clearstatcache();
+        verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest,
+            "$case lost the original boot manifest or native retry entry: $removeOutput");
+        if ($earlyObstacle) {
+            verifyInstallFixture($removeStatus !== 0 && str_contains($removeOutput, 'cannot archive its boot manifest')
+                && !str_contains($removeOutput, "$pluginName.plg removed") && !is_file($removalMarker)
+                && file_get_contents("$config/docker.json") === '{"previous":"Docker"}' && is_file("$runtime/FolderViewPlus.page")
+                && is_file("$packages/$pluginName-$previous") && file_get_contents($cronFile) === $priorCron,
+                "$case allowed destructive work before checking the native destination: $removeOutput");
+        } elseif ($interruptedPackage) {
+            verifyInstallFixture($removeStatus !== 0 && file_get_contents("$config/docker.json") === '{"previous":"Docker"}'
+                && is_file("$runtime/FolderViewPlus.page") && is_file("$packages/$pluginName-$previous")
+                && trim(file_get_contents($removalMarker)) === "$previous " . hash('sha256', $oldManifest) . ' cleanup',
+                "$case could not recover interruption before package removal: $removeOutput");
+            rename($runtime, "$dir/runtime-before-reboot");
+            unlink("$packages/$pluginName-$previous");
+        } else {
+            verifyInstallFixture(str_contains($removeOutput, 'Removal is pending') && !is_dir($config)
+                && !is_dir($runtime) && !is_file($cronFile)
+                && trim(file_get_contents($removalMarker)) === "$previous " . hash('sha256', $oldManifest) . ' ready',
+                "$case did not durably retain failed native registration: $removeOutput");
+            [$pendingStatus, $pendingOutput] = $run($activateHook);
+            verifyInstallFixture($pendingStatus !== 0 && str_contains($pendingOutput, 'has an unfinished removal')
+                && !is_dir($runtime) && !is_dir($config) && !is_file($cronFile),
+                "$case allowed activation of the removed manifest: $pendingOutput");
+        }
+        if ($canFinalizeOnBoot) rmdir($removedManifest);
+        if (!$earlyObstacle) {
+            unlink($runningLink);
+            unlink($removalHook);
+            file_put_contents("$dir/boot-id", "synthetic boot two\n");
+            [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $removalWrapper]);
+            verifyInstallFixture($bootStatus === 0 && !is_link("$dir/running/" . basename($removalWrapper)),
+                "$case could not reconcile removal on cold boot: $bootOutput");
+            if ($canFinalizeOnBoot) {
+                verifyInstallFixture(!is_file($bootManifest) && !is_link($runningLink) && !is_file($removalMarker) && !is_file($removalHelper)
+                    && file_get_contents($removedManifest) === $oldManifest && !is_dir($runtime) && !is_file($cronFile),
+                    "$case did not finish archive registration on cold boot: $bootOutput");
+                $check[] = $case;
+                continue;
+            }
+            verifyInstallFixture(readlink($runningLink) === $bootManifest && is_file($removalMarker),
+                "$case did not recreate the native retry entry after reboot: $bootOutput");
+            [$activationStatus, $activationOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
+            verifyInstallFixture($activationStatus !== 0 && is_file($bootManifest) && !is_dir($runtime) && !is_file($cronFile),
+                "$case allowed the old manifest to reactivate on cold boot: $activationOutput");
+        }
+        if (is_dir($removedManifest)) rmdir($removedManifest);
+        [$retryStatus, $retryOutput] = $run($remove);
+        clearstatcache();
+        verifyInstallFixture($retryStatus === 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && file_get_contents($removedManifest) === $oldManifest && !is_file($removalMarker) && !is_file($removalHook)
+            && !is_file($removalHelper) && !is_file($removalWrapper)
+            && !is_dir($config) && !is_dir($runtime) && !is_file($cronFile),
+            "$case left registration or removal state behind after retry: $retryOutput");
+        $check[] = $case;
+        continue;
+    }
+    if ($case === 'install-remove-archived-reinstall-success') {
+        $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+        $removedManifest = "$boot-removed/$pluginName.plg";
+        $removalMarker = "$boot/.$pluginName-removal";
+        [$removeStatus, $removeOutput] = $run($remove, ['FVPLUS_FIXTURE_INTERRUPT' => '1']);
+        verifyInstallFixture($removeStatus !== 0 && !is_file($bootManifest) && !is_link($runningLink)
+            && file_get_contents($removedManifest) === $oldManifest && is_file($removalHook)
+            && trim(file_get_contents($removalMarker)) === "$previous " . hash('sha256', $oldManifest) . ' ready',
+            "$case did not leave a completed native move awaiting its callback: $removeOutput");
+        verifyInstallFixture(mkdir($config, 0700), "$case could not restore synthetic archive downloads.");
+        file_put_contents("$config/$pluginName-$previous.txz", "core $previous");
+        copy($iconArchives[$previousIcon], "$config/$pluginName-icons-$previousIcon.txz");
+        file_put_contents("$dir/manual/$pluginName.plg", $oldManifest);
+        [$installStatus, $installOutput] = $run($command);
+        verifyInstallFixture($installStatus === 0 && file_get_contents($bootManifest) === $oldManifest
+            && readlink($runningLink) === $bootManifest && is_file("$runtime/FolderViewPlus.page")
+            && !is_file($removalMarker) && !is_file($removalHook) && !is_file($removalHelper) && !is_file($removalWrapper),
+            "$case left an old removal callback able to affect the identical reinstall: $installOutput");
+        $check[] = $case;
+        continue;
+    }
     if (in_array($case, ['install-remove-scheduler-retry-success', 'install-remove-stale-cleanup-retry-success'], true)) {
         // Exercise the current uninstall hook even when the rest of the matrix uses a historical manifest.
         $oldManifest = $manifest($previous, $previousIcon);
@@ -478,7 +598,7 @@ exec /bin/mv "$@"'
         [$removeStatus, $removeOutput] = $run($remove, [$failure => '1']);
         $removalMarker = "$boot/.folderview.plus-removal";
         verifyInstallFixture($removeStatus !== 0 && !str_contains($removeOutput, "$pluginName.plg removed")
-            && trim(file_get_contents($removalMarker)) === $previous && file_get_contents($bootManifest) === $oldManifest
+            && str_starts_with(trim(file_get_contents($removalMarker)), $previous) && file_get_contents($bootManifest) === $oldManifest
             && readlink($runningLink) === $bootManifest && file_get_contents("$config/docker.json") === '{"previous":"Docker"}'
             && is_file("$packages/$pluginName-$previous") === $schedulerError,
             "$case falsely succeeded or lost retry state: $removeOutput");
@@ -554,6 +674,7 @@ exec /bin/mv "$@"'
         unlink("$dir/core-installed");
         unlink("$runtime/FolderViewPlus.page");
         unlink("$runtime/build-metadata.json");
+        rename($runtime, "$dir/runtime-before-reboot");
         $lock = fopen("$dir/install.lock", 'a+');
         verifyInstallFixture(is_resource($lock) && flock($lock, LOCK_EX | LOCK_NB), "$case could not reserve the test lock.");
         $bootTask = $start([PHP_BINARY, $cli, 'install', $bootManifest]);
@@ -691,6 +812,7 @@ exec /bin/mv "$@"'
         unlink("$runtime/FolderViewPlus.page");
         unlink("$runtime/build-metadata.json");
         unlink("$packages/$pluginName-$candidate");
+        rename($runtime, "$dir/runtime-before-reboot");
         file_put_contents("$dir/boot-id", "synthetic boot two\n");
         verifyInstallFixture(glob("$boot/*.plg") === [$recoveryWrapper], "$case incorrectly enumerated a primary startup manifest.");
         [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $recoveryWrapper]);
@@ -727,6 +849,7 @@ exec /bin/mv "$@"'
             unlink("$runtime/FolderViewPlus.page");
             unlink("$runtime/build-metadata.json");
             unlink("$packages/$pluginName-$candidate");
+            rename($runtime, "$dir/runtime-before-reboot");
             file_put_contents("$dir/boot-id", "synthetic boot two\n");
             $bootManifests = glob("$boot/*.plg");
             verifyInstallFixture($bootManifests === [$recoveryWrapper, $bootManifest], "$case did not load recovery before the primary manifest.");
@@ -876,6 +999,7 @@ exec /bin/mv "$@"'
         unlink("$runtime/FolderViewPlus.page");
         unlink("$runtime/build-metadata.json");
         foreach (glob("$packages/$pluginName-*") as $packageRecord) unlink($packageRecord);
+        rename($runtime, "$dir/runtime-before-reboot");
         [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest], ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
         verifyInstallFixture($bootStatus === 0, "$case could not reinstall offline: $bootOutput");
         $bootVersion = $failed ? $previous : $candidate;

@@ -23,6 +23,7 @@
 
         const updateWait = async (containerName, value) => {
             const plan = deps.getPlan();
+            if (plan.mode === 'unmanaged') return;
             const containerWaits = { ...(plan.containerWaits || {}) };
             containerWaits[decodeURIComponent(String(containerName || ''))] = Math.max(0, Math.min(3600, Math.round(Number(value) || 0)));
             try {
@@ -33,10 +34,12 @@
         };
 
         const toggleAutostart = async (containerName, enabled) => {
+            const plan = deps.getPlan();
+            if (plan.mode === 'unmanaged') return;
             const name = decodeURIComponent(String(containerName || '')).trim();
             const info = deps.getInfo();
             const row = info?.[name];
-            const entries = buildAutostartMutationEntries(info, deps.getPlan(), name, enabled === true);
+            const entries = buildAutostartMutationEntries(info, plan, name, enabled === true);
             if (!row || !entries.length) {
                 deps.showError('Docker autostart update failed', new Error('Container identity data is unavailable. Refresh Settings and try again.'));
                 return;

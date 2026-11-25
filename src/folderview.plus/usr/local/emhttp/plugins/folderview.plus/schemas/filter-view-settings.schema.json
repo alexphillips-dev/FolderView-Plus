@@ -8,6 +8,7 @@
       "consumerFiles": ["scripts/folderviewplus.js", "scripts/docker.js", "scripts/vm.js", "scripts/dashboard.js"],
       "settings": {
         "appColumnWidth": { "types": ["docker", "vm"], "kind": "enum", "default": "standard", "values": ["compact", "standard", "wide"], "liveApply": true },
+        "dockerRowPlacement": { "types": ["docker"], "kind": "enum", "default": "folders-first", "values": ["folders-first", "saved-order"], "liveApply": true },
         "hideEmptyFolders": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true },
         "groupUnassignedItems": { "types": ["docker", "vm"], "kind": "boolean", "default": false, "liveApply": true }
       }

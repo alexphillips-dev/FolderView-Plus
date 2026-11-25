@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "content-revision": "e23775c264486292b2e0a0439b2c2e649d407299429ebfe685ed60249f37f0a1"
+        "content-revision": "fa18ae5a067b1e65f60405e994b6de2fcb3b504c5806b2e1952548936e694757"
     },
     "settings.visibility.group-unassigned-items": "Atanmamış öğeleri grupla",
     "settings.visibility.group-unassigned-items-help": "İlgili gösterge paneli kutucuğuna da uygulanır.",
+    "settings.visibility.docker-row-placement": "Docker sayfasındaki satır düzeni",
+    "settings.visibility.docker-row-placement-folders-first": "Önce klasörler",
+    "settings.visibility.docker-row-placement-saved-order": "Kaydedilen satır sırası",
     "settings.theme.github-directory": "Bir CSS dizini seçin",
     "settings.rules.save-changes": "Değişiklikleri kaydet",
     "settings.rules.regex-placeholder": "Regex modeli (ör. ^media-)",

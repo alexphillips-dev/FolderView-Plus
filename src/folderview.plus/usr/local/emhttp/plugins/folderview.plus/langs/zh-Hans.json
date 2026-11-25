@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4793,
-        "total-source-messages": 4793,
+        "translated-messages": 4796,
+        "total-source-messages": 4796,
         "content-revision": "25cbc7490beaa1e66725c32a7c1223240b602ae37caa1efb86a3585eec4c058c",
-        "locale-content-revision": "c89abaaee5c713998e90f10cfbd53a4e043e2bf850bfb03e381ac5874a14b21e"
+        "locale-content-revision": "54bfb1a7ee047ca4601c626fe5aa809bdc2f4dcee07239e7ef1bf43f17c904ee"
     },
     "add-folder": "添加文件夹",
     "up-to-date": "最新",

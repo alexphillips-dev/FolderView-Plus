@@ -705,6 +705,7 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
     : null;
 let lastAppliedRuntimePrefs = null;
 let renderedDockerRuleSignature = '';
+let renderedDockerRowPlacement = '';
 const dockerRuntimeColumnControllerState = {
     resizerBindTimer: null,
     resizerRetryTimer: null,
@@ -4721,6 +4722,10 @@ const createFolders = async () => {
     const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
     order = reconciledOrder.order;
     const newOnes = reconciledOrder.newOnes;
+    const placementPrefs = dockerPrefsCoordinator?.getConfirmedPrefs?.('docker') || folderTypePrefs;
+    const useSavedOrder = placementPrefs.dockerRowPlacement === 'saved-order';
+    // Align the native anchors before inserting folder rows into their saved slots.
+    if (useSavedOrder) dockerFolderGroupingSession.placeStandaloneRowsLast(order);
     lastDockerOrderReconciliation = {
         available: true,
         capturedAt: new Date().toISOString(),
@@ -4837,7 +4842,7 @@ const createFolders = async () => {
     if (folderTypePrefs?.hideEmptyFolders === true) {
         dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr[class~="folder-id-${id}"], tr[id="name-${id}"]`).remove());
     }
-    dockerFolderGroupingSession.placeStandaloneRowsLast(reconciledOrder.order);
+    if (!useSavedOrder) dockerFolderGroupingSession.placeStandaloneRowsLast(reconciledOrder.order);
     syncDockerPinnedFolderUi();
     queueDockerPinnedFolderServerReconcile('post-render', 160);
 
@@ -4914,6 +4919,7 @@ const createFolders = async () => {
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
     renderedDockerRuleSignature = utils.getMembershipSignature({ type: 'docker', rules: folderTypePrefs.autoRules });
+    renderedDockerRowPlacement = useSavedOrder ? 'saved-order' : 'folders-first';
     foldersRenderedSuccessfully = true;
     dockerRuntimePerformanceTelemetry?.end?.('folderFinalization');
     dockerRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
@@ -7655,8 +7661,12 @@ const bindDockerRuntimePreferenceSync = () => {
         const rulesChanged = snapshot.pending !== true && !dockerHostLoadOwnsLoadingUi && !createFoldersInFlight && renderedDockerRuleSignature
             && resolveDockerPageViewMode(nextPrefs) === 'folderview'
             && renderedDockerRuleSignature !== utils.getMembershipSignature({ type: 'docker', rules: nextPrefs.autoRules });
+        const confirmedPlacement = dockerPrefsCoordinator.getConfirmedPrefs?.('docker')?.dockerRowPlacement;
+        const placementChanged = !createFoldersInFlight && renderedDockerRowPlacement && confirmedPlacement
+            && renderedDockerRowPlacement !== confirmedPlacement && resolveDockerPageViewMode(nextPrefs) === 'folderview';
         if (previousPrefs && (
             rulesChanged || previousPrefs.hideEmptyFolders !== nextPrefs.hideEmptyFolders
+            || placementChanged
             || previousPrefs.groupUnassignedItems !== nextPrefs.groupUnassignedItems
             || previousPrefs.pageViewMode !== nextPrefs.pageViewMode
             || ['running', 'stopped', 'updates'].some(key => previousPrefs.badges?.[key] !== nextPrefs.badges?.[key])

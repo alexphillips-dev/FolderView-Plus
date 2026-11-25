@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "content-revision": "291043b0ca520864b513b9fb054c4e2c0d37bbb0a9f36b05494eea2ad657146f"
+        "content-revision": "2d04892869f53228f29ff6fc903f10cfd9d4812a6b6db660deae6ec896ec6343"
     },
     "settings.visibility.group-unassigned-items": "Hozzá nem rendelt elemek csoportosítása",
     "settings.visibility.group-unassigned-items-help": "Az irányítópult megfelelő csempéjére is érvényes.",
+    "settings.visibility.docker-row-placement": "A Docker-oldal sorainak elrendezése",
+    "settings.visibility.docker-row-placement-folders-first": "Mappák előre",
+    "settings.visibility.docker-row-placement-saved-order": "Mentett sorrend",
     "settings.theme.github-directory": "Válasszon CSS-könyvtárat",
     "settings.rules.save-changes": "Módosítások mentése",
     "settings.rules.regex-placeholder": "Regex minta (pl. ^media-)",

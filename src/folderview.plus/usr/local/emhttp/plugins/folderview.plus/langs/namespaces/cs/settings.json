@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "content-revision": "2617450d115d5d0e9a226a8c0d946cde8804734001bfa0d90fe2dddd2169daa2"
+        "content-revision": "bce4d0dc27a1cdef20053ed4ed818032dec8e4eeb1164ba2f5d92b1344657e4d"
     },
     "settings.visibility.group-unassigned-items": "Seskupit nepřiřazené položky",
     "settings.visibility.group-unassigned-items-help": "Platí také pro příslušný panel na řídicím panelu.",
+    "settings.visibility.docker-row-placement": "Uspořádání řádků v Dockeru",
+    "settings.visibility.docker-row-placement-folders-first": "Nejprve složky",
+    "settings.visibility.docker-row-placement-saved-order": "Uložené pořadí řádků",
     "settings.theme.github-directory": "Vyberte adresář CSS",
     "settings.rules.save-changes": "Uložte změny",
     "settings.rules.regex-placeholder": "Vzor regulárního výrazu (např. ^media-)",

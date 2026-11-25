@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "content-revision": "7fea7545963002743eada46dfc953960a2d23ae1429b119cdf39ac3ce8d196b3"
+        "content-revision": "097758a1d9e4da81f06238d124d76f9c58cfad14fe47da3829aa33367fd4f349"
     },
     "settings.visibility.group-unassigned-items": "Grupēt nepiešķirtos vienumus",
     "settings.visibility.group-unassigned-items-help": "Attiecas arī uz atbilstošo informācijas paneļa elementu.",
+    "settings.visibility.docker-row-placement": "Rindu izkārtojums Docker lapā",
+    "settings.visibility.docker-row-placement-folders-first": "Vispirms mapes",
+    "settings.visibility.docker-row-placement-saved-order": "Saglabātā rindu secība",
     "settings.theme.github-directory": "Izvēlieties CSS direktoriju",
     "settings.rules.save-changes": "Saglabāt izmaiņas",
     "settings.rules.regex-placeholder": "Regex modelis (piem., ^media-)",

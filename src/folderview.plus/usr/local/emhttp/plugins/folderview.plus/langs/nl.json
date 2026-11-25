@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4793,
-        "total-source-messages": 4793,
+        "translated-messages": 4796,
+        "total-source-messages": 4796,
         "content-revision": "7dcb7bbd7af38d08f78f30cdeb17de44b25557927100e3590ab26d6fbb374b8b",
-        "locale-content-revision": "2f53daf756f14715d4fe972cbe4281c1f8047f1518d872d118cd2a45039b9ffc"
+        "locale-content-revision": "0f762f0c9254d800db3fde51fd5dd7259c70dc7fd5e68b20b65101285cc5e542"
     },
     "add-folder": "Map Toevoegen",
     "up-to-date": "bijgewerkt",

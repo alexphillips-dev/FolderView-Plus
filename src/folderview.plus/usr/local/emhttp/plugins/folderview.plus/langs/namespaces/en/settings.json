@@ -1,12 +1,15 @@
 {
     "settings.visibility.group-unassigned-items": "Group unassigned items",
     "settings.visibility.group-unassigned-items-help": "Also applies to the matching Dashboard tile.",
+    "settings.visibility.docker-row-placement": "Docker row placement",
+    "settings.visibility.docker-row-placement-folders-first": "Folders first",
+    "settings.visibility.docker-row-placement-saved-order": "Saved Docker order",
     "settings.theme.github-directory": "Choose a CSS directory",
     "@metadata": {
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "content-revision": "15debed4d0a8e57b51c06ea64c2dd0d90cab59cc75fa2cded2268d5f7295c3d0"
+        "content-revision": "a65e4354d535748ca5dbd6120a481426489d6b8e88ac1f1e48d1c8ce4ed03284"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",

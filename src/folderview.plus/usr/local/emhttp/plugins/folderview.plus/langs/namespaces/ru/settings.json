@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "settings",
-        "content-revision": "d178a06b61072592901b95d1308c7d36f3e2e5629dd683220f002ffbf2bb2377"
+        "content-revision": "541105e4e58540bdaea5f0a6732dc7eb7525f62c6a5032aedeeb9397b3d522f0"
     },
     "settings.visibility.group-unassigned-items": "Группировать неназначенные элементы",
     "settings.visibility.group-unassigned-items-help": "Применяется и к соответствующей плитке панели управления.",
+    "settings.visibility.docker-row-placement": "Порядок строк на странице Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Сначала папки",
+    "settings.visibility.docker-row-placement-saved-order": "Сохранённый порядок строк",
     "settings.theme.github-directory": "Выберите каталог CSS",
     "settings.rules.save-changes": "Сохранить изменения",
     "settings.rules.regex-placeholder": "Шаблон регулярного выражения (например, ^media-)",

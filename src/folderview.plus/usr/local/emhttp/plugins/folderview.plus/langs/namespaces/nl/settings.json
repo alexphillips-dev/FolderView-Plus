@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "content-revision": "16839260813a1db95b648f856cdf58ce706c465b96b7590956262974aa0f11cf"
+        "content-revision": "30ae681b303e666f6c84504d7a017f2f70e9efb2aa6c86c81dae352ab657a0f0"
     },
     "settings.visibility.group-unassigned-items": "Niet-toegewezen items groeperen",
     "settings.visibility.group-unassigned-items-help": "Geldt ook voor de bijbehorende tegel op het dashboard.",
+    "settings.visibility.docker-row-placement": "Rijvolgorde op de Docker-pagina",
+    "settings.visibility.docker-row-placement-folders-first": "Mappen eerst",
+    "settings.visibility.docker-row-placement-saved-order": "Opgeslagen rijvolgorde",
     "settings.theme.github-directory": "Kies een CSS-map",
     "settings.rules.save-changes": "Wijzigingen opslaan",
     "settings.rules.regex-placeholder": "Regex-patroon (bijvoorbeeld ^media-)",

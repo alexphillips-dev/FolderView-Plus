@@ -13,10 +13,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4793,
-        "total-source-messages": 4793,
+        "translated-messages": 4796,
+        "total-source-messages": 4796,
         "content-revision": "6c7f499d3846e87c93866e76ab63e3573c3e5f5e6da6812db5240e1a4bdf9bf8",
-        "locale-content-revision": "399cea6a9c750caf134ba16fa3c3ccbed85d3559a34093bc050d650d87a2d8bf"
+        "locale-content-revision": "c8b942fc5dabc6620a66206bea2fef5597ebb838bacfb321c8b9a8cbd77e5e2d"
     },
     "add-folder": "新增資料夾",
     "up-to-date": "最新的",

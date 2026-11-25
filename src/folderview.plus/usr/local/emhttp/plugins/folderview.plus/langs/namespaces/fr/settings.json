@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "content-revision": "f27d3e90833658172bd41860e3e78606fd4cf6ca799fc94d43f6722adb0b821b"
+        "content-revision": "7c11280392ddac3dd47df180f1e78df3e9699f367889fb14d34a178c4b8e006a"
     },
     "settings.visibility.group-unassigned-items": "Regrouper les éléments non affectés",
     "settings.visibility.group-unassigned-items-help": "S’applique aussi à la tuile correspondante du tableau de bord.",
+    "settings.visibility.docker-row-placement": "Ordre des lignes Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Dossiers d’abord",
+    "settings.visibility.docker-row-placement-saved-order": "Ordre des lignes enregistré",
     "settings.theme.github-directory": "Choisir un répertoire CSS",
     "settings.rules.save-changes": "Enregistrer les modifications",
     "settings.rules.regex-placeholder": "Modèle Regex (par exemple ^media-)",

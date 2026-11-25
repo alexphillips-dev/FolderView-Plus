@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "content-revision": "1e5d2e8e74983f6bd60e942515ee570a85d8598097575c744e53d20d92bfaa3f"
+        "content-revision": "685a44b2fe9867d38964f3aed06ad757d89b129a8207b5a32e6c53a8f8481966"
     },
     "settings.visibility.group-unassigned-items": "تجميع العناصر غير المعيّنة",
     "settings.visibility.group-unassigned-items-help": "ينطبق أيضًا على القسم المقابل في لوحة المعلومات.",
+    "settings.visibility.docker-row-placement": "ترتيب الصفوف في صفحة Docker",
+    "settings.visibility.docker-row-placement-folders-first": "المجلدات أولًا",
+    "settings.visibility.docker-row-placement-saved-order": "ترتيب الصفوف المحفوظ",
     "settings.theme.github-directory": "اختر دليل CSS",
     "settings.rules.save-changes": "حفظ التغييرات",
     "settings.rules.regex-placeholder": "نمط Regex (على سبيل المثال ^media-)",

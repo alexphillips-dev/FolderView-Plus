@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "content-revision": "dda3e73495c8becbc182b57153a21f05721adf160513d368db979f5c31959a22"
+        "content-revision": "27529135f2bfc4eb4f71719c52076c42de272c702d3ac2b127e7f7ff6aff689c"
     },
     "settings.visibility.group-unassigned-items": "미할당 항목 그룹화",
     "settings.visibility.group-unassigned-items-help": "대시보드의 해당 타일에도 적용됩니다.",
+    "settings.visibility.docker-row-placement": "Docker 페이지의 행 배치",
+    "settings.visibility.docker-row-placement-folders-first": "폴더 먼저",
+    "settings.visibility.docker-row-placement-saved-order": "저장된 행 순서",
     "settings.theme.github-directory": "CSS 디렉터리 선택",
     "settings.rules.save-changes": "변경사항 저장",
     "settings.rules.regex-placeholder": "정규식 패턴(예: ^media-)",

@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "content-revision": "aa7ee00abd2757f5297be5f59b475d2f49ea59980c1d168eca7cf2ea77ef1d4a"
+        "content-revision": "047d45fd9fa250cd92f3ebd5d23132ead99d156922d7efca186584500f200a19"
     },
     "settings.visibility.group-unassigned-items": "অনির্ধারিত আইটেম একত্র করুন",
     "settings.visibility.group-unassigned-items-help": "ড্যাশবোর্ডের সংশ্লিষ্ট টাইলেও প্রযোজ্য।",
+    "settings.visibility.docker-row-placement": "Docker পৃষ্ঠায় সারির বিন্যাস",
+    "settings.visibility.docker-row-placement-folders-first": "ফোল্ডার আগে",
+    "settings.visibility.docker-row-placement-saved-order": "সারির সংরক্ষিত ক্রম",
     "settings.theme.github-directory": "একটি CSS ডিরেক্টরি বেছে নিন",
     "settings.rules.save-changes": "পরিবর্তনগুলি সংরক্ষণ করুন",
     "settings.rules.regex-placeholder": "Regex প্যাটার্ন (যেমন ^media-)",

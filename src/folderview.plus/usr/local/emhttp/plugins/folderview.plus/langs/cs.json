@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4793,
-        "total-source-messages": 4793,
+        "translated-messages": 4796,
+        "total-source-messages": 4796,
         "content-revision": "81ab65711cacf7d0665afcafc45385a4af09c1515868d646f19fa8e535041c98",
-        "locale-content-revision": "3c7f970a996e6d755319b9dfe54e3814ed400aa05770f95460b6df38c85ab473"
+        "locale-content-revision": "838fdb462ef3775b767cdc20fa4dc8827d6fbd7e2ed3b406d0d2c124b8180ad4"
     },
     "add-folder": "Přidat složku",
     "up-to-date": "aktuální",

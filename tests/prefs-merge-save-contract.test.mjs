@@ -298,6 +298,83 @@ echo json_encode(compact('before', 'after', 'otherBefore', 'otherAfter', 'respon
     assert.equal(utils.normalizePrefs({ groupUnassignedItems: 'true' }).groupUnassignedItems, false);
 });
 
+test('Docker row placement round trips through guarded preferences and snapshot reads without syncing native order', () => {
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
+    assert.notEqual(endpoint, prefsEndpoint);
+    assert.equal(utils.normalizePrefs({}).dockerRowPlacement, 'folders-first');
+    assert.equal(utils.normalizePrefs({ dockerRowPlacement: ['saved-order'] }).dockerRowPlacement, 'folders-first');
+    runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+require_once ${phpQuote(libPath)};
+$stage = $argv[1];
+$nativeOrder = getenv('FVPLUS_TEST_CONFIG_DIR') . '/fixture-autostart';
+putenv('FVPLUS_TEST_DOCKER_AUTOSTART_FILE=' . $nativeOrder);
+$result = [];
+if ($stage === 'seed') {
+    writeRawFolderMap('docker', ['example' => ['name' => 'Example', 'containers' => ['fixture-a']]]);
+    writeTypePrefs('docker', ['sortMode' => 'manual', 'manualOrder' => ['example'], 'dockerStartOrder' => ['mode' => 'unmanaged']]);
+    writeTypePrefs('vm', defaultTypePrefs());
+    file_put_contents($nativeOrder, "fixture-b\nfixture-a\n");
+} elseif ($stage === 'save') {
+    $_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['HTTP_HOST'] = 'localhost';
+    $_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+    $_POST = $_REQUEST = ['type' => 'docker', 'expectedRevision' => $argv[2], 'prefs' => $argv[3],
+        '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
+    $fixture = <<<'STUB'
+namespace DockerRowPlacementFixture;
+function syncContainerOrder(string $type): array {
+    throw new \\LogicException('A presentation setting must not sync native order.');
+}
+STUB;
+    ob_start();
+    eval($fixture . "\n" . ${phpQuote(endpoint)});
+    $result = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true)];
+    releaseConfigMutationLock();
+} elseif ($stage === 'backup') {
+    $backup = createBackupSnapshot('docker', 'manual');
+    $result['backupPlacement'] = readBackupSnapshot('docker', $backup['name'])['prefs']['dockerRowPlacement'];
+}
+$prefs = readTypePrefs('docker');
+$meta = readConfigMetadata('docker', true);
+$vm = readTypePrefs('vm');
+$environment = normalizeEnvironmentSnapshotPayload(['types' => ['docker' => ['prefs' => $prefs], 'vm' => ['prefs' => $vm]]]);
+echo json_encode($result + ['prefs' => $prefs, 'meta' => $meta, 'vmRevision' => readConfigMetadata('vm', true)['prefsRevision'],
+    'nativeOrder' => file_get_contents($nativeOrder), 'environmentPlacement' => $environment['types']['docker']['prefs']['dockerRowPlacement']]);`,
+    invoke => {
+        const initial = invoke('seed');
+        assert.equal(initial.prefs.dockerRowPlacement, 'folders-first');
+        const save = (previous, value) => invoke('save', String(previous.meta.prefsRevision), JSON.stringify({ dockerRowPlacement: value }));
+        const saved = save(initial, 'saved-order');
+        assert.equal(saved.status, 200, JSON.stringify(saved.body));
+        assert.equal(saved.prefs.dockerRowPlacement, 'saved-order');
+        assert.equal(saved.body.prefs.dockerRowPlacement, 'saved-order');
+        assert.equal(utils.normalizePrefs(saved.prefs).dockerRowPlacement, 'saved-order');
+        assert.equal(saved.environmentPlacement, 'saved-order');
+        assert.equal(saved.meta.prefsRevision, initial.meta.prefsRevision + 1);
+        const backup = invoke('backup');
+        assert.equal(backup.backupPlacement, 'saved-order');
+        const malformed = save(saved, ['folders-first']);
+        assert.equal(malformed.status, 400);
+        assert.equal(malformed.prefs.dockerRowPlacement, 'saved-order');
+        assert.equal(malformed.meta.prefsRevision, saved.meta.prefsRevision);
+        const restored = save(saved, 'folders-first');
+        assert.equal(restored.status, 200, JSON.stringify(restored.body));
+        assert.equal(restored.prefs.dockerRowPlacement, 'folders-first');
+        for (const state of [saved, malformed, restored]) {
+            assert.equal(state.meta.folderRevision, initial.meta.folderRevision);
+            assert.equal(state.vmRevision, initial.vmRevision);
+            assert.deepEqual(state.prefs.manualOrder, initial.prefs.manualOrder);
+            assert.deepEqual(state.prefs.dockerStartOrder, initial.prefs.dockerStartOrder);
+            assert.equal(state.nativeOrder, initial.nativeOrder);
+        }
+    });
+});
+
 test('server enables stopped badges once on upgrade and preserves later opt-outs through saves and reloads', () => {
     const cases = [{}, { badges: {} }, { badges: { running: false } }, { badges: { stopped: false } },
         { badges: { updates: false } }, { badges: { running: false, stopped: false, updates: false } }]

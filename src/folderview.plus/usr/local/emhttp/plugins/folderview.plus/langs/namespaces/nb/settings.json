@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "content-revision": "3de59747abfe55cc31e04e9caee91c53aff895efd42c85d6bd01d21d54bcbc34"
+        "content-revision": "e11c6b67393f14e90958d0d36103cba417dd0214a0c3d577260bd059fee505b3"
     },
     "settings.visibility.group-unassigned-items": "Grupper ikke-tilordnede elementer",
     "settings.visibility.group-unassigned-items-help": "Gjelder også den tilsvarende flisen på dashbordet.",
+    "settings.visibility.docker-row-placement": "Radrekkefølge på Docker-siden",
+    "settings.visibility.docker-row-placement-folders-first": "Mapper først",
+    "settings.visibility.docker-row-placement-saved-order": "Lagret radrekkefølge",
     "settings.theme.github-directory": "Velg en CSS-mappe",
     "settings.rules.save-changes": "Lagre endringer",
     "settings.rules.regex-placeholder": "Regex-mønster (f.eks. ^media-)",

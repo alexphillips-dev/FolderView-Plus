@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "content-revision": "70a0147341dfc9c0b12e0d1dd3a5beee82c9e2c66d45a1e3de6bd144d7d1cfb4"
+        "content-revision": "8d92aa997fab8a10764ba78a3282c237a59d88bdb2725a5e480ce55cfd3dc96c"
     },
     "settings.visibility.group-unassigned-items": "未割り当ての項目をまとめる",
     "settings.visibility.group-unassigned-items-help": "ダッシュボードの対応するタイルにも適用されます。",
+    "settings.visibility.docker-row-placement": "Docker ページの行の並び順",
+    "settings.visibility.docker-row-placement-folders-first": "フォルダーを先に表示",
+    "settings.visibility.docker-row-placement-saved-order": "保存済みの行順",
     "settings.theme.github-directory": "CSS ディレクトリを選択",
     "settings.rules.save-changes": "変更を保存する",
     "settings.rules.regex-placeholder": "正規表現パターン (例: ^media-)",

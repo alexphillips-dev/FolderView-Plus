@@ -12,10 +12,10 @@
         "reviewed": true,
         "source-revision": "2026.08.10.1",
         "status": "complete",
-        "translated-messages": 4793,
-        "total-source-messages": 4793,
+        "translated-messages": 4796,
+        "total-source-messages": 4796,
         "content-revision": "ece29203945e2a06672e7baf7a9a4d4b3db959a4088f378d1f508cbede25dfc3",
-        "locale-content-revision": "4b5164e3aa042adeacccc69c28460914bd9e89b80951b6278a79154e153eabbe"
+        "locale-content-revision": "1d5987f24e9bc2e57138b4a734c31bea9256c8cbeed8ace0f1d26870dfaa9c6b"
     },
     "add-folder": "Klasör Ekle",
     "up-to-date": "güncel",

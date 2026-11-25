@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-BR",
         "namespace": "settings",
-        "content-revision": "269c0f8bc4a7f5807c9c29c847da7eb10a86ec74c341dd08068a14eac9201aa4"
+        "content-revision": "5d7bd797d4dad37fa86ec52f55f5bea4655cfd848f89e268c59934220c8b133a"
     },
     "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
     "settings.visibility.group-unassigned-items-help": "Também se aplica ao cartão correspondente no painel.",
+    "settings.visibility.docker-row-placement": "Ordem das linhas na página do Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Pastas primeiro",
+    "settings.visibility.docker-row-placement-saved-order": "Ordem das linhas salva",
     "settings.theme.github-directory": "Escolha um diretório de CSS",
     "settings.rules.save-changes": "Salvar alterações",
     "settings.rules.regex-placeholder": "Padrão Regex (por exemplo, ^media-)",

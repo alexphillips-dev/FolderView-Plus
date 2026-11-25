@@ -777,6 +777,39 @@ test('adopting a newer broadcast invalidates an outdated foreign optimistic patc
     assert.equal(coordinator.getOptimisticPrefs('vm').sortMode, 'manual');
 });
 
+test('confirmed Docker row placement excludes a queued peer edit until its server revision arrives', () => {
+    const api = loadModule(), storage = createStorage(), handlers = new Map();
+    const viewer = api.createPreferenceSaveCoordinator({
+        normalizePrefs, storage, sourceId: 'docker-tab',
+        window: { addEventListener: (name, listener) => handlers.set(name, listener) }
+    });
+    const editor = api.createPreferenceSaveCoordinator({
+        normalizePrefs, storage, sourceId: 'settings-tab', window: {}, setTimeout: () => 1, clearTimeout: () => {}
+    });
+    assert.equal(viewer.getConfirmedPrefs('docker'), null);
+    const initial = normalizePrefs({ dockerRowPlacement: 'folders-first', _metadata: { prefsRevision: 3 } });
+    viewer.reconcile('docker', initial);
+    editor.reconcile('docker', initial);
+    void editor.save('docker', { dockerRowPlacement: 'saved-order' });
+    const [[key, newValue]] = Object.entries(storage.snapshot());
+    handlers.get('storage')({ key, newValue });
+    assert.equal(viewer.getSnapshot('docker').pending, false);
+    assert.equal(viewer.getOptimisticPrefs('docker').dockerRowPlacement, 'saved-order');
+    assert.equal(viewer.getConfirmedPrefs('docker').dockerRowPlacement, 'folders-first');
+    assert.equal(editor.getConfirmedPrefs('docker').dockerRowPlacement, 'folders-first');
+
+    viewer.reconcile('docker', initial, { restoreOutbox: false });
+    assert.equal(viewer.getSnapshot('docker').status, 'saved');
+    assert.equal(viewer.getOptimisticPrefs('docker').dockerRowPlacement, 'saved-order');
+    assert.equal(viewer.getConfirmedPrefs('docker').dockerRowPlacement, 'folders-first');
+
+    viewer.reconcile('docker', normalizePrefs({ dockerRowPlacement: 'saved-order', _metadata: { prefsRevision: 4 } }));
+    viewer.reconcile('docker', initial);
+    assert.equal(viewer.getConfirmedPrefs('docker').dockerRowPlacement, 'saved-order');
+    assert.equal(viewer.getConfirmedPrefs('docker')._metadata.prefsRevision, 4);
+    assert.equal(viewer.getConfirmedPrefs('vm'), null);
+});
+
 test('a temporary storage failure retains its exact preference operation and retries it', async () => {
     const api = loadModule();
     const writes = [];

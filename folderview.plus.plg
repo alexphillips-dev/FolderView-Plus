@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.01">
-<!ENTITY md5 "722ec07a228d6633cb9e23b48b253480">
-<!ENTITY sha256 "e296311566e411ce63e7f5db42c3562a77afbb40066eb89793948c392f5c6a4d">
+<!ENTITY version "2026.11.25.02">
+<!ENTITY md5 "641e8de6d8ce851e29b35360656fe4fa">
+<!ENTITY sha256 "d3f18af17bb67805a49132c64d0fe6b5d3788108e48c3c588d94cb017baac381">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.02
+- Fix: Choose Saved Docker order under Docker row placement to keep saved folder and standalone container positions after refreshing the Docker tab. Folders first is the default. Changing placement affects the display and leaves native Docker order and autostart settings intact.
+
 
 ###2026.11.25.01
 - Reliability: Recover Unraid plugin registration after an interrupted native update and protect installs that use the native staging path.

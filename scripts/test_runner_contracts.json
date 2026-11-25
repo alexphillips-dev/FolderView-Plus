@@ -162,7 +162,8 @@
     { "file": "scripts/lib/fixture-icon-upload.mjs", "limit": 60, "owner": "fixture form uploads and bounded part assembly" },
     { "file": "scripts/lib/fixture-browser-runner.mjs", "limit": 130, "owner": "fixture Playwright execution and reporting" },
     { "file": "tests/browser/cases/foundation.mjs", "limit": 260, "owner": "fixture foundation cases" },
-    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs", "../helpers/docker-page-start-order.mjs"] },
+    { "file": "tests/browser/cases/docker.mjs", "limit": 220, "owner": "fixture Docker cases", "requiredImports": ["../helpers/docker-folder-grouping.mjs", "../helpers/docker-page-start-order.mjs", "./docker-row-placement.mjs"] },
+    { "file": "tests/browser/cases/docker-row-placement.mjs", "limit": 74, "owner": "Docker display order across preference changes and refresh", "requiredImports": ["../helpers/docker-hide-empty-host.mjs"] },
     { "file": "tests/browser/helpers/docker-folder-grouping.mjs", "limit": 35, "owner": "canonical Docker grouping, standalone bottom placement and native node preservation" },
     { "file": "tests/browser/helpers/docker-page-start-order.mjs", "limit": 47, "owner": "Docker row order and PHP startup plan parity" },
     { "file": "tests/browser/cases/dashboard-tile-loading.mjs", "limit": 140, "owner": "independent Dashboard loading and overlapping host refreshes" },
@@ -219,6 +220,7 @@
         "tests/browser/cases/script-preloads.mjs",
         "tests/browser/cases/foundation.mjs",
         "tests/browser/cases/docker.mjs",
+        "tests/browser/cases/docker-row-placement.mjs",
         "tests/browser/cases/dashboard-tile-loading.mjs",
         "tests/browser/cases/dashboard-unassigned-group.mjs",
         "tests/browser/cases/runtime-native-identity.mjs",
@@ -367,10 +369,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 205,
-      "assertionCount": 2474,
-      "pageEvaluateCount": 860,
-      "orderedTitleSha256": "e95510700a5c7e380ccde11df35149b09069ccebca19e680538a970bdb3077d5"
+      "testCount": 206,
+      "assertionCount": 2477,
+      "pageEvaluateCount": 863,
+      "orderedTitleSha256": "070e8d100f3a64eabefa0e18facfb8f2f7eda0d43755cc141afb09db52cb4a7f"
     }
   }
 }

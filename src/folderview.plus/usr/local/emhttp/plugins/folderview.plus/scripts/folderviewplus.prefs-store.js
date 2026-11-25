@@ -775,13 +775,13 @@
             hydrateFromServer,
             subscribe,
             getSnapshot: (type) => publicSnapshot(getState(type), true),
+            getConfirmedPrefs: (type) => getState(type).confirmedPrefs,
             getOptimisticPrefs: (type) => getState(type).optimisticPrefs || getState(type).confirmedPrefs || normalizePrefs({}),
             getDiagnostics,
             mergePatch,
             storageKeyForType
         });
     };
-
     let defaultCoordinator = null;
     let defaultDashboardLayoutStateStore = null;
     const getDefaultCoordinator = (options = {}) => {

@@ -170,6 +170,7 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             'hideEmptyFolders',
             'groupUnassignedItems',
             'appColumnWidth',
+            'dockerRowPlacement',
             'setupWizardCompleted',
             'settingsMode',
             'runtimePrefsSchema',

@@ -1202,6 +1202,7 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
     ];
     const additionalLabels = {
         groupUnassignedItems: importT('settings.visibility.group-unassigned-items', 'Group unassigned items'),
+        dockerRowPlacement: importT('settings.visibility.docker-row-placement', 'Docker row placement'),
         hiddenFolderIds: importT('legacy.surface.88ee90bc2e344724', 'Show hidden'),
         expandedFolderState: importT('legacy.surface.0447fe78ffb9f4b1', 'Expansion'),
         setupWizardCompleted: importT('wizard.title', 'Setup Assistant'),

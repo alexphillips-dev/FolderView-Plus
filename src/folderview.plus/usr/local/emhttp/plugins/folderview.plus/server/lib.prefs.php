@@ -14,6 +14,7 @@
             'hideEmptyFolders' => false,
             'groupUnassignedItems' => false,
             'appColumnWidth' => 'standard',
+            'dockerRowPlacement' => 'folders-first',
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -489,6 +490,7 @@
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['groupUnassignedItems'] = ($prefs['groupUnassignedItems'] ?? false) === true;
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
+        if (($prefs['dockerRowPlacement'] ?? null) === 'saved-order') $normalized['dockerRowPlacement'] = 'saved-order';
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';

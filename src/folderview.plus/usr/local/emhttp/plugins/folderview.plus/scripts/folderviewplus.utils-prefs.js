@@ -351,7 +351,7 @@
             expandedFolderState,
             hideEmptyFolders,
             groupUnassignedItems: incoming.groupUnassignedItems === true,
-            appColumnWidth,
+            appColumnWidth, dockerRowPlacement: incoming.dockerRowPlacement === 'saved-order' ? 'saved-order' : 'folders-first',
             setupWizardCompleted,
             settingsMode,
             autoRules,

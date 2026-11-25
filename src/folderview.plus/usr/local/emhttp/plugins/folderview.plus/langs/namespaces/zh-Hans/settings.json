@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "content-revision": "576a60de60f87bded479799a3915375d79509814836ce344f2ddf26b58826204"
+        "content-revision": "d3009511c1c4dce5f91b866a54fd15abd3e88ce636baa7f689bbc27e435c38f0"
     },
     "settings.visibility.group-unassigned-items": "归类未分组的项目",
     "settings.visibility.group-unassigned-items-help": "也适用于仪表板上对应的区块。",
+    "settings.visibility.docker-row-placement": "Docker 页面行顺序",
+    "settings.visibility.docker-row-placement-folders-first": "文件夹优先",
+    "settings.visibility.docker-row-placement-saved-order": "已保存的行顺序",
     "settings.theme.github-directory": "选择 CSS 目录",
     "settings.rules.save-changes": "保存更改",
     "settings.rules.regex-placeholder": "正则表达式模式（例如 ^media-）",

@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "content-revision": "f14ebec4097cad83b360e311baceda3ab849361cac833f6a3cfd4a33645d7c69"
+        "content-revision": "5eae71d5ab39d83334bda4faf9e19f5624b5970873a3e76343e5d08e3efe1e56"
     },
     "settings.visibility.group-unassigned-items": "Grupează elementele nealocate",
     "settings.visibility.group-unassigned-items-help": "Se aplică și panoului corespunzător din tabloul de bord.",
+    "settings.visibility.docker-row-placement": "Ordinea rândurilor pe pagina Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Mai întâi folderele",
+    "settings.visibility.docker-row-placement-saved-order": "Ordinea salvată a rândurilor",
     "settings.theme.github-directory": "Alegeți un director CSS",
     "settings.rules.save-changes": "Salvați modificările",
     "settings.rules.regex-placeholder": "Model Regex (de exemplu, ^media-)",

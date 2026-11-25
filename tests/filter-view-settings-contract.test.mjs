@@ -21,7 +21,7 @@ const viewSettings = require(path.join(pluginRoot, 'scripts/folderviewplus.view-
 
 const expectedPreferenceKeys = {
     changePageTitlePref: ['bold', 'color', 'enabled', 'font', 'italic', 'size', 'strikethrough', 'text', 'underline'],
-    changeVisibilityPref: ['appColumnWidth', 'groupUnassignedItems', 'hideEmptyFolders'],
+    changeVisibilityPref: ['appColumnWidth', 'dockerRowPlacement', 'groupUnassignedItems', 'hideEmptyFolders'],
     changeStatusPref: ['attentionAccent', 'displayMode', 'mode', 'trendEnabled', 'warnStoppedPercent'],
     changeBadgePref: ['running', 'stopped', 'updates'],
     changeRuntimePref: ['lazyPreviewEnabled', 'lazyPreviewThreshold', 'liveRefreshEnabled', 'liveRefreshSeconds', 'pageViewMode', 'performanceProfile', 'themeCompatibilityMode'],
@@ -74,6 +74,8 @@ test('settings controller accepts registered changes, coerces values, and reject
     }
     assert.equal(controller.resolve('changeHealthPref', 'docker', 'notASetting', true), null);
     assert.equal(controller.resolve('changeBadgePref', 'vm', 'updates', true), null);
+    assert.equal(controller.resolve('changeVisibilityPref', 'vm', 'dockerRowPlacement', 'saved-order'), null);
+    assert.equal(controller.resolve('changeVisibilityPref', 'docker', 'dockerRowPlacement', 'saved-order').value, 'saved-order');
     controller.destroy();
     assert.equal(controller.resolve('changeVisibilityPref', 'docker', 'hideEmptyFolders', true), null);
 });

@@ -35,6 +35,35 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 export const registerFilterViewSettingsFixes = ({ test }) => {
     registerVmRuntimeRecoveryCases({ test });
 
+    test('Filters and view settings save and reload Docker row placement independently of native ordering', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        const placement = page.locator('#docker-view-settings #docker-row-placement');
+        const nativeWrites = [];
+        page.on('request', request => {
+            if (request.method() === 'POST' && /(?:sync_order|reorder|docker_start_order|autostart)\.php(?:\?|$)/i.test(request.url())) {
+                nativeWrites.push(request.url());
+            }
+        });
+        try {
+            await openSettings(page, host);
+            assert.equal(await placement.inputValue(), 'folders-first');
+            assert.equal(await placement.isVisible(), true);
+            assert.equal(await page.locator('#vm-view-settings [id$="-row-placement"]').count(), 0);
+            for (const value of ['saved-order', 'folders-first']) {
+                const sent = page.waitForRequest(request => request.url().includes('/server/prefs.php') && request.method() === 'POST');
+                await placement.selectOption(value);
+                const payload = new URLSearchParams((await sent).postData());
+                assert.equal(payload.get('type'), 'docker');
+                assert.deepEqual(JSON.parse(payload.get('prefs')), { dockerRowPlacement: value });
+                await waitFor(page, () => host.prefs('docker').dockerRowPlacement === value, 'Docker row placement persisted');
+                await openSettings(page, host);
+                assert.equal(await placement.inputValue(), value);
+            }
+            assert.equal(host.prefs('vm')._metadata.prefsRevision, 1);
+            assert.deepEqual(nativeWrites, []);
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true });
+
     test('Filters and view settings persist unassigned grouping independently for Docker and VMs', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         const toggle = type => page.locator(`#${type}-group-unassigned-items`);

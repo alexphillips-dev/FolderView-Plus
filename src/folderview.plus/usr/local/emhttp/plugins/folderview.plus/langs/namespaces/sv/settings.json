@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "content-revision": "97abec69227ed868493c5cc9731644c2df2a14cdffdf7c5bfbc664a1dc0b9a26"
+        "content-revision": "3732c1708c13803289760a06478845c8ab9bdcc7b9ab194bc2ee6429e1738d33"
     },
     "settings.visibility.group-unassigned-items": "Gruppera otilldelade objekt",
     "settings.visibility.group-unassigned-items-help": "Gäller även motsvarande ruta på instrumentpanelen.",
+    "settings.visibility.docker-row-placement": "Radordning på Docker-sidan",
+    "settings.visibility.docker-row-placement-folders-first": "Mappar först",
+    "settings.visibility.docker-row-placement-saved-order": "Sparad radordning",
     "settings.theme.github-directory": "Välj en CSS-katalog",
     "settings.rules.save-changes": "Spara ändringar",
     "settings.rules.regex-placeholder": "Regexmönster (t.ex. ^media-)",

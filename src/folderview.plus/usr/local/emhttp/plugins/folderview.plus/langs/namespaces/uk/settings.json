@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "content-revision": "a1942a14d70f93f41eabe89bf9f3e0e2c20fdbe31b4c21ea8b92e01b69976c6f"
+        "content-revision": "0a5a11b1ef10534de230137351552c5527f6be7268a784cada1a61d54da04951"
     },
     "settings.visibility.group-unassigned-items": "Групувати непризначені елементи",
     "settings.visibility.group-unassigned-items-help": "Також застосовується до відповідної плитки на панелі.",
+    "settings.visibility.docker-row-placement": "Порядок рядків на сторінці Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Спочатку папки",
+    "settings.visibility.docker-row-placement-saved-order": "Збережений порядок рядків",
     "settings.theme.github-directory": "Виберіть каталог CSS",
     "settings.rules.save-changes": "Зберегти зміни",
     "settings.rules.regex-placeholder": "Шаблон регулярного виразу (наприклад, ^media-)",

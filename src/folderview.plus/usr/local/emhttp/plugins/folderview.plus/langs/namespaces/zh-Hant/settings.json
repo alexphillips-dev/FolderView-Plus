@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "content-revision": "c55aeee53ee43390d31e88c2d9b0e9dd663dd694190e64e46c29698b69608a12"
+        "content-revision": "0f2927d161d173a1ca7b3323a5c28fb8192a9c09bd443064c715025f83b60a76"
     },
     "settings.visibility.group-unassigned-items": "將未分組的項目集中顯示",
     "settings.visibility.group-unassigned-items-help": "也會套用至儀表板上對應的區塊。",
+    "settings.visibility.docker-row-placement": "Docker 頁面的列順序",
+    "settings.visibility.docker-row-placement-folders-first": "資料夾優先",
+    "settings.visibility.docker-row-placement-saved-order": "已儲存的列順序",
     "settings.theme.github-directory": "選擇 CSS 目錄",
     "settings.rules.save-changes": "儲存變更",
     "settings.rules.regex-placeholder": "正規表示式模式（例如 ^media-）",

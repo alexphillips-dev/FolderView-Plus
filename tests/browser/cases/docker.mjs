@@ -4,6 +4,7 @@ import { exerciseDockerFolderGrouping } from '../helpers/docker-folder-grouping.
 import { exerciseDockerPageStartOrder } from '../helpers/docker-page-start-order.mjs';
 import { exerciseDockerMembershipRefresh } from '../helpers/docker-membership-refresh.mjs'; import { exerciseDockerDetailHydration } from '../helpers/docker-detail-hydration.mjs';
 import { exerciseDockerPreviewNameEdit, exerciseDockerPreviewNameEditLifecycle } from '../helpers/docker-preview-name-edit.mjs';
+import { registerDockerRowPlacementCases } from './docker-row-placement.mjs';
 import {
     exerciseChildFolderPreviewContext,
     exerciseDockerPreviewContextDiagnostics,
@@ -210,4 +211,5 @@ test('legacy Docker remains functional when the API is absent', async ({ page })
     assert.equal(result.apiCalls.some((entry) => entry.mutation), false);
     await page.evaluate(() => window.fixtureDockerApiLegacy.dispose());
 }, { allowedConsoleErrors: [/Failed to load resource:.*404 \(Not Found\)/] });
+registerDockerRowPlacementCases({ test });
 };

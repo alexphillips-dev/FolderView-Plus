@@ -6614,6 +6614,7 @@ const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
     $(`#${type}-group-unassigned-items`).prop('checked', prefs.groupUnassignedItems);
+    if (type === 'docker') $('#docker-row-placement').val(prefs.dockerRowPlacement);
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
         : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');

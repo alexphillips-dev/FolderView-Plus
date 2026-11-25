@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "content-revision": "0e6f6ecc3e5c9823c217a10b026e92e02bd3223ef335e713e923e45f8e3c17db"
+        "content-revision": "4e683ce14b7ca4703fe2162165a741c73054fa8a9955de16e591a29558d8960c"
     },
     "settings.visibility.group-unassigned-items": "Grupiraj nedodijeljene stavke",
     "settings.visibility.group-unassigned-items-help": "Primjenjuje se i na odgovarajući panel na nadzornoj ploči.",
+    "settings.visibility.docker-row-placement": "Raspored redaka na stranici Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Najprije mape",
+    "settings.visibility.docker-row-placement-saved-order": "Spremljeni redoslijed redaka",
     "settings.theme.github-directory": "Odaberite CSS direktorij",
     "settings.rules.save-changes": "Spremite promjene",
     "settings.rules.regex-placeholder": "Uzorak regularnog izraza (npr. ^media-)",

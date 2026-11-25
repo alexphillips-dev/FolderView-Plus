@@ -256,6 +256,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
+                    <label class="setting-select" for="docker-row-placement">
+                        <span data-i18n="settings.visibility.docker-row-placement">Docker row placement</span>
+                        <select id="docker-row-placement" data-fv-onchange="changeVisibilityPref('docker', 'dockerRowPlacement', this.value)">
+                            <option value="folders-first" data-i18n="settings.visibility.docker-row-placement-folders-first">Folders first</option>
+                            <option value="saved-order" data-i18n="settings.visibility.docker-row-placement-saved-order">Saved Docker order</option>
+                        </select>
+                    </label>
                     <label class="setting-toggle fv-setting-checkbox-row">
                         <input id="docker-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
                         <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>

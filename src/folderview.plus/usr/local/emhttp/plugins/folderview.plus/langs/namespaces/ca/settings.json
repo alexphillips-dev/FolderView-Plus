@@ -3,10 +3,13 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "content-revision": "e3e5e262c32e5e925b4c8614f0e4591768051437a864490bcd9068fb571eeaba"
+        "content-revision": "e76797c0906ad587b7bc8ecff764f0640a1706ed2a0a714ea87c3f3b59399d84"
     },
     "settings.visibility.group-unassigned-items": "Agrupa els elements sense assignar",
     "settings.visibility.group-unassigned-items-help": "També s’aplica al bloc corresponent del tauler.",
+    "settings.visibility.docker-row-placement": "Ordre de les files de Docker",
+    "settings.visibility.docker-row-placement-folders-first": "Carpetes primer",
+    "settings.visibility.docker-row-placement-saved-order": "Ordre de files desat",
     "settings.theme.github-directory": "Trieu un directori CSS",
     "settings.rules.save-changes": "Desa els canvis",
     "settings.rules.regex-placeholder": "Patró d'expressió regular (p. ex., ^media-)",

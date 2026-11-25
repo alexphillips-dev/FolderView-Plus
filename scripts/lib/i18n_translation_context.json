@@ -28,6 +28,9 @@
     },
     "overrides": {
         "fr": {
+            "Docker row placement": "Ordre des lignes Docker",
+            "Folders first": "Dossiers d’abord",
+            "Saved Docker order": "Ordre des lignes enregistré",
             "This rule changed while you were editing. Cancel and reopen it before saving again.": "Cette règle a changé pendant la modification. Annulez la modification, puis rouvrez la règle avant de la réenregistrer.",
             "Rebuild ready": "Reconstruction prête",
             "Skipped": "Ignoré",
@@ -47,6 +50,9 @@
             "docker startup order": "Ordre de démarrage de Docker"
         },
         "it": {
+            "Docker row placement": "Disposizione delle righe di Docker",
+            "Folders first": "Prima le cartelle",
+            "Saved Docker order": "Ordine delle righe salvato",
             "Rebuild ready": "Ricostruzione pronta",
             "Update status unavailable": "Stato dell’aggiornamento non disponibile",
             "Open console": "Apri console",
@@ -76,6 +82,9 @@
             "docker-heavy media layout detected": "Rilevata una disposizione multimediale con uso intensivo di Docker"
         },
         "cs": {
+            "Docker row placement": "Uspořádání řádků v Dockeru",
+            "Folders first": "Nejprve složky",
+            "Saved Docker order": "Uložené pořadí řádků",
             "Close search": "Zavřít hledání",
             "Open console": "Otevřít konzoli",
             "Quick finder": "Rychlé hledání",
@@ -104,6 +113,9 @@
             "FolderView Plus start-order workspace is unavailable.": "Pracovní prostor pro pořadí spuštění v FolderView Plus není k dispozici."
         },
         "hu": {
+            "Docker row placement": "A Docker-oldal sorainak elrendezése",
+            "Folders first": "Mappák előre",
+            "Saved Docker order": "Mentett sorrend",
             "This rule changed while you were editing. Cancel and reopen it before saving again.": "A szabály szerkesztés közben megváltozott. Mentés előtt lépjen ki a szerkesztésből, majd nyissa meg újra a szabályt.",
             "Preferences": "Beállítások",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Kezdő mappák: $1 (kijelölve: $2; meglévők kihagyva: $3; automatikusan hozzárendelt egyezések: $4; ellenőrzésre vár: $5; nincs egyezés: $6)",
@@ -130,6 +142,9 @@
             "FolderView Plus start-order workspace is unavailable.": "A FolderView Plus indítási sorrendjének munkaterülete nem érhető el."
         },
         "lv": {
+            "Docker row placement": "Rindu izkārtojums Docker lapā",
+            "Folders first": "Vispirms mapes",
+            "Saved Docker order": "Saglabātā rindu secība",
             "The preview changed. Run the preview again before applying.": "Priekšskatījums ir mainījies. Pirms izmaiņu piemērošanas vēlreiz palaidiet priekšskatījumu.",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Sākuma mapes: $1 (atlasītas: $2; izlaistas esošās: $3; automātiski piešķirtas atbilstības: $4; jāpārskata: $5; bez atbilstības: $6)",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "Tiks aizstātas gan Docker, gan VM mapes un saglabātās preferences, tostarp noteikumi, privātums, grupas, veselība, veiktspēja, noklusējuma iestatījumi un dublēšanas grafiki. Pirms izmaiņu piemērošanas tiek izveidoti atkopšanas kontrolpunkti.",
@@ -160,6 +175,9 @@
             "FolderView Plus start-order workspace is unavailable.": "Nav pieejama FolderView Plus palaišanas secības darbvieta."
         },
         "ro": {
+            "Docker row placement": "Ordinea rândurilor pe pagina Docker",
+            "Folders first": "Mai întâi folderele",
+            "Saved Docker order": "Ordinea salvată a rândurilor",
             "Starter folders: $1 (selected $2, skip existing $3, auto-assign matches $4, review needed $5, unmatched $6)": "Dosare inițiale: $1 (selectate: $2; existente omise: $3; potriviri atribuite automat: $4; necesită verificare: $5; fără potrivire: $6)",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Diagnosticarea pornirii editorului de dosare FolderView Plus",
             "Export folder...": "Exportă dosarul...",
@@ -187,6 +205,9 @@
             "FolderView Plus start-order view is unavailable.": "Vizualizarea ordinii de pornire din FolderView Plus nu este disponibilă."
         },
         "ja": {
+            "Docker row placement": "Docker ページの行の並び順",
+            "Folders first": "フォルダーを先に表示",
+            "Saved Docker order": "保存済みの行順",
             "Starting containers": "コンテナを起動中",
             "Stopping containers": "コンテナを停止中",
             "Pausing containers": "コンテナを一時停止中",
@@ -213,6 +234,9 @@
             "docker startup order": "Docker の起動順序"
         },
         "bn": {
+            "Docker row placement": "Docker পৃষ্ঠায় সারির বিন্যাস",
+            "Folders first": "ফোল্ডার আগে",
+            "Saved Docker order": "সারির সংরক্ষিত ক্রম",
             "The preview changed. Run the preview again before applying.": "প্রিভিউ পরিবর্তিত হয়েছে। পরিবর্তনগুলি প্রয়োগ করার আগে আবার প্রিভিউ চালান।",
             "Containers": "কন্টেইনার",
             "VMs: $1": "ভার্চুয়াল মেশিন: $1",
@@ -245,6 +269,9 @@
             "Needs attention before applying": "প্রয়োগের আগে যাচাই করা প্রয়োজন"
         },
         "ca": {
+            "Docker row placement": "Ordre de les files de Docker",
+            "Folders first": "Carpetes primer",
+            "Saved Docker order": "Ordre de files desat",
             "This rule changed while you were editing. Cancel and reopen it before saving again.": "Aquesta regla ha canviat mentre l’editàveu. Cancel·leu l’edició i torneu a obrir la regla abans de desar-la.",
             "Update status unavailable": "Estat de l'actualització no disponible",
             "Configuration is unavailable. Reload Settings before previewing rules.": "La configuració no està disponible. Torneu a carregar la configuració abans de previsualitzar les regles.",
@@ -277,6 +304,9 @@
             "FolderView Plus start-order model is unavailable.": "El model d’ordre d’inici de FolderView Plus no està disponible."
         },
         "sv": {
+            "Docker row placement": "Radordning på Docker-sidan",
+            "Folders first": "Mappar först",
+            "Saved Docker order": "Sparad radordning",
             "The preview changed. Run the preview again before applying.": "Förhandsvisningen har ändrats. Kör förhandsvisningen igen innan du tillämpar ändringarna.",
             "Read-only comparison": "Jämförelse utan ändringar",
             "FolderView3 export": "FolderView3-export",
@@ -317,6 +347,9 @@
             "Legacy imports are supported, but inspect the diff and icon/settings fields before applying.": "Import från äldre format stöds. Granska skillnaderna och fälten för ikoner och inställningar innan du tillämpar ändringarna."
         },
         "zh-Hans": {
+            "Docker row placement": "Docker 页面行顺序",
+            "Folders first": "文件夹优先",
+            "Saved Docker order": "已保存的行顺序",
             "Previous configuration restored": "已恢复先前的配置",
             "Containers": "容器",
             "Reveal": "定位",
@@ -544,6 +577,9 @@
             "Save editor changes first": "请先保存编辑器中的更改"
         },
         "zh-Hant": {
+            "Docker row placement": "Docker 頁面的列順序",
+            "Folders first": "資料夾優先",
+            "Saved Docker order": "已儲存的列順序",
             "The preview changed. Run the preview again before applying.": "預覽已變更。套用變更前，請再次執行預覽。",
             "Previous configuration restored": "已恢復先前的配置",
             "Containers": "容器",
@@ -690,6 +726,9 @@
             "Add profile": "新增設定檔"
         },
         "da": {
+            "Docker row placement": "Rækkefølge på Docker-siden",
+            "Folders first": "Mapper først",
+            "Saved Docker order": "Gemt rækkefølge",
             "Browser Quick Guide": "Hurtig vejledning til browseren",
             "Parallel batch note": "Bemærkning om parallelle grupper",
             "FolderView Plus Setup Assistant": "Opsætningsassistent til FolderView Plus",
@@ -738,6 +777,9 @@
             "Choose a snapshot to restore, download, or delete.": "Vælg en sikkerhedskopi, du vil gendanne, downloade eller slette."
         },
         "pl": {
+            "Docker row placement": "Układ wierszy na stronie Docker",
+            "Folders first": "Najpierw foldery",
+            "Saved Docker order": "Zapisana kolejność wierszy",
             "Rebuild ready": "Gotowe do przebudowy",
             "Disabled": "Wyłączone",
             "Clear": "Wyczyść",
@@ -766,6 +808,9 @@
             "FolderView Plus start-order model is unavailable.": "Model kolejności uruchamiania w FolderView Plus jest niedostępny."
         },
         "de": {
+            "Docker row placement": "Reihenfolge auf der Docker-Seite",
+            "Folders first": "Ordner zuerst",
+            "Saved Docker order": "Gespeicherte Zeilenreihenfolge",
             "Rebuild ready": "Bereit zur Neuerstellung",
             "Starting containers": "Container werden gestartet",
             "Container": "Container",
@@ -814,6 +859,9 @@
             "FolderView Plus start-order model is unavailable.": "Das Modell für die Startreihenfolge in FolderView Plus ist nicht verfügbar."
         },
         "es": {
+            "Docker row placement": "Orden de las filas de Docker",
+            "Folders first": "Carpetas primero",
+            "Saved Docker order": "Orden de filas guardado",
             "This rule changed while you were editing. Cancel and reopen it before saving again.": "Esta regla cambió mientras la editaba. Cancele la edición y vuelva a abrir la regla antes de guardarla.",
             "Rebuild ready": "Reconstrucción lista",
             "Skipped": "Omitido",
@@ -844,6 +892,9 @@
             "Docker settings": "Configuración de Docker"
         },
         "hr": {
+            "Docker row placement": "Raspored redaka na stranici Docker",
+            "Folders first": "Najprije mape",
+            "Saved Docker order": "Spremljeni redoslijed redaka",
             "Disabled": "Onemogućeno",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Dijagnostika pokretanja uređivača mapa FolderView Plus",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "I Docker i VM mape i spremljene postavke bit će zamijenjene, uključujući pravila, privatnost, grupe, zdravlje, performanse, zadane postavke i rasporede sigurnosnog kopiranja. Kontrolne točke oporavka stvaraju se prije primjene.",
@@ -868,6 +919,9 @@
             "FolderView Plus start-order workspace is unavailable.": "Radni prostor za redoslijed pokretanja u FolderView Plus nije dostupan."
         },
         "ko": {
+            "Docker row placement": "Docker 페이지의 행 배치",
+            "Folders first": "폴더 먼저",
+            "Saved Docker order": "저장된 행 순서",
             "Disabled": "비활성화됨",
             "Both Docker and VM folders and saved preferences will be replaced, including rules, privacy, groups, health, performance, defaults and backup schedules. Recovery checkpoints are created before applying.": "규칙, 개인 정보 보호, 그룹, 상태, 성능, 기본값 및 백업 일정을 포함하여 Docker 및 VM 폴더와 저장된 기본 설정이 모두 대체됩니다. 적용하기 전에 복구 체크포인트가 생성됩니다.",
             "FolderView3 source or current configuration changed after preview. Preview it again before applying.": "미리보기 후 FolderView3 소스 또는 현재 구성이 변경되었습니다. 변경 사항을 적용하기 전에 다시 미리 확인해 보세요.",
@@ -887,6 +941,9 @@
             "docker startup order": "Docker 시작 순서"
         },
         "nb": {
+            "Docker row placement": "Radrekkefølge på Docker-siden",
+            "Folders first": "Mapper først",
+            "Saved Docker order": "Lagret radrekkefølge",
             "The preview changed. Run the preview again before applying.": "Forhåndsvisningen er endret. Kjør forhåndsvisningen på nytt før du bruker endringene.",
             "FolderView Plus Folder Editor Bootstrap Diagnostics": "Oppstartsdiagnostikk for mapperedigering i FolderView Plus",
             "Docker autostart $1 for $2.": "Automatisk Docker-start: $1 for $2.",
@@ -921,6 +978,9 @@
             "Legacy imports are supported, but inspect the diff and icon/settings fields before applying.": "Import fra eldre formater støttes. Se gjennom forskjellene og feltene for ikoner og innstillinger før du tar i bruk endringene."
         },
         "nl": {
+            "Docker row placement": "Rijvolgorde op de Docker-pagina",
+            "Folders first": "Mappen eerst",
+            "Saved Docker order": "Opgeslagen rijvolgorde",
             "Rebuild ready": "Herbouw gereed",
             "The preview changed. Run the preview again before applying.": "Het voorbeeld is gewijzigd. Voer het voorbeeld opnieuw uit voordat u de wijzigingen toepast.",
             "Score": "Score",
@@ -944,6 +1004,9 @@
             "Loading Docker start order preview...": "Voorbeeld van de startvolgorde voor Docker laden…"
         },
         "pt-BR": {
+            "Docker row placement": "Ordem das linhas na página do Docker",
+            "Folders first": "Pastas primeiro",
+            "Saved Docker order": "Ordem das linhas salva",
             "Update status unavailable": "Status da atualização indisponível",
             "Containers": "Contêineres",
             "Manual $1": "Atribuição manual: $1",
@@ -989,6 +1052,9 @@
             "Undo snapshot created: $1": "Snapshot criado para desfazer a operação: $1"
         },
         "pt-PT": {
+            "Docker row placement": "Ordem das linhas na página do Docker",
+            "Folders first": "Pastas primeiro",
+            "Saved Docker order": "Ordem das linhas guardada",
             "This rule changed while you were editing. Cancel and reopen it before saving again.": "Esta regra foi alterada durante a edição. Cancele a edição e volte a abrir a regra antes de a guardar.",
             "Update status unavailable": "Estado da atualização indisponível",
             "Containers": "Contentores",
@@ -1497,6 +1563,9 @@
             "Your server runs a mix of apps and experiments.": "O servidor executa aplicações e ambientes de teste."
         },
         "uk": {
+            "Docker row placement": "Порядок рядків на сторінці Docker",
+            "Folders first": "Спочатку папки",
+            "Saved Docker order": "Збережений порядок рядків",
             "Rebuild ready": "Перезбирання доступне",
             "Choose a snapshot and a comparison target. No changes will be saved.": "Виберіть знімок і джерело для порівняння. Жодні зміни не буде збережено.",
             "Folders: $1": "Папки: $1",
@@ -1523,6 +1592,9 @@
             "FolderView Plus start-order workspace is unavailable.": "Робочий простір для налаштування порядку запуску в FolderView Plus недоступний."
         },
         "ar": {
+            "Docker row placement": "ترتيب الصفوف في صفحة Docker",
+            "Folders first": "المجلدات أولًا",
+            "Saved Docker order": "ترتيب الصفوف المحفوظ",
             "Declared by theme": "مُعلن بواسطة السمة",
             "Host CSS variables": "متغيرات CSS للمضيف",
             "Control sizing": "حجم عناصر التحكم",
@@ -1626,6 +1698,9 @@
             "Use this workspace to follow the Docker page order or define custom start batches.": "استخدم مساحة العمل هذه لاتّباع ترتيب صفحة Docker أو لتحديد مجموعات مخصصة لبدء التشغيل."
         },
         "ru": {
+            "Docker row placement": "Порядок строк на странице Docker",
+            "Folders first": "Сначала папки",
+            "Saved Docker order": "Сохранённый порядок строк",
             "Rebuild ready": "Пересборка доступна",
             "Declared by theme": "Название, указанное темой",
             "Host CSS variables": "CSS-переменные хоста",
@@ -1643,6 +1718,9 @@
             "FolderView Plus start-order workspace is unavailable.": "Рабочая область для настройки порядка запуска в FolderView Plus недоступна."
         },
         "tr": {
+            "Docker row placement": "Docker sayfasındaki satır düzeni",
+            "Folders first": "Önce klasörler",
+            "Saved Docker order": "Kaydedilen satır sırası",
             "Rebuild ready": "Yeniden oluşturma hazır",
             "Declared by theme": "Tema tarafından belirtilen ad",
             "Host CSS variables": "Ana bilgisayarın CSS değişkenleri",

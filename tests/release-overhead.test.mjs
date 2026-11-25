@@ -339,7 +339,7 @@ test('pre-push rejects a dev candidate other than the clean checked-out commit',
     assert.doesNotMatch(changedTree.stdout, /Running release guard checks/);
 });
 
-test('only tracked source enters package staging and redirected tracked paths fail closed', shellOnly, t => {
+test('package staging rejects eligible untracked source and redirected tracked paths', shellOnly, t => {
     const f = fixture(t);
     f.copy('scripts/lib.sh');
     f.write('.gitignore', 'tmp/\n');
@@ -347,20 +347,31 @@ test('only tracked source enters package staging and redirected tracked paths fa
     f.write(trackedSource, 'tracked source\n');
     f.commit('Package source');
     f.write('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/tmp/local-notes.md', 'ignored fixture\n');
-    f.write('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/untracked.txt', 'untracked fixture\n');
+    const newSource = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/new-runtime.js';
+    f.write(newSource, 'new runtime dependency\n');
+    f.write('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/local-only.txt', 'excluded fixture\n');
     const staging = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-package-input-'));
     t.after(() => fs.rmSync(staging, { recursive: true, force: true }));
-    const copyInput = () => spawnSync('bash', ['-c', 'set -euo pipefail\nsource scripts/lib.sh\nfvplus::copy_indexed_package_source "$PWD" "$1"', 'fixture', staging],
+    const copyInput = () => spawnSync('bash', ['-c', [
+        'set -euo pipefail', 'source scripts/lib.sh', 'should_package() { [[ "$1" != */local-only.txt && "$1" != */scripts ]]; }',
+        'fvplus::copy_indexed_package_source "$PWD" "$1" should_package'
+    ].join('\n'), 'fixture', staging],
         { cwd: f.directory, encoding: 'utf8' });
+    const untracked = copyInput();
+    assert.notEqual(untracked.status, 0);
+    assert.match(untracked.stderr, /outside the Git index: .*new-runtime\.js/);
+    assert.deepEqual(fs.readdirSync(staging), []);
+    f.git('add', '--', newSource);
     const result = copyInput();
     assert.equal(result.status, 0, result.stderr);
     const packagedPlugin = path.join(staging, 'usr/local/emhttp/plugins/folderview.plus');
     assert.deepEqual(fs.readdirSync(packagedPlugin), ['scripts']);
     assert.equal(fs.readFileSync(path.join(packagedPlugin, 'scripts/runtime.js'), 'utf8'), 'tracked source\n');
+    assert.equal(fs.readFileSync(path.join(packagedPlugin, 'scripts/new-runtime.js'), 'utf8'), 'new runtime dependency\n');
 
     f.write('redirected/runtime.js', 'redirect target\n');
     const originalDirectory = path.dirname(path.join(f.directory, trackedSource));
-    fs.renameSync(originalDirectory, `${originalDirectory}-original`);
+    fs.renameSync(originalDirectory, path.join(f.directory, 'scripts-original'));
     fs.symlinkSync(path.join(f.directory, 'redirected'), originalDirectory);
     const redirected = copyInput();
     assert.notEqual(redirected.status, 0);

@@ -60,6 +60,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-detail.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-foundation.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils-child-order.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js"
@@ -108,7 +109,9 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/server/read_info.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/docker_runtime_preview.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.docker-autostart-toggle.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.docker-preview-summary.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.setup-assistant-rollback.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/create.php"
@@ -190,6 +193,7 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.activity-detail.js"
   "scripts/folderviewplus.activity-diagnostics.js"
   "scripts/folderviewplus.utils-foundation.js"
+  "scripts/folderviewplus.utils-child-order.js"
   "scripts/folderviewplus.utils.js"
   "scripts/folderviewplus.settings-tree.js"
   "scripts/folderviewplus.tree-integrity.js"
@@ -244,7 +248,9 @@ REQUIRED_FILES=(
   "server/read_info.php"
   "server/runtime_snapshot.php"
   "server/docker_runtime_preview.php"
+  "server/lib.docker-autostart-toggle.php"
   "server/lib.docker-preview-summary.php"
+  "server/lib.setup-assistant-rollback.php"
   "server/lib.runtime-snapshot.php"
   "server/security.php"
   "server/create.php"
@@ -284,6 +290,23 @@ while IFS= read -r -d '' file; do
   fi
   "${PHP_BIN}" -l "${php_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/server" -type f -name "*.php" -print0)
+
+PHP_FIXTURE_DIR="${TMP_DIR}/php-bootstrap"
+mkdir -p "${PHP_FIXTURE_DIR}/config" "${PHP_FIXTURE_DIR}/host"
+cat > "${PHP_FIXTURE_DIR}/bootstrap.php" <<'PHP'
+<?php
+$pluginRoot = $argv[1];
+$configRoot = __DIR__ . '/config';
+$_SERVER['DOCUMENT_ROOT'] = __DIR__ . '/host';
+putenv('FVPLUS_TEST_CONFIG_DIR=' . $configRoot);
+putenv('FVPLUS_TEST_SOURCE_DIR=' . $pluginRoot);
+putenv('FVPLUS_TEST_STORAGE_DIR=' . $configRoot);
+require $pluginRoot . '/server/lib.php';
+PHP
+"${PHP_BIN}" -d display_errors=stderr \
+  "$(fvplus::path_for_command "${PHP_BIN}" "${PHP_FIXTURE_DIR}/bootstrap.php")" \
+  "$(fvplus::path_for_command "${PHP_BIN}" "${PLUGIN_DIR}")"
+echo "Extracted shared PHP bootstrap passed."
 
 while IFS= read -r -d '' file; do
   if command -v wslpath >/dev/null 2>&1 && command_uses_windows_path_translation "${NODE_BIN}"; then

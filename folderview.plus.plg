@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.06">
-<!ENTITY md5 "dadf80de9313fd35158ca0861d8de7dc">
-<!ENTITY sha256 "e97facaadc9831d468f8a9d5ae6b4d571e0e915604082ddbf75c7991da7ae0e4">
+<!ENTITY version "2026.11.25.07">
+<!ENTITY md5 "8665c6e563c13e46176e5e4cca9077e6">
+<!ENTITY sha256 "c6fed96b225e2a1cc491c17c3baae684327beccf840af4968409ae57b60db3a0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.07
+- Fix: Restore the FolderView Plus Settings page and Docker folders by including the runtime files omitted from the previous package.
+
 
 ###2026.11.25.06
 - Fix: Setup Assistant protects newer settings and rules when undoing a failed run, and reports imports as applied only after they are saved.

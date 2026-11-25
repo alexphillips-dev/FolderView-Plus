@@ -17,6 +17,7 @@ fvplus::read_package_build_paths() {
 }
 
 fvplus::copy_indexed_package_source() (
+  set -o pipefail
   local repository="$1" destination="$2" filter="${3:-}" package_root file
   repository="$(cd "${repository}" && pwd -P)" || exit 1
   package_root="${repository}/src/folderview.plus"
@@ -25,6 +26,12 @@ fvplus::copy_indexed_package_source() (
   [[ -z "$(git -C "${repository}" ls-files --unmerged -- "${FVPLUS_PACKAGE_SOURCE_ROOT}")" ]] \
     || fvplus::fail 'Resolve source conflicts before building the package.'
   cd "${package_root}" || exit 1
+  git -C "${repository}" ls-files -z --others --exclude-standard -- "${FVPLUS_PACKAGE_SOURCE_ROOT}" |
+    while IFS= read -r -d '' file; do
+      file="./${file#"${FVPLUS_PACKAGE_SOURCE_ROOT}"}"
+      if [[ -n "${filter}" ]] && ! "${filter}" "${file}"; then continue; fi
+      fvplus::fail "Package source is outside the Git index: ${file}. Stage the intended source before building."
+    done || exit 1
   git -C "${repository}" ls-files -z --error-unmatch -- "${FVPLUS_PACKAGE_SOURCE_ROOT}" |
     while IFS= read -r -d '' file; do
       file="./${file#"${FVPLUS_PACKAGE_SOURCE_ROOT}"}"

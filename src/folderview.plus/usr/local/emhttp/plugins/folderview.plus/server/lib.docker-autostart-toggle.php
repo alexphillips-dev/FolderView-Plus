@@ -1,5 +1,4 @@
 <?php
-
 function setDockerStartOrderAutostart(string $name, bool $enabled): array {
     return withConfigMutationLock(static function () use ($name, $enabled): array {
         if (!dockerStartOrderIsManaged()) {
@@ -18,17 +17,28 @@ function setDockerStartOrderAutostart(string $name, bool $enabled): array {
                 fvplusRuntimeInventoryFailure();
             }
             $context = buildDockerStartOrderContext($inventory);
-            $path = $context['autoStartFile'];
             $original = $context['autoStartContent'];
             if ($original === null) {
                 throw new FVPlusConfigConflictException('Docker start order sync failed');
             }
             $lines = preg_split('/(?<=\n)/', $original, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $lineName = static fn(string $line): string => preg_split('/\s+/', trim($line), 2)[0] ?? '';
-            if ($enabled && !isset($context['autoStartMap'][$name])) {
+            $wasEnabled = isset($context['autoStartMap'][$name]);
+            if ($enabled === $wasEnabled) {
+                if (writeDockerStartOrderChanges($context, $original, $context['batchWaitOwnership']) !== null) {
+                    throw new FVPlusConfigConflictException('Docker start order sync failed');
+                }
+                return ['enabled' => $enabled];
+            }
+            $priorPlan = buildDockerStartOrderPlan($context);
+            $originalContext = $context;
+            if ($enabled) {
                 $context['autoStartMap'][$name] = $name;
-                $plan = buildDockerStartOrderPlan($context);
-                $sequence = array_column($plan['sequence'], null, 'name');
+            } else {
+                unset($context['autoStartMap'][$name]);
+            }
+            $plan = buildDockerStartOrderPlan($context);
+            if ($enabled) {
                 $rank = array_search($name, $plan['autostartOrder'], true);
                 $remaining = $rank === false ? [] : array_slice($plan['autostartOrder'], $rank + 1);
                 $following = array_fill_keys($remaining, true);
@@ -42,26 +52,16 @@ function setDockerStartOrderAutostart(string $name, bool $enabled): array {
                 if ($index > 0 && !str_ends_with($lines[$index - 1], "\n")) {
                     $lines[$index - 1] .= "\n";
                 }
-                $entry = fvplus_set_autostart_line_delay($name, $sequence[$name]['wait'] ?? 0);
-                array_splice($lines, $index, 0, [$entry . "\n"]);
-            } elseif (!$enabled) {
+                array_splice($lines, $index, 0, [$name . "\n"]);
+            } else {
                 $lines = array_filter($lines, static fn(string $line): bool => $lineName($line) !== $name);
             }
-            $next = implode('', $lines);
-            clearstatcache(true, $path);
-            $current = is_file($path) ? @file_get_contents($path) : '';
-            if ($current !== $original) {
+
+            $ownership = $context['batchWaitOwnership'];
+            $affected = dockerAutostartToggleWaitScope($name, $priorPlan, $plan, $ownership);
+            $reconciled = applyDockerStartOrderSequenceWaits($lines, $plan['sequence'], $ownership, $affected);
+            if (writeDockerStartOrderChanges($originalContext, implode('', $reconciled['lines']), $reconciled['ownership']) !== null) {
                 throw new FVPlusConfigConflictException('Docker start order sync failed');
-            }
-            if ($next !== $original) {
-                try {
-                    writeDurableFileAtomic($path, $next);
-                } catch (Throwable $error) {
-                    throw new FVPlusConfigConflictException('Docker start order sync failed');
-                }
-                if (@file_get_contents($path) !== $next) {
-                    throw new FVPlusConfigConflictException('Docker start order sync failed');
-                }
             }
             return ['enabled' => $enabled];
         } finally {

@@ -19,7 +19,8 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
         $transaction = applyEnvironmentSnapshotTransaction($target, $name,
             array_merge($options, ['reason' => 'global-rollback', 'preserveRollbackNames' => [$name],
                 'preserveHierarchy' => true,
-                'nativeAutostart' => $guardedSetup ? null : ($decoded['nativeDockerAutostart'] ?? null)]));
+                'nativeAutostart' => $guardedSetup ? null : ($decoded['nativeDockerAutostart'] ?? null),
+                'nativeBatchWaits' => $guardedSetup ? null : ($decoded['nativeDockerBatchWaits'] ?? null)]));
         $counts = ['docker' => count($types['docker']['folders']), 'vm' => count($types['vm']['folders'])];
         try {
             appendDiagnosticsHistoryEvent('rollback_restore', null, [
@@ -28,7 +29,8 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
         } catch (Throwable $error) { /* Optional history cannot change a committed restore. */ }
         return ['name' => $name, 'restoredAt' => gmdate('c'),
             'dockerCount' => $counts['docker'], 'vmCount' => $counts['vm'],
-            'undoSnapshot' => (string)($transaction['rollback']['name'] ?? ''), 'verified' => true];
+            'undoSnapshot' => (string)($transaction['rollback']['name'] ?? ''), 'verified' => true,
+            ...(isset($transaction['dockerOrderSync']) ? ['dockerOrderSync' => $transaction['dockerOrderSync']] : [])];
     });
 }
 

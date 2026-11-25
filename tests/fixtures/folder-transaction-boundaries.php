@@ -11,9 +11,10 @@ namespace FolderBoundary {
         if (($GLOBALS['folder_boundary']['stage'] ?? '') === 'prefs') throw new \RuntimeException('Injected preference write failure.');
         return $result;
     }
-    function syncContainerOrder(string $type): void {
+    function syncContainerOrder(string $type, ?callable $onWrite = null): void {
         if (($GLOBALS['folder_boundary']['stage'] ?? '') === 'native') {
-            file_put_contents(\fvplusEnvironmentDockerAutostartPath(), 'Injected native mutation.');
+            \writeTrackedDockerOrderFile(\fvplusEnvironmentDockerAutostartPath(), 'Injected native mutation.', $onWrite);
+            \writeTrackedDockerOrderFile(\dockerBatchWaitStatePath(), '{"active":[]}', $onWrite, 0600);
             throw new \RuntimeException('Injected native order failure.');
         }
     }
@@ -46,6 +47,7 @@ namespace {
     }
     file_put_contents(fvplusEnvironmentDockerAutostartPath(), "original-native 5\n");
     $paths = fvplusTypeTransactionPaths($type);
+    if ($type === 'docker') $paths[] = dockerBatchWaitStatePath();
     foreach ($paths as $path) if (is_file($path)) chmod($path, 0600);
     $capture = static fn(): array => fvplusEnvironmentCaptureFiles($paths);
     $before = $capture();

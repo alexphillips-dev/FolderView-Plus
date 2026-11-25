@@ -31,6 +31,7 @@ function fvplusTransactionRestoreFiles(array $snapshots): void {
         if ($path === '') continue;
         try {
             fvplusAssertDurableWriteTarget($path);
+            if (isset($snapshot['restoreIfMatches']) && fvplusTransactionCaptureFile($path) !== $snapshot['restoreIfMatches']) continue;
             if (!empty($snapshot['exists'])) {
                 if (!is_string($snapshot['content'] ?? null)) {
                     throw new RuntimeException('Transaction capture failed: unable to read file.');
@@ -50,7 +51,6 @@ function fvplusTransactionRestoreFiles(array $snapshots): void {
         throw new RuntimeException('Transaction rollback was incomplete: ' . implode('; ', $errors));
     }
 }
-
 function fvplusTransactionRestoreAfterFailure(array $snapshots, Throwable $error, callable $restoreFiles): void {
     try {
         $restoreFiles($snapshots);

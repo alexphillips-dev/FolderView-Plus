@@ -44,7 +44,9 @@
                     await flushPostSaveTypeSync(options);
                     return true;
                 } catch (error) {
-                    const title = surfaceT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed');
+                    const title = error?.syncOutcome === 'queued'
+                        ? surfaceT('common.repair.runtime-preference-sync-pending-fa357c', 'Runtime preference sync pending')
+                        : surfaceT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed');
                     const message = extractAjaxErrorMessage(error, title);
                     if (typeof win.swal !== 'function') {
                         win.alert(`${title}: ${win.FolderViewPlusI18n?.message?.(message) || message}`);

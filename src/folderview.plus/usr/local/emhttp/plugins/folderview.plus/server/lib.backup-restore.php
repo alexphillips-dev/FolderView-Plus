@@ -3,7 +3,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
     $type = ensureType($type);
     return withConfigMutationLock(static function () use ($type, $name, $options): array {
         // Resolve and validate the target before creating or pruning any backup.
-        $snapshot = readBackupSnapshot($type, $name);
+        $snapshot = readBackupSnapshot($type, $name, $options['reviewHash'] ?? null);
         $editorUndo = isset($options['expectedFolderRevision']);
         if ($editorUndo && ($snapshot['reason'] !== 'before-folder-editor-bulk-move'
             || ($snapshot['configurationMetadata']['folderRevision'] ?? null) !== $options['expectedFolderRevision'] - 1)) {
@@ -16,10 +16,13 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         $templatePath = getTemplatePath($type);
         $undoPath = getBackupsDirPath() . "/.$type-undo.json";
         $undoBackups = $options['undoBackups'] ?? null;
-        $paths = fvplusTypeTransactionPaths($type);
+        $paths = fvplusTypeTransactionPaths($type, false);
         if ($templates !== null) array_push($paths, $templatePath, getLastGoodJsonPath($templatePath));
         if ($undoBackups !== null) $paths[] = $undoPath;
         $before = fvplusEnvironmentCaptureFiles($paths);
+        $nativeWrites = [];
+        $recordNativeWrite = fvplusTransactionRecordFileWrites($nativeWrites);
+        $dockerOrderSync = null;
         try {
             $prefs = $editorUndo ? readTypePrefs($type) : reconcileManualOrderPrefs($snapshot['prefs'] ?? readTypePrefs($type), $folders);
             $backup = null;
@@ -42,7 +45,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
                 fvplusEnvironmentTransactionStage($options, 'templates');
             }
             if ($type === 'docker') {
-                syncContainerOrder('docker');
+                $dockerOrderSync = fvplusRecoverySyncDockerOrder($recordNativeWrite);
                 fvplusEnvironmentTransactionStage($options, 'docker-order');
             }
             $savedFolders = $preserveHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
@@ -55,7 +58,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
                 writeJsonObjectAtomic($undoPath, ['state' => fvplusBackupUndoCurrentState($type), 'checkpoints' => $undoBackups]);
             }
         } catch (Throwable $error) {
-            fvplusTransactionRestoreAfterFailure($before, $error, static function(array $files): void { fvplusEnvironmentRestoreFiles($files); });
+            fvplusTransactionRestoreAfterFailure(array_merge($before, array_values($nativeWrites)), $error, fvplusEnvironmentRestoreFiles(...));
             if (isset($backup['name'])) @unlink(getBackupSnapshotPath($type, $backup['name']));
             throw $error;
         }
@@ -74,6 +77,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
         return [
             'name' => $snapshot['name'], 'restoredAt' => gmdate('c'), 'count' => count($folders),
             'prefsRestored' => !$editorUndo && $snapshot['prefs'] !== null, 'backup' => $backup,
+            ...($dockerOrderSync !== null ? ['dockerOrderSync' => $dockerOrderSync] : []),
             ...($templates === null ? [] : ['templatesRestored' => true])
         ];
     });

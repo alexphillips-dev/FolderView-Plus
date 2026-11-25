@@ -1,9 +1,9 @@
 <?php
 namespace InventoryRepairFixture {
-    function syncContainerOrder(string $type): void {
+    function syncContainerOrder(string $type, ?callable $onWrite = null): void {
         $GLOBALS['inventory_order_calls'][] = $type;
         if (!empty($GLOBALS['inventory_request']['repairSyncFailure'])) {
-            file_put_contents(\fvplusEnvironmentDockerAutostartPath(), 'Modified native order');
+            \writeTrackedDockerOrderFile(\fvplusEnvironmentDockerAutostartPath(), 'Modified native order', $onWrite);
             throw new \RuntimeException('Injected late Docker order failure.');
         }
     }
@@ -16,7 +16,7 @@ namespace InventoryRepairFixture {
     }
 }
 namespace InventorySyncFixture {
-    function applyDockerStartOrderSequenceWaits(array $lines, array $sequence): array {
+    function applyDockerStartOrderSequenceWaits(array $lines, array $sequence, array $ownership, ?array $affectedNames = null): array {
         if (!empty($GLOBALS['inventory_request']['hostChange'])) {
             $path = $GLOBALS['inventory_native_path'];
             $code = 'file_put_contents(' . var_export($path, true) . ', "docker-extra 88\\ndocker-present 99\\n");';
@@ -26,7 +26,7 @@ namespace InventorySyncFixture {
             if (proc_close($process) !== 0) throw new \RuntimeException('Fixture native writer failed');
             $GLOBALS['inventory_host_written'] = file_get_contents($path);
         }
-        return \applyDockerStartOrderSequenceWaits($lines, $sequence);
+        return \applyDockerStartOrderSequenceWaits($lines, $sequence, $ownership, $affectedNames);
     }
 }
 namespace {
@@ -184,6 +184,7 @@ namespace {
     file_put_contents("$root/config/native-autostart", "docker-present 0\nstale-host-entry 0\n");
     if ($operation !== 'repair') file_put_contents("$root/config/native-autostart", "docker-extra 19\r\n\r\ndocker-present 7\nstale-host-entry 31\n");
     if (isset($request['nativeAutostart'])) file_put_contents("$root/config/native-autostart", $request['nativeAutostart']);
+    if (isset($request['batchWaitState'])) file_put_contents(dockerBatchWaitStatePath(), json_encode($request['batchWaitState'], JSON_THROW_ON_ERROR));
     if (isset($request['nativePageOrder'])) file_put_contents("$root/config/native-userprefs", $request['nativePageOrder']);
     if ($request['scenario'] === 'stale-cache') {
         writeReadInfoCache($type, 'state', ['cached-gone' => []]);
@@ -228,7 +229,8 @@ namespace {
         ksort($result); return $result;
     }
     $before = fixtureInventoryFiles("$root/config"); $error = ''; $repair = null;
-    $response = null; $responseStatus = null; $nativeBefore = file_get_contents("$root/config/native-autostart");
+    $response = null; $responseStatus = null; $waitMapIsObject = null;
+    $nativeBefore = file_get_contents("$root/config/native-autostart");
     $nativeModeBefore = fileperms("$root/config/native-autostart") & 0777;
     try {
         if ($operation === 'repair') $repair = \InventoryRepairFixture\fvplusRepairOrphanedMemberReferences($type);
@@ -273,7 +275,12 @@ namespace {
             }
             $body = substr(file_get_contents("$server/$endpoint"), 5);
             $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace('\\', '/', $server) . '/', $body);
-            ob_start(); eval($body); $response = json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR);
+            ob_start(); eval($body); $json = ob_get_clean();
+            $response = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+            if ($operation === 'start-save') {
+                $wire = json_decode($json, false, 512, JSON_THROW_ON_ERROR);
+                $waitMapIsObject = is_object($wire->prefs->dockerStartOrder->containerWaits ?? null);
+            }
             $responseStatus = http_response_code() ?: 200;
         }
     }
@@ -294,6 +301,7 @@ namespace {
         'calls' => $GLOBALS['inventory_calls'], 'orderCalls' => $GLOBALS['inventory_order_calls'],
         'localized' => $localized, 'legacy' => $legacy, 'retry' => $retry,
         'response' => $response, 'responseStatus' => $responseStatus, 'syncPending' => hasDockerSyncOrderPending(),
+        'batchWaitState' => readJsonObjectFile(dockerBatchWaitStatePath()), 'waitMapIsObject' => $waitMapIsObject,
         'nativeBefore' => $nativeBefore, 'hostWritten' => $GLOBALS['inventory_host_written'] ?? null,
         'nativePageOrder' => is_file("$root/config/native-userprefs") ? file_get_contents("$root/config/native-userprefs") : null,
         'nativeModeBefore' => $nativeModeBefore, 'nativeMode' => fileperms("$root/config/native-autostart") & 0777,

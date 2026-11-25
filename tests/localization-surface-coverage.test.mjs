@@ -89,7 +89,7 @@ test('every explicit Start Order key is shipped in every locale catalog', () => 
     const referencedKeys = [...viewSource.matchAll(/startOrderT\(\s*['"]([^'"]+)['"]/g)].map((match) => match[1]);
     const locales = fs.readdirSync(namespacesRoot).filter((entry) => fs.statSync(path.join(namespacesRoot, entry)).isDirectory());
 
-    assert.equal(new Set(referencedKeys).size, 27);
+    assert.equal(new Set(referencedKeys).size, 28);
     for (const locale of locales) {
         const catalog = readJson(path.join(namespacesRoot, locale, 'settings.json'));
         for (const key of referencedKeys) {

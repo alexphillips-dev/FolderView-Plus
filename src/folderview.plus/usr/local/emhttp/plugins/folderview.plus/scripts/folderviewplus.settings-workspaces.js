@@ -70,6 +70,7 @@
         const refreshType = typeof deps.refreshType === 'function' ? deps.refreshType : (async () => {});
         const refreshBackups = typeof deps.refreshBackups === 'function' ? deps.refreshBackups : (async () => {});
         const refreshThemeWorkspace = typeof deps.refreshThemeWorkspace === 'function' ? deps.refreshThemeWorkspace : (async () => {});
+        const offerRecoveryDockerOrderRetry = deps.offerRecoveryDockerOrderRetry || (async () => {});
         const openImportApplyProgressDialog = typeof deps.openImportApplyProgressDialog === 'function' ? deps.openImportApplyProgressDialog : (() => {});
         const updateImportApplyProgressDialog = typeof deps.updateImportApplyProgressDialog === 'function' ? deps.updateImportApplyProgressDialog : (() => {});
         const closeImportApplyProgressDialog = typeof deps.closeImportApplyProgressDialog === 'function' ? deps.closeImportApplyProgressDialog : (() => {});
@@ -221,6 +222,7 @@
             const progressTotal = 7;
             let progressOpen = false;
             let appliedSummary = null;
+            let dockerOrderSync = null;
             const refreshWarning = () => translate('settings.groups.refresh-needed', 'The folders were saved. Refresh the page to show the latest configuration.');
             const setProgress = (completed, label) => {
                 updateImportApplyProgressDialog({
@@ -241,6 +243,7 @@
                 });
                 const importResult = response?.import;
                 if (importResult?.verified !== true) throw new Error(translate('diagnostics.migration.verification-failed', 'Configuration verification failed'));
+                dockerOrderSync = importResult.dockerOrderSync;
                 appliedSummary = importResult.summary || previewSummary || {};
                 const importedSummary = setRecoveryEnvironmentSummary(importResult.summary || previewSummary || {}, 'import');
                 setProgress(1, translate("common.audit.environment-applied", "Environment snapshot applied."));
@@ -273,6 +276,10 @@
                 const text = rollbackName
                     ? `Environment snapshot applied. Rollback checkpoint: ${rollbackName}.`
                     : translate("common.audit.environment-applied", "Environment snapshot applied.");
+                if (dockerOrderSync === 'queued' || dockerOrderSync === 'failed') {
+                    await offerRecoveryDockerOrderRetry(dockerOrderSync, { title, text });
+                    return importedSummary;
+                }
                 if (swal) {
                     swal({ title, text, type: 'success' });
                 }
@@ -292,7 +299,9 @@
                 if (appliedSummary) {
                     const title = translate('common.audit.environment-applied', 'Environment snapshot applied.');
                     const message = refreshWarning();
-                    if (swal) swal({ title, text: message, type: 'warning' });
+                    if (dockerOrderSync === 'queued' || dockerOrderSync === 'failed') {
+                        await offerRecoveryDockerOrderRetry(dockerOrderSync, { title, text: message });
+                    } else if (swal) swal({ title, text: message, type: 'warning' });
                     showToastMessage({ title, message, level: 'warning', durationMs: 6000 });
                     return appliedSummary;
                 }
@@ -471,7 +480,7 @@
                         </button>
                         <span class="fv-recovery-history-badges">${index === 0 ? `<span class="fv-recovery-history-badge">${escapeHtml(translate("legacy.surface.8730d3c2022abf1f", "Latest"))}</span>` : ''}${isRecoveryBackupEmpty(backup) ? `<span class="fv-recovery-history-badge is-warning">${escapeHtml(translate("legacy.surface.c6c094bc0054f9cb", "Empty"))}</span>` : ''}</span>
                         ${isSelected ? `<div class="fv-recovery-history-actions-row">
-                            <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.a76e13b9839270eb", "Restore"))}</button>
+                            <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup('${escapeHtml(escapeJsString(backup.reviewHash || ''))}')"><i class="fa fa-history" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.a76e13b9839270eb", "Restore"))}</button>
                             <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.d6eafe8235910042", "Download"))}</button>
                             <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash" aria-hidden="true"></i> ${escapeHtml(translate("legacy.surface.e2d0a54968ead24e", "Delete"))}</button>
                         </div>` : `<i class="fa fa-chevron-right fv-recovery-row-chevron" aria-hidden="true"></i>`}
@@ -653,14 +662,14 @@
 
         const createActiveRecoveryBackup = () => createManualBackup(getActiveRecoveryWorkspaceType());
         const restoreLatestActiveRecoveryBackup = () => restoreLatestBackup(getActiveRecoveryWorkspaceType());
-        const restoreSelectedActiveRecoveryBackup = () => {
+        const restoreSelectedActiveRecoveryBackup = (reviewHash = '') => {
             const resolvedType = getActiveRecoveryWorkspaceType();
             const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
             if (!selectedName) {
                 showError(repairT710d5dec("common.repair.restore-failed-b8476c", "Restore failed"), new Error(translate("common.audit.select-backup", "Select a backup first.")));
                 return;
             }
-            restoreBackupEntry(resolvedType, selectedName);
+            restoreBackupEntry(resolvedType, selectedName, reviewHash);
         };
         const downloadSelectedActiveRecoveryBackup = () => {
             const resolvedType = getActiveRecoveryWorkspaceType();

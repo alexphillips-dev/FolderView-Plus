@@ -262,7 +262,13 @@ const createSetupAssistantApplySession = async (globalRollbackApi, conflictError
 
 const syncSetupAssistantDockerOrder = async (apiPostJson) => {
     const result = await apiPostJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
-    if (!result?.ok || result.syncOutcome === 'failed') throw new Error(result?.error || 'Docker start order sync failed');
+    if (result?.syncOutcome === 'queued') {
+        throw new Error(setupAssistantT('common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', 'FolderView Plus configuration is busy. Please retry the action.'));
+    }
+    if (!result?.ok || !['synced', 'unmanaged'].includes(result.syncOutcome)) {
+        throw new Error(result?.error || setupAssistantT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed'));
+    }
+    return result.syncOutcome;
 };
 
 const emptySetupAssistantTemplateOutcome = () => ({

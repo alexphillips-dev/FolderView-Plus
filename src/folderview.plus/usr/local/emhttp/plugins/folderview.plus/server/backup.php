@@ -114,6 +114,9 @@ fvplus_json_try(function (): array {
     if ($action === 'restore') {
         $name = (string)($_POST['name'] ?? '');
         $options = ['createSafetyBackup' => normalizeBool($_POST['createSafetyBackup'] ?? false)];
+        if (array_key_exists('reviewHash', $_POST)) {
+            $options['reviewHash'] = is_string($_POST['reviewHash']) ? $_POST['reviewHash'] : '';
+        }
         if (array_key_exists('expectedFolderRevision', $_POST)) {
             $expected = $_POST['expectedFolderRevision'];
             if (!is_scalar($expected) || !ctype_digit((string)$expected) || (int)$expected < 1) {

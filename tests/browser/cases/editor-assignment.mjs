@@ -7,7 +7,7 @@ const root = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const folderPage = fs.readFileSync(`${root}/Folder.page`, 'utf8');
 const folderJs = fs.readFileSync(`${root}/scripts/folder.js`, 'utf8');
 const getMembersApi = folderJs.match(/const getFolderEditorMembersApi = \(\) => \{[\s\S]*?\n\};/)[0];
-const updateList = folderJs.match(/const updateList = \(afterRender = null\) => [\s\S]*?\n\}\);/)[0];
+const updateList = folderJs.match(/const updateList = \(afterRender = null\) => \{[\s\S]*?\n\};/)[0];
 const scripts = [...folderPage.matchAll(/\/scripts\/((?:folderviewplus\.(?:utils[\w-]*|folder-groups-model|membership|rules-engine|request[\w-]*)|folder\.member-identity|runtime\.folder-ordering)\.js)/g)]
     .map((match) => match[1]).concat(['folder.editor.member-list.js', 'folder.editor.members.js']);
 

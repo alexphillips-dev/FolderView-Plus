@@ -136,6 +136,11 @@ $after = migrationFiles($root . '/config');
 $protected = static fn(array $files): array => array_filter($files, static fn($key): bool => !str_contains($key, 'backup') && !str_contains($key, 'rollback') && !str_contains($key, 'history') && !str_ends_with($key, '.lock'), ARRAY_FILTER_USE_KEY);
 $result['unchanged'] = $before === $after;
 $result['protectedUnchanged'] = $protected($before) === $protected($after);
+if (!empty($request['breakNativeVerification'])) {
+    $result['externalNativeUpdatePreserved'] = file_get_contents($nativePath) === 'synthetic changed bytes';
+    $nativeOnly = ['native-autostart' => true];
+    $result['protectedPluginConfigurationUnchanged'] = $protected(array_diff_key($before, $nativeOnly)) === $protected(array_diff_key($after, $nativeOnly));
+}
 $result['before'] = $before; $result['after'] = $after;
 $result['diagnosticEvents'] = readDiagnosticsHistoryEvents(20);
 if (!empty($request['includeSupportBundle'])) {

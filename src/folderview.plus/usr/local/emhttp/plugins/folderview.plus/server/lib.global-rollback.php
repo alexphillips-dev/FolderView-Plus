@@ -118,8 +118,9 @@
         });
     }
 
-    function createGlobalRollbackSnapshot(string $reason = 'manual', array $protectedNames = [], bool $prune = true, ?array $nativeAutostart = null): array {
-        return withConfigMutationLock(static function () use ($reason, $protectedNames, $prune, $nativeAutostart): array {
+    function createGlobalRollbackSnapshot(string $reason = 'manual', array $protectedNames = [], bool $prune = true,
+        ?array $nativeAutostart = null, ?array $nativeBatchWaits = null): array {
+        return withConfigMutationLock(static function () use ($reason, $protectedNames, $prune, $nativeAutostart, $nativeBatchWaits): array {
             $rollbackDir = getGlobalRollbackDirPath();
             if (!is_dir($rollbackDir)) {
                 @mkdir($rollbackDir, 0770, true);
@@ -155,8 +156,8 @@
             ];
             if ($nativeAutostart !== null) {
                 // Checkpoints can contain arbitrary native bytes, but never a path supplied at restore.
-                $payload['nativeDockerAutostart'] = ['exists' => $nativeAutostart['exists'],
-                    'contentBase64' => base64_encode($nativeAutostart['content']), 'mode' => $nativeAutostart['mode']];
+                $payload['nativeDockerAutostart'] = fvplusEncodeGlobalRollbackFile($nativeAutostart);
+                if (!empty($nativeBatchWaits['exists'])) $payload['nativeDockerBatchWaits'] = fvplusEncodeGlobalRollbackFile($nativeBatchWaits);
             }
             writeJsonObjectAtomic("$rollbackDir/$filename", $payload);
             $pruned = $prune ? pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, [$filename, ...$protectedNames]) : [];
@@ -205,18 +206,7 @@
         if (isset($decoded['themeWorkspace']) && !is_array($decoded['themeWorkspace'])) {
             throw new RuntimeException('Rollback snapshot contains invalid Theme Workspace data.');
         }
-        if (array_key_exists('nativeDockerAutostart', $decoded)) {
-            $native = $decoded['nativeDockerAutostart'];
-            $content = is_string($native['contentBase64'] ?? null) ? base64_decode($native['contentBase64'], true) : false;
-            $mode = $native['mode'] ?? null;
-            if (!is_bool($native['exists'] ?? null) || $content === false
-                || (!$native['exists'] && ($content !== '' || $mode !== null))
-                || ($native['exists'] && (!is_int($mode) || $mode < 0 || $mode > 0777))) {
-                throw new RuntimeException('Rollback snapshot format or schema version is unsupported.');
-            }
-            $decoded['nativeDockerAutostart'] = ['exists' => $native['exists'], 'content' => $content, 'mode' => $mode];
-        }
-        return $decoded;
+        return fvplusDecodeGlobalRollbackNativeFiles($decoded);
     }
 
     function fvplusVerifyNativeAutostartTarget(string $path, array $expected): void {

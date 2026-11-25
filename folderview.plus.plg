@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.07">
-<!ENTITY md5 "8665c6e563c13e46176e5e4cca9077e6">
-<!ENTITY sha256 "c6fed96b225e2a1cc491c17c3baae684327beccf840af4968409ae57b60db3a0">
+<!ENTITY version "2026.11.25.08">
+<!ENTITY md5 "6d3de866ae09728f8779a7cbe30dd6c6">
+<!ENTITY sha256 "d3c7578039bd091bbbe40b1142984a059c382e98ad4384cea28bac025f0889f6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.08
+- Fix: Keep all assigned Docker containers and VMs when saving or copying a folder with a large member list.
+- Fix: Verify that a selected recovery backup still matches the reviewed snapshot, preserve independent Docker autostart edits during rollback, and report when the restored configuration still needs a native startup sync.
+- Fix: Move plugin-managed batch delays to the current last autostart container, preserve waits edited from another tab, and keep Startup Preview and controls consistent after queued syncs or rejected saves.
+- Fix: Apply native Docker order changes on live refresh and automatically retry Dashboard grouping after Docker or VM inventory recovers.
+- Fix: Resume an interrupted uninstall on the same boot when its removal journal matches the registered plugin.
+- Fix: Avoid duplicate scheduled backups when the newest file is damaged, flag unsupported VM rule predicates in Diagnostics, and translate the unmanaged Startup Preview notice.
+
 
 ###2026.11.25.07
 - Fix: Restore the FolderView Plus Settings page and Docker folders by including the runtime files omitted from the previous package.
@@ -10850,14 +10859,22 @@ FOLDER_VIEW_PLUS_RECOVERY
             nextboot_manifest="${nextboot_dir}/&name;.plg"
             nextboot_assets="${nextboot_dir}/&name;"
             quarantined_update="${removal_state}.nextboot"
+            removal_digest="$(sha256sum -- "${registered_manifest}")" || exit 1
             removal_version=""
+            previous_removal_digest=""
             removal_phase=""
             if [ -e "${removal_state}" ] || [ -L "${removal_state}" ]; then
                 [ -f "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ] || exit 1
-                read -r removal_version _ removal_phase &lt; "${removal_state}" || exit 1
+                read -r removal_version previous_removal_digest removal_phase &lt; "${removal_state}" || exit 1
             fi
             incomplete_removal=false
-            if [ "${removal_version}" = "&version;" ] &amp;&amp; [ -n "${removal_phase}" ] &amp;&amp; [ "${removal_phase}" != prepared ]; then
+            if [ "${removal_version}" = "&version;" ] &amp;&amp;
+                [[ "${removal_phase}" = cleanup || "${removal_phase}" = ready ]]; then
+                registered_version="$(sed -nE 's/^&lt;!ENTITY version "([^"]+)">\r?$/\1/p' "${registered_manifest}")" || exit 1
+                if [ "${previous_removal_digest}" != "${removal_digest%% *}" ] || [ "${registered_version}" != "&version;" ]; then
+                    printf 'The FolderView Plus removal journal does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
+                    exit 1
+                fi
                 incomplete_removal=true
             fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
@@ -10866,7 +10883,7 @@ FOLDER_VIEW_PLUS_RECOVERY
                     printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
                     exit 1
                 fi
-            elif [ "${removal_version}" != "&version;" ] || [ -f "&plugdir;/FolderViewPlus.page" ]; then
+            elif [ "${incomplete_removal}" = false ]; then
                 for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
                     if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
                         &amp;&amp; [ "${package_record##*/}" != "&name;-&version;" ]; then
@@ -11062,7 +11079,6 @@ FOLDER_VIEW_PLUS_REMOVAL_BOOT
             retire_rejected_removal() {
                 /bin/bash "${removal_helper}" cancel
             }
-            removal_digest="$(sha256sum -- "${registered_manifest}")" || exit 1
             if [ "${incomplete_removal}" = false ] &amp;&amp; ! record_removal prepared; then
                 restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
                 exit 1

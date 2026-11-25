@@ -67,9 +67,17 @@ if (($request['operation'] ?? '') === 'stored-membership') {
 }
 if (($request['operation'] ?? '') === 'diagnostics') {
     $folders = $request['folders']; $info = $request['info'];
+    $type = $request['type'] ?? 'docker';
     $prefs = array_replace(defaultTypePrefs(), ['autoRules' => $request['rules']]);
-    $snapshot = diagnosticsBuildStateSnapshot('docker', $folders, $prefs, $info, 'sanitized');
-    $integrity = diagnosticsBuildIntegrityChecks('docker', $folders, $prefs, $info, 'sanitized', array_keys($info));
+    if (!empty($request['viaImport'])) {
+        $environment = exportEnvironmentSnapshotPayload();
+        $environment['types'][$type] = ['folders' => $folders, 'prefs' => $prefs];
+        importEnvironmentSnapshotPayload($environment, 'fixture.json');
+        $prefs = readTypePrefs($type);
+        $folders = readRawFolderMap($type);
+    }
+    $snapshot = diagnosticsBuildStateSnapshot($type, $folders, $prefs, $info, 'sanitized');
+    $integrity = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $info, 'sanitized', array_keys($info));
     echo json_encode(['snapshot' => $snapshot, 'integrity' => $integrity], JSON_THROW_ON_ERROR);
     exit;
 }

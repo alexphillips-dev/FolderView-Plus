@@ -266,10 +266,10 @@ test('Docker editor syncs hierarchy edits and recognizes structured backend outc
     await sync({ ...previousFolder, parentId: 'parent-b' });
     await sync({ ...previousFolder, settings: { childFolderOrder: ['second', 'first'] } });
     assert.equal(calls.length, 2);
-    for (const status of ['queued', 'unmanaged']) {
-        outcome = status;
-        await sync({ ...previousFolder, parentId: 'parent-b' });
-    }
+    outcome = 'queued';
+    await assert.rejects(sync({ ...previousFolder, parentId: 'parent-b' }), error => error.syncOutcome === 'queued');
+    outcome = 'unmanaged';
+    await sync({ ...previousFolder, parentId: 'parent-b' });
     outcome = 'failed';
     await assert.rejects(sync({ ...previousFolder, parentId: 'parent-b' }), /Docker start order sync failed/);
     assert.equal(calls.length, 5);

@@ -3532,9 +3532,13 @@ const applySetupAssistantPlan = async () => {
             setupApply
         });
         setupCommitted = true;
+        let startupOrderNote = '';
         if (setupApply?.needsDockerSync()) {
             try {
-                await syncSetupAssistantDockerOrder(apiPostJson);
+                const outcome = await syncSetupAssistantDockerOrder(apiPostJson);
+                if (outcome === 'unmanaged') {
+                    startupOrderNote = setupAssistantT('settings.start-order.unmanaged-heading', 'Unraid owns the start order.');
+                }
             } catch (error) {
                 applyFailures.push({ phase: 'docker-order', type: 'docker', message: String(error?.message || error) });
             }
@@ -3580,6 +3584,7 @@ const applySetupAssistantPlan = async () => {
             checkpointText,
             `Duration: ${durationSeconds}s`
         ];
+        if (startupOrderNote) summaryLines.push(startupOrderNote);
         const templateReviewLines = buildSetupAssistantTemplateReviewLines(templateOutcomes);
         const templateDecisionLines = buildSetupAssistantTemplateDecisionLines(templateOutcomes);
         if (validationWarnings.length) {
@@ -3689,7 +3694,7 @@ const applySetupAssistantPlan = async () => {
                 { label: 'Duration', value: `${durationSeconds}s` }
             ],
             warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
-            noteLines: templateDecisionLines
+            noteLines: startupOrderNote ? templateDecisionLines.concat(startupOrderNote) : templateDecisionLines
         }, Boolean(setupApply));
         if (!undoNow || !setupApply) {
             return;

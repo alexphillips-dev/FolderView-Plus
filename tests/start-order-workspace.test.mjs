@@ -77,7 +77,7 @@ test('unmanaged sequence previews are visibly read-only', () => {
         sequence: [{ name: 'alpha', wait: 19, waitSource: 'native' }],
         staleAutostart: ['removed-app']
     }, { disabledNames: ['beta'] });
-    assert.match(html, /Unmanaged mode: this sequence is read-only/);
+    assert.match(html, /FolderView Plus will preview the native order but will not rewrite the Docker autostart file/);
     assert.match(html, /value="19" readonly/);
     assert.match(html, /aria-label="Autostart enabled for alpha" disabled/);
     assert.doesNotMatch(html, /will be removed|updateDockerStartOrderWait|toggleDockerStartOrderAutostart/);
@@ -104,6 +104,20 @@ test('unmanaged order blocks wait edits and native autostart mutations', async (
     assert.deepEqual(writes, [['beta', true]]);
     assert.equal(plan.containerWaits.alpha, 73);
     assert.equal(info.beta.autostart, true);
+});
+
+test('container wait edits submit only the intended entry, including a numeric name and explicit zero', async () => {
+    const old = { mode: 'docker-page', containerWaits: { alpha: 12, '0': 17 } };
+    const writes = [];
+    const controller = moduleApi.createApi({
+        getPlan: () => old, savePlan: async patch => writes.push(patch),
+        showError: (_label, error) => { throw error; }
+    });
+    await controller.updateWait('0', 0);
+    await controller.updateWait('alpha', 24);
+    await controller.updateWait('', 9);
+    assert.deepEqual(writes, [{ containerWaits: { '0': 0 } }, { containerWaits: { alpha: 24 } }]);
+    assert.deepEqual(old.containerWaits, { alpha: 12, '0': 17 });
 });
 
 test('start-order view escapes names and rejects executable icon URLs', () => {

@@ -92,6 +92,19 @@ test('manual global rollback requires a reviewed checkpoint and confirmation', a
     assert.deepEqual(calls, ['No previous rollback snapshot available.', 'confirm']);
 });
 
+test('manual global rollback reports a committed restore with deferred native startup', async () => {
+    const calls = [];
+    const actions = actionSupport.createSupportActions({
+        globalRollbackApi: async action => action === 'rollback_list' ? { name: 'checkpoint' }
+            : { targetName: 'checkpoint', verified: true, dockerOrderSync: 'queued' },
+        ui: { confirm: async () => true, alert: async () => calls.push('unexpected success') },
+        refreshAll: async () => calls.push('refreshed'),
+        offerRecoveryDockerOrderRetry: async (status, context) => calls.push([status, context.text])
+    });
+    await actions.rollbackLatestCheckpoint();
+    assert.deepEqual(calls, ['refreshed', ['queued', 'Restored checkpoint']]);
+});
+
 test('global rollback API selects a restorable previous row and sends the reviewed or named checkpoint', async () => {
     const source = fs.readFileSync(path.join(root, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js'), 'utf8');
     const calls = [];

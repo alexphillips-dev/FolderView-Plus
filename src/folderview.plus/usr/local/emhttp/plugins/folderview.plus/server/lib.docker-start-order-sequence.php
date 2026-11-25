@@ -1,11 +1,14 @@
 <?php
+require_once __DIR__ . '/lib.docker-batch-wait-state.php';
+
 function dockerStartOrderNativeWait(string $line): int {
     $parts = preg_split('/\s+/', trim($line), 3);
     return preg_match('/^\d+$/D', $parts[1] ?? '') ? (int)$parts[1] : 0;
 }
 
-function buildDockerStartOrderSequence(array $autostartOrder, array $context, array $plan, array $batches): array {
+function buildDockerStartOrderSequence(array $autostartOrder, array $context, array $plan, array $batches, bool $managed = true): array {
     $autoStartMap = (array)($context['autoStartMap'] ?? []);
+    $ownership = $managed ? ($context['batchWaitOwnership'] ?? []) : [];
     $waits = is_array($plan['containerWaits'] ?? null) ? $plan['containerWaits'] : [];
     $batchWaits = [];
     $batchIds = [];
@@ -21,7 +24,8 @@ function buildDockerStartOrderSequence(array $autostartOrder, array $context, ar
     $sequence = [];
     foreach ($autostartOrder as $name) {
         $name = (string)$name;
-        $wait = dockerStartOrderNativeWait((string)($autoStartMap[$name] ?? $name));
+        $line = (string)($autoStartMap[$name] ?? $name);
+        $wait = dockerStartOrderNativeWait(dockerBatchWaitUnderlyingLine($line, $ownership[$name] ?? null));
         $source = $wait > 0 ? 'native' : 'none';
         if (array_key_exists($name, $batchWaits)) {
             $wait = normalizeIntInRange($batchWaits[$name], 0, 3600, 0);
@@ -34,22 +38,4 @@ function buildDockerStartOrderSequence(array $autostartOrder, array $context, ar
         $sequence[] = ['name' => $name, 'wait' => $wait, 'waitSource' => $source, 'batchId' => $batchIds[$name] ?? ''];
     }
     return $sequence;
-}
-
-function applyDockerStartOrderSequenceWaits(array $lines, array $sequence): array {
-    $waitByName = [];
-    foreach ($sequence as $entry) {
-        $name = trim((string)($entry['name'] ?? ''));
-        if ($name !== '' && in_array($entry['waitSource'] ?? '', ['container', 'batch'], true)) {
-            $waitByName[$name] = normalizeIntInRange($entry['wait'] ?? 0, 0, 3600, 0);
-        }
-    }
-    foreach ($lines as $index => $line) {
-        $parts = preg_split('/\s+/', trim((string)$line), 2);
-        $name = (string)($parts[0] ?? '');
-        if (array_key_exists($name, $waitByName)) {
-            $lines[$index] = fvplus_set_autostart_line_delay((string)$line, $waitByName[$name]);
-        }
-    }
-    return $lines;
 }

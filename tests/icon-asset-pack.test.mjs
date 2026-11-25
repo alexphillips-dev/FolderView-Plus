@@ -197,7 +197,7 @@ test('core packaging excludes icon files and carries asset identity metadata', (
     assert.match(guardScript, /Icon source changed without rebuilding or versioning the asset pack/);
     assert.match(releaseGuard, /grep -Fvx 'usr\/local\/emhttp\/plugins\/folderview\.plus\/scripts\/install_icon_asset_pack\.sh'/);
     assert.doesNotMatch(releaseGuard, /ALLOWED_ARCHIVE_EXTENSIONS='[^']*\bsh\b/);
-    assert.match(pkgBuild, /FVPLUS_ICON_ASSET_PACK_GUARDED=1 FVPLUS_ARCHIVE_DIR/);
+    assert.match(pkgBuild, /FVPLUS_ICON_ASSET_PACK_GUARDED=1[\s\\]+FVPLUS_ARCHIVE_DIR/);
     assert.match(releaseGuard, /FVPLUS_ICON_ASSET_PACK_GUARDED:-0/);
 });
 

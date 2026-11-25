@@ -109,8 +109,10 @@
       "server/lib.setup-assistant-rollback.php": { "limit": 48, "target": 48, "history": [48] },
       "server/lib.docker-preview-summary.php": { "limit": 85, "target": 80, "history": [85] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
+      "server/lib.docker-batch-wait-state.php": { "limit": 116, "target": 116, "history": [116] },
       "server/lib.environment-snapshot.php": { "limit": 174, "target": 160, "history": [174] },
       "server/lib.environment-transaction.php": { "limit": 162, "target": 150, "history": [162] },
+      "server/lib.recovery-native-transaction.php": { "limit": 99, "target": 99, "history": [99] },
       "server/lib.folderview3-migration.php": { "limit": 462, "target": 400, "history": [462] },
       "server/lib.folderview3-apply.php": { "limit": 76, "target": 75, "history": [76] },
       "server/lib.folder-mutations.php": { "limit": 470, "target": 400, "history": [470] },
@@ -622,10 +624,20 @@
       "owner": "server-environment-transaction",
       "consumers": ["server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php", "server/lib.global-rollback.php"],
+      "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.recovery-native-transaction.php", "server/lib.backup-schedule.php", "server/lib.backup-snapshots.php", "server/lib.theme-workspace.php", "server/lib.docker-order.php", "server/lib.global-rollback.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 9, "sha256": "7efd0ccda0e15fb0d1602b275a82892337325fbc9097338e6ca8de399d913b98" }
+    },
+    {
+      "file": "server/lib.recovery-native-transaction.php",
+      "owner": "server-recovery-native-order-transaction",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.environment-transaction.php", "server/lib.transaction-files.php", "server/lib.docker-batch-wait-state.php", "server/lib.docker-order.php", "server/lib.global-rollback.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.environment-transaction.php",
+      "functionInventory": { "count": 7, "sha256": "61a6ed5a6f4ba0e785f901af2e74f5bd67ef756202535bec985a9b28897656c6" }
     },
     {
       "file": "server/lib.folderview3-apply.php",
@@ -779,10 +791,20 @@
       "owner": "server-docker-start-order-sequence",
       "consumers": ["plugin-pages", "server-endpoints"],
       "stateModel": "request-scoped",
-      "dependsOn": ["server/lib.prefs.php"],
+      "dependsOn": ["server/lib.prefs.php", "server/lib.docker-batch-wait-state.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 3, "sha256": "e8fe2a884e4b8ed890974351de1494f3af68ff55e6fb93050d503045b80e74c8" }
+      "functionInventory": { "count": 2, "sha256": "b218930f638f8a4d95171edc8e20fd02a2078d10967fa77df4ace7dca4d8b5bb" }
+    },
+    {
+      "file": "server/lib.docker-batch-wait-state.php",
+      "owner": "server-docker-batch-wait-ownership",
+      "consumers": ["plugin-pages", "server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.docker-order.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/lib.docker-start-order-sequence.php",
+      "functionInventory": { "count": 7, "sha256": "fb35ed2eb9f0d60ea4dcdf8c5289e4779fb7c9bf99e48133be435a764c271684" }
     },
     {
       "file": "server/lib.docker-page-order.php",
@@ -1002,7 +1024,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 11, "sha256": "4a4c32a264a72151639aa2da942979795106698d44c270c5900b43506f625cda" }
+      "functionInventory": { "count": 12, "sha256": "b583ba79825fa1274328171a4521f145db3a00ccbfd7257c3b9ae2d6ccd8a1d8" }
     },
     {
       "file": "server/lib.rules-backreference-policy.php",

@@ -165,12 +165,13 @@ test('new folder and copy submits share a single save while a create is pending 
     }
 });
 
-test('a structured sync failure after a create shows a warning and retries only the order sync', async () => {
-    for (const retry of [false, true]) {
+test('a failed or queued sync after a create warns and retries only the order sync', async () => {
+    const titles = { failed: 'Docker start order sync failed', queued: 'Runtime preference sync pending' };
+    for (const [outcome, title] of Object.entries(titles)) for (const retry of [false, true]) {
         let syncAttempts = 0;
         const warnings = [];
         const editor = dockerEditor.createApi({
-            securePost: async () => ({ ok: true, syncOutcome: ++syncAttempts === 1 ? 'failed' : 'synced' })
+            securePost: async () => ({ ok: true, syncOutcome: ++syncAttempts === 1 ? outcome : 'synced' })
         });
         const f = fixture({
             folderId: '', activeFolderEditorFolderId: '',
@@ -180,7 +181,7 @@ test('a structured sync failure after a create shows a warning and retries only 
         const saving = f.run();
         await new Promise(setImmediate);
         assert.equal(warnings[0].message.type, 'warning');
-        assert.equal(warnings[0].message.title, 'Docker start order sync failed');
+        assert.equal(warnings[0].message.title, title);
         assert.equal(f.context.location.href, '/Docker/Folder?id=fixture');
         await f.run(true);
         warnings[0].respond(retry);

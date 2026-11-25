@@ -156,6 +156,7 @@ function createBackupSnapshot($type, $reason, $prune) {
 }
 function fvplusTypeTransactionPaths($type) { return []; }
 function fvplusEnvironmentCaptureFiles($paths) { return []; }
+function fvplusTransactionRecordFileWrites(array &$writes): Closure { return static function (): void {}; }
 function fvplusTransactionRestoreAfterFailure($snapshots, $error, $restoreFiles) {}
 function getTypeBackupRetention($type) { return 1; }
 function pruneBackupSnapshots($type, $keep, $protected) { global $events; $events[] = ['prune', $type]; }

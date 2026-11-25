@@ -42,7 +42,7 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 72);
+    assert.equal(architecture.serverModuleContracts.length, 74);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -120,6 +120,12 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['fvplusSetupAssistantFence', 'fvplusAssertSetupAssistantFence', 'fvplusCreateSetupAssistantCheckpoint',
             'fvplusRunSetupAssistantMutation', 'fvplusSyncDockerOrderWithNativeLock', 'diagnosticsReadRuntimeInventory',
             'diagnosticsReadRuntimeReportInventory']) additions.add(name);
+        for (const name of ['fvplusRuleKindIsSupported', 'dockerBatchWaitStatePath', 'readDockerBatchWaitOwnership',
+            'dockerBatchWaitUnderlyingLine', 'writeTrackedDockerOrderFile', 'writeDockerStartOrderChanges',
+            'dockerAutostartToggleWaitScope']) additions.add(name);
+        for (const name of ['fvplusTransactionRecordFileWrites', 'fvplusRecoveryCaptureNativeFiles', 'fvplusApplyRecoveryNativeFile',
+            'fvplusRecoverySyncDockerOrder', 'fvplusApplyRecoveryNativeState', 'fvplusEncodeGlobalRollbackFile',
+            'fvplusDecodeGlobalRollbackNativeFiles']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);
@@ -161,7 +167,7 @@ test('requiring the compatibility facade publishes representative functions from
         'preserveUnchangedFolderParentLinks', 'normalizeBatchFolderOperations',
         'fvplusCustomIconDirPath', 'readInfo', 'diagnosticsHashShort', 'diagnosticsBuildIntegrityChecks',
         'diagnosticsBuildOverviewSummary', 'getSupportBundleV2Snapshot', 'truncateUtf8String',
-        'fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences'
+        'fvplusRuleUsesLegacyRegex', 'fvplusTranslateRuleBackreferences', 'readDockerBatchWaitOwnership'
     ];
     const body = `require_once ${phpString(path.join(serverRoot, 'lib.php'))}; echo json_encode(array_map('function_exists', ${JSON.stringify(functions)}));`;
     try {

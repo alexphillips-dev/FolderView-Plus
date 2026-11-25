@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { installDashboardLoadingFixture } from './dashboard-tile-loading.mjs';
 import { dashboardFixtureRows as rows, membershipSnapshot, nativeMarkupFor, runtimeSnapshotPayload as payload } from '../helpers/dashboard-membership-host.mjs';
 import { closeFilterViewHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
+import { registerRuntimeLiveRetryCases } from './runtime-live-retry.mjs';
 
 const livePrefs = { runtimePrefsSchema: 10, liveRefreshEnabled: true, liveRefreshSeconds: 10 };
 const both = ['docker', 'vm'];
@@ -43,6 +44,9 @@ const withSnapshotPolling = async (page, type, current) => {
 };
 
 export const registerRuntimeOrderedRecoveryCases = ({ test, baseUrl }) => {
+    registerRuntimeLiveRetryCases({
+        test, baseUrl, both, dashboardIds, folderNames, isSnapshot, livePrefs, ready, tick, widgetFixture
+    });
     for (const type of both) {
         test(`Dashboard lifecycle recovers ${type} grouping after failed snapshot data without replacing the sibling widget`, async ({ page }) => {
             await page.clock.install();

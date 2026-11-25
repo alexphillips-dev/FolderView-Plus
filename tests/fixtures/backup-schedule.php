@@ -35,7 +35,7 @@ touch(getBackupSnapshotPath($type, $baselineName), time() - 172800);
 readRawFolderMap($type); readTypePrefs($type); readConfigMetadata($type, true);
 $scenario = $request['scenario'] ?? 'unchanged';
 if ($scenario === 'empty') writeRawFolderMap($type, []);
-if ($scenario === 'folders') {
+if (in_array($scenario, ['folders', 'corrupt-newest-changed'], true)) {
     $folders = readRawFolderMap($type); $folders['first']['name'] = 'Changed'; writeRawFolderMap($type, $folders);
 }
 if ($scenario === 'order') writeRawFolderMap($type, array_reverse(readRawFolderMap($type), true));
@@ -43,6 +43,11 @@ if ($scenario === 'prefs') { $prefs = readTypePrefs($type); $prefs['hideEmptyFol
 if ($scenario === 'bookkeeping') { $prefs = readTypePrefs($type); $prefs['backupSchedule']['lastRunAt'] = gmdate('c'); writeTypePrefs($type, $prefs); }
 if ($scenario === 'missing') unlink(getBackupSnapshotPath($type, $baselineName));
 if ($scenario === 'corrupt') file_put_contents(getBackupSnapshotPath($type, $baselineName), '{invalid');
+if (in_array($scenario, ['corrupt-newest', 'corrupt-newest-changed'], true)) {
+    $damaged = getBackupSnapshotPath($type, "$type-latest-damaged.json");
+    file_put_contents($damaged, '{invalid');
+    touch($damaged, time() + 60);
+}
 if (in_array($scenario, ['wrong-type', 'schema', 'partial'], true)) {
     $path = getBackupSnapshotPath($type, $baselineName); $payload = readJsonObjectFile($path);
     if ($scenario === 'wrong-type') $payload['type'] = $type === 'docker' ? 'vm' : 'docker';

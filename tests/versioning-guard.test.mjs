@@ -164,6 +164,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /--sort=name/);
     assert.match(pkgBuild, /--mtime='UTC 1970-01-01'/);
     assert.match(pkgBuild, /--mode=0755/);
+    assert.match(pkgBuild, /FVPLUS_EXPECT_PLUGIN_BRANCH="\$branch" FVPLUS_ICON_ASSET_PACK_GUARDED=1/);
     assert.match(pkgBuild, /FVPLUS_ARCHIVE_DIR="\$archive_dir" bash "\$release_guard_script"/);
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);

@@ -51,7 +51,8 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
             root.classList.add('fv-advanced-mode');
             root.innerHTML = `<div class="fv-advanced-content">${parsed.querySelector('[data-fv-section="backups"]').outerHTML}${parsed.querySelector('.fv-recovery-module-wrap').outerHTML}</div>`;
             const snapshots = type => Array.from({ length: type === 'docker' ? 7 : 2 }, (_, index) => ({
-                name: `${type}-${index}.json`, count: 2, reason: 'manual', createdAt: `2026-09-${29 - index}T12:00:00Z`
+                name: `${type}-${index}.json`, count: 2, reason: 'manual', createdAt: `2026-09-${29 - index}T12:00:00Z`,
+                reviewHash: String(index).repeat(64)
             }));
             let activeType = 'docker';
             window.recoveryActions = [];
@@ -64,10 +65,11 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
                 getActiveRecoveryWorkspaceTypeValue: () => activeType,
                 setActiveRecoveryWorkspaceTypeValue: value => { activeType = value; },
                 formatTimestamp: value => value,
-                restoreBackupEntry: (type, name) => window.recoveryActions.push(`${type}:${name}`) });
+                restoreBackupEntry: (type, name, hash) => window.recoveryActions.push([type, name, hash]) });
             window.FolderViewPlusCspEvents.registerActions({
                 selectActiveRecoveryBackup: window.recoveryFixture.selectActiveRecoveryBackup,
-                toggleAllRecoverySnapshots: window.recoveryFixture.toggleAllRecoverySnapshots
+                toggleAllRecoverySnapshots: window.recoveryFixture.toggleAllRecoverySnapshots,
+                restoreSelectedActiveRecoveryBackup: window.recoveryFixture.restoreSelectedActiveRecoveryBackup
             }, { owner: 'recovery-fixture' });
             window.recoveryFixture.syncRecoveryWorkspaceUi();
         });
@@ -134,8 +136,8 @@ export const registerRecoverySupportCases = ({ test, baseUrl, loadI18n }) => {
         await page.locator('.fv-recovery-view-all').click();
         assert.equal(await page.locator('.fv-recovery-snapshot-row').count(), 7);
         await page.evaluate(() => window.recoveryFixture.selectActiveRecoveryBackup('docker-6.json'));
-        await page.evaluate(() => window.recoveryFixture.restoreSelectedActiveRecoveryBackup());
-        assert.deepEqual(await page.evaluate(() => window.recoveryActions), ['docker:docker-6.json']);
+        await page.locator('.fv-recovery-history-actions-row button').first().click();
+        assert.deepEqual(await page.evaluate(() => window.recoveryActions), [['docker', 'docker-6.json', '6'.repeat(64)]]);
         await page.locator('.fv-recovery-edit-settings').click();
         assert.equal(await page.locator('#fv-recovery-policy-editor').evaluate(node => node.hidden), false);
         assert.equal(await page.locator('[data-fv-onclick="openActiveRecoverySnapshotCompare()"]').getAttribute('aria-haspopup'), 'dialog');

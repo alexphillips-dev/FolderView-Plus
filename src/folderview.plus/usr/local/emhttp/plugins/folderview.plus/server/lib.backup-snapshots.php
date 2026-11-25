@@ -240,15 +240,18 @@ function getBackupSnapshotPath(string $type, string $name): string {
         return $entries;
     }
 
-    function readBackupSnapshot(string $type, string $name): array {
+    function readBackupSnapshot(string $type, string $name, ?string $reviewHash = null): array {
         $type = ensureType($type);
         $path = getBackupSnapshotPath($type, $name);
         $safeName = basename($path);
-        if (!file_exists($path)) {
+        $raw = @file_get_contents($path);
+        if ($reviewHash !== null && ($raw === false || !hash_equals(hash('sha256', $raw), $reviewHash))) {
+            throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
+        }
+        if ($raw === false) {
             throw new RuntimeException('Backup file not found.');
         }
 
-        $raw = (string)@file_get_contents($path);
         $decoded = @json_decode($raw, true);
         if (!is_array($decoded)) {
             throw new RuntimeException('Backup payload is not valid JSON.');

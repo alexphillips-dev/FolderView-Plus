@@ -84,16 +84,11 @@ function runtimeSnapshotSignature(string $type, array $runtime): string {
     return hash('sha256', is_string($encoded) ? $encoded : '[]');
 }
 
-function runtimeSnapshotOrderFromEntities(string $type, array $runtime): array {
+function runtimeSnapshotOrderFromEntities(string $type, array $runtime, array $savedOrder): array {
     $safeType = ensureType($type);
     $names = array_map('strval', array_keys(runtimeSnapshotStateProjection($safeType, $runtime)));
-    $prefsPath = $safeType === 'docker'
-        ? '/boot/config/plugins/dockerMan/userprefs.cfg'
-        : '/boot/config/plugins/dynamix.vm.manager/userprefs.cfg';
-    $parsed = is_file($prefsPath) ? @parse_ini_file($prefsPath) : false;
-    $preferred = array_values(is_array($parsed) ? $parsed : []);
     $rank = [];
-    foreach ($preferred as $index => $name) {
+    foreach ($savedOrder as $index => $name) {
         $normalized = trim((string)$name);
         if ($normalized !== '' && !array_key_exists($normalized, $rank)) {
             $rank[$normalized] = (int)$index;
@@ -119,9 +114,11 @@ function readRuntimeSnapshotConfigUnlocked(string $type, ?array $dockerLiveNames
         $folders = [];
     }
     $prefs = readTypePrefs($safeType);
-    $order = $safeType === 'docker' && $dockerLiveNames !== null
-        ? composeDockerSavedOrder(readDockerNativePageOrder(), $folders, $prefs, $dockerLiveNames)
-        : json_decode(readUserPrefs($safeType), true);
+    $nativeSavedOrder = $safeType === 'docker' ? readDockerNativePageOrder() : json_decode(readUserPrefs($safeType), true);
+    $nativeSavedOrder = is_array($nativeSavedOrder) ? array_values($nativeSavedOrder) : [];
+    $order = $safeType === 'docker'
+        ? composeDockerSavedOrder($nativeSavedOrder, $folders, $prefs, $dockerLiveNames ?? [])
+        : $nativeSavedOrder;
     if (!is_array($order)) {
         $order = [];
     }
@@ -130,6 +127,7 @@ function readRuntimeSnapshotConfigUnlocked(string $type, ?array $dockerLiveNames
         'folders' => $folders,
         'prefs' => $prefs,
         'order' => array_values($order),
+        'nativeSavedOrder' => $nativeSavedOrder,
         'metadata' => $metadata
     ];
 }
@@ -169,6 +167,7 @@ function buildRuntimeConfigSnapshotFromConfig(string $type, array $config): arra
         ],
         'folders' => is_array($config['folders'] ?? null) ? $config['folders'] : [],
         'order' => array_values(is_array($config['order'] ?? null) ? $config['order'] : []),
+        'nativeSavedOrder' => $config['nativeSavedOrder'],
         'unraidOrder' => [],
         'prefs' => is_array($config['prefs'] ?? null) ? $config['prefs'] : [],
         'metadata' => $metadata
@@ -242,7 +241,7 @@ function buildRuntimeSnapshot(
 
     $dockerLiveNames = $safeType === 'docker' && $safeMode !== 'config' ? array_map('strval', array_keys($runtime)) : null;
     $config = readRuntimeSnapshotConfig($safeType, $dockerLiveNames);
-    $unraidOrder = $safeMode === 'config' ? [] : runtimeSnapshotOrderFromEntities($safeType, $runtime);
+    $unraidOrder = $safeMode === 'config' ? [] : runtimeSnapshotOrderFromEntities($safeType, $runtime, $config['nativeSavedOrder']);
     $runtimeSignature = runtimeSnapshotSignature($safeType, $runtime);
     $snapshotToken = runtimeSnapshotToken($safeType, $config, $unraidOrder, $runtimeSignature);
     $metadata = is_array($config['metadata'] ?? null) ? $config['metadata'] : [];
@@ -276,6 +275,7 @@ function buildRuntimeSnapshot(
     }
     $response['folders'] = is_array($config['folders'] ?? null) ? $config['folders'] : [];
     $response['order'] = array_values(is_array($config['order'] ?? null) ? $config['order'] : []);
+    $response['nativeSavedOrder'] = $config['nativeSavedOrder'];
     $response['unraidOrder'] = $unraidOrder;
     $response['prefs'] = is_array($config['prefs'] ?? null) ? $config['prefs'] : [];
     $response['metadata'] = $metadata;

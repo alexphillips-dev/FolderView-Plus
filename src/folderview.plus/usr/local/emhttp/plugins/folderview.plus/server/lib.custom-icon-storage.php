@@ -410,13 +410,15 @@ require_once __DIR__ . '/lib.custom-icon-repair.php';
             unset($folder);
 
             if ($updated) {
-                $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+                $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type, false));
+                $nativeWrites = [];
+                $recordNativeWrite = fvplusTransactionRecordFileWrites($nativeWrites);
                 try {
                     $backup = createBackupSnapshot($type, 'before-repair-orphaned-members', false);
                     writeRawFolderMap($type, $folders);
-                    if ($type === 'docker') syncContainerOrder('docker');
+                    if ($type === 'docker') syncContainerOrder('docker', $recordNativeWrite);
                 } catch (Throwable $error) {
-                    fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');
+                    fvplusTransactionRestoreAfterFailure(array_merge($snapshots, array_values($nativeWrites)), $error, 'fvplusEnvironmentRestoreFiles');
                     throw $error;
                 }
                 pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);

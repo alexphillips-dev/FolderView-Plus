@@ -168,6 +168,24 @@ test('System Health honors the compiler’s target policy for global exclusions'
     assert.equal(diagnostics.integrity.invalidAutoRules.rules[0].id, include.id);
 });
 
+test('System Health flags every imported Docker-only VM predicate, including disabled rules for repair', () => {
+    const rules = [
+        rule({ id: 'valid-name' }),
+        rule({ id: 'image', kind: 'image_regex' }),
+        rule({ id: 'compose', kind: 'compose_project_regex' }),
+        rule({ id: 'label', kind: 'label', labelKey: 'stack' }),
+        rule({ id: 'disabled-image', kind: 'image_regex', enabled: false })
+    ];
+    const input = { folders: { media: { name: 'Media' } }, info: { 'media-fixture': {} }, rules };
+    const docker = runPhp({ ...input, type: 'docker', operation: 'diagnostics', viaImport: true });
+    const vm = runPhp({ ...input, type: 'vm', operation: 'diagnostics', viaImport: true });
+    assert.equal(docker.integrity.invalidAutoRules.count, 0);
+    assert.deepEqual(vm.integrity.invalidAutoRules.rules.map(entry => entry.id), ['image', 'compose', 'label', 'disabled-image']);
+    const preview = runPhp({ ...input, type: 'vm', operation: 'preview-apply' });
+    assert.equal(preview.preview.ready, false);
+    assert.equal(preview.preview.issues.filter(issue => issue.code === 'invalid-predicate').length, 3);
+});
+
 test('browser preference hydration retains saved targetless exclusions', () => {
     const folders = { media: { name: 'Media' } };
     const info = { 'media-private': {}, 'media-allowed': {} };

@@ -627,7 +627,8 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
     assert.match(folderEditorRegexSelectionJs, /const evaluateRegexSelection = \(field = null\) =>/);
     assert.match(folderEditorJs, /const updateRegex = \(e,\s*options = \{\}\) =>/);
     assert.match(folderEditorRegexSelectionJs, /const mergeMembersByName = \(baseMembers, candidateMembers\) =>/);
-    assert.match(folderEditorMemberListJs, /if \(rows\.length <= renderChunkSize\) \{/);
+    assert.match(folderEditorMemberListJs, /rows\.slice\(offset, offset \+ renderChunkSize\)/);
+    assert.match(folderEditorMemberListJs, /if \(offset < rows\.length\) \{\s*scheduleTask\(appendChunk\)/);
     assert.match(folderEditorMemberListJs, /scheduleTask\(appendChunk\)/);
     assert.match(folderEditorJs, /if \(fieldName === 'regex'\) \{\s*if \(event\.type === 'input'\) \{\s*markUnsavedIndicatorDirty\(\);\s*return;\s*\}\s*updateRegex\(form\.regex,\s*\{\s*immediate:\s*true\s*\}\);\s*return;\s*\}/);
     assert.match(folderEditorRegexSelectionJs, /regexInputSyncTimer = setTimer\(\(\) => evaluateRegexSelection\(field\), debounceMs\);/);

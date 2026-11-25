@@ -28,6 +28,7 @@ const libPhp = readServerGraph([
     'lib.custom-icon-references.php',
     'lib.custom-icon-repair.php',
     'lib.docker-order.php',
+    'lib.docker-batch-wait-state.php',
     'lib.docker-page-order.php',
     'lib.runtime-info.php'
 ]);
@@ -186,18 +187,19 @@ test('lib.php coalesces docker order sync and uses lightweight state snapshots',
     assert.match(libPhp, /function markDockerSyncOrderPending\(\): bool/);
     assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
     assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
-    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): array/);
+    assert.match(libPhp, /function syncContainerOrderUnlocked\(\?callable \$onNativeWrite = null\): array/);
     assert.match(libPhp, /\$infoByName = \$verifiedInventory \?\? readInfoState\('docker'\);/);
     assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB, \$wouldBlock\)/);
     assert.match(libPhp, /markDockerSyncOrderPending\(\)[\s\S]*?return \['syncOutcome' => 'queued'\];/);
-    assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
+    assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\$onNativeWrite\);/);
     assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
     assert.match(libPhp, /function buildDockerStartOrderContext\([^)]*\): array \{[\s\S]*?\$currentOrder = readDockerNativePageOrder\(\);/);
     assert.match(libPhp, /const FVPLUS_DOCKER_PAGE_ORDER_PATH = '\/boot\/config\/plugins\/dockerMan\/userprefs\.cfg';/);
     assert.match(libPhp, /function readDockerNativePageOrder\(\): array \{\s*\$path = FVPLUS_DOCKER_PAGE_ORDER_PATH;\s*\$parsed = is_file\(\$path\) \? @parse_ini_file\(\$path\) : false;/);
     assert.match(libPhp, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
     assert.doesNotMatch(libPhp, /file_put_contents\(\s*(?:\$prefsFile\b|FVPLUS_DOCKER_PAGE_ORDER_PATH\b)/);
-    assert.match(libPhp, /if \(\(string\)\$currentAutoStartContent !== \$nextAutoStartContent\) \{/);
+    assert.match(libPhp, /writeDockerStartOrderChanges\(\$context, \$nextAutoStartContent/);
+    assert.match(libPhp, /if \(\$next !== \$original\) \{[\s\S]*?writeTrackedDockerOrderFile\(\$nativePath, \$next, \$onWrite, 0644, \$original\)/);
 });
 
 test('lib.php defines runtime conflict detection and notice helpers', () => {

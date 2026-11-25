@@ -9,7 +9,7 @@ function restoreLatestBackupSnapshot(string $type, ?string $expectedName = null,
                 || ($reviewHash !== null && !hash_equals($snapshot['reviewHash'], $reviewHash))) {
                 throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
             }
-            return restoreBackupSnapshot($type, (string)$snapshot['name'], ['createSafetyBackup' => true]);
+            return restoreBackupSnapshot($type, (string)$snapshot['name'], ['createSafetyBackup' => true, 'reviewHash' => $reviewHash]);
         }
         throw new RuntimeException($snapshots === [] ? 'No backups available.' : 'No non-empty backups available.');
     });
@@ -40,9 +40,9 @@ function restoreLatestUndoBackupSnapshot(string $type): array {
             $name = $snapshot['name'];
             if (!isset($snapshot['count']) || !isUndoBackupReason($snapshot['reason']) || isset($consumed[$name])) continue;
             $consumed[$name] = $snapshot['reviewHash'];
-            if (fvplusRestoreSafetyBackupMatchesCurrent($type, readBackupSnapshot($type, $name))) continue;
+            if (fvplusRestoreSafetyBackupMatchesCurrent($type, readBackupSnapshot($type, $name, $snapshot['reviewHash']))) continue;
             // A subsequent Undo continues past the consumed snapshots unless configuration changed again.
-            return restoreBackupSnapshot($type, $name, ['undoBackups' => $consumed]);
+            return restoreBackupSnapshot($type, $name, ['undoBackups' => $consumed, 'reviewHash' => $snapshot['reviewHash']]);
         }
         throw new RuntimeException('No undo-capable backups found.');
     });

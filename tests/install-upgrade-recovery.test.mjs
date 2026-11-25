@@ -32,6 +32,7 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
         'install-native-remove-failure', 'install-native-remove-partial-failure',
+        'install-native-remove-same-boot-partial-failure',
         'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',

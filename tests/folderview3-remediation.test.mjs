@@ -27,7 +27,8 @@ test('FolderView3 opt-in checkpoint restores native bytes, absence and permissio
 
     const failed = runMigrationFixture({ bundle, operation: 'native-checkpoint', originalNativeBase64, breakNativeVerification: true });
     assert.match(failed.error, /Native Docker autostart verification failed.+All changed configuration was restored/);
-    assert.equal(failed.protectedUnchanged, true);
+    assert.equal(failed.protectedPluginConfigurationUnchanged, true);
+    assert.equal(failed.externalNativeUpdatePreserved, true);
 });
 const require = createRequire(import.meta.url);
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');

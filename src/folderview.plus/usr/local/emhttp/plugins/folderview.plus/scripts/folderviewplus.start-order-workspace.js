@@ -21,10 +21,11 @@
         const updateWait = async (containerName, value) => {
             const plan = deps.getPlan();
             if (plan.mode === 'unmanaged') return;
-            const containerWaits = { ...(plan.containerWaits || {}) };
-            containerWaits[decodeURIComponent(String(containerName || ''))] = Math.max(0, Math.min(3600, Math.round(Number(value) || 0)));
+            const name = decodeURIComponent(String(containerName || '')).trim();
+            if (!name) return;
+            const wait = Math.max(0, Math.min(3600, Math.round(Number(value) || 0)));
             try {
-                await deps.savePlan({ containerWaits }, { preservePreview: true, refreshPreview: true });
+                await deps.savePlan({ containerWaits: { [name]: wait } }, { preservePreview: true, refreshPreview: true });
             } catch (error) {
                 deps.showError('Docker container wait save failed', error);
             }

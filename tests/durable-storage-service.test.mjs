@@ -325,6 +325,7 @@ test('durable configuration surfaces use the shared storage service', () => {
         'lib.theme-workspace.php',
         'lib.folder-mutations.php',
         'lib.docker-order.php',
+        'lib.docker-batch-wait-state.php',
         'lib.custom-icon-storage.php'
     ].map((name) => fs.readFileSync(path.join(serverRoot, name), 'utf8')).join('\n');
     const diagnostics = fs.readFileSync(path.join(serverRoot, 'lib.diagnostics.php'), 'utf8');
@@ -333,7 +334,7 @@ test('durable configuration surfaces use the shared storage service', () => {
     assert.match(lib, /writeDurableFileAtomic\(getLegacyMigrationMarkerPath/);
     assert.match(lib, /writeJsonObjectWithLastGood\(getThemeWorkspacePath/);
     assert.match(lib, /writeJsonObjectWithLastGood\(\$filePath, \[\]\)/);
-    assert.match(lib, /writeDurableFileAtomic\(\$autoStartFile/);
+    assert.match(lib, /function writeTrackedDockerOrderFile[\s\S]*?writeDurableFileAtomic\(\$path, \$content/);
     assert.match(lib, /function fvplusCopyCustomIconStorageFile[\s\S]*?writeDurableFileAtomic\(\$targetPath, \$contents/);
     assert.match(diagnostics, /writeJsonObjectWithLastGood\(\$path, array_values\(\$events\)\)/);
     assert.match(iconUpload, /writeDurableFileAtomic\(\$targetPath, \$iconContents/);

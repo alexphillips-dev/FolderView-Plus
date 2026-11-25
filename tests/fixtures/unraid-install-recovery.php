@@ -59,6 +59,7 @@ $cases = $cliSource === null
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
         'install-native-remove-failure', 'install-native-remove-partial-failure',
+        'install-native-remove-same-boot-partial-failure',
         'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
@@ -255,6 +256,9 @@ fi
 if [[ "$FVPLUS_FIXTURE_CASE" == install-native-remove*-failure && "${FVPLUS_FIXTURE_ALLOW_REMOVE_RETRY:-}" != 1 ]]; then
     if [[ "$FVPLUS_FIXTURE_CASE" == *-partial-failure ]]; then
         rm -f -- "$FVPLUS_FIXTURE_RUNTIME/scripts/install_icon_asset_pack.sh"
+    fi
+    if [[ "$FVPLUS_FIXTURE_CASE" = install-native-remove-same-boot-partial-failure ]]; then
+        rm -f -- "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json"
     fi
     printf "Native removal fixture failed\n" >&2
     exit 28
@@ -631,7 +635,8 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if (in_array($case, ['install-native-remove-failure', 'install-native-remove-partial-failure', 'install-remove-nextboot-staged-success',
+    if (in_array($case, ['install-native-remove-failure', 'install-native-remove-partial-failure',
+        'install-native-remove-same-boot-partial-failure', 'install-remove-nextboot-staged-success',
         'install-native-remove-nextboot-staged-failure', 'install-remove-nextboot-staged-interrupted-prepared-success',
         'install-native-remove-nextboot-staged-partial-failure'], true)) {
         $removalMarker = "$boot/.$pluginName-removal";
@@ -738,6 +743,38 @@ exec /bin/mv "$@"'
         if ($staged && !$partial) {
             verifyInstallFixture(file_get_contents("$nextboot/$pluginName.plg") === $newManifest && !is_file("$removalMarker.nextboot")
                 && is_file("$nextboot/$pluginName/$pluginName-$candidate.txz"), "$case lost the staged update on a clean rollback.");
+            $check[] = $case;
+            continue;
+        }
+        if ($case === 'install-native-remove-same-boot-partial-failure') {
+            $olderPackage = "$packages/$pluginName-2025.12.31.01";
+            $installedMetadata = "$runtime/build-metadata.json";
+            verifyInstallFixture(!file_exists($installedMetadata) && is_file("$runtime/FolderViewPlus.page")
+                && trim(file_get_contents($removalMarker)) === "$previous " . hash('sha256', $oldManifest) . ' cleanup',
+                "$case did not leave the ownership evidence of a partial removal.");
+            file_put_contents($olderPackage, 'unrelated historical record');
+            $remove = [PHP_BINARY, $cli, 'remove', "$pluginName.plg"];
+            $retry = ['FVPLUS_FIXTURE_ALLOW_REMOVE_RETRY' => '1'];
+
+            file_put_contents($bootManifest, $oldManifest . "\n<!-- changed manifest bytes -->\n");
+            [$forgedStatus, $forgedOutput] = $run($remove, $retry);
+            verifyInstallFixture($forgedStatus !== 0 && str_contains($forgedOutput, 'removal journal does not match')
+                && is_file($removalMarker) && is_file("$config/docker.json"),
+                "$case allowed a retired journal to authorize another manifest: $forgedOutput");
+            file_put_contents($bootManifest, $oldManifest);
+            file_put_contents($installedMetadata, "{\n  \"packageVersion\": \"$candidate\"\n}\n");
+            [$conflictStatus, $conflictOutput] = $run($remove, $retry);
+            verifyInstallFixture($conflictStatus !== 0 && str_contains($conflictOutput, 'active FolderView Plus package does not match')
+                && is_file($removalMarker) && is_file("$config/docker.json"),
+                "$case ignored a conflicting deployed version: $conflictOutput");
+            unlink($installedMetadata);
+
+            [$retryStatus, $retryOutput] = $run($remove, $retry);
+            verifyInstallFixture($retryStatus === 0 && !is_file($bootManifest) && !is_link($runningLink)
+                && file_get_contents("$boot-removed/$pluginName.plg") === $oldManifest && !is_file($removalMarker)
+                && !is_dir($config) && !is_dir($runtime) && !is_file($cronFile)
+                && file_get_contents($olderPackage) === 'unrelated historical record',
+                "$case could not finish partial native removal in the same boot: $retryOutput");
             $check[] = $case;
             continue;
         }

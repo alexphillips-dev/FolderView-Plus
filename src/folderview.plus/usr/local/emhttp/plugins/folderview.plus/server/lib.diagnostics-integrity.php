@@ -495,8 +495,10 @@ function readUnraidVersionString(): ?string {
             if (!in_array($effect, FVPLUS_RULE_EFFECTS, true)) {
                 $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule effect is invalid.'];
             }
-            if (!in_array($kind, FVPLUS_RULE_KINDS, true)) {
-                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule kind is invalid.'];
+            if (!fvplusRuleKindIsSupported($kind, $type)) {
+                $reason = in_array($kind, ['label', 'label_contains', 'label_starts_with'], true)
+                    ? 'Label rules are only valid for docker.' : 'Rule kind is invalid.';
+                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => $reason];
                 continue;
             }
             if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
@@ -508,9 +510,6 @@ function readUnraidVersionString(): ?string {
                 }
             }
             if (in_array($kind, ['label', 'label_contains', 'label_starts_with'], true)) {
-                if ($type !== 'docker') {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rules are only valid for docker.'];
-                }
                 $labelKey = (string)($rule['labelKey'] ?? '');
                 if ($labelKey === '') {
                     $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rule key is empty.'];

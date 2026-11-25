@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { runInventoryRepair } from './helpers/runtime-inventory-fixture.mjs';
 
 test('read-only inventory endpoints preserve exact native autostart bytes through empty, failed and partial reads', () => {
@@ -200,6 +201,74 @@ test('a managed autostart toggle updates only the target record and preserves th
         assert.equal(rejected.native, nativeAutostart);
         assert.equal(rejected.nativePageOrder, nativePageOrder);
     }
+});
+
+test('autostart toggle moves a recorded batch wait to the last enabled member and full sync is idempotent', () => {
+    const plan = { mode: 'custom-batches', batches: [{ id: 'batch', delay: 30,
+        items: ['docker-present', 'docker-extra'].map(name => ({ type: 'container', name })) }] };
+    const initial = explicitOrderFixture('start-sync', { plan, nativeAutostart: 'docker-present 7\ndocker-extra 7200\n' });
+    assert.equal(initial.native, 'docker-present 7\ndocker-extra 30\n');
+    assert.deepEqual(initial.batchWaitState.active['docker-extra'], { applied: 'docker-extra 30', original: 'docker-extra 7200' });
+    const disabled = explicitOrderFixture('start-toggle', { plan, container: 'docker-extra', enabled: '0',
+        nativeAutostart: initial.native, batchWaitState: initial.batchWaitState });
+    assert.equal(disabled.responseStatus, 200);
+    assert.equal(disabled.native, 'docker-present 30\n');
+    const enabled = explicitOrderFixture('start-toggle', { plan, container: 'docker-extra', enabled: '1',
+        nativeAutostart: disabled.native, batchWaitState: disabled.batchWaitState });
+    assert.equal(enabled.responseStatus, 200);
+    assert.equal(enabled.native, 'docker-present 7\ndocker-extra 30\n');
+    const synced = explicitOrderFixture('start-sync', { plan, nativeAutostart: enabled.native, batchWaitState: enabled.batchWaitState });
+    assert.equal(synced.response.syncOutcome, 'synced');
+    assert.equal(synced.native, enabled.native);
+    assert.deepEqual(synced.batchWaitState, enabled.batchWaitState);
+});
+
+test('batch reorder and zero delay restore native waits and preserve independent changes', () => {
+    const batch = { id: 'batch', delay: 29, items: ['docker-present', 'docker-extra'].map(name => ({ type: 'container', name })) };
+    const plan = { mode: 'custom-batches', batches: [batch] };
+    const initial = explicitOrderFixture('start-sync', { plan, nativeAutostart: 'docker-present 7\ndocker-extra 19\n' });
+    assert.equal(initial.native, 'docker-present 7\ndocker-extra 29\n');
+    const reshuffled = { ...batch, items: [...batch.items].reverse() };
+    for (const [nativeAutostart, expected] of [[initial.native, 19], [initial.native.replace('29', '7200 external'), '7200 external']]) {
+        const reordered = explicitOrderFixture('start-save', { plan, nativeAutostart, batchWaitState: initial.batchWaitState,
+            planPatch: { batches: [reshuffled] } });
+        assert.equal(reordered.response.dockerOrderSync, 'synced');
+        assert.equal(reordered.native, `docker-extra ${expected}\ndocker-present 29\n`);
+        const removed = explicitOrderFixture('start-save', { plan: { ...plan, batches: [reshuffled] },
+            nativeAutostart: reordered.native, batchWaitState: reordered.batchWaitState,
+            planPatch: { batches: [{ ...reshuffled, delay: 0 }] } });
+        assert.equal(removed.response.dockerOrderSync, 'synced');
+        assert.equal(removed.native, `docker-extra ${expected}\ndocker-present 7\n`);
+        assert.deepEqual(removed.batchWaitState.active, []);
+    }
+});
+
+test('an interrupted batch ownership update is applied only when the proposed native bytes were committed', () => {
+    const nativeAutostart = 'docker-present 7\ndocker-extra 29\n';
+    const ownership = { 'docker-extra': { applied: 'docker-extra 29', original: 'docker-extra 19' } };
+    const pending = { digest: createHash('sha256').update(nativeAutostart).digest('hex'), ownership };
+    for (const [content, expected] of [[nativeAutostart, 'docker-present 7\ndocker-extra 19\n'],
+        [nativeAutostart.replace('29', '88'), 'docker-present 7\ndocker-extra 88\n']]) {
+        const reconciled = explicitOrderFixture('start-sync', { plan: { mode: 'docker-page' },
+            nativeAutostart: content, batchWaitState: { active: [], pending } });
+        assert.equal(reconciled.response.syncOutcome, 'synced');
+        assert.equal(reconciled.native, expected);
+    }
+});
+
+test('a sparse wait patch preserves a newer peer value even when PHP decodes names as array keys', () => {
+    const docker = ['0', '1'].map((name, index) => ({
+        Id: String(index + 1).repeat(64), Names: [`/${name}`], Image: 'fixture/image:latest', State: 'exited'
+    }));
+    const result = explicitOrderFixture('start-save', {
+        docker, nativeAutostart: '0 7\n1 55\n', plan: { mode: 'docker-page', containerWaits: { '0': 7, '1': 55 } },
+        planPatch: { containerWaits: { '0': 0 } }
+    });
+    assert.equal(result.responseStatus, 200);
+    assert.equal(result.response.dockerOrderSync, 'synced');
+    assert.deepEqual(Array.from(Object.values(result.response.prefs.dockerStartOrder.containerWaits)), [0, 55]);
+    assert.equal(result.waitMapIsObject, true);
+    assert.equal(result.native, '0\n1 55\n');
 });
 
 test('Docker startup preview and sync preserve native waits above the plugin limit', () => {

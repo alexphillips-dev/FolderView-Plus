@@ -131,6 +131,10 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
         return fvplusRegexBackreferencesArePortable($pattern);
     }
 
+    function fvplusRuleKindIsSupported(string $kind, string $type): bool {
+        return in_array($kind, FVPLUS_RULE_KINDS, true) && ($type === 'docker' || $kind === 'name_regex');
+    }
+
     function fvplusCompileRuleSet(array $rules, string $type, ?array $folders = null): array {
         $compiled = []; $issues = [];
         foreach ($rules as $index => $rule) {
@@ -140,7 +144,7 @@ require_once __DIR__ . '/lib.rules-backreference-policy.php';
             if (is_array($rule) && ($rule['effect'] ?? 'include') !== 'exclude' && $folders !== null && !array_key_exists($target, $folders)) {
                 $issues[] = ['index' => $index, 'code' => 'missing-target']; continue;
             }
-            $regex = null; $valid = in_array($kind, FVPLUS_RULE_KINDS, true) && ($type === 'docker' || $kind === 'name_regex');
+            $regex = null; $valid = fvplusRuleKindIsSupported($kind, $type);
             if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
                 $pattern = (string)($rule['pattern'] ?? '');
                 $unicode = !fvplusRuleUsesLegacyRegex($rule);

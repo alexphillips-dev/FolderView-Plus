@@ -415,7 +415,7 @@ test('recovery tab presents restore, history, policy, and environment actions in
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /class="fv-recovery-snapshot-row\$\{activeClass\}"/);
     assert.match(settingsJs, /toggleAllRecoverySnapshots/);
-    assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
+    assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\([^)]*backup\.reviewHash[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(readSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(diagnosticsJs, /const renderChangeHistory = \(diagnostics = lastDiagnostics\) =>/);
     assert.match(diagnosticsJs, /const events = Array\.isArray\(diagnostics\?\.importExportHistory\?\.events\)/);

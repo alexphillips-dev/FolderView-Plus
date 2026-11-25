@@ -233,19 +233,21 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
             if ($manualOrder !== null) {
                 $nextPrefs = applyBatchManualOrderPrefs($nextPrefs, $nextFolders, $manualOrder);
             }
-            $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+            $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type, false));
+            $nativeWrites = [];
+            $recordNativeWrite = fvplusTransactionRecordFileWrites($nativeWrites);
             $backup = createFolderBatchSafetyBackup($type, $backupReason, $originalFolders, $nextFolders, $repairingHierarchy);
             try {
                 $writtenFolders = writeRawFolderMap($type, $nextFolders, $repairingHierarchy);
                 if ($nextPrefs !== $originalPrefs) writeTypePrefs($type, $nextPrefs);
-                $dockerSync = $type === 'docker' ? syncContainerOrder($type) : null;
+                $dockerSync = $type === 'docker' ? syncContainerOrder($type, $recordNativeWrite) : null;
                 if (jsonObjectsDiffer($writtenFolders, readRawFolderMap($type, false, true))
                     || jsonObjectsDiffer($nextPrefs, readTypePrefs($type))) {
                     throw new RuntimeException('Folder batch transaction verification failed.');
                 }
             } catch (Throwable $error) {
                 try {
-                    fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');
+                    fvplusTransactionRestoreAfterFailure(array_merge($snapshots, array_values($nativeWrites)), $error, 'fvplusEnvironmentRestoreFiles');
                 } catch (Throwable $rollbackError) {
                     throw new RuntimeException('Folder batch transaction failed: ' . $rollbackError->getMessage(), 0, $error);
                 }

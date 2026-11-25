@@ -25,12 +25,12 @@ test('environment snapshot helpers export folders, prefs, and theme workspace to
 test('environment snapshot import routes through the atomic rollback and verification transaction', () => {
     assert.match(libPhp, /function importEnvironmentSnapshotPayload\(array \$snapshot, string \$sourceName = ''\): array/);
     assert.match(libPhp, /applyEnvironmentSnapshotTransaction\(\$normalized, \$sourceName/);
-    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \[\], false, \$nativeBackup\)/);
+    assert.match(libPhp, /createGlobalRollbackSnapshot\('before-' \. \$reason, \[\], false,/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'transaction-' \. \$reason, false\)/);
     assert.match(libPhp, /fvplusEnvironmentVerifyTarget\(\$normalized, \$preserveHierarchy\);[\s\S]*pruneGlobalRollbackSnapshots\(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX, \$protected\)/);
     assert.match(libPhp, /fvplusWriteConfigPayload\(\$type, 'folder', getFolderFilePath\(\$type\), \$folders\);/);
     assert.match(libPhp, /writeTypePrefs\(\$type, \$prefs\);/);
-    assert.match(libPhp, /fvplusEnvironmentRestoreFiles\(\$snapshots\);/);
+    assert.match(libPhp, /fvplusEnvironmentRestoreFiles\(array_merge\(\$snapshots, array_values\(\$nativeWrites\)\)\);/);
 });
 
 test('global rollback snapshots now include theme workspace state', () => {

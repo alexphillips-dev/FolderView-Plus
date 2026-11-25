@@ -56,7 +56,8 @@
     { "file": "tests/browser/helpers/script-preloads.mjs", "limit": 160, "owner": "Settings staged fetch and lazy chart fetch overlap with ordered retry" },
     { "file": "tests/browser/helpers/docker-script-preload.mjs", "limit": 100, "owner": "Docker runtime fetch overlap with compatibility preparation custom override and exit gates" },
     { "file": "tests/browser/helpers/docker-preview-name-edit.mjs", "limit": 260, "owner": "Native Docker preview name editing, independent icon menus and refresh-safe bindings" },
-    {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed", "requiredImports": ["./editor-member-lifecycle.mjs"]},
+    {"file": "tests/browser/cases/editor-member-roundtrip.mjs", "limit": 80, "owner": "Unavailable explicit Docker and VM members survive editor serialization until removed", "requiredImports": ["./editor-member-lifecycle.mjs", "./editor-member-render-readiness.mjs"]},
+    {"file": "tests/browser/cases/editor-member-render-readiness.mjs", "limit": 36, "owner": "Only the current complete editor member table becomes ready"},
     {"file": "tests/browser/cases/editor-member-lifecycle.mjs", "limit": 43, "owner": "Cached folder editor navigation preserves member controls until final exit"},
     {"file": "tests/browser/cases/editor-assignment.mjs", "limit": 120, "owner": "Folder editor saved and draft assignment explanations for Docker and VM"},
     {"file": "tests/browser/cases/runtime-preview-summary.mjs", "limit": 290, "owner": "Lazy privacy-safe Docker and Dashboard Advanced Preview runtime details"},
@@ -67,7 +68,8 @@
     {"file": "tests/browser/cases/dashboard-runtime-consistency.mjs", "limit": 170, "owner": "Full and incremental Dashboard refresh, native filters, peer layout and keyboard focus"},
     {"file": "tests/browser/cases/runtime-host-reconciliation.mjs", "limit": 160, "owner": "Native switch, deferred Docker config and shared Docker and VM focus"},
     {"file": "tests/browser/cases/dashboard-runtime-recovery.mjs", "limit": 150, "owner": "Dashboard lifecycle identity and native reload and layout failure recovery"},
-    {"file": "tests/browser/cases/runtime-ordered-recovery.mjs", "limit": 180, "owner": "Dashboard widget-specific recovery and saved VM and Dashboard ordering"},
+    {"file": "tests/browser/cases/runtime-ordered-recovery.mjs", "limit": 180, "owner": "Dashboard widget-specific recovery and saved VM and Dashboard ordering", "requiredImports": ["./runtime-live-retry.mjs"]},
+    {"file": "tests/browser/cases/runtime-live-retry.mjs", "limit": 110, "owner": "Docker order-only refresh and Dashboard recovery after retry cooldown"},
     {"file": "tests/browser/cases/dashboard-native-reconciliation.mjs", "limit": 120, "owner": "Dashboard native summary and committed rules across browser tabs"},
     {"file": "tests/browser/cases/runtime-folder-identity-persistence.mjs", "limit": 110, "owner": "Literal runtime folder IDs and preservation of pending expansion during rebuilds"},
     {"file": "tests/browser/cases/dashboard-runtime-native-controls.mjs", "limit": 100, "owner": "Dashboard native VM actions and Docker update indicators after live refresh"},
@@ -244,6 +246,7 @@
         "tests/browser/cases/runtime-host-reconciliation.mjs",
         "tests/browser/cases/dashboard-runtime-recovery.mjs",
         "tests/browser/cases/runtime-ordered-recovery.mjs",
+        "tests/browser/cases/runtime-live-retry.mjs",
         "tests/browser/cases/dashboard-native-reconciliation.mjs",
         "tests/browser/cases/runtime-folder-identity-persistence.mjs",
         "tests/browser/cases/dashboard-runtime-native-controls.mjs",
@@ -261,6 +264,7 @@
         "tests/browser/cases/editor-action-roundtrip.mjs",
         "tests/browser/cases/editor-member-lifecycle.mjs",
         "tests/browser/cases/editor-member-roundtrip.mjs",
+        "tests/browser/cases/editor-member-render-readiness.mjs",
         "tests/browser/cases/editor-assignment.mjs",
         "tests/browser/cases/runtime-preview-summary.mjs",
         "tests/browser/cases/unassigned-group.mjs",
@@ -395,10 +399,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 239,
-      "assertionCount": 2636,
-      "pageEvaluateCount": 925,
-      "orderedTitleSha256": "3323e74c6cbba31cb14857042fa987dddeaf553167acc085c95b85ccf96d6ae4"
+      "testCount": 240,
+      "assertionCount": 2647,
+      "pageEvaluateCount": 928,
+      "orderedTitleSha256": "27a7db00fb340a00f57730b8564353f7b529bc4e8c2245e9d2df25681e9c54d7"
     }
   }
 }

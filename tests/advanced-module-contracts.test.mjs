@@ -77,7 +77,7 @@ test('settings search includes user-facing aliases for recent support terms', ()
 test('advanced backup and template mutations are lock-guarded', () => {
     assert.match(script, /const withAdvancedOperationLock = async \(type, scope, actionLabel, callback\) =>/);
     assert.match(script, /const createManualBackup = async \(type\) => \{[\s\S]*withAdvancedOperationLock\(resolvedType, 'backups'/);
-    assert.match(script, /const restoreBackupEntry = \(type, name\) => \{[\s\S]*withAdvancedOperationLock\(resolvedType, 'backups'/);
+    assert.match(script, /const restoreBackupEntry = \(type, name, reviewHash = ''\) => \{[\s\S]*withAdvancedOperationLock\(resolvedType, 'backups'/);
     assert.match(script, /const runScheduledBackupNow = async \(type\) => \{[\s\S]*withAdvancedOperationLock\(resolvedType, 'backups'/);
     assert.match(script, /const createTemplateFromFolder = async \(type\) => \{[\s\S]*withAdvancedOperationLock\(type, 'templates'/);
     assert.match(script, /const bulkTemplateAction = \(type, action\) => \{[\s\S]*withAdvancedOperationLock\(type, 'templates'/);

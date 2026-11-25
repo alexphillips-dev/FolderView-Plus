@@ -152,6 +152,23 @@ $result['acceptsExactReview'] = restoreLatestBackupSnapshot($type, $new['name'])
 seedFixture($type, $savedFolders, $savedPrefs);
 $reviewed = createBackupSnapshot($type, 'manual');
 $row = listBackupSnapshots($type, true)[0];
+$request = static function (array $post): array {
+    $endpoint = 'backup.php';
+    $_POST = $_REQUEST = $post;
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['SCRIPT_NAME'] = $_SERVER['REQUEST_URI'] = "/plugins/folderview.plus/server/$endpoint";
+    $_SERVER['SCRIPT_FILENAME'] = ${quote(path.join(server, 'backup.php'))};
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+    $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $post['action'])['nonce'];
+    $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace(chr(92), '/', dirname($_SERVER['SCRIPT_FILENAME'])) . '/',
+        substr(file_get_contents($_SERVER['SCRIPT_FILENAME']), 5));
+    http_response_code(200);
+    ob_start(); eval($body);
+    return ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR)];
+};
+$targetPath = getBackupSnapshotPath($type, $reviewed['name']);
+$reviewedBytes = file_get_contents($targetPath);
 $replacement = readJsonObjectFile(getBackupSnapshotPath($type, $reviewed['name']));
 $replacement['folders'] = $currentFolders;
 writeJsonObjectAtomic(getBackupSnapshotPath($type, $reviewed['name']), fvplusJsonTypeConfig($replacement));
@@ -160,6 +177,19 @@ try { restoreLatestBackupSnapshot($type, $row['name'], $row['reviewHash']); $res
 catch (FVPlusConfigConflictException $failure) {
     $result['rejectsReplacement'] = $before === captureFixture($type) && count(listBackupSnapshots($type)) === 1;
 }
+$restorePost = ['type' => $type, 'action' => 'restore', 'name' => $row['name'], 'createSafetyBackup' => true, 'reviewHash' => $row['reviewHash']];
+$replacedNamed = $request($restorePost);
+$result['rejectsNamedReplacement'] = $replacedNamed['status'] === 409 && $before === captureFixture($type)
+    && count(listBackupSnapshots($type)) === 1;
+unlink($targetPath);
+$missingNamed = $request($restorePost);
+$result['rejectsMissingReview'] = $missingNamed['status'] === 409 && $before === captureFixture($type)
+    && count(listBackupSnapshots($type)) === 0;
+file_put_contents($targetPath, $reviewedBytes);
+$restoredNamed = $request($restorePost);
+$result['acceptsReviewedBytes'] = $restoredNamed['status'] === 200 && $restoredNamed['body']['restore']['name'] === $row['name']
+    && readRawFolderMap($type) === $savedFolders;
+$result['restoreSyncStatus'] = $restoredNamed['body']['restore']['dockerOrderSync'] ?? null;
 
 $globalOld = createGlobalRollbackSnapshot('manual');
 $brokenGlobal = 'global-20990101-000000-broken.json';
@@ -225,7 +255,13 @@ foreach (['folders', 'prefs', 'docker-order'] as $stage) {
             }
         ]);
     } catch (Throwable $failure) { $error = $failure->getMessage(); }
-    $result['failures'][$stage] = ['error' => $error, 'unchanged' => $before === captureFixture($type),
+    $after = captureFixture($type);
+    if ($stage === 'docker-order') {
+        $result['independentNativeEditPreserved'] = $after[count($after) - 1]['content'] === 'injected-change';
+        array_pop($before);
+        array_pop($after);
+    }
+    $result['failures'][$stage] = ['error' => $error, 'unchanged' => $before === $after,
         'targetRetained' => is_file(getBackupSnapshotPath($type, $target['name']))];
 }
 foreach (['invalid-json', 'missing-folders', 'invalid-prefs', 'wrong-type', 'wrong-schema',
@@ -264,7 +300,8 @@ echo json_encode($result);
         return JSON.parse(execFileSync('php', ['-r', code], { encoding: 'utf8', timeout: 30000, env: {
             ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(temp, 'config'),
             FVPLUS_TEST_SOURCE_DIR: path.join(temp, 'runtime'), FVPLUS_TEST_DOCUMENT_ROOT: documentRoot,
-            FVPLUS_TEST_DOCKER_AUTOSTART_FILE: native
+            FVPLUS_TEST_DOCKER_AUTOSTART_FILE: native,
+            FVPLUS_TEST_SECURITY_STATE_PATH: path.join(temp, 'config', 'request-state.json')
         } }));
     } finally {
         const target = fs.realpathSync(temp);
@@ -294,10 +331,13 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.emptySafety, true, 'empty current state was not protected');
         assert.equal(result.latestSkipsEmpty, true, 'latest restore selected an empty snapshot');
         assert.deepEqual(result.skipsMalformed, { latest: true, undo: true }, 'a damaged backup blocked a valid older restore point');
-        for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement', 'globalRetainsUsable',
+        for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement',
+            'rejectsNamedReplacement', 'rejectsMissingReview', 'acceptsReviewedBytes', 'globalRetainsUsable',
             'failureLeavesHistory', 'undoSkipsNoop', 'undoProgresses', 'undoExhausted', 'undoResumesAfterEdit', 'undoRechecksExternalChange']) {
             assert.equal(result[check], true, check);
         }
+        if (type === 'docker') assert.equal(result.independentNativeEditPreserved, true);
+        assert.equal(result.restoreSyncStatus, type === 'docker' ? 'failed' : null, 'native sync outcome was lost');
         assert.deepEqual(result.rejectsOnlyMalformed, { latest: true, undo: true }, 'restore mutated state without valid backup data');
         assert.equal(result.otherUnchanged, true, 'restore changed the other source');
         for (const [stage, failure] of Object.entries(result.failures)) {

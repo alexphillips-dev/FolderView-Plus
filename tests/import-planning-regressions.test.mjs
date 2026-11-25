@@ -17,6 +17,33 @@ const loadFunction = (file, name, nextName, sandbox) => {
     return vm.runInNewContext(source.slice(start, end) + '\n' + name, sandbox);
 };
 
+test('Setup Assistant retries only queued startup work after the configuration commits', async () => {
+    const helper = loadFunction('folderviewplus.setup-assistant.js', 'syncSetupAssistantDockerOrder', 'emptySetupAssistantTemplateOutcome', {
+        setupAssistantT: (_key, fallback) => fallback
+    });
+    let result = { ok: true, syncOutcome: 'queued' };
+    const writes = [];
+    const api = async (...args) => { writes.push(args); return result; };
+    const retry = loadFunction('folderviewplus.wizard.js', 'retrySetupAssistantFailures', 'confirmSetupAssistantUndo', {
+        normalizeManagedType: type => type, syncSetupAssistantDockerOrder: helper, apiPostJson: api,
+        refreshAll: async () => {}, refreshSettingsUx: () => {}, captureSettingsBaseline: () => {}
+    });
+    const queue = [{ phase: 'docker-order', type: 'docker' }];
+    const queued = await retry(queue);
+    assert.equal(queued.resolved, 0);
+    assert.match(queued.remaining[0].message, /configuration is busy/);
+    result = { ok: true, syncOutcome: 'failed' };
+    const failed = await retry(queued.remaining);
+    assert.equal(failed.resolved, 0);
+    assert.match(failed.remaining[0].message, /sync failed/);
+    result = { ok: true, syncOutcome: 'synced' };
+    assert.equal((await retry(failed.remaining)).resolved, 1);
+    result = { ok: true, syncOutcome: 'unmanaged' };
+    assert.equal(await helper(api), 'unmanaged');
+    assert.equal(writes.length, 4);
+    assert.ok(writes.every(([url, body]) => url.endsWith('/sync_order.php') && body.type === 'docker'));
+});
+
 test('partial import reviews only selected changes and blocks implicit reparenting', () => {
     const current = { parent: folder('Original parent'), child: folder('Keep child', 'parent'), other: folder('Keep elsewhere') };
     const replace = utils.buildImportPlan(current, { mode: 'full', folders: { other: folder('Keep elsewhere') } }, 'replace').operations;

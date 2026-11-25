@@ -151,7 +151,7 @@ test('Recovery keeps the server ordering for snapshots created within the same d
 
 test('Recovery history keeps selected actions on the active row and expands all snapshots', () => {
     const backups = Array.from({ length: 7 }, (_, index) => ({ name: `snapshot-${index}.json`, count: index === 0 ? 0 : 2,
-        createdAt: `2026-09-2${9 - index}T12:00:00Z`, reason: 'manual' }));
+        createdAt: `2026-09-2${9 - index}T12:00:00Z`, reason: 'manual', reviewHash: String(index).repeat(64) }));
     const selected = { docker: '', vm: '' };
     let currentType = 'docker';
     const summaryHost = { text: () => summaryHost };
@@ -163,7 +163,7 @@ test('Recovery history keeps selected actions on the active row and expands all 
     const recent = api.buildRecoveryBackupHistoryHtml('docker');
     assert.equal((recent.match(/fv-recovery-snapshot-row/g) || []).length, 5);
     assert.match(recent, /snapshot-0\.json[\s\S]*Empty/);
-    assert.match(recent, /restoreSelectedActiveRecoveryBackup\(\)/);
+    assert.match(recent, /restoreSelectedActiveRecoveryBackup\('0{64}'\)/);
     assert.match(recent, /toggleAllRecoverySnapshots\(\)/);
     assert.equal(selected.docker, 'snapshot-0.json');
     currentType = 'vm';

@@ -3416,6 +3416,7 @@ const getSettingsWorkspacesApi = (() => {
             createManualBackup,
             restoreLatestBackup,
             restoreBackupEntry,
+            offerRecoveryDockerOrderRetry,
             downloadBackupEntry,
             deleteBackupEntry,
             deleteAllBackupEntries,
@@ -4749,14 +4750,14 @@ const fetchBackupSnapshot = async (type, name) => {
     return response.snapshot || {};
 };
 
-const restoreBackupByName = async (type, name, createSafetyBackup = false) => {
+const restoreBackupByName = async (type, name, createSafetyBackup, reviewHash) => {
     const resolvedType = normalizeManagedType(type);
     assertRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     await diagnosticsPrefsCoordinator?.flush?.(resolvedType);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore',
-        name, createSafetyBackup
+        name, createSafetyBackup, reviewHash
     });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
@@ -7471,7 +7472,7 @@ const renderBackupRows = (type) => {
             <td>${reason}</td>
             <td>${count}</td>
             <td>
-                <button type="button" data-fv-onclick="restoreBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-history"></i> Restore</button>
+                <button type="button" data-fv-onclick="restoreBackupEntry('${type}','${escapeHtml(name)}','${escapeHtml(backup.reviewHash || '')}')"><i class="fa fa-history"></i> Restore</button>
                 <button type="button" data-fv-onclick="downloadBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-download"></i> Download</button>
                 <button type="button" data-fv-onclick="deleteBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-trash"></i> Delete</button>
             </td>
@@ -7588,9 +7589,11 @@ let dockerStartOrderPreviewGeneration = 0;
 let dockerStartOrderSaveTimer = null;
 let dockerStartOrderQueuedPrefs = null;
 let dockerStartOrderSaveChain = Promise.resolve();
+const dockerStartOrderPendingSaves = [];
 let dockerStartOrderDraftPlan = null;
 let dockerStartOrderEditGeneration = 0;
 let dockerStartOrderSyncOutcome = '';
+let dockerStartOrderSyncGeneration = 0;
 
 const renderDockerStartOrderSyncOutcome = () => {
     const warning = dockerStartOrderSyncOutcome === 'failed'
@@ -7606,8 +7609,8 @@ const persistQueuedDockerStartOrderPrefs = () => {
         return dockerStartOrderSaveChain;
     }
     const nextPrefs = dockerStartOrderQueuedPrefs;
-    const generation = dockerStartOrderEditGeneration;
     dockerStartOrderQueuedPrefs = null;
+    dockerStartOrderPendingSaves.push(nextPrefs);
     dockerStartOrderSaveChain = dockerStartOrderSaveChain
         .then(async () => {
             let syncOutcome;
@@ -7617,21 +7620,25 @@ const persistQueuedDockerStartOrderPrefs = () => {
                     onCommitted: (response) => { syncOutcome = response?.dockerOrderSync; }
                 });
                 if (syncOutcome) dockerStartOrderSyncOutcome = syncOutcome;
-                if (generation !== dockerStartOrderEditGeneration) return;
                 prefsByType.docker = savedPrefs;
             } catch (error) {
-                if (generation === dockerStartOrderEditGeneration) {
-                    const confirmed = diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker');
-                    if (confirmed) prefsByType.docker = confirmed;
-                    dockerStartOrderDraftPlan = null;
-                    renderDockerStartOrderWorkspace({ preservePreview: true });
-                }
+                const confirmed = diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker');
+                if (confirmed) prefsByType.docker = confirmed;
                 showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
-                return;
             }
-            const modeChanged = dockerStartOrderDraftPlan?.mode !== normalizeDockerStartOrderPrefsForUi(prefsByType.docker).mode;
-            dockerStartOrderDraftPlan = null;
-            if (modeChanged) renderDockerStartOrderWorkspace({ preservePreview: true });
+            const previousPlan = dockerStartOrderDraftPlan;
+            dockerStartOrderPendingSaves.shift();
+            const confirmedPlan = normalizeDockerStartOrderPrefsForUi(
+                diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker') || prefsByType.docker
+            );
+            const pending = [...dockerStartOrderPendingSaves, dockerStartOrderQueuedPrefs].filter(Boolean);
+            dockerStartOrderDraftPlan = pending.length
+                ? dockerStartOrderModel.normalizePlan(pending.reduce((plan, entry) => prefsStoreModule.mergePatch(plan, entry.dockerStartOrder), confirmedPlan))
+                : null;
+            const currentPlan = dockerStartOrderDraftPlan || confirmedPlan;
+            if (JSON.stringify(previousPlan) !== JSON.stringify(currentPlan)) {
+                renderDockerStartOrderWorkspace({ preservePreview: true, previousPlan });
+            }
             renderDockerStartOrderSyncOutcome();
         });
     return dockerStartOrderSaveChain;
@@ -7670,11 +7677,7 @@ const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
 const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     const current = utils.normalizePrefs(prefsByType.docker || {});
     const currentPlan = normalizeDockerStartOrderPrefsForUi();
-    const nextPlan = {
-        ...currentPlan,
-        ...patch,
-        batches: Array.isArray(patch.batches) ? patch.batches : currentPlan.batches
-    };
+    const nextPlan = prefsStoreModule.mergePatch(currentPlan, patch);
     const nextPrefs = utils.normalizePrefs({
         ...current,
         dockerStartOrder: nextPlan
@@ -7682,7 +7685,16 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     dockerStartOrderDraftPlan = nextPrefs.dockerStartOrder;
     dockerStartOrderEditGeneration += 1;
     renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
-    queueDockerStartOrderPrefsSave({ dockerStartOrder: Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]])) });
+    const changed = Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]]));
+    // Preserve explicitly edited waits (including zero), while leaving peer waits out of the patch.
+    if (patch.containerWaits) {
+        changed.containerWaits = Object.fromEntries(Object.keys(patch.containerWaits)
+            .filter((name) => Object.hasOwn(nextPrefs.dockerStartOrder.containerWaits, name))
+            .map((name) => [name, nextPrefs.dockerStartOrder.containerWaits[name]]));
+        if (!Object.keys(changed.containerWaits).length) delete changed.containerWaits;
+    }
+    if (Object.keys(changed).length) queueDockerStartOrderPrefsSave({ dockerStartOrder: changed });
+    else if (!dockerStartOrderPendingSaves.length && !dockerStartOrderQueuedPrefs) dockerStartOrderDraftPlan = null;
     if (options.refreshPreview === true) {
         scheduleDockerStartOrderPreviewRefresh();
     }
@@ -7878,8 +7890,17 @@ const renderDockerStartOrderWorkspace = (options = {}) => {
         renderDockerStartOrderSyncOutcome();
         return;
     }
-    host.find('[data-fv-start-order-region="top"]').replaceWith(dockerStartOrderView.buildControlsHtml(plan));
-    host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
+    const previous = options.previousPlan;
+    if (!previous || previous.mode !== plan.mode || previous.remaining !== plan.remaining) {
+        const top = host.find('[data-fv-start-order-region="top"]');
+        const active = document.activeElement;
+        const activeId = top[0]?.contains(active) ? active.id : '';
+        top.replaceWith(dockerStartOrderView.buildControlsHtml(plan));
+        if (activeId) document.getElementById(activeId)?.focus({ preventScroll: true });
+    }
+    if (!previous || JSON.stringify(previous.batches) !== JSON.stringify(batches)) {
+        host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
+    }
     renderDockerStartOrderSyncOutcome();
 };
 
@@ -7945,9 +7966,10 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
 const syncDockerStartOrderNow = async () => {
     setUpdateStatus('');
     const title = surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed");
-    const previewGeneration = ++dockerStartOrderPreviewGeneration;
+    const syncGeneration = ++dockerStartOrderSyncGeneration;
+    const previewGeneration = dockerStartOrderPreviewGeneration;
     const editGeneration = dockerStartOrderEditGeneration;
-    const isCurrent = () => previewGeneration === dockerStartOrderPreviewGeneration && editGeneration === dockerStartOrderEditGeneration;
+    const isCurrent = () => syncGeneration === dockerStartOrderSyncGeneration && editGeneration === dockerStartOrderEditGeneration;
     try {
         await flushDockerStartOrderSaveQueue();
         const response = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
@@ -7961,7 +7983,12 @@ const syncDockerStartOrderNow = async () => {
         } else if (response?.syncOutcome === 'unmanaged') {
             setUpdateStatus(surfaceT('settings.start-order.unmanaged-heading', 'Unraid owns the start order.'));
         } else if (response?.syncOutcome === 'synced') {
-            renderDockerStartOrderPreview(response.preview || {});
+            const preview = response.preview;
+            if (previewGeneration === dockerStartOrderPreviewGeneration && preview
+                && (!preview.mode || preview.mode === normalizeDockerStartOrderPrefsForUi().mode)) {
+                dockerStartOrderPreviewGeneration += 1;
+                renderDockerStartOrderPreview(preview);
+            }
             setUpdateStatus(surfaceT("common.repair.docker-start-order-synced-f11013", "Docker start order synced."));
         } else {
             showError(title, response?.error || title);
@@ -9892,6 +9919,34 @@ const refreshRestoredConfiguration = (type, restore) => Promise.all([
     ...(restore?.templatesRestored === true ? [refreshTemplates(type, { quiet: true })] : [])
 ]);
 
+const offerRecoveryDockerOrderRetry = async (status, { title, text } = {}) => {
+    while (status === 'queued' || status === 'failed') {
+        dockerStartOrderSyncOutcome = status;
+        renderDockerStartOrderSyncOutcome();
+        const message = status === 'queued'
+            ? surfaceT('common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', 'FolderView Plus configuration is busy. Please retry the action.')
+            : surfaceT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed');
+        const retry = await window.FolderViewPlusUI.confirm({
+            title: title || surfaceT('common.repair.restore-complete-8f83d9', 'Restore complete.'),
+            message: text || message,
+            detail: text ? message : '',
+            confirmLabel: surfaceT('diagnostics.actions.retry', 'Retry'),
+            cancelLabel: surfaceT('common.close', 'Close')
+        });
+        if (!retry) return;
+        try {
+            const response = await apiPostJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
+            status = response?.syncOutcome || 'failed';
+        } catch (_error) {
+            status = 'failed';
+        }
+    }
+    if (status === 'synced' || status === 'unmanaged') {
+        dockerStartOrderSyncOutcome = status;
+        renderDockerStartOrderSyncOutcome();
+    }
+};
+
 const undoLatestChange = (type) => {
     let resolvedType;
     try {
@@ -9917,6 +9972,7 @@ const undoLatestChange = (type) => {
                 const restore = await restoreLatestUndo(resolvedType);
                 await refreshRestoredConfiguration(resolvedType, restore);
                 await refreshChangeHistory();
+                await offerRecoveryDockerOrderRetry(restore.dockerOrderSync);
                 swal({
                     title: 'Undo complete',
                     text: `Restored ${restore.name || 'latest undo backup'}.`,
@@ -9964,7 +10020,7 @@ const createManualBackup = async (type) => {
     });
 };
 
-const restoreBackupEntry = (type, name) => {
+const restoreBackupEntry = (type, name, reviewHash = '') => {
     let resolvedType;
     try {
         resolvedType = normalizeManagedType(type);
@@ -9973,6 +10029,11 @@ const restoreBackupEntry = (type, name) => {
         return;
     }
     if (!ensureRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
+        return;
+    }
+    const reviewedHash = reviewHash || (backupsByType[resolvedType] || []).find((backup) => backup.name === name)?.reviewHash;
+    if (!reviewedHash) {
+        showError('Restore failed', 'The selected backup changed. Refresh and try again.');
         return;
     }
     swal({
@@ -9989,8 +10050,9 @@ const restoreBackupEntry = (type, name) => {
         }
         await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup restore`, async () => {
             try {
-                const restore = await restoreBackupByName(resolvedType, name, true);
+                const restore = await restoreBackupByName(resolvedType, name, true, reviewedHash);
                 await refreshRestoredConfiguration(resolvedType, restore);
+                await offerRecoveryDockerOrderRetry(restore.dockerOrderSync);
                 await offerUndoAction(resolvedType, restore.backup, 'Backup restore');
             } catch (error) {
                 showError('Restore failed', error);
@@ -10058,6 +10120,7 @@ const restoreLatestBackup = async (type) => {
                 closeImportApplyProgressDialog();
                 progressOpen = false;
 
+                await offerRecoveryDockerOrderRetry(restore.dockerOrderSync);
                 await offerUndoAction(resolvedType, undoBackup, 'Restore latest backup');
             } catch (error) {
                 if (progressOpen) {
@@ -10627,6 +10690,7 @@ const settingsSupportActions = settingsActionSupportModule.createSupportActions(
     showError,
     updateTools,
     globalRollbackApi,
+    offerRecoveryDockerOrderRetry,
     refreshAll,
     downloadType,
     importType,

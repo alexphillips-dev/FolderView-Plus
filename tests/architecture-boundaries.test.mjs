@@ -22,7 +22,7 @@ test('entrypoints and contracted modules declare ownership boundaries', () => {
     assert.equal(architecture.schemaVersion, 2);
     assert.equal(architecture.entrypointContracts.length, 11);
     assert.equal(architecture.moduleContracts.length, 92);
-    assert.equal(architecture.serverModuleContracts.length, 72);
+    assert.equal(architecture.serverModuleContracts.length, 74);
     const allowedConsumers = new Set(architecture.consumerScopes);
     for (const contract of [...architecture.entrypointContracts, ...architecture.moduleContracts, ...architecture.serverModuleContracts]) {
         assert.ok(contract.file, 'boundary contract must name its file');

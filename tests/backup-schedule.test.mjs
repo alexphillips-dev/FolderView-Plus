@@ -63,6 +63,16 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.schedule.lastStatus, 'ok');
         assert.ok(result.backups.some(row => row.reason === 'scheduled'));
     });
+    test(`${type}: scheduled dedup uses the newest usable checkpoint and retains a malformed history entry`, () => {
+        const unchanged = run(type, 'corrupt-newest');
+        assert.equal(unchanged.schedule.skipReason, 'unchanged-config');
+        assert.equal(unchanged.backups[0].name, `${type}-latest-damaged.json`);
+        assert.equal(unchanged.backups[0].count, null);
+        assert.deepEqual(unchanged.after, unchanged.before);
+        const changed = run(type, 'corrupt-newest-changed');
+        assert.equal(changed.schedule.lastStatus, 'ok');
+        assert.equal(changed.backups.filter(row => row.reason === 'scheduled').length, 1);
+    });
     test(`${type}: bookkeeping alone does not create a duplicate`, () => {
         const result = run(type, 'bookkeeping');
         assert.equal(result.schedule.skipReason, 'unchanged-config');

@@ -81,6 +81,13 @@
                 return;
             }
             const result = await securePost(SYNC_ORDER_PATH, { type: syncType });
+            if (result?.syncOutcome === 'queued') {
+                const fallback = 'FolderView Plus configuration is busy. Please retry the action.';
+                const error = new Error(globalThis.FolderViewPlusI18n?.t?.(
+                    'common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', fallback
+                ) || fallback);
+                throw Object.assign(error, { syncOutcome: 'queued' });
+            }
             if (result?.syncOutcome === 'failed') {
                 throw new Error(globalThis.FolderViewPlusI18n?.t?.(
                     'common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed'

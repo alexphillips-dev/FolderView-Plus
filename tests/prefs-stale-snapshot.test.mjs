@@ -91,6 +91,7 @@ test('rapid Docker start-order changes queue only edited fields and retain both 
         window: { setTimeout: fn => { timers.set(++timer, fn); return timer; }, clearTimeout: id => timers.delete(id) }
     });
     vm.runInContext(`let dockerStartOrderQueuedPrefs = null, dockerStartOrderSaveTimer = null, dockerStartOrderSaveChain = Promise.resolve();
+    const dockerStartOrderPendingSaves = [];
     let dockerStartOrderDraftPlan = null, dockerStartOrderEditGeneration = 0, dockerStartOrderSyncOutcome = '';\n${
         ['normalizeDockerStartOrderPrefsForUi', 'persistQueuedDockerStartOrderPrefs', 'queueDockerStartOrderPrefsSave', 'saveDockerStartOrderPlan'].map(name => extract(settings, name)).join('\n')
     }\nthis.save = saveDockerStartOrderPlan; this.flush = () => dockerStartOrderSaveChain;`, context);
@@ -100,6 +101,50 @@ test('rapid Docker start-order changes queue only edited fields and retain both 
     await context.flush();
     assert.deepEqual(writes, [{ dockerStartOrder: { mode: 'custom-batches', remaining: 'before' } }]);
     assert.deepEqual(plain(context.prefsByType.docker), { pinnedFolderIds: ['keep'], dockerStartOrder: { mode: 'custom-batches', remaining: 'before', batches: [] } });
+});
+
+test('Startup reconciles a rejected policy while retaining a later batch save and a peer wait', async () => {
+    const initial = { dockerStartOrder: { mode: 'custom-batches', remaining: 'after', batches: [], containerWaits: { other: 19 } } };
+    let server = structuredClone(initial);
+    let reject;
+    const writes = [], rendered = [], errors = [];
+    const context = vm.createContext({
+        prefsStoreModule: store, utils: { normalizePrefs: value => value }, prefsByType: { docker: initial },
+        dockerStartOrderModel: { normalizePlan: value => value },
+        diagnosticsPrefsCoordinator: { getConfirmedPrefs: () => server },
+        postPrefs: async (_type, patch) => {
+            writes.push(plain(patch));
+            if (writes.length === 1) await new Promise((_, rejectFirst) => { reject = rejectFirst; });
+            server = store.mergePatch(server, patch);
+            return server;
+        },
+        renderDockerStartOrderWorkspace: () => rendered.push(plain(context.current())),
+        renderDockerStartOrderSyncOutcome() {}, showError: (_title, error) => errors.push(error.message),
+        $: () => ({ text: () => ({ prop() {} }) }),
+        window: { setTimeout: () => 1, clearTimeout() {} }, surfaceT: (_key, fallback) => fallback
+    });
+    const start = settings.indexOf('let dockerStartOrderPreviewTimer =');
+    const end = settings.indexOf('const updateDockerStartOrderMode =', start);
+    vm.runInContext(`${extract(settings, 'normalizeDockerStartOrderPrefsForUi')}\n${settings.slice(start, end)}
+        this.save = saveDockerStartOrderPlan; this.flush = flushDockerStartOrderSaveQueue;
+        this.current = normalizeDockerStartOrderPrefsForUi;`, context);
+    await context.save({ remaining: 'before' });
+    const first = context.flush();
+    await Promise.resolve();
+    await context.save({ batches: [{ id: 'batch-two' }] });
+    await context.save({ containerWaits: { first: 0 } });
+    server.dockerStartOrder.containerWaits.other = 55;
+    const last = context.flush();
+    reject(new Error('rejected policy'));
+    await Promise.all([first, last]);
+    assert.deepEqual(writes, [
+        { dockerStartOrder: { remaining: 'before' } },
+        { dockerStartOrder: { batches: [{ id: 'batch-two' }], containerWaits: { first: 0 } } }
+    ]);
+    assert.deepEqual(rendered.at(-1), {
+        mode: 'custom-batches', remaining: 'after', batches: [{ id: 'batch-two' }], containerWaits: { other: 55, first: 0 }
+    });
+    assert.deepEqual(errors, ['rejected policy']);
 });
 
 test('folder editor rule saves discard unrelated cached preferences before reaching the coordinator', async () => {

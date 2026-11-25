@@ -710,7 +710,8 @@ if [ "$archive_prune_keep" -gt 0 ]; then
 fi
 
 if [ "$validate_after_build" = true ]; then
-    FVPLUS_ICON_ASSET_PACK_GUARDED=1 FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
+    FVPLUS_EXPECT_PLUGIN_BRANCH="$branch" FVPLUS_ICON_ASSET_PACK_GUARDED=1 \
+        FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
 fi
 if [ "$run_install_smoke" = true ]; then
     FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$install_smoke_script"

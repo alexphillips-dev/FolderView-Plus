@@ -134,6 +134,7 @@ function dockerSyncOrderLockPath(): string {
             'autoStartFile' => $autoStartFile,
             'autoStartContent' => $autoStartContent,
             'autoStartMap' => $autoStartMap,
+            'batchWaitOwnership' => $autoStartContent !== null ? readDockerBatchWaitOwnership($autoStartContent) : [],
             'staleAutostart' => $staleAutostart
         ];
     }
@@ -282,7 +283,8 @@ function dockerSyncOrderLockPath(): string {
                 $autoStartOrder[] = $name;
             }
         }
-        $sequence = buildDockerStartOrderSequence($autoStartOrder, $context, $mode === 'unmanaged' ? [] : $plan, $batches);
+        $managed = $mode !== 'unmanaged';
+        $sequence = buildDockerStartOrderSequence($autoStartOrder, $context, $managed ? $plan : [], $batches, $managed);
         return [
             'mode' => $mode,
             'managed' => $mode !== 'unmanaged',
@@ -305,7 +307,7 @@ function dockerSyncOrderLockPath(): string {
         return buildDockerStartOrderPlan($context);
     }
 
-    function syncContainerOrderUnlocked(): array {
+    function syncContainerOrderUnlocked(?callable $onNativeWrite = null): array {
         // Rewrites the autostart file to match the configured FolderView Plus start order.
         // Docker userprefs.cfg is owned by Unraid and is only read here.
         try {
@@ -334,22 +336,14 @@ function dockerSyncOrderLockPath(): string {
             foreach ($autoStartMap as $line) {
                 $newAutoStart[] = $line;
             }
-            $newAutoStart = applyDockerStartOrderSequenceWaits($newAutoStart, (array)($plan['sequence'] ?? []));
+            $reconciled = applyDockerStartOrderSequenceWaits($newAutoStart, $plan['sequence'], $context['batchWaitOwnership']);
+            $newAutoStart = $reconciled['lines'];
             $nextAutoStartContent = count($newAutoStart) > 0
                 ? implode("\n", $newAutoStart) . "\n"
                 : '';
-            $currentAutoStartContent = @file_get_contents($autoStartFile);
-            if ($currentAutoStartContent === false || $currentAutoStartContent !== ($context['autoStartContent'] ?? null)) {
-                fv3_debug_log('syncContainerOrder: native autostart changed during planning; skipped');
-                return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_changed'];
-            }
-            if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
-                try {
-                    writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
-                } catch (Throwable $error) {
-                    return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_write_failed'];
-                }
-                if (@file_get_contents($autoStartFile) !== $nextAutoStartContent) return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_changed'];
+            $failure = writeDockerStartOrderChanges($context, $nextAutoStartContent, $reconciled['ownership'], $onNativeWrite);
+            if ($failure !== null) return ['syncOutcome' => 'failed', 'errorCode' => $failure];
+            if ($context['autoStartContent'] !== $nextAutoStartContent) {
                 fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries using " . (string)($plan['mode'] ?? 'docker-page') . " mode");
             } else {
                 fv3_debug_log("syncContainerOrder: autostart file already up to date");
@@ -359,15 +353,15 @@ function dockerSyncOrderLockPath(): string {
         return ['syncOutcome' => 'failed', 'errorCode' => 'docker_order_native_unavailable'];
     }
 
-    function syncContainerOrder(string $type): array {
+    function syncContainerOrder(string $type, ?callable $onNativeWrite = null): array {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
         if ($type !== 'docker') { return ['syncOutcome' => 'not-applicable']; }
         // Setup rollback and all plugin writes to native Docker order must share this lock.
-        return withConfigMutationLock(static fn(): array => fvplusSyncDockerOrderWithNativeLock());
+        return withConfigMutationLock(static fn(): array => fvplusSyncDockerOrderWithNativeLock($onNativeWrite));
     }
 
-    function fvplusSyncDockerOrderWithNativeLock(): array {
+    function fvplusSyncDockerOrderWithNativeLock(?callable $onNativeWrite = null): array {
         if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return ['syncOutcome' => 'unmanaged']; }
         if (isset($GLOBALS['fvplus_setup_docker_order_sync'])) {
             $GLOBALS['fvplus_setup_docker_order_sync'] = true;
@@ -393,7 +387,7 @@ function dockerSyncOrderLockPath(): string {
                 $attempt++;
                 clearDockerSyncOrderPending();
                 $startedAt = microtime(true);
-                $result = syncContainerOrderUnlocked();
+                $result = syncContainerOrderUnlocked($onNativeWrite);
                 $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
                 $shouldRerun = hasDockerSyncOrderPending();
                 fv3_debug_log("syncContainerOrder: pass $attempt completed in {$durationMs}ms" . ($shouldRerun ? ' (pending rerun requested)' : ''));

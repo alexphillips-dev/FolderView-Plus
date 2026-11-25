@@ -24,6 +24,8 @@ const startOrderModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/fol
 const startOrderViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js');
 const startOrderWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-workspace.js');
 const startOrderSequencePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-start-order-sequence.php');
+const batchWaitStatePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-batch-wait-state.php');
+const prefsStore = require(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js'));
 
 test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'dockerStartOrder'\s*=>\s*\[/);
@@ -53,7 +55,8 @@ test('server builds preview and sync order from Docker page or custom batches', 
     assert.match(libPhp, /buildDockerStartOrderSequence/);
     assert.match(startOrderSequencePhp, /function buildDockerStartOrderSequence/);
     assert.match(startOrderSequencePhp, /array_key_exists\(\$name, \$waits\)/);
-    assert.match(startOrderSequencePhp, /function applyDockerStartOrderSequenceWaits/);
+    assert.match(startOrderSequencePhp, /require_once __DIR__.*lib\.docker-batch-wait-state\.php/);
+    assert.match(batchWaitStatePhp, /function applyDockerStartOrderSequenceWaits/);
     assert.match(libPhp, /skipped because Docker start order is unmanaged/);
     assert.match(libPhp, /'managed'\s*=>\s*\$mode !== 'unmanaged'/);
     assert.match(prefsEndpoint, /normalizeDockerStartOrderPrefs\(\$current\['dockerStartOrder'\]/);
@@ -84,6 +87,7 @@ test('Settings acknowledges only a verified sync and keeps queued or unmanaged p
             renderDockerStartOrderPreview: value => previews.push(value),
             renderDockerStartOrderSyncOutcome: () => {},
             dockerStartOrderSyncOutcome: '',
+            dockerStartOrderSyncGeneration: 0,
             dockerStartOrderPreviewGeneration: 0,
             dockerStartOrderEditGeneration: 0,
             surfaceT: (_key, fallback) => fallback
@@ -151,14 +155,15 @@ test('a failed mode save restores committed Settings state and permits preview',
         utils: { normalizePrefs: value => value },
         diagnosticsPrefsCoordinator: { getConfirmedPrefs: () => ({ dockerStartOrder: plan }) },
         dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page', 'custom-batches'], normalizePlan: value => value },
-        prefsStoreModule: { mergePatch: (_base, patch) => patch },
+        prefsStoreModule: prefsStore,
         window: { clearTimeout() {}, setTimeout: () => 1 },
         postPrefs: (_type, patch) => {
             saves.push(patch);
             return new Promise((_, reject) => { rejectWrite = reject; });
         },
-        $: selector => ({ length: 1, html: value => { if (selector === '#docker-start-order-preview') messages.push(value); } }),
+        $: selector => ({ length: 1, html: value => { if (selector === '#docker-start-order-preview') messages.push(value); }, text: () => ({ prop() {} }) }),
         renderDockerStartOrderWorkspace: options => renders.push(options),
+        renderDockerStartOrderSyncOutcome() {},
         infoByType: { docker: {} },
         dockerStartOrderView: { buildPreviewHtml: preview => `Preview ${preview.mode}`, buildHeaderSummaryHtml: () => '' },
         apiGetJson: async () => ({ preview: plan }),
@@ -213,7 +218,7 @@ test('a delayed manual sync response cannot replace a newer startup preview', as
         flushDockerStartOrderSaveQueue: async () => {},
         apiPostJson: () => new Promise(resolve => { finishSync = resolve; markSyncRequest(); }),
         renderDockerStartOrderSyncOutcome() {}, renderDockerStartOrderPreview: preview => renders.push(preview),
-        dockerStartOrderPreviewGeneration: 0, dockerStartOrderEditGeneration: 1, dockerStartOrderSyncOutcome: ''
+        dockerStartOrderPreviewGeneration: 0, dockerStartOrderEditGeneration: 1, dockerStartOrderSyncOutcome: '', dockerStartOrderSyncGeneration: 0
     });
     const sync = vm.runInContext(settingsJs.slice(start, end) + '\nsyncDockerStartOrderNow();', context);
     await requested;
@@ -222,6 +227,45 @@ test('a delayed manual sync response cannot replace a newer startup preview', as
     finishSync({ syncOutcome: 'synced', preview: { sequence: [{ wait: 4 }] } });
     await sync;
     assert.deepEqual(renders, [{ sequence: [{ wait: 20 }] }]);
+});
+
+test('manual sync outcomes without a current-mode preview let an in-flight preview finish', async () => {
+    const start = settingsJs.indexOf('const refreshDockerStartOrderPreview =');
+    const end = settingsJs.indexOf('const normalizeSettingsTableRenderType', start);
+    for (const outcome of ['queued', 'unmanaged', 'failed', 'synced']) {
+        let finishPreview;
+        const paints = [];
+        const context = vm.createContext({
+            apiGetJson: () => new Promise(resolve => { finishPreview = resolve; }),
+            apiPostJson: async () => ({ syncOutcome: outcome, preview: { mode: 'docker-page' } }),
+            flushDockerStartOrderSaveQueue: async () => {},
+            dockerStartOrderPreviewTimer: null, dockerStartOrderDraftPlan: null,
+            dockerStartOrderPreviewGeneration: 0, dockerStartOrderEditGeneration: 1, dockerStartOrderSyncGeneration: 0, dockerStartOrderSyncOutcome: '',
+            normalizeDockerStartOrderPrefsForUi: () => ({ mode: 'custom-batches' }),
+            setUpdateStatus() {}, renderDockerStartOrderSyncOutcome() {}, showError() {},
+            surfaceT: (_key, fallback) => fallback,
+            $: () => ({ length: 1, html: value => paints.push(value) }),
+            renderDockerStartOrderPreview: () => paints.push('displayed')
+        });
+        const workspace = vm.runInContext(settingsJs.slice(start, end) + '\n({ read: refreshDockerStartOrderPreview, sync: syncDockerStartOrderNow })', context);
+        const pending = workspace.read({ flush: false });
+        assert.match(paints[0], /Loading Docker start order preview/);
+        await workspace.sync();
+        finishPreview({ preview: { mode: 'custom-batches', order: ['fixture'] } });
+        await pending;
+        assert.equal(paints.at(-1), 'displayed', outcome);
+    }
+});
+
+test('unmanaged start order preview uses catalog copy in German and Arabic', () => {
+    const view = require(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.start-order-view.js'));
+    for (const locale of ['de', 'ar']) {
+        const catalog = JSON.parse(read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/' + locale + '/settings.json'));
+        const render = view.createApi({ translate: (key, fallback) => catalog[key] || fallback });
+        const html = render.buildPreviewHtml({ managed: false, sequence: [{ name: 'fixture' }] });
+        assert.ok(html.includes(catalog['settings.start-order.unmanaged-copy']), locale);
+        assert.match(html, /readonly/);
+    }
 });
 
 test('background preference retry publishes the committed startup sync outcome', async () => {
@@ -258,7 +302,7 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsJs, /const renderDockerStartOrderWorkspace = \(options = \{\}\) =>/);
     assert.match(startOrderViewJs, /data-fv-start-order-region="preview"/);
     assert.match(settingsJs, /const preservePreview = options\.preservePreview === true && host\.find\('#docker-start-order-preview'\)\.length > 0;/);
-    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="top"\]'\)\.replaceWith\(dockerStartOrderView\.buildControlsHtml\(plan\)\);/);
+    assert.match(settingsJs, /top\.replaceWith\(dockerStartOrderView\.buildControlsHtml\(plan\)\);/);
     assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(dockerStartOrderView\.buildBatchesHtml\(batches, batchOptions\)\);/);
     assert.match(settingsJs, /dockerStartOrderFolderOptionsCache/);
     assert.match(settingsJs, /dockerStartOrderContainerOptionsCache/);

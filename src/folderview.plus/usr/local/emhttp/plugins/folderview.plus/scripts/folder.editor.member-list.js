@@ -52,20 +52,19 @@
         const renderChunkSize = Math.max(1, Number(deps.renderChunkSize) || 140);
         let childFolderOrder = [];
         let memberListRenderToken = 0;
+        let renderCompletion = null;
+        let completeRender = null;
 
-        const scheduleTask = (callback) => {
-            if (typeof callback !== 'function') {
-                return;
-            }
-            if (typeof runtimeWindow?.requestAnimationFrame === 'function') {
-                runtimeWindow.requestAnimationFrame(callback);
-                return;
-            }
-            const setTimer = typeof runtimeWindow?.setTimeout === 'function'
-                ? runtimeWindow.setTimeout.bind(runtimeWindow)
-                : setTimeout;
-            setTimer(callback, 16);
+        const settleRender = (ready) => {
+            const complete = completeRender;
+            renderCompletion = null;
+            completeRender = null;
+            complete?.(ready);
         };
+
+        const scheduleTask = typeof runtimeWindow?.requestAnimationFrame === 'function'
+            ? runtimeWindow.requestAnimationFrame.bind(runtimeWindow)
+            : (callback) => (runtimeWindow?.setTimeout || setTimeout).call(runtimeWindow, callback, 16);
 
         const setChildFolderOrder = (value) => {
             childFolderOrder = normalizeChildFolderOrder(value);
@@ -219,7 +218,10 @@
 
         const updateList = (afterRender = null) => {
             const table = jq('.sortable > tbody');
-            table.empty();
+            if (!renderCompletion) {
+                renderCompletion = new Promise((resolve) => { completeRender = resolve; });
+            }
+            table.prop('inert', true).attr('aria-busy', 'true').empty();
             const token = ++memberListRenderToken;
             const collections = getMemberCollections() || {};
             const hiddenPreviewMembers = collections.hiddenPreviewMembers instanceof Set
@@ -253,6 +255,8 @@
                 if (token !== memberListRenderToken) {
                     return;
                 }
+                table.prop('inert', false).removeAttr('aria-busy');
+                settleRender(true);
                 jq('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
                 jq('table.sortable > tbody > tr > td > input.container-switch:disabled').each(function() {
                     const input = jq(this);
@@ -314,24 +318,13 @@
                 }
             };
 
-            if (rows.length <= renderChunkSize) {
-                if (rows.length > 0) {
-                    table.append(jq(rows.map((row) => renderRowHtml(row)).join('')));
-                }
-                finalizeMemberListRender();
-                return;
-            }
             let offset = 0;
             const appendChunk = () => {
                 if (token !== memberListRenderToken) {
                     return;
                 }
                 const chunk = rows.slice(offset, offset + renderChunkSize);
-                if (!chunk.length) {
-                    finalizeMemberListRender();
-                    return;
-                }
-                table.append(jq(chunk.map((row) => renderRowHtml(row)).join('')));
+                if (chunk.length) table.append(jq(chunk.map(renderRowHtml).join('')));
                 offset += chunk.length;
                 if (offset < rows.length) {
                     scheduleTask(appendChunk);
@@ -344,6 +337,7 @@
 
         const dispose = () => {
             memberListRenderToken += 1;
+            settleRender(false);
             if (typeof jq === 'function') {
                 jq('#fvFolderMembersBody').off('.fvChildFolderDrag');
                 jq('.folder-member-move, .member-move').off('click');
@@ -361,6 +355,8 @@
             getChildFolderOrderIds,
             renderFolderMembersSection,
             updateList,
+            isRendering: () => renderCompletion !== null,
+            waitForRender: () => renderCompletion || Promise.resolve(true),
             dispose
         });
     };

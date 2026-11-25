@@ -10,6 +10,9 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
+    const projectSnapshotOrder = ({ snapshotToken, revisions, order, unraidOrder, nativeSavedOrder }) => ({
+        snapshotToken, revisions, order, unraidOrder, nativeSavedOrder
+    });
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -39,6 +42,19 @@
         const getGlobalFolders = typeof deps.getGlobalFolders === 'function' ? deps.getGlobalFolders : (() => ({}));
         const getFolderDescendants = typeof deps.getFolderDescendants === 'function' ? deps.getFolderDescendants : (() => []);
         const folderHasChildren = typeof deps.folderHasChildren === 'function' ? deps.folderHasChildren : (() => false);
+        const readSnapshotOrderKeys = (snapshot) => ({
+            native: Array.isArray(snapshot?.nativeSavedOrder) ? JSON.stringify(snapshot.nativeSavedOrder.map(String)) : null,
+            // Config snapshots omit live inventory and can interpret a container
+            // named like a folder slot differently from rendered snapshots.
+            rendered: snapshot?.mode === 'config' ? null : (deps.buildRuntimeOrderKey?.(snapshot) ?? null)
+        });
+        let renderedOrderKeys = readSnapshotOrderKeys(null);
+        const rememberRenderedSnapshotOrder = (snapshot) => { renderedOrderKeys = readSnapshotOrderKeys(snapshot); };
+        const snapshotOrdersMatch = (snapshot) => {
+            const next = readSnapshotOrderKeys(snapshot);
+            return ['native', 'rendered'].every((key) => renderedOrderKeys[key] === null
+                || next[key] === null || renderedOrderKeys[key] === next[key]);
+        };
         let hostIdentityMap = null, hostIdentityIndex = null;
         const getHostIdentityIndex = (map = getDockerRuntimeInfoMap()) => {
             if (map !== hostIdentityMap) {
@@ -684,6 +700,7 @@
 
         return Object.freeze({
             setMembershipSnapshot, membershipInputsChanged,
+            rememberRenderedSnapshotOrder, snapshotOrdersMatch,
             readDockerHostRowUpdatedState,
             getDockerHostRowContainerName,
             getDockerNativeRowIndex,
@@ -704,6 +721,6 @@
     };
 
     return Object.freeze({
-        createApi
+        createApi, projectSnapshotOrder
     });
 }));

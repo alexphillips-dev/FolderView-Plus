@@ -123,7 +123,8 @@ test('snapshot assembly keeps configuration reads under one mutation boundary', 
     assert.match(runtimeSnapshotLib, /const FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1/);
     const configReader = runtimeSnapshotLib.match(/^function readRuntimeSnapshotConfigUnlocked\([\s\S]*?^\}/m)?.[0] || '';
     assert.match(configReader, /readFolder\(\$safeType\)[\s\S]*readTypePrefs\(\$safeType\)[\s\S]*readConfigMetadata\(\$safeType, true\)/);
-    assert.match(configReader, /\$safeType === 'docker' && \$dockerLiveNames !== null\s*\? composeDockerSavedOrder\(readDockerNativePageOrder\(\), \$folders, \$prefs, \$dockerLiveNames\)\s*: json_decode\(readUserPrefs\(\$safeType\), true\)/);
+    assert.match(configReader, /\$nativeSavedOrder = \$safeType === 'docker' \? readDockerNativePageOrder\(\) : json_decode\(readUserPrefs\(\$safeType\), true\)/);
+    assert.match(configReader, /composeDockerSavedOrder\(\$nativeSavedOrder, \$folders, \$prefs, \$dockerLiveNames \?\? \[\]\)/);
     assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfig\(string \$type, \?array \$dockerLiveNames = null\): array \{\s*\$safeType = ensureType\(\$type\);\s*return withConfigMutationLock\(static function \(\) use \(\$safeType, \$dockerLiveNames\): array \{\s*return readRuntimeSnapshotConfigUnlocked\(\$safeType, \$dockerLiveNames\);/);
     assert.match(runtimeSnapshotLib, /function buildRuntimeConfigBootstrapSnapshot\(\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readRuntimeSnapshotConfigUnlocked\('docker'\)[\s\S]*readRuntimeSnapshotConfigUnlocked\('vm'\)/);
     assert.match(runtimeSnapshotLib, /function runtimeSnapshotToken\([\s\S]*folderRevision[\s\S]*prefsRevision[\s\S]*runtimeSignature/);
@@ -166,9 +167,9 @@ test('live snapshot tokens agree across state, full and check while config-only 
         "function withConfigMutationLock(callable $callback) { return $callback(); }",
         "function readFolder(string $type): string { return json_encode(['folder-a' => ['name' => 'Media']]); }",
         "function readTypePrefs(string $type): array { return ['sortMode' => 'manual']; }",
-        "function readDockerNativePageOrder(): array { return ['app']; }",
+        "function readDockerNativePageOrder(): array { return $GLOBALS['savedNativeOrder'] ?? ['app']; }",
         dockerOrderPhp,
-        "function readUserPrefs(string $type): string { return json_encode(composeDockerSavedOrder(readDockerNativePageOrder(), json_decode(readFolder($type), true), readTypePrefs($type))); }",
+        "function readUserPrefs(string $type): string { return '[]'; }",
         "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => (int)($GLOBALS['snapshotTestFolderRevision'] ?? 7), 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
         `function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array {
             $runtime = [];
@@ -185,14 +186,27 @@ test('live snapshot tokens agree across state, full and check while config-only 
         "$config = buildRuntimeSnapshot('docker', 'config');",
         "$combinedConfig = buildRuntimeConfigBootstrapSnapshot()['snapshots']['docker'];",
         "$check = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
+        "$GLOBALS['savedNativeOrder'] = ['folder-folder-a', 'app'];",
+        "$reordered = buildRuntimeSnapshot('docker', 'state');",
+        "$reorderedConfig = buildRuntimeSnapshot('docker', 'config');",
+        "unset($GLOBALS['savedNativeOrder']);",
         "$GLOBALS['snapshotTestFolderRevision'] = 8;",
         "$changed = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
-        "echo json_encode(compact('state', 'full', 'config', 'combinedConfig', 'check', 'changed'));"
+        "echo json_encode(compact('state', 'full', 'config', 'combinedConfig', 'check', 'reordered', 'reorderedConfig', 'changed'));"
     ].join(' ');
     const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
     assert.deepEqual(result.state.order, ['app']);
     assert.deepEqual(result.full.order, result.state.order);
     assert.deepEqual(result.config.order, ['folder-folder-a', 'app']);
+    assert.deepEqual(result.state.nativeSavedOrder, ['app']);
+    assert.deepEqual(result.config.nativeSavedOrder, result.state.nativeSavedOrder);
+    assert.deepEqual(result.combinedConfig.nativeSavedOrder, result.state.nativeSavedOrder);
+    assert.deepEqual(result.reordered.order, ['folder-folder-a', 'app']);
+    assert.deepEqual(result.reordered.nativeSavedOrder, ['folder-folder-a', 'app']);
+    assert.deepEqual(result.reorderedConfig.nativeSavedOrder, result.reordered.nativeSavedOrder);
+    assert.deepEqual(result.reordered.revisions, result.state.revisions);
+    assert.equal(result.reordered.runtimeSignature, result.state.runtimeSignature);
+    assert.notEqual(result.reordered.snapshotToken, result.state.snapshotToken);
     assert.equal(result.config.runtimeIncluded, false);
     assert.equal(result.config.snapshotToken, result.combinedConfig.snapshotToken);
     assert.notEqual(result.config.snapshotToken, result.state.snapshotToken);
@@ -281,7 +295,9 @@ test('config snapshots return saved layout without touching host runtime discove
         "function withConfigMutationLock(callable $callback) { return $callback(); }",
         "function readFolder(string $type): string { return json_encode(['folder-a' => ['name' => 'Media', 'containers' => ['app']]]); }",
         "function readTypePrefs(string $type): array { return ['sortMode' => 'manual']; }",
-        "function readUserPrefs(string $type): string { return json_encode(['folder-folder-a', 'app']); }",
+        "function readDockerNativePageOrder(): array { return ['app']; }",
+        "function composeDockerSavedOrder(array $order, array $folders, array $prefs, array $names): array { return ['folder-folder-a', ...$order]; }",
+        "function readUserPrefs(string $type): string { return '[]'; }",
         "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => 7, 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
         "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { throw new RuntimeException('runtime discovery must not run'); }",
         "function readInfoState(string $type, bool $live = false): array { throw new RuntimeException('runtime discovery must not run'); }",

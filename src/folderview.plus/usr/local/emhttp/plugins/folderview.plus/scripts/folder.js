@@ -2234,6 +2234,10 @@ const collectValidationWarnings = () => {
 };
 
 const validateForm = () => {
+    if (!isFormInitialized || folderEditorMemberListApi?.isRendering()) {
+        $('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy').prop('disabled', true);
+        return false;
+    }
     const checks = [
         editingFolderDefaults || validateNameField(),
         validateParentFolderSelection(),
@@ -2378,11 +2382,15 @@ const applyMemberFilters = () => {
 };
 
 const setVisibleMemberSelection = (checked) => {
-    getFolderEditorMembersApi()?.setVisibleMemberSelection(checked);
+    if (!folderEditorMemberListApi?.isRendering()) {
+        getFolderEditorMembersApi()?.setVisibleMemberSelection(checked);
+    }
 };
 
 const syncMemberArraysFromTable = () => {
-    getFolderEditorMembersApi()?.syncMemberArraysFromTable();
+    if (!folderEditorMemberListApi?.isRendering()) {
+        getFolderEditorMembersApi()?.syncMemberArraysFromTable();
+    }
 };
 
 const moveMemberRow = (button, direction) => {
@@ -3489,12 +3497,12 @@ const startFolderEditorRuntime = async () => {
     await bindIconPickerEvents();
 
     updateList();
+    if (!await getFolderEditorMemberListApi().waitForRender()) return;
     getFolderWebuiProfilesApi()?.refreshMembers();
     applySectionTags();
     initEditorChrome();
     updateForm();
     applyAdvancedMode();
-    validateForm();
     updateLiveSummary();
     updateRegexSimulator();
     void refreshFolderAutoRulesPanel({
@@ -3502,6 +3510,7 @@ const startFolderEditorRuntime = async () => {
     });
     markCleanState();
     isFormInitialized = true;
+    validateForm();
     if (typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
         window.FolderViewPlusRevealModernEditorStage();
     }
@@ -3698,10 +3707,19 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
 const normalizeChildFolderOrder = (value) => folderEditorMemberListModule.normalizeChildFolderOrder(value);
 const getActiveFolderIdForChildOrdering = () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim();
 const getChildFolderOrderIds = () => getFolderEditorMemberListApi().getChildFolderOrderIds();
-const updateList = (afterRender = null) => getFolderEditorMemberListApi().updateList(() => {
-    getFolderEditorMembersApi()?.renderAssignmentDetails?.();
-    if (typeof afterRender === 'function') afterRender();
-});
+const updateList = (afterRender = null) => {
+    const memberList = getFolderEditorMemberListApi();
+    memberList.updateList(() => {
+        $('#fvMemberIncludeVisible, #fvMemberExcludeVisible').prop('disabled', false);
+        getFolderEditorMembersApi()?.renderAssignmentDetails?.();
+        if (typeof afterRender === 'function') afterRender();
+    });
+    if (memberList.isRendering()) {
+        $('#fvMemberIncludeVisible, #fvMemberExcludeVisible').prop('disabled', true);
+        validateForm();
+        updateMemberBulkMoveUi();
+    }
+};
 
 /**
  * Handle the form submission
@@ -4188,7 +4206,7 @@ function updateMemberBulkMoveUi() {
     const scopeDetails = collectCurrentMemberBulkMoveScope();
     const targetFolderId = String(targetSelect.val() || '').trim();
     if (moveButton.length) {
-        moveButton.prop('disabled', memberBulkMoveInFlight || memberBulkMoveUndoInFlight || !targetFolderId || (scopeDetails.movableCount || 0) <= 0);
+        moveButton.prop('disabled', folderEditorMemberListApi?.isRendering() || memberBulkMoveInFlight || memberBulkMoveUndoInFlight || !targetFolderId || (scopeDetails.movableCount || 0) <= 0);
         moveButton.html(memberBulkMoveInFlight
             ? '<i class="fa fa-refresh fa-spin"></i> Moving...'
             : '<i class="fa fa-exchange"></i> Move to folder');

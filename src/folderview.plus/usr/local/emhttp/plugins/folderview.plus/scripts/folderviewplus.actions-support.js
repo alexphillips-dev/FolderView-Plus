@@ -193,17 +193,17 @@
                 if (!confirmed) return;
                 const restore = await deps.globalRollbackApi('rollback_restore_previous', { expectedName: checkpoint.name });
                 await deps.refreshAll();
-                const target = restore?.targetName || restore?.name || 'previous snapshot';
                 const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
-                const status = `Restored ${target}`;
+                const status = `Restored ${restore?.targetName || restore?.name || 'previous snapshot'}`;
                 setRollbackStatus(status);
-                notify({ title: 'Rollback complete', text: `${status}${undo}`, type: 'success' });
+                const notice = { title: 'Rollback complete', text: `${status}${undo}`, type: 'success' };
+                return ['queued', 'failed'].includes(restore?.dockerOrderSync)
+                    ? await deps.offerRecoveryDockerOrderRetry?.(restore.dockerOrderSync, notice) : notify(notice);
             } catch (error) {
                 setRollbackStatus('Rollback failed.');
                 showError(repairT88902831("common.repair.rollback-failed-69b0b6", "Rollback failed"), error);
             }
         };
-
         const fileManager = () => {
             const locationRef = deps.window?.location || fallbackWindow?.location;
             if (!locationRef) {

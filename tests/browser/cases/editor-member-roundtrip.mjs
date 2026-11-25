@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { registerEditorMemberLifecycleCases } from './editor-member-lifecycle.mjs';
+import { registerEditorMemberRenderReadinessCases } from './editor-member-render-readiness.mjs';
 
 const scripts = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
 const source = fs.readFileSync(path.join(scripts, 'folder.js'), 'utf8');
@@ -52,4 +53,6 @@ export const registerEditorMemberRoundtripCases = ({ test }) => {
             assert.deepEqual(removed.hiddenPreviewMembers, [], type);
         }
     });
+
+    registerEditorMemberRenderReadinessCases({ test });
 };

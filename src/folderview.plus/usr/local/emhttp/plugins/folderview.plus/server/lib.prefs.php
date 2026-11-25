@@ -419,8 +419,9 @@
                 continue;
             }
             $currentValue = $merged[$safeKey] ?? null;
-            // Expansion entries are keyed by folder ID, even when PHP decodes them as a list.
-            if ($safeKey === 'expandedFolderState' && is_array($currentValue) && is_array($value) && $value !== []) {
+            // These cells are keyed by resource identifier, including lists decoded from numeric keys.
+            if (in_array($safeKey, ['expandedFolderState', 'containerWaits'], true)
+                && is_array($currentValue) && is_array($value) && $value !== []) {
                 $merged[$safeKey] = array_replace($currentValue, $value);
                 continue;
             }

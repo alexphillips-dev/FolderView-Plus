@@ -7,15 +7,17 @@ function backupConfigurationFingerprint(array $folders, array $prefs): string {
 
 function latestBackupConfiguration(string $type): ?array {
     $type = ensureType($type);
-    $latest = listBackupSnapshots($type)[0] ?? null;
-    if (!is_array($latest)) return null;
-    $payload = readJsonObjectFile(getBackupSnapshotPath($type, $latest['name']));
-    if (!is_array($payload) || ($payload['schemaVersion'] ?? null) !== FVPLUS_EXPORT_SCHEMA_VERSION
-        || ($payload['type'] ?? '') !== $type || ($payload['mode'] ?? '') !== 'full'
-        || !is_array($payload['folders'] ?? null) || !is_array($payload['prefs'] ?? null)) return null;
-    try {
-        return [...$latest, 'fingerprint' => backupConfigurationFingerprint($payload['folders'], $payload['prefs'])];
-    } catch (Throwable $error) {
-        return null;
+    foreach (listBackupSnapshots($type) as $backup) {
+        if (!isset($backup['count'])) continue;
+        $payload = readJsonObjectFile(getBackupSnapshotPath($type, $backup['name']));
+        if (!is_array($payload) || ($payload['schemaVersion'] ?? null) !== FVPLUS_EXPORT_SCHEMA_VERSION
+            || ($payload['type'] ?? '') !== $type || ($payload['mode'] ?? '') !== 'full'
+            || !is_array($payload['folders'] ?? null) || !is_array($payload['prefs'] ?? null)) continue;
+        try {
+            return [...$backup, 'fingerprint' => backupConfigurationFingerprint($payload['folders'], $payload['prefs'])];
+        } catch (JsonException $error) {
+            continue;
+        }
     }
+    return null;
 }

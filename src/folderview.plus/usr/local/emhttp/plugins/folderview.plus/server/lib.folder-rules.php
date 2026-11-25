@@ -126,18 +126,20 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             $backup = null;
             $committedFolders = $originalFolders;
             if (count($changedFolderIds) > 0) {
-                $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type));
+                $snapshots = fvplusEnvironmentCaptureFiles(fvplusTypeTransactionPaths($type, false));
+                $nativeWrites = [];
+                $recordNativeWrite = fvplusTransactionRecordFileWrites($nativeWrites);
                 try {
                     if ($safetyBackupReason !== null) $backup = createBackupSnapshot($type, $safetyBackupReason, false);
                     writeRawFolderMap($type, $nextFolders);
-                    if ($type === 'docker') $dockerSync = syncContainerOrder('docker');
+                    if ($type === 'docker') $dockerSync = syncContainerOrder('docker', $recordNativeWrite);
                     $committedFolders = readRawFolderMap($type);
                     if (jsonObjectsDiffer($nextFolders, $committedFolders)) {
                         throw new RuntimeException('Bulk assignment transaction verification failed.');
                     }
                 } catch (Throwable $error) {
                     try {
-                        fvplusTransactionRestoreAfterFailure($snapshots, $error, 'fvplusEnvironmentRestoreFiles');
+                        fvplusTransactionRestoreAfterFailure(array_merge($snapshots, array_values($nativeWrites)), $error, 'fvplusEnvironmentRestoreFiles');
                     } catch (Throwable $rollbackError) {
                         throw new RuntimeException('Bulk assignment transaction failed: ' . $rollbackError->getMessage(), 0, $error);
                     }

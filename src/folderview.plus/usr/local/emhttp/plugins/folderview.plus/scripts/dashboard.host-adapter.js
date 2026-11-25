@@ -15,6 +15,7 @@
     const DASHBOARD_APPS_PATH = '/webGui/include/DashboardApps.php';
     const WIDGET_TYPES = ['docker', 'vm'];
     const WIDGET_RENDER_RETRY_LIMIT = 3;
+    const WIDGET_RENDER_RETRY_COOLDOWN_MS = 60_000;
     const registry = new WeakMap();
 
     const isoNow = () => new Date().toISOString();
@@ -54,6 +55,7 @@
         const events = [];
         const pendingNativeRequests = new Set();
         const widgetRenderRetries = { docker: 0, vm: 0 };
+        const widgetRenderRetryAt = { docker: 0, vm: 0 };
         const state = {
             bound: false,
             loadlistBound: false,
@@ -96,7 +98,10 @@
             state.foldersGrouped = false;
             state.renderGeneration = 0;
             state.widgetRenderStates = { docker: 'idle', vm: 'idle' };
-            WIDGET_TYPES.forEach(type => { widgetRenderRetries[type] = 0; });
+            WIDGET_TYPES.forEach(type => {
+                widgetRenderRetries[type] = 0;
+                widgetRenderRetryAt[type] = 0;
+            });
             state.lastError = null;
             emit('nativeRowsLoading', { reason });
             // The native success callback replaces both tile bodies. Superseding the
@@ -175,9 +180,13 @@
 
         const retryFailedWidget = (type, render) => {
             if (state.disposed || state.widgetRenderStates[type] !== 'failed') return null;
-            // Leave the native rows available after exhausting this generation's attempts.
-            if (widgetRenderRetries[type] >= WIDGET_RENDER_RETRY_LIMIT) return Promise.resolve(false);
-            widgetRenderRetries[type] += 1;
+            // Keep the sibling untouched while this widget waits for its next probe.
+            const now = Date.now();
+            if (now < widgetRenderRetryAt[type]) return Promise.resolve(false);
+            widgetRenderRetries[type] = Math.min(WIDGET_RENDER_RETRY_LIMIT, widgetRenderRetries[type] + 1);
+            if (widgetRenderRetries[type] >= WIDGET_RENDER_RETRY_LIMIT) {
+                widgetRenderRetryAt[type] = now + WIDGET_RENDER_RETRY_COOLDOWN_MS;
+            }
             const { generation } = state;
             return renderWidget(type, generation, DASHBOARD_APPS_PATH, render).then(ready => {
                 finishGrouping(generation, DASHBOARD_APPS_PATH);

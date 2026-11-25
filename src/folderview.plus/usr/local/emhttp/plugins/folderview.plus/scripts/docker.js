@@ -831,6 +831,7 @@ const getDockerRuntimeInfoApi = () => {
             document,
             $,
             utils, grouping: dockerFolderGroupingModule,
+            buildRuntimeOrderKey: runtimeSnapshotApi?.buildRuntimeOrderKey,
             getDockerRuntimeInfoMap: () => dockerRuntimeInfoByName,
             setDockerRuntimeInfoMap: (next) => {
                 dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
@@ -4920,6 +4921,9 @@ const createFolders = async () => {
     recordDockerFatalBannerAction('Docker folders rendered successfully');
     renderedDockerRuleSignature = utils.getMembershipSignature({ type: 'docker', rules: folderTypePrefs.autoRules });
     renderedDockerRowPlacement = useSavedOrder ? 'saved-order' : 'folders-first';
+    const renderedSnapshot = requestBundle.getSnapshot?.();
+    getDockerRuntimeInfoApi().rememberRenderedSnapshotOrder(renderedSnapshot);
+    rememberDockerRuntimeSnapshot(renderedSnapshot);
     foldersRenderedSuccessfully = true;
     dockerRuntimePerformanceTelemetry?.end?.('folderFinalization');
     dockerRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
@@ -7342,6 +7346,7 @@ const rememberDockerRuntimeSnapshot = (snapshot) => {
     }
 };
 const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
+    if (!getDockerRuntimeInfoApi().snapshotOrdersMatch(snapshot)) return false;
     if (!lastDockerRuntimeSnapshotToken || !snapshot?.revisions) {
         return true;
     }
@@ -7738,16 +7743,16 @@ function buildDockerFolderReq(options = {}) {
         source: 'runtime-snapshot-state',
         label: 'Docker runtime snapshot'
     });
-    const rememberSnapshot = (snapshot) => {
-        rememberDockerRuntimeSnapshot(snapshot);
-    };
+    let snapshot = null;
     return {
         generation,
         consumed: false,
+        getSnapshot: () => snapshot,
         render: runtimeSnapshotApi.createProjectedBundle(
             stateSnapshotRequest,
             ['folders', 'order', 'runtime', 'prefsResponse'],
-            { onSnapshot: rememberSnapshot, fallbackFactories: legacyRenderFactories }
+            { onSnapshot: (payload) => { snapshot = dockerRuntimeInfoModule.projectSnapshotOrder(payload); },
+                fallbackFactories: legacyRenderFactories }
         ),
         fullInfo: () => runtimeSnapshotApi.projectRequest(
             createDockerRuntimeRequest(runtimeSnapshotApi.buildUrl('docker', 'full', {

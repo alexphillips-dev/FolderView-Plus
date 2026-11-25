@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/lib.recovery-native-transaction.php';
+
 function fvplusTypeTransactionPaths(string $type, bool $includeNative = true): array {
     $type = ensureType($type);
     $paths = [getLegacyMigrationMarkerPath($type, 'folders'), getLegacyMigrationMarkerPath($type, 'prefs')];
@@ -50,7 +52,7 @@ function fvplusEnvironmentDockerAutostartPath(): string {
     return (string)($dockerMan['autostart-file'] ?? '/var/lib/docker/unraid-autostart');
 }
 
-function fvplusEnvironmentWriteTarget(array $normalized, array $options, string $nativePath): array {
+function fvplusEnvironmentWriteTarget(array $normalized, array $options, array $nativeFiles, callable $onWrite): array {
     $counts = [];
     foreach (FVPLUS_ALLOWED_TYPES as $type) {
         $folders = $normalized['types'][$type]['folders'];
@@ -63,14 +65,8 @@ function fvplusEnvironmentWriteTarget(array $normalized, array $options, string 
     }
     $workspace = writeThemeWorkspace((array)($normalized['themeWorkspace'] ?? defaultThemeWorkspace()));
     fvplusEnvironmentTransactionStage($options, 'theme-workspace');
-    if (isset($options['nativeAutostart'])) {
-        fvplusTransactionRestoreFiles([['path' => $nativePath] + $options['nativeAutostart']]);
-        fvplusEnvironmentTransactionStage($options, 'external');
-    } elseif (($options['syncDockerOrder'] ?? true) !== false) {
-        syncContainerOrder('docker');
-        fvplusEnvironmentTransactionStage($options, 'docker-order');
-    }
-    return ['counts' => $counts, 'workspace' => $workspace];
+    $dockerOrderSync = fvplusApplyRecoveryNativeState($nativeFiles, $options, $onWrite);
+    return ['counts' => $counts, 'workspace' => $workspace, 'dockerOrderSync' => $dockerOrderSync];
 }
 
 function fvplusEnvironmentVerifyTarget(array $normalized, bool $preserveHierarchy): void {
@@ -103,15 +99,15 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
         };
         if (is_callable($options['beforeWrite'] ?? null)) $options['beforeWrite']();
         $notify();
-        $nativeTarget = $options['nativeAutostart'] ?? null;
-        $nativePath = fvplusEnvironmentDockerAutostartPath();
-        $extraPaths = $nativeTarget !== null || ($options['syncDockerOrder'] ?? true) !== false ? [$nativePath] : [];
-        $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths($extraPaths));
+        $snapshots = fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths());
+        $nativeFiles = fvplusRecoveryCaptureNativeFiles($options);
+        $nativeWrites = [];
+        $recordNativeWrite = fvplusTransactionRecordFileWrites($nativeWrites);
         $typeResults = [];
         try {
             fvplusEnvironmentTransactionStage($options, 'captured');
-            $nativeBackup = $nativeTarget !== null ? array_column($snapshots, null, 'path')[$nativePath] : null;
-            $rollback = createGlobalRollbackSnapshot('before-' . $reason, [], false, $nativeBackup);
+            $rollback = createGlobalRollbackSnapshot('before-' . $reason, [], false,
+                $nativeFiles['autostart']['before'] ?? null, $nativeFiles['batchWaits']['before'] ?? null);
             $checkpointAvailable = true;
             $retention = [];
             foreach (FVPLUS_ALLOWED_TYPES as $type) {
@@ -119,14 +115,14 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
                 $typeResults[$type] = ['backup' => createBackupSnapshot($type, 'transaction-' . $reason, false)];
             }
             $phase = 'writing'; $notify();
-            $written = fvplusEnvironmentWriteTarget($normalized, $options, $nativePath);
+            $written = fvplusEnvironmentWriteTarget($normalized, $options, $nativeFiles, $recordNativeWrite);
             $phase = 'verification'; $notify();
             fvplusEnvironmentVerifyTarget($normalized, $preserveHierarchy);
-            if ($nativeTarget !== null) fvplusVerifyNativeAutostartTarget($nativePath, $nativeTarget);
+            foreach ($nativeFiles as ['target' => $target]) fvplusVerifyNativeAutostartTarget($target['path'], $target);
             fvplusEnvironmentTransactionStage($options, 'verified');
         } catch (Throwable $error) {
             try {
-                fvplusEnvironmentRestoreFiles($snapshots);
+                fvplusEnvironmentRestoreFiles(array_merge($snapshots, array_values($nativeWrites)));
             } catch (Throwable $rollbackError) {
                 $notify('failed');
                 throw new RuntimeException($error->getMessage() . ' ' . $rollbackError->getMessage(), 0, $error);
@@ -152,6 +148,7 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             'types' => $typeResults,
             'rollback' => $rollback,
             'verified' => true,
+            ...($written['dockerOrderSync'] !== null ? ['dockerOrderSync' => $written['dockerOrderSync']] : []),
             'themeWorkspace' => [
                 'managedThemeCount' => count((array)($workspace['themes'] ?? [])),
                 'activeThemeId' => trim((string)($workspace['activeThemeId'] ?? ''))

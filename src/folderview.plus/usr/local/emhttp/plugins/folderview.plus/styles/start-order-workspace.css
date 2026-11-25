@@ -700,6 +700,15 @@
     color: var(--fvplus-settings-text-primary);
 }
 
+#docker-start-order-sync-status {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+#docker-start-order-sync-status[hidden] {
+    display: none;
+}
+
 .fv-sr-only {
     position: absolute;
     width: 1px;

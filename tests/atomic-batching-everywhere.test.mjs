@@ -166,10 +166,10 @@ test('large shared bulk moves use exactly one server assignment request', async 
 test('remaining multi-folder workflows route through atomic batch helpers', () => {
     assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
-    assert.match(starter, /const createSelectedStarterTemplates = async \(type, selectedBlueprints\)[\s\S]*?fetchFolders\(type\)[\s\S]*?requestFolderBatchMutation\(type,[\s\S]*?expectedRevision: folderRevision/);
+    assert.match(starter, /const createSelectedStarterTemplates = async \(type, selectedBlueprints, setupApply\)[\s\S]*?fetchFolders\(type\)[\s\S]*?requestFolderBatchMutation\(type,[\s\S]*?expectedRevision: folderRevision, setupApply/);
     assert.doesNotMatch(starter.slice(starter.indexOf('const quickCreateStarterTemplates ='), starter.indexOf('Object.assign(window')), /await apiPostText\([^\n]*server\/create\.php/);
     assert.match(wizard, /await requestFolderBatchMutation\(resolvedType, \{[\s\S]*upserts: changedFolderIds\.map/);
-    assert.match(wizard, /await createSelectedStarterTemplates\(resolvedType, plan\.selectedBlueprints\)/);
+    assert.match(wizard, /await createSelectedStarterTemplates\(resolvedType, plan\.selectedBlueprints, setupApply\)/);
     assert.match(treeIntegrity, /upserts: toRepair\.map\(\(id\) =>/);
     assert.match(treeIntegrity, /await requestFolderBatchMutation\(resolvedType,/);
     assert.match(settings, /server\/rule_preview\.php', \{ type: resolvedType, expectedDigest: preview\.digest \}/);

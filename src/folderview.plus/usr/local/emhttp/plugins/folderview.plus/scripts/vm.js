@@ -8,6 +8,7 @@ const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null, translateVmText = (key, fallback, ...params) => window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match));
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
+const { orderChildFolderIds } = window.FolderViewPlusFoundationModules?.utilityOrdering || {};
 const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
 const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('vm', {
@@ -744,34 +745,6 @@ const getFolderParentId = (folderId) => {
     }
     return normalizeFolderParentId(globalFolders[id]?.parentId || globalFolders[id]?.parent_id || '');
 };
-const normalizeChildFolderOrder = (value) => {
-    const source = Array.isArray(value) ? value : [];
-    const seen = new Set();
-    const result = [];
-    source.forEach((entry) => {
-        const id = String(entry || '').trim();
-        if (!id || seen.has(id)) {
-            return;
-        }
-        seen.add(id);
-        result.push(id);
-    });
-    return result;
-};
-const sortFolderChildren = (parentId, childIds) => {
-    const ids = Array.isArray(childIds) ? childIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
-    const sourceIndex = new Map(ids.map((id, index) => [id, index]));
-    const parentSettings = globalFolders?.[parentId]?.settings || {};
-    const orderIndex = new Map(normalizeChildFolderOrder(parentSettings.child_folder_order || parentSettings.childFolderOrder).map((id, index) => [id, index]));
-    return ids.sort((left, right) => {
-        const leftOrder = orderIndex.has(left) ? orderIndex.get(left) : Number.MAX_SAFE_INTEGER;
-        const rightOrder = orderIndex.has(right) ? orderIndex.get(right) : Number.MAX_SAFE_INTEGER;
-        if (leftOrder !== rightOrder) {
-            return leftOrder - rightOrder;
-        }
-        return (sourceIndex.get(left) || 0) - (sourceIndex.get(right) || 0);
-    });
-};
 const getFolderChildren = (folderId) => {
     const id = String(folderId || '').trim();
     if (!id) {
@@ -783,7 +756,7 @@ const getFolderChildren = (folderId) => {
             return parentId === id && childId !== id;
         })
         .map(([childId]) => childId);
-    return sortFolderChildren(id, children);
+    return orderChildFolderIds(children, globalFolders[id]);
 };
 const getFolderDescendants = (folderId) => {
     const id = String(folderId || '').trim();
@@ -1509,6 +1482,61 @@ function handleVmNativeToggleClick(event) {
 
 let vmRenderingBundle = null;
 
+const orderVmNestedFolderSlots = (folderIds, folders) => {
+    const hierarchy = utils.buildFolderHierarchyModel(folders, { orderedIds: folderIds, includeDescendants: false });
+    const rootByNestedId = new Map();
+    const branches = new Map();
+    const changedRoots = new Set();
+    for (const rootId of hierarchy.rootIds) {
+        const branch = [];
+        branches.set(rootId, branch);
+        const visit = (parentId) => {
+            const children = hierarchy.childrenById[parentId];
+            const ordered = orderChildFolderIds(children, folders[parentId]);
+            if (ordered.some((id, index) => id !== children[index])) changedRoots.add(rootId);
+            for (const id of ordered) {
+                rootByNestedId.set(id, rootId);
+                branch.push(id);
+                visit(id);
+            }
+        };
+        visit(rootId);
+    }
+    if (!changedRoots.size) return folderIds;
+    const nextIndexByRoot = new Map();
+    return folderIds.map((id) => {
+        const rootId = rootByNestedId.get(id);
+        if (!changedRoots.has(rootId)) return id;
+        const index = nextIndexByRoot.get(rootId) ?? 0;
+        nextIndexByRoot.set(rootId, index + 1);
+        return branches.get(rootId)[index];
+    });
+};
+
+const orderVmNestedFolderRows = (folders) => {
+    if (!Object.values(folders).some(folder => (folder.settings?.child_folder_order || folder.settings?.childFolderOrder)?.length)) return;
+    const tbody = vmHostAdapter.getPrimaryBody();
+    if (!tbody) return;
+    const rowById = new Map(Array.from(tbody.querySelectorAll(':scope > tr.folder'), (row) => [row.getAttribute('parent-id'), row]));
+    const ids = Array.from(rowById.keys());
+    const orderedIds = orderVmNestedFolderSlots(ids, folders);
+    const changedSlots = [];
+    const rowPairs = new Map();
+    for (const [index, id] of ids.entries()) {
+        if (id === orderedIds[index]) continue;
+        const row = rowById.get(id);
+        const detail = row.nextElementSibling;
+        rowPairs.set(id, detail?.hasAttribute('data-fv-vm-folder-detail') && detail.getAttribute('child-id') === id
+            ? [row, detail] : [row]);
+        const slot = document.createComment('Folder row slot');
+        row.before(slot);
+        changedSlots.push([slot, orderedIds[index]]);
+    }
+    for (const [slot, id] of changedSlots) {
+        slot.replaceWith(...rowPairs.get(id));
+    }
+};
+
 /**
  * Handles the creation of all folders
  */
@@ -1543,6 +1571,7 @@ const createFolders = async (currentBundle) => {
     vmRuntimeInfoByName = normalizeVmRuntimeInfoMap(vmInfo, vmRuntimeInfoByName);
     folders = reconcileVmMemberIdentities(folders, vmInfo);
     let order = Object.values(JSON.parse(prom[3]));
+    const renderedOrderKey = runtimeSnapshotApi?.buildRuntimeOrderKey?.({ order: unraidOrder, unraidOrder: order }) ?? null;
     let prefsResponse = {};
     try {
         prefsResponse = prom[4] ? JSON.parse(prom[4]) : {};
@@ -1550,8 +1579,6 @@ const createFolders = async (currentBundle) => {
         prefsResponse = {};
     }
     folderTypePrefs = applyVmPinnedFolderPrefsOverride(normalizeVmPrefsResponse(prefsResponse));
-    lastVmRuntimeSnapshotToken = '';
-    rememberVmRuntimeSnapshot(currentBundle.snapshot);
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     const folderDepthById = buildFolderDepthById(folders);
@@ -1665,6 +1692,9 @@ const createFolders = async (currentBundle) => {
         }
     }
 
+    // All VM rows are still in their assigned folder storage before expansion restores them.
+    orderVmNestedFolderRows(foldersDone);
+
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     const expandedStateById = buildVmExpandedStateMap(
         { ...vmFolderRenderRecovery.failedFolders(), ...foldersDone },
@@ -1729,6 +1759,9 @@ const createFolders = async (currentBundle) => {
     setVmFatalBannerPhase('ready');
     recordVmFatalBannerAction('VM folders rendered successfully');
     renderedVmRuleSignature = utils.getMembershipSignature({ type: 'vm', rules: folderTypePrefs.autoRules });
+    lastVmRenderedOrderKey = renderedOrderKey;
+    lastVmRuntimeSnapshotToken = '';
+    rememberVmRuntimeSnapshot(currentBundle.snapshot);
     vmRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
         folderCount: Object.keys(globalFolders || {}).length
     });
@@ -3081,6 +3114,7 @@ let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let lastVmRuntimeSnapshotToken = '';
 let lastVmRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
+let lastVmRenderedOrderKey = null;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
@@ -3153,6 +3187,8 @@ const rememberVmRuntimeSnapshot = (snapshot) => {
 };
 
 const vmRuntimeSnapshotConfigMatches = (snapshot) => {
+    const nextOrderKey = runtimeSnapshotApi?.buildRuntimeOrderKey?.(snapshot) ?? null;
+    if (lastVmRenderedOrderKey !== null && nextOrderKey !== null && lastVmRenderedOrderKey !== nextOrderKey) return false;
     if (!lastVmRuntimeSnapshotToken || !snapshot?.revisions) {
         return true;
     }
@@ -3366,8 +3402,8 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
         }
         vmRuntimeInfoByName = nextRuntimeInfo; vmQuickFinderApi?.refresh();
         lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
-        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
         if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
+        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
         return true;
     } catch (_error) {
         if (isVmRefreshCurrent() && !preserveGroupedDom) queueLoadlistRefresh();

@@ -809,7 +809,7 @@ const quickCreateStarterFolder = async (type) => {
     }
 };
 
-const createSelectedStarterTemplates = async (type, selectedBlueprints) => {
+const createSelectedStarterTemplates = async (type, selectedBlueprints, setupApply) => {
     const { folders, folderRevision } = await fetchFolders(type);
     if (!Number.isSafeInteger(folderRevision) || folderRevision < 0) {
         throw new Error(starterTemplateT('legacy.surface.332e7fb224979d90', 'The current folder configuration revision is unavailable.'));
@@ -820,7 +820,7 @@ const createSelectedStarterTemplates = async (type, selectedBlueprints) => {
             creates: creates.map(blueprint => ({
                 folder: buildStarterFolderPayload(String(blueprint.name).trim(), String(blueprint.icon || DEFAULT_STARTER_FOLDER_ICON))
             }))
-        }, { expectedRevision: folderRevision });
+        }, { expectedRevision: folderRevision, setupApply });
     }
     return { createdNames: creates.map(blueprint => String(blueprint.name).trim()), skipped };
 };

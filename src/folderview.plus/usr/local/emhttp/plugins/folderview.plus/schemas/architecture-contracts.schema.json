@@ -50,6 +50,7 @@
       "scripts/folder.webui-profiles.js": { "limit": 447, "target": 400, "history": [447] },
       "scripts/folder.webui-profile-limits.js": { "limit": 44, "target": 44, "history": [44] },
       "scripts/folderviewplus.utils-ordering.js": { "limit": 185, "target": 180, "history": [270, 185] },
+      "scripts/folderviewplus.utils-child-order.js": { "limit": 31, "target": 31, "history": [31] },
       "scripts/folderviewplus.utils-transfer.js": { "limit": 645, "target": 620, "history": [717, 645] },
       "scripts/folderviewplus.utils-rules.js": {
         "limit": 250,
@@ -104,6 +105,8 @@
       "server/lib.diagnostics-report-privacy.php": { "limit": 139, "target": 139, "history": [139] },
       "server/lib.docker-page-order.php": { "limit": 112, "target": 112, "history": [112] },
       "server/lib.docker-order.php": { "limit": 437, "target": 380, "history": [437] },
+      "server/lib.docker-autostart-toggle.php": { "limit": 72, "target": 72, "history": [72] },
+      "server/lib.setup-assistant-rollback.php": { "limit": 48, "target": 48, "history": [48] },
       "server/lib.docker-preview-summary.php": { "limit": 85, "target": 80, "history": [85] },
       "server/lib.docker-start-order-sequence.php": { "limit": 56, "target": 56, "history": [56] },
       "server/lib.environment-snapshot.php": { "limit": 174, "target": 160, "history": [174] },
@@ -389,6 +392,7 @@
     {"file": "server/lib.custom-icon-repair.php", "owner": "compensated-custom-icon-repair", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.custom-icon-references.php", "server/lib.custom-icon-storage.php", "server/lib.environment-transaction.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 1, "sha256": "d25a815833ec720bba74fbc5b51751e152b22a3a1f19e05ad7fb542bd05414d8" }},
     {"file": "server/lib.global-rollback.php", "owner": "global-rollback-checkpoints", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.backup-schedule.php", "functionInventory": { "count": 7, "sha256": "4b2467e630822b354656bc3913e0a268b45c239533ddd1be122e3047150b4304" }},
     {"file": "server/lib.global-rollback-restore.php", "owner": "global-rollback-restore", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.global-rollback.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.global-rollback.php", "functionInventory": { "count": 4, "sha256": "bb3638b161f5ca68f1cb617d7e1d120d8a5d0586c222bf9142ba6ef7f1c63833" }},
+    {"file": "server/lib.setup-assistant-rollback.php", "owner": "setup-assistant-transaction-boundary", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.global-rollback.php", "server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.theme-workspace.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.global-rollback-restore.php", "functionInventory": { "count": 4, "sha256": "aaaf4b5a16b437413b0b7e346a8593e449168c1a8652af06ae18641a89eae61b" }},
     {
       "file": "server/lib.folder-settings-transfer.php",
       "owner": "selective-folder-settings-transfer",
@@ -798,7 +802,17 @@
       "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php", "server/lib.docker-runtime.php", "server/lib.rules-engine.php", "server/lib.docker-page-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 15, "sha256": "f7958ef20bef5d3af402d4fb15a2a45cd905ed256cead7ee24eee4ef6bd36b38" }
+      "functionInventory": { "count": 16, "sha256": "ae252d37f68b1001e61232f672e89cdf88db406af0804591a2ab752e23ac551a" }
+    },
+    {
+      "file": "server/lib.docker-autostart-toggle.php",
+      "owner": "server-docker-autostart-toggle",
+      "consumers": ["server-endpoints"],
+      "stateModel": "request-scoped",
+      "dependsOn": ["server/lib.docker-order.php", "server/lib.runtime-info.php", "server/lib.storage.php"],
+      "compatibilityGlobals": [],
+      "loadedBy": "server/docker_start_order.php",
+      "functionInventory": { "count": 1, "sha256": "7fe62bafa592bc07a05c0b0514147bfb7fb99c85c0a567d05cc22765fdb434cb" }
     },
     {
       "file": "server/lib.folder-batch-order.php",
@@ -898,7 +912,7 @@
       "dependsOn": ["server/lib.diagnostics-summary.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
-      "functionInventory": { "count": 5, "sha256": "ea126dc663b380946522e9e3372740bbcc651e00dd9e461cf1c7a801d7418043" }
+      "functionInventory": { "count": 6, "sha256": "c1db33ce82ac4abaca68a5f5efb0bf89cfe9fbe6508a556dfac44a23345af7fb" }
     },
     {
       "file": "server/lib.diagnostics-support-bundle.php",
@@ -1365,14 +1379,26 @@
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityOrdering",
       "loader": "commonjs",
-      "exports": ["orderFoldersByPrefs"]
+      "exports": ["orderFoldersByPrefs", "orderChildFolderIds"]
+    },
+    {
+      "file": "scripts/folderviewplus.utils-child-order.js",
+      "owner": "shared-utility-import-child-order",
+      "consumers": ["settings", "docker", "vm", "dashboard", "folder-editor"],
+      "stateModel": "pure",
+      "dependsOn": ["scripts/folderviewplus.utils-normalization.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "utilityChildOrder",
+      "loader": "commonjs",
+      "exports": ["readImportedChildOrder", "remapImportedChildOrder"]
     },
     {
       "file": "scripts/folderviewplus.utils-transfer.js",
       "owner": "shared-utility-import-export",
       "consumers": ["settings", "folder-editor", "plugin-pages"],
       "stateModel": "pure",
-      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-prefs.js", "scripts/folderviewplus.utils-ordering.js"],
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-normalization.js", "scripts/folderviewplus.utils-prefs.js", "scripts/folderviewplus.utils-ordering.js", "scripts/folderviewplus.utils-child-order.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityTransfer",
@@ -2168,7 +2194,7 @@
       "owner": "settings-docker-start-order-workspace",
       "consumers": ["settings"],
       "stateModel": "factory-owned",
-      "dependsOn": ["scripts/folderviewplus.start-order-model.js", "scripts/runtime.transport.js"],
+      "dependsOn": ["scripts/folderviewplus.start-order-model.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "startOrderWorkspace",
@@ -2176,7 +2202,7 @@
       "typeChecked": true,
       "exports": ["createApi"],
       "apiFactory": "createApi",
-      "apiExports": ["buildAutostartMutationEntries", "rowAutostart", "updateWait", "toggleAutostart"]
+      "apiExports": ["rowAutostart", "setRowAutostart", "updateWait", "toggleAutostart"]
     },
     {
       "file": "scripts/folderviewplus.theme-profiles.js",

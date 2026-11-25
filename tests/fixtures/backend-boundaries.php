@@ -19,6 +19,8 @@ class Libvirt {
     public function connect() { return true; }
     public function get_domains() { return []; }
 }
+function libvirt_connect($uri, $readonly) { return true; }
+function libvirt_list_domains($connection) { return []; }
 class BoundaryOfflineStream {
     public $context; private $position = 0;
     private $body = '<!ENTITY version "2026.10.29.01">';

@@ -11,6 +11,7 @@ const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
+const { orderChildFolderIds } = window.FolderViewPlusFoundationModules?.utilityOrdering || {};
 const runtimeLiveRefreshModule = window.FolderViewPlusFoundationModules?.runtimeLiveRefresh || null;
 const dashboardHostAdapterModule = window.FolderViewPlusDashboardHostAdapter || null;
 const dashboardRuntimeSurfaceModule = window.FolderViewPlusDashboardRuntimeSurface || null;
@@ -997,24 +998,25 @@ const saveDashboardLayoutPrefForType = async (type, layout) => {
         timeoutMs: 10000
     });
 };
-const rerenderDashboardWidgetStructureForType = async (type) => {
+const rerenderDashboardWidgetStructureForType = async (type, { isCurrent = () => true } = {}) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const previousRequests = folderReq[resolvedType];
-    const isCurrent = () => !dashboardHostAdapter?.isDisposed?.() && previousRequests === folderReq[resolvedType];
+    const canRestore = () => isCurrent() && !dashboardHostAdapter?.isDisposed?.() && previousRequests === folderReq[resolvedType];
     dashboardLayoutTransitionInFlightByType[resolvedType] = true;
     scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
     try {
-        await restoreDashboardNativeRowsForType(resolvedType, isCurrent);
-        if (!isCurrent()) return;
+        await restoreDashboardNativeRowsForType(resolvedType, canRestore);
+        if (!canRestore()) return false;
         if (isDashboardLegacyLayoutForType(resolvedType)) {
             scheduleDashboardLayoutApplyForType(resolvedType);
             syncDashboardWidgetLayoutQuickControlForType(resolvedType);
             scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
-            return;
+            return true;
         }
         prepareDashboardFolderRequestsForType(resolvedType);
-        await createFolders(resolvedType);
+        const rendered = await createFolders(resolvedType, { isCurrent });
         scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+        return rendered;
     } finally {
         dashboardLayoutTransitionInFlightByType[resolvedType] = false;
         scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
@@ -1353,7 +1355,10 @@ const renderDashboardDockerFolders = (prom) => {
             if (!parentKey) {
                 return;
             }
-            const childIds = sortFolderIdsByPrefs(dockerChildrenByParent[parentKey] || [], allDockerFolders, folderTypePrefs.docker);
+            const childIds = orderChildFolderIds(
+                sortFolderIdsByPrefs(dockerChildrenByParent[parentKey] || [], allDockerFolders, folderTypePrefs.docker),
+                allDockerFolders[parentKey]
+            );
             for (const childId of childIds) {
                 if (!allDockerFolders[childId] || createdNestedIds.has(childId)) {
                     continue;
@@ -1524,7 +1529,10 @@ const renderDashboardVmFolders = (prom) => {
             if (!parentKey) {
                 return;
             }
-            const childIds = sortFolderIdsByPrefs(vmChildrenByParent[parentKey] || [], allVmFolders, folderTypePrefs.vm);
+            const childIds = orderChildFolderIds(
+                sortFolderIdsByPrefs(vmChildrenByParent[parentKey] || [], allVmFolders, folderTypePrefs.vm),
+                allVmFolders[parentKey]
+            );
             for (const childId of childIds) {
                 if (!allVmFolders[childId] || createdNestedVmIds.has(childId)) {
                     continue;
@@ -1674,6 +1682,11 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
         }
         applyDashboardRuntimePrefs();
         dashboardRenderedRuleSignatures[type] = getDashboardRuleSignature(type);
+        lastDashboardRenderedOrderKeys[type] = runtimeSnapshotApi?.buildRuntimeOrderKey?.({
+            order: Object.values(parseDashboardPayloadOr(prom[1], {})),
+            unraidOrder: Object.values(parseDashboardPayloadOr(prom[3], {}))
+        }) ?? null;
+        lastDashboardSnapshotTokens[type] = '';
         if (fullRender?.snapshot) rememberDashboardRuntimeSnapshot(type, fullRender.snapshot);
         return true;
     } catch (error) {
@@ -2382,6 +2395,7 @@ let lastDashboardSnapshotRevisions = {
     docker: { folder: 0, prefs: 0 },
     vm: { folder: 0, prefs: 0 }
 };
+const lastDashboardRenderedOrderKeys = { docker: null, vm: null };
 let dashboardRuntimeInfoByType = {
     docker: {},
     vm: {}
@@ -2498,6 +2512,9 @@ const rememberDashboardRuntimeSnapshot = (type, snapshot) => {
 
 const dashboardRuntimeSnapshotConfigMatches = (type, snapshot) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const renderedOrderKey = lastDashboardRenderedOrderKeys[resolvedType];
+    const nextOrderKey = runtimeSnapshotApi?.buildRuntimeOrderKey?.(snapshot) ?? null;
+    if (renderedOrderKey !== null && nextOrderKey !== null && renderedOrderKey !== nextOrderKey) return false;
     if (!lastDashboardSnapshotTokens[resolvedType] || !snapshot?.revisions) {
         return true;
     }
@@ -2860,8 +2877,11 @@ const dashboardLiveRefreshController = runtimeLiveRefreshModule.createController
         const resolvedType = type === 'vm' ? 'vm' : 'docker';
         const requests = folderReq[resolvedType];
         const isCurrent = () => requests === folderReq[resolvedType] && !dashboardPendingFullRenders.has(requests)
-            && !dashboardHostAdapter?.isDisposed?.();
+            && !dashboardLayoutTransitionInFlightByType[resolvedType] && !dashboardHostAdapter?.isDisposed?.();
         if (!isCurrent()) return false;
+        const retry = dashboardHostAdapter?.retryFailedWidget?.(resolvedType,
+            (options) => rerenderDashboardWidgetStructureForType(resolvedType, options));
+        if (retry) return retry;
         let check = null;
         try {
             check = await fetchDashboardTypeSnapshotCheck(resolvedType);
@@ -2874,6 +2894,10 @@ const dashboardLiveRefreshController = runtimeLiveRefreshModule.createController
             return false;
         }
         if (check.notModified !== true) {
+            if (!dashboardFolderRenderCompleteByType[resolvedType] && !isDashboardLegacyLayoutForType(resolvedType)) {
+                queueLoadlistRefresh();
+                return false;
+            }
             const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType, { isCurrent });
             if (patched === false && isCurrent()) queueLoadlistRefresh();
         }

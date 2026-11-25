@@ -69,7 +69,7 @@ if (($request['operation'] ?? '') === 'diagnostics') {
     $folders = $request['folders']; $info = $request['info'];
     $prefs = array_replace(defaultTypePrefs(), ['autoRules' => $request['rules']]);
     $snapshot = diagnosticsBuildStateSnapshot('docker', $folders, $prefs, $info, 'sanitized');
-    $integrity = diagnosticsBuildIntegrityChecks('docker', $folders, $prefs, $info, 'sanitized');
+    $integrity = diagnosticsBuildIntegrityChecks('docker', $folders, $prefs, $info, 'sanitized', array_keys($info));
     echo json_encode(['snapshot' => $snapshot, 'integrity' => $integrity], JSON_THROW_ON_ERROR);
     exit;
 }

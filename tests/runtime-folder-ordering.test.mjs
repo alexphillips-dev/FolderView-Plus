@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import vm from 'node:vm';
 
 const require = createRequire(import.meta.url);
 const scripts = path.join(process.cwd(), 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
@@ -46,4 +48,24 @@ test('numeric folder IDs preserve manual, alphabetical and pinned branch order t
     const pinnedBranch = utils.orderFolderIdsByPrefs(nested, { pinnedFolderIds: ['2'] });
     assert.deepEqual(pinnedBranch, ['1', '2', '0']);
     assert.deepEqual(utils.buildFolderHierarchyModel(nested, { orderedIds: pinnedBranch }).orderedIds, pinnedBranch);
+});
+
+test('explicit child order moves whole nested branches across existing slots', () => {
+    const folders = {
+        parent: { settings: { child_folder_order: ['beta', 'missing', 'beta'] } },
+        alpha: { parentId: 'parent' }, grand: { parentId: 'alpha' },
+        beta: { parentId: 'parent', settings: { childFolderOrder: [0] } },
+        gamma: { parentId: 'beta' }, '0': { parentId: 'beta' }, another: {}
+    };
+    const order = ['parent', 'alpha', 'grand', 'another', 'beta', 'gamma', '0'];
+    const { orderChildFolderIds } = require(path.join(scripts, 'folderviewplus.utils-ordering.js'));
+    const source = fs.readFileSync(path.join(scripts, 'vm.js'), 'utf8');
+    const slotOrderSource = source.match(/^const orderVmNestedFolderSlots = [\s\S]*?^};/m)?.[0];
+    assert.ok(slotOrderSource);
+    const orderVmNestedFolderSlots = vm.runInNewContext(slotOrderSource + '\norderVmNestedFolderSlots;', { utils, orderChildFolderIds });
+    assert.deepEqual(Array.from(orderVmNestedFolderSlots(order, folders)),
+        ['parent', 'beta', '0', 'another', 'gamma', 'alpha', 'grand']);
+    assert.deepEqual(orderChildFolderIds(['gamma', '0'], folders.beta), ['0', 'gamma']);
+    const unchanged = Object.fromEntries(Object.entries(folders).map(([id, folder]) => [id, { ...folder, settings: {} }]));
+    assert.equal(orderVmNestedFolderSlots(order, unchanged), order);
 });

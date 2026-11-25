@@ -18,6 +18,20 @@ const setup = () => {
     return { root, env, args, run: (...operation) => JSON.parse(execFileSync('php', args(operation), { encoding: 'utf8', timeout: 30000, env })),
         cleanup: () => { assert.equal(path.dirname(fs.realpathSync(root)), base); fs.rmSync(root, { recursive: true, force: true }); } };
 };
+
+test('automatic Setup Assistant rollback validates confirmed writes and protects all peer configuration', () => {
+    const harness = setup();
+    try {
+        const result = harness.run('setup-rollback-fence');
+        assert.deepEqual(result.normal, [200, 200, 200, true, ['initial'], false]);
+        assert.deepEqual(result.native, [200, true, true, true, true, true, 200, 'synced', 'peer-during-restore 15\n']);
+        assert.deepEqual(Object.keys(result.rejections), ['prefs', 'folders', 'theme']);
+        for (const [peer, outcome] of Object.entries(result.rejections)) {
+            assert.deepEqual(outcome, [409, 409, true, 200, true], peer);
+        }
+    } finally { harness.cleanup(); }
+});
+
 test('global rollback reuses compensated transaction and retains selected checkpoint through each failure', () => {
     const harness = setup();
     try {
@@ -185,7 +199,7 @@ test('fresh per-type and global archives survive retention when existing timesta
     } finally { harness.cleanup(); }
 });
 
-for (const action of ['checkpoint', 'export']) test(action + ' holds the configuration lock across all source reads', async () => {
+for (const action of ['checkpoint', 'export', 'docker-order']) test(action + ' respects the configuration lock across competing requests', async () => {
     const harness = setup(); const children = [];
     const launch = operation => {
         const child = spawn('php', harness.args(operation), { env: harness.env }); children.push(child);
@@ -206,14 +220,15 @@ for (const action of ['checkpoint', 'export']) test(action + ' holds the configu
     };
     try {
         harness.run('seed-export');
-        const reader = launch([action + '-reader']); await waitFor('reader-paused');
-        const writer = launch(['checkpoint-writer']); await waitFor('writer-started');
+        const reader = launch([action === 'docker-order' ? 'checkpoint-reader' : action + '-reader']); await waitFor('reader-paused');
+        const writer = launch([action === 'docker-order' ? 'setup-order-sync-writer' : 'checkpoint-writer']); await waitFor('writer-started');
         assert.equal(fs.readFileSync(path.join(harness.root, 'writer-started'), 'utf8'), 'blocked');
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), false);
         fs.writeFileSync(path.join(harness.root, 'release-reader'), 'yes');
-        const [snapshot] = await Promise.all([reader, writer]);
+        const [snapshot, writerResult] = await Promise.all([reader, writer]);
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), true);
+        if (action === 'docker-order') assert.equal(writerResult.syncOutcome, 'unmanaged');
         if (action === 'export') {
             const current = harness.run('export-current');
             for (const type of ['docker', 'vm']) {

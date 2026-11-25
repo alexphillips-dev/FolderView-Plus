@@ -229,9 +229,13 @@ if [[ -n "${current_block}" ]]; then
 fi
 
 if [[ -f "${OVERRIDE_FILE}" ]]; then
-  OVERRIDE_NOTES="$(sed '/^[[:space:]]*$/d' "${OVERRIDE_FILE}")"
-  if [[ -z "${OVERRIDE_NOTES}" ]]; then
+  OVERRIDE_NOTES="$(cat "${OVERRIDE_FILE}")"
+  if [[ ! "${OVERRIDE_NOTES}" =~ [^[:space:]] ]]; then
     fvplus::fail "Curated release note override is empty: docs/releases/${VERSION}.md"
+  fi
+  if [[ "${OVERRIDE_NOTES}" == *']]>'* || "${OVERRIDE_NOTES}" == *'<CHANGES>'* || "${OVERRIDE_NOTES}" == *'</CHANGES>'* ]] ||
+    grep -Eq '^###[[:space:]]*[0-9][0-9A-Za-z._-]*[[:space:]]*$' <<< "${OVERRIDE_NOTES}"; then
+    fvplus::fail "Curated release notes contain a reserved manifest delimiter: docs/releases/${VERSION}.md"
   fi
   if [[ "${CHECK_ONLY}" == "1" ]]; then
     echo "Validated curated release notes for ${VERSION} from docs/releases/${VERSION}.md"
@@ -780,21 +784,13 @@ fi
 TMP_FILE="$(mktemp)"
 trap 'rm -f "${TMP_FILE}"' EXIT
 
-awk -v version="${VERSION}" -v notes="${AUTO_NOTES}" '
-  BEGIN {
-    inserted = 0
-    notes_count = split(notes, notes_lines, /\n/)
-  }
+FVPLUS_RELEASE_NOTES_TEXT="${AUTO_NOTES}" awk -v version="${VERSION}" '
   {
     print
     if (!inserted && $0 ~ /<CHANGES>/) {
       print ""
       print "###" version
-      for (idx = 1; idx <= notes_count; idx++) {
-        if (notes_lines[idx] != "") {
-          print notes_lines[idx]
-        }
-      }
+      print ENVIRON["FVPLUS_RELEASE_NOTES_TEXT"]
       print ""
       inserted = 1
     }

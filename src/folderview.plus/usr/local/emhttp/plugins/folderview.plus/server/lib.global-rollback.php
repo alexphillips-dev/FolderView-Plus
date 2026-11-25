@@ -143,11 +143,11 @@
                 'transactionId' => getRequestTransactionId(),
                 'types' => [
                     'docker' => [
-                        'folders' => readRawFolderMap('docker'),
+                        'folders' => readRawFolderMap('docker', preserveHierarchy: true),
                         'prefs' => readTypePrefs('docker')
                     ],
                     'vm' => [
-                        'folders' => readRawFolderMap('vm'),
+                        'folders' => readRawFolderMap('vm', preserveHierarchy: true),
                         'prefs' => readTypePrefs('vm')
                     ]
                 ],

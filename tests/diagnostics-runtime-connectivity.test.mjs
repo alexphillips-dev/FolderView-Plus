@@ -37,7 +37,7 @@ require_once ${phpQuote(path.join(server, 'lib.api-contract.php'))};
 require_once ${phpQuote(path.join(server, 'lib.docker-runtime.php'))};
 require_once ${phpQuote(path.join(server, 'lib.runtime-inventory.php'))};
 require_once ${phpQuote(path.join(server, 'lib.diagnostics.php'))};
-echo json_encode(diagnosticsRuntimeConnectivity(['docker' => $argv[1], 'vm' => $argv[2]]));
+echo json_encode(diagnosticsReadRuntimeInventory(['docker' => $argv[1], 'vm' => $argv[2]])['states']);
 `, 'utf8');
     const probe = (dockerSetting, vmSetting, failures = {}) => {
         fs.writeFileSync(dockerConfig, dockerSetting);

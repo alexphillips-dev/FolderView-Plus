@@ -37,12 +37,12 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     assert.deepEqual(endpoints['bulk_folder_action.php'].requiredParameters, ['type', 'folderId']);
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        '01bdf42d29535968fddd92bb7aae4e4021b7b7cb9e7ce74cf9e5d066a49b4489'
+        'ee44ebf932a4f16c2316772df030554375c3b30e267f3e7822ef14897c8aee09'
     );
 });
 
 test('facades load every contracted PHP module without retaining extracted implementations', () => {
-    assert.equal(architecture.serverModuleContracts.length, 70);
+    assert.equal(architecture.serverModuleContracts.length, 72);
     for (const contract of architecture.serverModuleContracts) {
         const loader = fs.readFileSync(path.join(pluginRoot, contract.loadedBy), 'utf8');
         assert.match(loader, new RegExp(contract.file.replace('server/', '').replaceAll('.', '\\.')));
@@ -117,6 +117,9 @@ test('decomposition preserves every historical public PHP function name', () => 
         additions.add('fvplusVerifyNativeAutostartTarget');
         for (const name of ['diagnosticsProjectBackupRecord', 'diagnosticsProjectHistoryEvents', 'diagnosticsProjectTimeline',
             'diagnosticsRedactIntegrityIdentifiers', 'diagnosticsRedactReportFolderReferences', 'diagnosticsSanitizeReport']) additions.add(name);
+        for (const name of ['fvplusSetupAssistantFence', 'fvplusAssertSetupAssistantFence', 'fvplusCreateSetupAssistantCheckpoint',
+            'fvplusRunSetupAssistantMutation', 'fvplusSyncDockerOrderWithNativeLock', 'diagnosticsReadRuntimeInventory',
+            'diagnosticsReadRuntimeReportInventory']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);

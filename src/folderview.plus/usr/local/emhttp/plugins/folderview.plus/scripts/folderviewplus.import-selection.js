@@ -57,7 +57,7 @@
         };
     };
 
-    const filterOperationsBySelection = (operations, selection) => {
+    const filterOperationsBySelection = (operations, selection, existingFolders = {}) => {
         if (!selection) return operations;
         const selected = { mode: operations.mode,
             pathMappings: Array.isArray(operations.pathMappings) ? operations.pathMappings.slice() : [],
@@ -66,6 +66,17 @@
             const indexes = new Set(selection[kind].filter(item => item.checked).map(item => item.index));
             selected[kind] = operations[kind].filter((_, index) => indexes.has(index));
         }
+        const current = utils.normalizeFolderMap(existingFolders);
+        const deleted = new Set(selected.deletes);
+        const incoming = new Map(selected.upserts.map(({ id, folder }) => [id, folder]));
+        const projectedParent = childId => deleted.has(childId) ? undefined : (incoming.get(childId) ?? current[childId])?.parentId;
+        selected.upserts = selected.upserts.map(operation => {
+            const { id, folder } = operation;
+            const retainedOrder = utils.readImportedChildOrder(current[id])
+                .filter(childId => !incoming.has(childId) && projectedParent(childId) === id);
+            return { ...operation, folder: utils.remapImportedChildOrder(folder,
+                childId => projectedParent(childId) === id ? childId : '', retainedOrder) };
+        });
         return selected;
     };
 

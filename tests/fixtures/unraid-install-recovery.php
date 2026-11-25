@@ -58,7 +58,8 @@ $cases = $cliSource === null
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
-        'install-native-remove-failure', 'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
+        'install-native-remove-failure', 'install-native-remove-partial-failure',
+        'install-remove-stale-registration-success', 'install-boot-contention-success', 'update-staged-peer-success',
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
@@ -68,6 +69,12 @@ $cases = $cliSource === null
         'install-remove-archive-obstructed-success', 'install-remove-native-handoff-success',
         'install-remove-boot-finalize-success', 'install-remove-prepared-before-reboot-success',
         'install-remove-archived-reinstall-success'];
+if ($cliSource !== null && $unraidVersion === '7.4.0') {
+    $cases[] = 'install-remove-nextboot-staged-success';
+    $cases[] = 'install-native-remove-nextboot-staged-failure';
+    $cases[] = 'install-remove-nextboot-staged-interrupted-prepared-success';
+    $cases[] = 'install-native-remove-nextboot-staged-partial-failure';
+}
 $check = [];
 
 foreach ($cases as $case) {
@@ -77,6 +84,7 @@ foreach ($cases as $case) {
     $previousIcon = $reinstall || $channelDowngrade ? '2.0.0' : '1.0.0';
     $dir = "$root/$case";
     $boot = "$dir/boot";
+    $nextboot = "$dir/boot-nextboot";
     $config = "$boot/$pluginName";
     $runtime = "$dir/emhttp/plugins/$pluginName";
     $postHooks = "$dir/emhttp/plugins/dynamix.plugin.manager/post-hooks";
@@ -91,6 +99,7 @@ foreach ($cases as $case) {
         mkdir($folder, 0770, true);
     }
     $rewrite = [
+        '/boot/config/plugins-nextboot' => $nextboot,
         '/boot/config/plugins' => $boot,
         '/usr/local/emhttp' => "$dir/emhttp",
         '/tmp/folderview.plus' => "$dir/folderview.plus",
@@ -243,7 +252,10 @@ if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; 
     kill -KILL "$PPID"
     exit 0
 fi
-if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
+if [[ "$FVPLUS_FIXTURE_CASE" == install-native-remove*-failure && "${FVPLUS_FIXTURE_ALLOW_REMOVE_RETRY:-}" != 1 ]]; then
+    if [[ "$FVPLUS_FIXTURE_CASE" == *-partial-failure ]]; then
+        rm -f -- "$FVPLUS_FIXTURE_RUNTIME/scripts/install_icon_asset_pack.sh"
+    fi
     printf "Native removal fixture failed\n" >&2
     exit 28
 fi
@@ -268,6 +280,12 @@ exec /usr/bin/flock "$@"',
         sleep 0.05
     done
     exit 27
+fi
+if [[ "$FVPLUS_FIXTURE_CASE" = install-remove-nextboot-staged-interrupted-prepared-success &&
+    "${@: -1}" == */boot/.folderview.plus-removal.nextboot && "${@: -2:1}" == */boot-nextboot/folderview.plus.plg ]]; then
+    /bin/mv "$@" || exit $?
+    kill -KILL "$PPID"
+    exit 0
 fi
 if [ "${FVPLUS_FIXTURE_FAIL_MANIFEST_COMMIT:-}" = 1 ] &&
     [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
@@ -613,8 +631,92 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if ($case === 'install-native-remove-failure') {
+    if (in_array($case, ['install-native-remove-failure', 'install-native-remove-partial-failure', 'install-remove-nextboot-staged-success',
+        'install-native-remove-nextboot-staged-failure', 'install-remove-nextboot-staged-interrupted-prepared-success',
+        'install-native-remove-nextboot-staged-partial-failure'], true)) {
+        $removalMarker = "$boot/.$pluginName-removal";
+        $staged = str_contains($case, '-nextboot-staged-');
+        $prepared = $case === 'install-remove-nextboot-staged-interrupted-prepared-success';
+        $partial = str_ends_with($case, '-partial-failure');
+        $promoteNextboot = static function () use ($boot, $nextboot): void {
+            // Pinned Unraid 7.4 promotes manifests and merges downloaded package folders before boot activation.
+            foreach (glob("$nextboot/*") as $entry) {
+                $dest = "$boot/" . basename($entry);
+                if (is_dir($entry)) {
+                    verifyInstallFixture(is_dir($dest) || mkdir($dest), 'Could not create a synthetic boot package directory.');
+                    foreach (glob("$entry/*") as $file) {
+                        verifyInstallFixture(copy($file, "$dest/" . basename($file)) && unlink($file), 'Could not merge synthetic boot packages.');
+                    }
+                    rmdir($entry);
+                } elseif (str_ends_with($entry, '.plg')) {
+                    verifyInstallFixture(rename($entry, $dest), 'Could not promote a synthetic boot manifest.');
+                }
+            }
+            if (is_dir($nextboot)) rmdir($nextboot);
+        };
+        $coldBoot = static function (string $id) use ($dir, $runningLink, $cronFile, $removalHook, $packages, $pluginName, $runtime): void {
+            foreach ([$runningLink, $cronFile, $removalHook, "$dir/core-installed", ...glob("$packages/$pluginName-*")] as $volatile) {
+                if (is_file($volatile) || is_link($volatile)) unlink($volatile);
+            }
+            if (is_dir($runtime)) rename($runtime, "$dir/runtime-before-" . $id);
+            file_put_contents("$dir/boot-id", "synthetic $id\n");
+        };
+        if ($staged) {
+            mkdir("$nextboot/$pluginName", 0700, true);
+            copy("$config/$pluginName-$candidate.txz", "$nextboot/$pluginName/$pluginName-$candidate.txz");
+            copy($iconArchives['2.0.0'], "$nextboot/$pluginName/$pluginName-icons-2.0.0.txz");
+            file_put_contents("$nextboot/unrelated.plg", 'unrelated staged manifest');
+            mkdir("$nextboot/unrelated");
+            file_put_contents("$nextboot/unrelated/archive.txz", 'unrelated staged archive');
+            [$stageStatus, $stageOutput] = $run([PHP_BINARY, $cli, 'download', "$pluginName.plg"]);
+            verifyInstallFixture($stageStatus === 0 && file_get_contents("$nextboot/$pluginName.plg") === $newManifest,
+                "$case did not stage the candidate through Unraid's native download: $stageOutput");
+        }
         [$status, $output] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        clearstatcache();
+        if ($staged) {
+            verifyInstallFixture(file_get_contents("$nextboot/unrelated.plg") === 'unrelated staged manifest'
+                && file_get_contents("$nextboot/unrelated/archive.txz") === 'unrelated staged archive',
+                "$case modified another plugin's staging files.");
+        }
+        if ($case === 'install-remove-nextboot-staged-success') {
+            verifyInstallFixture($status === 0 && !is_file("$nextboot/$pluginName.plg") && !is_dir("$nextboot/$pluginName")
+                && !is_file("$removalMarker.nextboot") && !is_file($bootManifest) && !is_link($runningLink),
+                "$case left a staged reinstall after successful removal: $output");
+            $promoteNextboot();
+            verifyInstallFixture(!is_file($bootManifest) && !is_dir($config) && !is_dir($runtime) && !is_file($cronFile),
+                "$case made the removed plugin bootable again.");
+            $check[] = $case;
+            continue;
+        }
+        if ($prepared) {
+            verifyInstallFixture($status !== 0 && file_get_contents($bootManifest) === $oldManifest
+                && is_file("$runtime/FolderViewPlus.page") && is_file("$packages/$pluginName-$previous")
+                && trim(file_get_contents($removalMarker)) === "$previous " . hash('sha256', $oldManifest) . ' prepared'
+                && file_get_contents("$removalMarker.nextboot") === $newManifest && !is_file("$nextboot/$pluginName.plg"),
+                "$case did not interrupt the removal between staging and package cleanup: $output");
+            $coldBoot('prepared-rollback');
+            $promoteNextboot();
+            [$recoveryStatus, $recoveryOutput] = $run([PHP_BINARY, $cli, 'install', $removalWrapper]);
+            clearstatcache();
+            verifyInstallFixture($recoveryStatus === 0 && !is_file($removalMarker) && !is_file("$removalMarker.nextboot")
+                && file_get_contents("$nextboot/$pluginName.plg") === $newManifest && !is_link($runningLink),
+                "$case did not restore the interrupted stage before boot activation: $recoveryOutput");
+            [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
+            verifyInstallFixture($bootStatus === 0 && is_file($cronFile) && is_file("$runtime/FolderViewPlus.page")
+                && file_get_contents($bootManifest) === $oldManifest && trim(file_get_contents("$config/version")) === $previous,
+                "$case did not boot the intact original install: $bootOutput");
+            $coldBoot('restored-update');
+            $promoteNextboot();
+            [$nextStatus, $nextOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
+            verifyInstallFixture($nextStatus === 0 && file_get_contents($bootManifest) === $newManifest
+                && trim(file_get_contents("$config/version")) === $candidate && !is_file($removalWrapper)
+                && file_get_contents("$config/docker.json") === '{"previous":"Docker"}'
+                && file_get_contents("$config/vm.json") === '{"previous":"VM"}',
+                "$case did not apply the restored next-boot update with the original configuration: $nextOutput");
+            $check[] = $case;
+            continue;
+        }
         verifyInstallFixture($status !== 0 && str_contains($output, 'Native removal fixture failed') && !str_contains($output, "$pluginName.plg removed"),
             "$case treated native removal failure as success: $output");
         verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
@@ -622,6 +724,48 @@ exec /bin/mv "$@"'
             && is_file("$packages/$pluginName-$previous") && is_file("$runtime/FolderViewPlus.page")
             && is_link("$runtime/images/third-party-icons") && file_get_contents($cronFile) === $priorCron,
             "$case damaged the active installation, registration, schedule, or configuration.");
+        if ($partial) {
+            verifyInstallFixture(!is_file("$runtime/scripts/install_icon_asset_pack.sh") && is_file($removalMarker) && is_file($removalWrapper),
+                "$case retired cleanup state after partial native package removal: $output");
+            if ($staged) {
+                verifyInstallFixture(file_get_contents("$removalMarker.nextboot") === $newManifest && !is_file("$nextboot/$pluginName.plg"),
+                    "$case restored a staged update while partial removal was pending.");
+            }
+        } else {
+            verifyInstallFixture(!is_file($removalMarker) && !is_file($removalHook) && !is_file($removalWrapper) && !is_file($removalHelper),
+                "$case left recovery armed after a rejection that changed no package files: $output");
+        }
+        if ($staged && !$partial) {
+            verifyInstallFixture(file_get_contents("$nextboot/$pluginName.plg") === $newManifest && !is_file("$removalMarker.nextboot")
+                && is_file("$nextboot/$pluginName/$pluginName-$candidate.txz"), "$case lost the staged update on a clean rollback.");
+            $check[] = $case;
+            continue;
+        }
+        $coldBoot('rejected-removal');
+        if ($staged) $promoteNextboot();
+        if (is_file($removalWrapper)) {
+            [$recoveryStatus, $recoveryOutput] = $run([PHP_BINARY, $cli, 'install', $removalWrapper]);
+            verifyInstallFixture($recoveryStatus === 0 && readlink($runningLink) === $bootManifest,
+                "$case did not restore the pending removal retry entry: $recoveryOutput");
+        }
+        [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest]);
+        clearstatcache();
+        if ($partial) {
+            verifyInstallFixture($bootStatus !== 0 && !is_dir($runtime) && is_file($removalMarker),
+                "$case booted an explicitly pending removal: $bootOutput");
+            [$retryStatus, $retryOutput] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"], ['FVPLUS_FIXTURE_ALLOW_REMOVE_RETRY' => '1']);
+            clearstatcache();
+            verifyInstallFixture($retryStatus === 0 && !is_file($bootManifest) && !is_file($removalMarker) && !is_dir($config)
+                && !is_file("$removalMarker.nextboot") && !is_file("$nextboot/$pluginName.plg"),
+                "$case could not finish partial native removal after reboot: $retryOutput");
+        } else {
+            verifyInstallFixture($bootStatus === 0 && file_get_contents($bootManifest) === $oldManifest
+                && readlink($runningLink) === $bootManifest && is_file("$runtime/FolderViewPlus.page") && is_file($cronFile)
+                && trim(file_get_contents("$config/version")) === $previous
+                && file_get_contents("$config/docker.json") === '{"previous":"Docker"}'
+                && file_get_contents("$config/vm.json") === '{"previous":"VM"}',
+                "$case did not boot the preserved installation after explicit native rejection: $bootOutput");
+        }
         $check[] = $case;
         continue;
     }
@@ -1008,4 +1152,4 @@ exec /bin/mv "$@"'
     $check[] = $case;
 }
 
-echo json_encode($check, JSON_THROW_ON_ERROR);
+echo json_encode(['nativeVersion' => $cliSource !== null ? $unraidVersion : null, 'cases' => $check], JSON_THROW_ON_ERROR);

@@ -14,6 +14,7 @@
 
     const DASHBOARD_APPS_PATH = '/webGui/include/DashboardApps.php';
     const WIDGET_TYPES = ['docker', 'vm'];
+    const WIDGET_RENDER_RETRY_LIMIT = 3;
     const registry = new WeakMap();
 
     const isoNow = () => new Date().toISOString();
@@ -52,6 +53,7 @@
         const maxEvents = Math.max(10, Number(deps.maxEvents || 60));
         const events = [];
         const pendingNativeRequests = new Set();
+        const widgetRenderRetries = { docker: 0, vm: 0 };
         const state = {
             bound: false,
             loadlistBound: false,
@@ -94,6 +96,7 @@
             state.foldersGrouped = false;
             state.renderGeneration = 0;
             state.widgetRenderStates = { docker: 'idle', vm: 'idle' };
+            WIDGET_TYPES.forEach(type => { widgetRenderRetries[type] = 0; });
             state.lastError = null;
             emit('nativeRowsLoading', { reason });
             // The native success callback replaces both tile bodies. Superseding the
@@ -138,40 +141,61 @@
             emit('folderRenderFailed', { message: state.lastError });
             return true;
         };
-        const handleNativeRowsResponse = async (generation, requestUrl) => {
-            if (state.disposed || !markNativeRowsLoaded(generation, { requestUrl })) return false;
+        const renderWidget = async (type, generation, requestUrl, render = renderFolders) => {
             const isCurrent = () => !state.disposed && generation === state.generation;
             if (!isCurrent()) return false;
-            if (state.renderGeneration === generation) return false;
-            state.renderGeneration = generation;
-            const renders = WIDGET_TYPES.map(async (type) => {
-                if (!isCurrent()) return;
-                if (!hasWidget(type)) {
-                    state.widgetRenderStates[type] = 'skipped';
-                    return;
-                }
-                state.widgetRenderStates[type] = 'pending';
-                let outcome;
-                try {
-                    const rendered = await renderFolders({ type, generation, requestUrl, isCurrent });
-                    outcome = rendered === false ? 'skipped' : 'ready';
-                } catch (_error) {
-                    outcome = 'failed';
-                }
-                if (!isCurrent()) return;
-                state.widgetRenderStates[type] = outcome;
-                emit('widgetRenderSettled', { type, outcome });
-            });
-            // Each widget now has its own loading indicator. Keep the ready one usable
-            // even if the other request takes a long time to settle.
-            if (isCurrent()) hideSpinner();
-            await Promise.all(renders);
+            if (!hasWidget(type)) {
+                state.widgetRenderStates[type] = 'skipped';
+                return false;
+            }
+            state.widgetRenderStates[type] = 'pending';
+            let outcome;
+            try {
+                const rendered = await render({ type, generation, requestUrl, isCurrent });
+                outcome = rendered === false ? 'skipped' : 'ready';
+            } catch (_error) {
+                outcome = 'failed';
+            }
             if (!isCurrent()) return false;
-            if (Object.values(state.widgetRenderStates).includes('failed')) {
+            state.widgetRenderStates[type] = outcome;
+            emit('widgetRenderSettled', { type, outcome });
+            return outcome === 'ready';
+        };
+
+        const finishGrouping = (generation, requestUrl) => {
+            if (state.disposed || generation !== state.generation) return false;
+            const outcomes = Object.values(state.widgetRenderStates);
+            if (outcomes.includes('pending')) return false;
+            if (outcomes.includes('failed')) {
                 markRenderFailed(generation, new Error('Dashboard widget render failed.'));
                 return false;
             }
-            return markFoldersGrouped(generation, { requestUrl });
+            return state.foldersGrouped || markFoldersGrouped(generation, { requestUrl });
+        };
+
+        const retryFailedWidget = (type, render) => {
+            if (state.disposed || state.widgetRenderStates[type] !== 'failed') return null;
+            // Leave the native rows available after exhausting this generation's attempts.
+            if (widgetRenderRetries[type] >= WIDGET_RENDER_RETRY_LIMIT) return Promise.resolve(false);
+            widgetRenderRetries[type] += 1;
+            const { generation } = state;
+            return renderWidget(type, generation, DASHBOARD_APPS_PATH, render).then(ready => {
+                finishGrouping(generation, DASHBOARD_APPS_PATH);
+                return ready;
+            });
+        };
+
+        const handleNativeRowsResponse = async (generation, requestUrl) => {
+            if (state.disposed || !markNativeRowsLoaded(generation, { requestUrl })) return false;
+            if (state.disposed || generation !== state.generation) return false;
+            if (state.renderGeneration === generation) return false;
+            state.renderGeneration = generation;
+            const renders = WIDGET_TYPES.map(type => renderWidget(type, generation, requestUrl));
+            // Each widget now has its own loading indicator. Keep the ready one usable
+            // even if the other request takes a long time to settle.
+            if (!state.disposed && generation === state.generation) hideSpinner();
+            await Promise.all(renders);
+            return finishGrouping(generation, requestUrl);
         };
 
         const bindLoadlist = () => {
@@ -273,6 +297,7 @@
             beginGeneration,
             isDisposed: () => state.disposed,
             isFoldersGrouped: () => state.foldersGrouped,
+            retryFailedWidget,
             markFoldersGrouped,
             markRenderFailed,
             notifyRuntimeActionCompleted,

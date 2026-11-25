@@ -879,7 +879,7 @@ const postPrefs = async (type, prefs, options = {}) => {
     const protectedPrefs = diagnosticsPrefsStoreModule?.cleanPatch(
         protectDashboardLayoutFromBroadPrefsWrite(prefs, options), options.baselinePrefs || (options.currentPrefs ? null : prefsByType?.[type])
     ) || protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
-    if (diagnosticsPrefsCoordinator) {
+    if (diagnosticsPrefsCoordinator && !options.setupApply) {
         const savedPrefs = await diagnosticsPrefsCoordinator.save(type, protectedPrefs, {
             currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
             immediate: options.immediate === true
@@ -903,10 +903,13 @@ const postPrefs = async (type, prefs, options = {}) => {
     if (expectedRevision > 0) {
         payload.expectedRevision = expectedRevision;
     }
+    Object.assign(payload, options.setupApply?.fields());
     const response = await apiPostJson('/plugins/folderview.plus/server/prefs.php', payload);
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
+    options.setupApply?.acknowledge(response);
+    options.onCommitted?.(response);
     const fallbackPrefs = typeof diagnosticsPrefsStoreModule?.mergePatch === 'function'
         ? diagnosticsPrefsStoreModule.mergePatch(prefsByType?.[type] || {}, protectedPrefs || {})
         : { ...(prefsByType?.[type] || {}), ...(protectedPrefs || {}) };

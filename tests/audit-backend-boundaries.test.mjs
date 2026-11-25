@@ -149,6 +149,7 @@ test('diagnostics endpoints redact private folder references, history, and last 
     assert.match(staleId, /^[a-f0-9]{16}$/);
     assert.deepEqual(vm.expandedFolderState, { [folderId]: true, [child.folderId]: false });
     assert.equal(vm.stateSnapshot.folders[folderId].folderId, folderId);
+    assert.equal(vm.integrityChecks.orphanedMembers.inventoryVerified, true);
     assert.equal(vm.integrityChecks.orphanedMembers.folders[0].folderId, folderId);
     assert.deepEqual(vm.integrityChecks.missingHiddenFolderIds.ids, [staleId]);
     assert.equal(results.report.sanitized.customIcons.missingReferencedIcons[0].references[0].folderId, folderId);

@@ -424,9 +424,9 @@ function readUnraidVersionString(): ?string {
         ];
     }
 
-    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode, array $configMetadataIntegrity = []): array {
-        $validNames = array_keys($infoByName);
-        $validSet = array_fill_keys($validNames, true);
+    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode, ?array $verifiedNames, array $configMetadataIntegrity = []): array {
+        $validNames = $verifiedNames ?? array_keys($infoByName);
+        $validSet = $verifiedNames === null ? null : array_fill_keys($verifiedNames, true);
         $nameBuckets = [];
         $invalidRegexFolders = [];
         $invalidIconFolders = [];
@@ -446,7 +446,7 @@ function readUnraidVersionString(): ?string {
             $members = normalizeFolderMembers($folder['containers'] ?? []);
             foreach ($members as $member) {
                 $explicitAssignments[$member][] = (string)$folderId;
-                if (!isset($validSet[$member])) {
+                if ($validSet !== null && !isset($validSet[$member])) {
                     if (!isset($orphanedMembers[$folderId])) {
                         $orphanedMembers[$folderId] = [];
                     }
@@ -604,6 +604,7 @@ function readUnraidVersionString(): ?string {
                 'examples' => array_slice($duplicateNames, 0, 30)
             ],
             'orphanedMembers' => [
+                'inventoryVerified' => $validSet !== null,
                 'count' => $orphanedCount,
                 'folders' => $orphanedByFolder
             ],

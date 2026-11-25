@@ -6,12 +6,13 @@ import utils from '../src/folderview.plus/usr/local/emhttp/plugins/folderview.pl
 import importSelection from '../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import-selection.js';
 
 const source = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js', 'utf8');
+const setupSupport = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js', 'utf8');
 const extract = name => {
     const start = source.indexOf(`const ${name} =`);
     assert.ok(start >= 0);
     return source.slice(start, source.indexOf('\nconst ', start + 1));
 };
-const load = (names, dependencies) => vm.runInNewContext(`${names.map(extract).join('\n')}\n({${names.join(',')}})`, dependencies);
+const load = (names, dependencies, prelude = '') => vm.runInNewContext(`${prelude}\n${names.map(extract).join('\n')}\n({${names.join(',')}})`, dependencies);
 const window = { FolderViewPlusFoundationModules: { importSelection } };
 
 test('cleared and deselected templates stay empty across render and restored selection refreshes', () => {
@@ -127,6 +128,110 @@ test('wizard import retry sends only confirmed operations for the matching revis
     approval = { operations: changed, dryRunOnly: false };
     assert.equal((await api.retrySetupAssistantFailures(failures, reviewed)).resolved, 1);
     assert.deepEqual(writes, [[initial, 4], [changed, 5]]);
+    assert.equal((await api.retrySetupAssistantFailures([{ type: 'docker', phase: 'import-refresh' }], reviewed)).resolved, 1);
+    assert.equal(writes.length, 2, 'a refresh retry never repeats the committed import');
+});
+
+const applyFixture = ({ safetyMode = 'strict', rejectRules = false, rejectImport = false, rejectRefresh = false, rejectFinalSave = false,
+    needsDockerSync = false, undo = false } = {}) => {
+    const operations = { creates: [], deletes: ['original'], upserts: [] };
+    const state = { applySafetyMode: safetyMode, mode: 'basic', behavior: {} };
+    const initialFence = 'a'.repeat(64), savedFence = 'b'.repeat(64);
+    const calls = [], issues = [];
+    const noop = () => {};
+    const api = load(['applySetupAssistantPlan', 'buildSetupAssistantVerificationReport'], {
+        window: { FolderViewPlusFoundationModules: { importSelection: {
+            readReviewedSetupImports: async () => ({ docker: { operations, expectedRevision: 1 } })
+        } } },
+        setupAssistantState: state, settingsUiState: {}, prefsByType: { docker: {}, vm: {} }, utils,
+        setupAssistantT: (_key, fallback) => fallback, setupAssistantImportReviewChanged: () => new Error('preview changed'),
+        getSetupAssistantStepValidation: () => ({ blockers: [], warnings: [] }),
+        confirmSetupAssistantApply: async () => true,
+        fetchFolders: async () => ({}), summarizeSetupAssistantImportPlan: noop,
+        buildSetupAssistantImpactSummary: () => ({ prefs: { totalChanges: 2 } }),
+        normalizeSetupAssistantSafetyMode: value => value, normalizeSetupAssistantExperienceMode: () => 'basic',
+        setSetupAssistantProgress: noop, renderSetupAssistant: noop, clearSetupAssistantProgress: noop, setSettingsMode: noop,
+        applySetupAssistantBehaviorToPrefs: prefs => prefs,
+        globalRollbackApi: async (action, fields) => {
+            calls.push({ action, ...fields });
+            return { name: 'checkpoint', setupFence: initialFence };
+        },
+        postPrefs: async (_type, prefs, { setupApply }) => {
+            if (setupApply) {
+                calls.push({ action: 'prefs', ...setupApply.fields() });
+                setupApply.acknowledge({ setupFence: savedFence, setupNeedsDockerSync: needsDockerSync });
+            }
+            return prefs;
+        },
+        countImportOperations: () => 1,
+        applyImportOperations: async (_type, _operations, _onProgress, { onCommitted }) => {
+            if (rejectImport) throw Object.assign(new Error('import rejected before write'), { status: 409 });
+            onCommitted({ completed: 1 });
+        },
+        refreshType: async () => { if (rejectRefresh) throw new Error('refresh unavailable'); },
+        refreshBackups: async () => {}, refreshAll: async () => {}, refreshSettingsUx: noop, captureSettingsBaseline: noop,
+        applySetupAssistantTemplatesForType: async () => ({ assignment: {} }),
+        refreshSetupAssistantRuleSuggestions: noop,
+        applySetupAssistantRulesForType: async () => { if (rejectRules) throw new Error('Rule write rejected'); return { created: 0 }; },
+        getSetupAssistantTemplateBootstrap: () => ({}), serializeSetupAssistantTemplateSelections: value => value,
+        markSetupAssistantCompletedLocal: () => { state.localCompletion = true; },
+        persistSetupPrefsToServer: async () => { if (rejectFinalSave) throw new Error('Preferences changed'); },
+        apiPostJson: async (path, fields) => {
+            calls.push({ action: 'native-sync', path, ...fields });
+            return { ok: true, syncOutcome: 'synced' };
+        },
+        confirmSetupAssistantUndo: async () => undo,
+        setTimeout: callback => callback(), closeSetupAssistant: noop, maybeShowUpdateNotesPanel: async () => {},
+        formatSetupAssistantTemplateSummaryValue: () => 'none', buildSetupAssistantTemplateReviewLines: () => [],
+        buildSetupAssistantTemplateDecisionLines: () => [], renderSetupAssistantSwalSummaryHtml: () => '',
+        toSetupAssistantDisplayText: value => value, markSetupAssistantSwalModal: noop,
+        swal: (_options, done) => done?.(false), showError: (_title, error) => issues.push(error.message)
+    }, setupSupport);
+    return { state, run: api.applySetupAssistantPlan, calls, issues, initialFence, savedFence };
+};
+
+test('wizard automatic rollback uses the last acknowledged fence', async () => {
+    const f = applyFixture({ rejectRules: true });
+    await f.run();
+    assert.deepEqual(f.calls.map(call => call.action), ['rollback_checkpoint', 'prefs', 'prefs', 'rollback_restore_setup']);
+    assert.equal(f.calls[1].setupFence, f.initialFence);
+    assert.equal(f.calls[2].setupFence, f.savedFence);
+    assert.deepEqual(f.calls.at(-1), { action: 'rollback_restore_setup', name: 'checkpoint', setupFence: f.savedFence });
+    assert.match(f.issues[0], /Automatic rollback restored/);
+});
+
+test('wizard never marks local completion when the guarded final preference save fails', async () => {
+    const f = applyFixture({ safetyMode: 'auto', rejectFinalSave: true, needsDockerSync: true });
+    await f.run();
+    assert.equal(f.state.localCompletion, undefined);
+    assert.match(f.issues[0], /Preferences changed/);
+    assert.equal(f.calls.at(-1).action, 'rollback_restore_setup');
+    assert.equal(f.calls.some(row => row.action === 'native-sync'), false);
+});
+
+test('successful guarded setup syncs native order once and modal Undo uses the retained fence', async () => {
+    const f = applyFixture({ needsDockerSync: true, undo: true });
+    await f.run();
+    assert.deepEqual(f.issues, []);
+    assert.equal(f.state.localCompletion, true);
+    assert.deepEqual(f.calls.map(row => row.action), ['rollback_checkpoint', 'prefs', 'prefs', 'native-sync', 'rollback_restore_setup']);
+    assert.deepEqual(f.calls.at(-2), { action: 'native-sync', path: '/plugins/folderview.plus/server/sync_order.php', type: 'docker' });
+    assert.deepEqual(f.calls.at(-1), { action: 'rollback_restore_setup', name: 'checkpoint', setupFence: f.savedFence });
+});
+
+test('wizard verification distinguishes rejected imports from committed imports with refresh failures', async () => {
+    for (const rejected of [true, false]) {
+        const f = applyFixture({ safetyMode: 'fast', rejectImport: rejected, rejectRefresh: !rejected });
+        await f.run();
+        assert.deepEqual(f.issues, []);
+        const { verification, failures, summaryLines } = f.state.lastApplyReport;
+        const check = verification.checks.find(row => row.label === 'DOCKER import applied');
+        assert.equal(check.ok, !rejected);
+        assert.equal(check.detail, rejected ? '0 operations' : '1 operations');
+        assert.equal(failures[0].phase, rejected ? 'import' : 'import-refresh');
+        assert.ok(summaryLines.includes('Docker import operations: ' + (rejected ? '0' : '1')));
+        assert.ok(!verification.checks.some(row => row.label === 'Rollback checkpoint created'));
+    }
 });
 
 test('zero warning threshold remains zero in the wizard input and review summary', () => {

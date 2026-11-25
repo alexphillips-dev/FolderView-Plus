@@ -1,13 +1,14 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-ordering.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-normalization.js'), require('./folderviewplus.utils-prefs.js'), require('./folderviewplus.utils-ordering.js'), require('./folderviewplus.utils-child-order.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.utilityTransfer = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityOrdering);
-}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityOrdering) {
+    modules.utilityTransfer = factory(modules.utilityFoundation, modules.utilityNormalization, modules.utilityPrefs, modules.utilityOrdering, modules.utilityChildOrder);
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function(utilityFoundation, utilityNormalization, utilityPrefs, utilityOrdering, utilityChildOrder) {
     'use strict';
     const utilityDependencies = Object.assign({}, utilityFoundation, utilityNormalization, utilityPrefs, utilityOrdering);
+    const { readImportedChildOrder, remapImportedChildOrder } = utilityChildOrder;
     const {
         cloneJson,
         isPlainObject,
@@ -362,15 +363,8 @@
     const remapImportedFolderParent = (folder, incomingMap, resolvedIdByIncomingId) => {
         const source = isPlainObject(folder) ? cloneJson(folder) : {};
         const rawParent = String(source.parentId || '').trim();
-        if (!rawParent) {
-            source.parentId = '';
-            return source;
-        }
-        if (Object.prototype.hasOwnProperty.call(incomingMap, rawParent)) {
-            source.parentId = String(resolvedIdByIncomingId[rawParent] || '').trim();
-            return source;
-        }
-        source.parentId = rawParent;
+        source.parentId = rawParent && Object.hasOwn(incomingMap, rawParent)
+            ? String(resolvedIdByIncomingId[rawParent] || '').trim() : rawParent;
         return source;
     };
 
@@ -385,13 +379,18 @@
             singleFolder.parentId = '';
         }
         const pathResolution = incoming ? resolveImportPathCollisions(current, incoming) : null;
+        const mappedIds = pathResolution?.resolvedIdByIncomingId ?? {};
+        const mappedTargets = new Set(Object.values(mappedIds));
         const entries = [], targetIds = new Set();
         for (const [sourceId, folder] of Object.entries(incoming || {})) {
-            const id = String(pathResolution.resolvedIdByIncomingId[sourceId] || sourceId).trim();
+            const id = String(mappedIds[sourceId] || sourceId).trim();
             if (!id || targetIds.has(id)) continue;
             targetIds.add(id);
-            const resolvedFolder = remapImportedFolderParent(folder, incoming, pathResolution.resolvedIdByIncomingId);
             const existing = current[id];
+            const retainedOrder = mode === 'replace' ? [] : readImportedChildOrder(existing)
+                .filter(childId => !mappedTargets.has(childId) && current[childId]?.parentId === id);
+            const resolvedFolder = remapImportedChildOrder(remapImportedFolderParent(folder, incoming, mappedIds),
+                childId => incoming[childId]?.parentId === sourceId ? mappedIds[childId] : '', retainedOrder);
             entries.push({ id, sourceId, folder: resolvedFolder, pathMapped: id !== sourceId, existing,
                 same: Boolean(existing) && diffFolderFields(existing, resolvedFolder).length === 0 });
         }
@@ -518,9 +517,8 @@
         ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
 
     const comparableFolderSettings = ({ settings = {}, child_folder_order, childFolderOrder }) => {
-        const { child_folder_order: savedOrder, childFolderOrder: legacyOrder, ...otherSettings } = settings || {};
-        const order = savedOrder ?? legacyOrder ?? child_folder_order ?? childFolderOrder;
-        return { ...otherSettings, child_folder_order: normalizeFolderMembers(order ? Object.values(order) : []) };
+        const { child_folder_order: _savedOrder, childFolderOrder: _legacyOrder, ...otherSettings } = settings || {};
+        return { ...otherSettings, child_folder_order: readImportedChildOrder({ settings, child_folder_order, childFolderOrder }) };
     };
 
     const hiddenPreviewMembers = (folder) => normalizeFolderMembers(folder.hiddenPreviewMembers ?? folder.hidden_preview);
@@ -633,6 +631,8 @@
         buildImportPathData,
         resolveImportPathCollisions,
         remapImportedFolderParent,
+        readImportedChildOrder,
+        remapImportedChildOrder,
         summarizeImport,
         buildImportOperations,
         normalizeMemberList,

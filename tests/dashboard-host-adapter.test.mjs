@@ -260,6 +260,42 @@ for (const outcome of ['success', 'failure']) {
     });
 }
 
+test('Dashboard bounds failed-widget retries and ignores their completions across native generations', async () => {
+    const harness = createHarness({
+        hasWidget: () => true,
+        renderFolders: async ({ type }) => {
+            if (type === 'vm') throw new Error('fixture failure');
+            return true;
+        }
+    });
+    harness.adapter.bind();
+    const load = async () => {
+        harness.window.loadlist();
+        harness.prefilters[0]({ url: '/webGui/include/DashboardApps.php' }, {}, { promise: () => Promise.resolve() });
+        await nextTurn();
+    };
+    await load();
+    let attempts = 0;
+    const fail = async () => { attempts += 1; throw new Error('retry failure'); };
+    assert.equal(harness.adapter.retryFailedWidget('docker', fail), null);
+    for (let attempt = 0; attempt < 3; attempt++) {
+        assert.equal(await harness.adapter.retryFailedWidget('vm', fail), false);
+    }
+    assert.equal(await harness.adapter.retryFailedWidget('vm', fail), false);
+    assert.equal(attempts, 3);
+    await load();
+    let release;
+    const abandoned = harness.adapter.retryFailedWidget('vm', () => new Promise(resolve => { release = resolve; }));
+    assert.equal(harness.adapter.getSnapshot().widgetRenderStates.vm, 'pending');
+    await load();
+    release(true);
+    assert.equal(await abandoned, false);
+    assert.deepEqual(harness.adapter.getSnapshot().widgetRenderStates, { docker: 'ready', vm: 'failed' });
+    assert.equal(await harness.adapter.retryFailedWidget('vm', async () => true), true);
+    assert.equal(harness.adapter.getSnapshot().foldersGroupedCount, 1);
+    assert.equal(harness.adapter.getSnapshot().nativeRowsLoadedCount, 3);
+});
+
 for (const outcome of ['false', 'true', 'failure']) {
     test(`Dashboard stale render ${outcome} preserves the newer pending render and spinner`, async () => {
         const pending = [];

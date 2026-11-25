@@ -228,6 +228,8 @@ Safety backups are created before supported imports, restores, bulk changes, and
 
 `Advanced -> Docker start order` can follow the Docker page folder order or define custom startup batches. Custom plans can specify groups, members, and delays. Always preview and validate a changed plan before syncing it to the host.
 
+Toggling autostart here changes only the selected container. If the native sync fails after a plan is saved, Settings displays a warning beside the startup controls. Use **Sync now** to apply and verify the saved plan after the native configuration becomes available.
+
 ## Performance profiles
 
 Docker and VM runtime settings provide three profiles:

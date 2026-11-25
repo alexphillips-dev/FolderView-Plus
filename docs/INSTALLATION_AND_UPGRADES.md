@@ -179,7 +179,8 @@ Export anything you want to retain before uninstalling. The plugin remove action
 - Uploaded custom icons and custom overrides.
 - The icon-pack archive and runtime cache.
 - The scheduled-backup cron entry.
+- Any FolderView Plus update that Unraid has staged for the next boot.
 
-If the native package manager reports a removal failure, the plugin keeps its registration and stops before deleting configuration, backups, or remaining runtime files.
+If the native package manager reports a removal failure, the plugin keeps its registration and stops before deleting configuration or backups. If the package files are intact, the installed version can load again after reboot. If a reboot interrupts removal while the plugin is suspending a staged update, it restores that update for the following boot. If native removal changed the package before failing, retry removal from Plugin Manager to finish cleanup.
 
 Uninstalling does not delete Docker containers, VMs, or their application data, but it does delete FolderView Plus organization and recovery data. A normal update is not an uninstall and preserves the persistent configuration directory.

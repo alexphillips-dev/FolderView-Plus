@@ -17,11 +17,11 @@ function fvplusReadRulePreviewSource(string $type): array {
             throw new RuntimeException('Configuration is unavailable. Reload Settings before previewing rules.');
         }
     }
-    $folders = normalizeFolderMapPayload($values['folders']);
+    $folders = normalizeFolderMapPayload($values['folders'], false);
     if (jsonObjectsDiffer($folders, $values['folders']) || jsonObjectsDiffer(normalizeTypePrefs($values['prefs']), $values['prefs'])) {
         throw new RuntimeException('Configuration is unavailable. Reload Settings before previewing rules.');
     }
-    return ['folders' => $folders, 'rules' => normalizeTypePrefs($values['prefs'])['autoRules'], 'hashes' => $hashes];
+    return ['folders' => normalizeFolderParentLinks($folders), 'rules' => normalizeTypePrefs($values['prefs'])['autoRules'], 'hashes' => $hashes];
 }
 
 function fvplusBuildRulePreview(string $type, ?array $verifiedInventory = null): array {

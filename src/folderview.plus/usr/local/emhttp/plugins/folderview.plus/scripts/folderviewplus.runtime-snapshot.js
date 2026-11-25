@@ -101,6 +101,11 @@
         return value && typeof value === 'object' ? value : {};
     };
 
+    const buildRuntimeOrderKey = (snapshot) => {
+        if (!Array.isArray(snapshot?.order) || !Array.isArray(snapshot?.unraidOrder)) return null;
+        return JSON.stringify([snapshot.order.map(String), snapshot.unraidOrder.map(String)]);
+    };
+
     const createProjectedBundle = (requestPromise, fields, options = {}) => {
         const normalizedPromise = Promise.resolve(requestPromise).then(parsePayload);
         if (typeof options?.onSnapshot === 'function') {
@@ -228,6 +233,7 @@
         buildUrl,
         buildConfigBootstrapUrl,
         projectValue,
+        buildRuntimeOrderKey,
         createProjectedBundle,
         projectRequest,
         buildRuntimeRowToken,

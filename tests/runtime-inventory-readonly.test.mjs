@@ -15,6 +15,27 @@ test('read-only inventory endpoints preserve exact native autostart bytes throug
     }
 });
 
+test('diagnostics reports saved orphaned members only after a complete inventory listing', () => {
+    for (const type of ['docker', 'vm']) {
+        for (const [scenario, verified, count] of [
+            ['healthy', true, 1], ['failed-detail', true, 1], ['empty', true, 2],
+            ['failed-list', false, 0], ['malformed-list', false, 0]
+        ]) {
+            const result = runInventoryRepair({ type, operation: 'diagnostics', scenario });
+            const label = `${type}/${scenario}`;
+            assert.equal(result.error, '', label);
+            assert.equal(result.responseStatus, 200, label);
+            assert.equal(result.native, result.nativeBefore, label);
+            const diagnostics = result.response.diagnostics;
+            const orphans = diagnostics.types[type].integrityChecks.orphanedMembers;
+            assert.equal(orphans.inventoryVerified, verified, label);
+            assert.equal(orphans.count, count, label);
+            assert.equal(orphans.folders.length, count > 0 ? 1 : 0, label);
+            assert.equal(diagnostics.summary.recommendedActions.some(action => action.action === 'repair_orphaned_members'), count > 0, label);
+        }
+    }
+});
+
 test('state reads, VM reads and start-order previews leave native autostart unchanged', () => {
     for (const request of [{ type: 'docker', operation: 'read', mode: 'state', scenario: 'healthy' },
         { type: 'docker', operation: 'snapshot', mode: 'state', scenario: 'healthy' },
@@ -138,6 +159,88 @@ test('runtime responses stay valid JSON when the native Docker SDK writes a sock
 const explicitOrderRequests = ['sync', 'start-sync'];
 const explicitOrderFixture = (operation, options) => runInventoryRepair({
     type: 'docker', operation, scenario: 'healthy', ...options
+});
+
+test('a managed autostart toggle updates only the target record and preserves the native Docker page order', () => {
+    const nativePageOrder = '0="docker-extra"\n1="docker-new"\n2="docker-present"\n';
+    const docker = ['docker-extra', 'docker-new', 'docker-present'].map((name, index) => ({
+        Id: String(index + 1).repeat(64), Names: [`/${name}`], Image: 'fixture/image:latest', State: 'exited'
+    }));
+    const nativeAutostart = 'docker-extra 7200\r\nstale-host-entry 31\ndocker-present 19\n';
+    const plan = {
+        mode: 'custom-batches',
+        batches: [{ id: 'fixture', name: 'Fixture', items: ['docker-extra', 'docker-new', 'docker-present'].map(name => ({ type: 'container', name })) }],
+        containerWaits: { 'docker-extra': 99, 'docker-new': 23 }
+    };
+    const options = { nativeAutostart, nativePageOrder, plan, docker, container: 'docker-new', enabled: '1' };
+    const enabled = explicitOrderFixture('start-toggle', options);
+    assert.equal(enabled.error, '');
+    assert.equal(enabled.responseStatus, 200);
+    assert.equal(enabled.response?.enabled, true);
+    assert.equal(enabled.native, 'docker-extra 7200\r\nstale-host-entry 31\ndocker-new 23\ndocker-present 19\n');
+    assert.equal(enabled.nativePageOrder, nativePageOrder);
+    assert.equal(enabled.nativeMode, enabled.nativeModeBefore);
+
+    const disabled = explicitOrderFixture('start-toggle', { ...options, enabled: '0', nativeAutostart: enabled.native });
+    assert.equal(disabled.responseStatus, 200);
+    assert.equal(disabled.response?.enabled, false);
+    assert.equal(disabled.native, nativeAutostart);
+    assert.equal(disabled.nativePageOrder, nativePageOrder);
+
+    const repeated = explicitOrderFixture('start-toggle', { ...options, nativeAutostart: enabled.native });
+    assert.equal(repeated.response?.enabled, true);
+    assert.equal(repeated.native, enabled.native);
+
+    for (const overrides of [
+        { plan: { mode: 'unmanaged' } }, { syncLock: 'held' }, { container: 'docker-unknown' },
+        { container: '../../outside' }, { withoutToken: true }
+    ]) {
+        const rejected = explicitOrderFixture('start-toggle', { ...options, ...overrides });
+        assert.equal(rejected.response?.ok, false, JSON.stringify(overrides));
+        assert.equal(rejected.native, nativeAutostart);
+        assert.equal(rejected.nativePageOrder, nativePageOrder);
+    }
+});
+
+test('Docker startup preview and sync preserve native waits above the plugin limit', () => {
+    for (const wait of [3600, 3601, 7200]) {
+        const nativeAutostart = `docker-present ${wait}\n`;
+        for (const mode of ['unmanaged', 'docker-page']) {
+            const options = { nativeAutostart, plan: { mode } };
+            const preview = explicitOrderFixture('preview', options);
+            assert.equal(preview.response?.preview?.sequence[0]?.wait, wait);
+            assert.equal(preview.response?.preview?.sequence[0]?.waitSource, 'native');
+            const sync = explicitOrderFixture('start-sync', options);
+            assert.equal(sync.response?.syncOutcome, mode === 'unmanaged' ? 'unmanaged' : 'synced');
+            assert.equal(sync.native, nativeAutostart);
+        }
+    }
+    const override = explicitOrderFixture('start-sync', {
+        nativeAutostart: 'docker-present 7200\n', plan: { mode: 'docker-page', containerWaits: { 'docker-present': 0 } }
+    });
+    assert.equal(override.response?.syncOutcome, 'synced');
+    assert.equal(override.native, 'docker-present\n');
+    const nativeWithSuffix = 'docker-present 7200 trailing-token\n';
+    const nativeSuffixPreview = explicitOrderFixture('preview', { nativeAutostart: nativeWithSuffix });
+    assert.equal(nativeSuffixPreview.response?.preview?.sequence[0]?.wait, 7200);
+    const nativeSuffixSync = explicitOrderFixture('start-sync', { nativeAutostart: nativeWithSuffix });
+    assert.equal(nativeSuffixSync.native, nativeWithSuffix);
+});
+
+test('a startup preference commit reports native sync failure and remains available for retry', () => {
+    const nativeAutostart = 'docker-present 7\n';
+    const planPatch = { containerWaits: { 'docker-present': 73 } };
+    for (const [syncLock, outcome] of [['blocked', 'failed'], ['held', 'queued'], ['', 'synced']]) {
+        const result = explicitOrderFixture('start-save', { nativeAutostart, planPatch, syncLock });
+        assert.equal(result.responseStatus, 200, syncLock);
+        assert.equal(result.response?.configChanged, true, syncLock);
+        assert.equal(result.response?.prefs?.dockerStartOrder?.containerWaits?.['docker-present'], 73);
+        assert.equal(result.response?.dockerOrderSync, outcome, syncLock);
+        assert.equal(result.native, outcome === 'synced' ? 'docker-present 73\n' : nativeAutostart);
+    }
+    const retry = explicitOrderFixture('start-sync', { nativeAutostart, plan: { mode: 'docker-page', ...planPatch } });
+    assert.equal(retry.response?.syncOutcome, 'synced');
+    assert.equal(retry.native, 'docker-present 73\n');
 });
 
 const assertOrderSyncRefused = (result, code, label) => {

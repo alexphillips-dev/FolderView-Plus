@@ -16,7 +16,7 @@ fvplus_json_try(function (): array {
         throw new RuntimeException('Folder batch payload is not valid JSON.');
     }
 
-    return [
+    return fvplusRunSetupAssistantMutation($_POST['setupCheckpoint'] ?? null, $_POST['setupFence'] ?? null, static fn(): array => [
         'result' => applyFolderBatchOperations($type, $operations, $_POST['expectedRevision'] ?? '')
-    ];
+    ]);
 });

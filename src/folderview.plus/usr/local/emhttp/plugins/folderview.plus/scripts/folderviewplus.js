@@ -1906,7 +1906,7 @@ const hasExistingPluginData = () => {
     return hasRules || hasPinned;
 };
 
-const persistSetupPrefsToServer = async ({ mode = null, completed = null } = {}) => {
+const persistSetupPrefsToServer = async ({ mode = null, completed = null, setupApply } = {}) => {
     const nextMode = mode === 'advanced' ? 'advanced' : 'basic';
     const completedValue = completed === true;
     for (const type of ['docker', 'vm']) {
@@ -1924,8 +1924,9 @@ const persistSetupPrefsToServer = async ({ mode = null, completed = null } = {})
             continue;
         }
         try {
-            prefsByType[type] = await postPrefs(type, next);
-        } catch (_error) {
+            prefsByType[type] = await postPrefs(type, next, { setupApply });
+        } catch (error) {
+            if (setupApply) throw error;
             // Keep UX responsive even if this persistence call fails.
         }
     }
@@ -2215,8 +2216,16 @@ const initSettingsControls = () => {
             if (snapshot?.prefs) {
                 prefsByType[type] = utils.normalizePrefs(snapshot.prefs);
             }
+            if (type === 'docker' && event?.detail?.dockerOrderSync) {
+                dockerStartOrderSyncOutcome = event.detail.dockerOrderSync;
+                renderDockerStartOrderSyncOutcome();
+            }
             if (settingsUiState.initialized && nextRevision > previousRevision) {
                 scheduleTableRender(type);
+                if (type === 'docker' && !dockerStartOrderDraftPlan && settingsUiState.mode === 'advanced' && settingsUiState.advancedTab === 'startup') {
+                    renderDockerStartOrderWorkspace({ preservePreview: true });
+                    scheduleDockerStartOrderPreviewRefresh();
+                }
             }
         });
     }
@@ -4277,10 +4286,12 @@ const requestFolderBatchMutation = async (type, operations, options = {}) => {
     if (options?.expectedRevision !== null && options?.expectedRevision !== undefined && options?.expectedRevision !== '') {
         payload.expectedRevision = String(options.expectedRevision);
     }
+    Object.assign(payload, options.setupApply?.fields());
     const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', payload);
     if (!response?.ok || !response?.result) {
         throw new Error(response?.error || 'Folder batch transaction failed.');
     }
+    options.setupApply?.acknowledge(response);
     return response.result;
 };
 
@@ -7499,14 +7510,23 @@ const dockerStartOrderWorkspace = dockerStartOrderWorkspaceModule?.createApi({
     getInfo: () => infoByType.docker || {},
     savePlan: (...args) => saveDockerStartOrderPlan(...args),
     refreshPreview: (...args) => refreshDockerStartOrderPreview(...args),
-    runDockerMutation: (...args) => window.FolderViewPlusRuntimeTransport.runDockerMutation(...args),
+    writeAutostart: async (container, enabled) => {
+        await flushDockerStartOrderSaveQueue();
+        const result = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
+            action: 'autostart', container, enabled: enabled ? '1' : '0'
+        });
+        if (result?.enabled !== enabled) throw new Error('Docker autostart update failed');
+    },
     showError,
     setStatus: setUpdateStatus
 });
 if (!dockerStartOrderWorkspace) throw new Error('FolderView Plus start-order workspace is unavailable.');
 const dockerStartOrderPreviewActivation = dockerStartOrderWorkspaceModule.createPreviewActivation(() => refreshDockerStartOrderPreview());
 const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
-const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(utils.normalizePrefs(prefs || prefsByType.docker || {}).dockerStartOrder);
+const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(
+    prefs ? prefs.dockerStartOrder : dockerStartOrderDraftPlan
+        || (diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker') || prefsByType.docker)?.dockerStartOrder
+);
 
 const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
     .map((name) => String(name || '').trim())
@@ -7568,22 +7588,51 @@ let dockerStartOrderPreviewGeneration = 0;
 let dockerStartOrderSaveTimer = null;
 let dockerStartOrderQueuedPrefs = null;
 let dockerStartOrderSaveChain = Promise.resolve();
+let dockerStartOrderDraftPlan = null;
+let dockerStartOrderEditGeneration = 0;
+let dockerStartOrderSyncOutcome = '';
+
+const renderDockerStartOrderSyncOutcome = () => {
+    const warning = dockerStartOrderSyncOutcome === 'failed'
+        ? surfaceT('common.repair.docker-start-order-sync-failed-5c0ab5', 'Docker start order sync failed')
+        : dockerStartOrderSyncOutcome === 'queued'
+            ? surfaceT('common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', 'FolderView Plus configuration is busy. Please retry the action.')
+            : '';
+    $('#docker-start-order-sync-status').text(warning).prop('hidden', !warning);
+};
 
 const persistQueuedDockerStartOrderPrefs = () => {
     if (!dockerStartOrderQueuedPrefs) {
         return dockerStartOrderSaveChain;
     }
     const nextPrefs = dockerStartOrderQueuedPrefs;
+    const generation = dockerStartOrderEditGeneration;
     dockerStartOrderQueuedPrefs = null;
     dockerStartOrderSaveChain = dockerStartOrderSaveChain
         .then(async () => {
-            const savedPrefs = await postPrefs('docker', nextPrefs, { currentPrefs: prefsByType.docker });
-            if (!dockerStartOrderQueuedPrefs) {
+            let syncOutcome;
+            try {
+                const savedPrefs = await postPrefs('docker', nextPrefs, {
+                    currentPrefs: prefsByType.docker,
+                    onCommitted: (response) => { syncOutcome = response?.dockerOrderSync; }
+                });
+                if (syncOutcome) dockerStartOrderSyncOutcome = syncOutcome;
+                if (generation !== dockerStartOrderEditGeneration) return;
                 prefsByType.docker = savedPrefs;
+            } catch (error) {
+                if (generation === dockerStartOrderEditGeneration) {
+                    const confirmed = diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker');
+                    if (confirmed) prefsByType.docker = confirmed;
+                    dockerStartOrderDraftPlan = null;
+                    renderDockerStartOrderWorkspace({ preservePreview: true });
+                }
+                showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
+                return;
             }
-        })
-        .catch((error) => {
-            showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
+            const modeChanged = dockerStartOrderDraftPlan?.mode !== normalizeDockerStartOrderPrefsForUi(prefsByType.docker).mode;
+            dockerStartOrderDraftPlan = null;
+            if (modeChanged) renderDockerStartOrderWorkspace({ preservePreview: true });
+            renderDockerStartOrderSyncOutcome();
         });
     return dockerStartOrderSaveChain;
 };
@@ -7620,7 +7669,7 @@ const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
 
 const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     const current = utils.normalizePrefs(prefsByType.docker || {});
-    const currentPlan = normalizeDockerStartOrderPrefsForUi(current);
+    const currentPlan = normalizeDockerStartOrderPrefsForUi();
     const nextPlan = {
         ...currentPlan,
         ...patch,
@@ -7630,7 +7679,8 @@ const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
         ...current,
         dockerStartOrder: nextPlan
     });
-    prefsByType.docker = nextPrefs;
+    dockerStartOrderDraftPlan = nextPrefs.dockerStartOrder;
+    dockerStartOrderEditGeneration += 1;
     renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
     queueDockerStartOrderPrefsSave({ dockerStartOrder: Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]])) });
     if (options.refreshPreview === true) {
@@ -7825,10 +7875,12 @@ const renderDockerStartOrderWorkspace = (options = {}) => {
             dockerStartOrderView.buildBatchesHtml(batches, batchOptions),
             dockerStartOrderView.buildPreviewPlaceholderHtml()
         ].join(''));
+        renderDockerStartOrderSyncOutcome();
         return;
     }
     host.find('[data-fv-start-order-region="top"]').replaceWith(dockerStartOrderView.buildControlsHtml(plan));
     host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
+    renderDockerStartOrderSyncOutcome();
 };
 
 const renderDockerStartOrderPreview = (preview) => {
@@ -7837,9 +7889,19 @@ const renderDockerStartOrderPreview = (preview) => {
     if (!host.length) {
         return;
     }
-    const disabledNames = Object.entries(infoByType.docker || {}).filter(([, row]) => !dockerStartOrderWorkspace.rowAutostart(row)).map(([name]) => name).sort((a, b) => a.localeCompare(b));
-    host.html(dockerStartOrderView.buildPreviewHtml(preview, { disabledNames, infoByName: infoByType.docker || {} }));
-    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
+    const infoByName = infoByType.docker || {};
+    const activeNames = preview?.nativeAutostartReadable !== false && Array.isArray(preview?.autostartOrder)
+        ? new Set(preview.autostartOrder.concat(Array.isArray(preview.staleAutostart) ? preview.staleAutostart : []))
+        : null;
+    const disabledNames = [];
+    for (const [name, row] of Object.entries(infoByName)) {
+        const enabled = activeNames ? activeNames.has(name) : dockerStartOrderWorkspace.rowAutostart(row);
+        if (activeNames) dockerStartOrderWorkspace.setRowAutostart(row, enabled);
+        if (!enabled) disabledNames.push(name);
+    }
+    disabledNames.sort((a, b) => a.localeCompare(b));
+    host.html(dockerStartOrderView.buildPreviewHtml(preview, { disabledNames, infoByName }));
+    $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByName));
 };
 
 const refreshDockerStartOrderPreview = async (options = {}) => {
@@ -7859,7 +7921,20 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
     try {
         const response = await apiGetJson(`/plugins/folderview.plus/server/docker_start_order.php?action=preview&_=${Date.now()}`);
         if (generation !== dockerStartOrderPreviewGeneration) return;
-        renderDockerStartOrderPreview(response?.preview || {});
+        const preview = response?.preview || {};
+        if (!dockerStartOrderDraftPlan && preview.mode && preview.mode !== normalizeDockerStartOrderPrefsForUi().mode) {
+            const savedPrefs = await apiGetJson(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`);
+            if (generation !== dockerStartOrderPreviewGeneration || dockerStartOrderDraftPlan) return;
+            if (!savedPrefs?.prefs) throw new Error('Failed to load preferences.');
+            const confirmed = utils.normalizePrefs({ ...savedPrefs.prefs, _metadata: savedPrefs.metadata || {} });
+            prefsByType.docker = diagnosticsPrefsCoordinator
+                ? diagnosticsPrefsCoordinator.reconcile('docker', confirmed, { restoreOutbox: false })
+                : confirmed;
+            const matches = preview.mode === normalizeDockerStartOrderPrefsForUi().mode;
+            renderDockerStartOrderWorkspace({ preservePreview: matches });
+            if (!matches) return;
+        }
+        renderDockerStartOrderPreview(preview);
     } catch (error) {
         if (host.length && generation === dockerStartOrderPreviewGeneration) {
             host.html(`<div class="fv-recovery-empty-state is-warning"><strong>Preview failed.</strong><span>${escapeHtml(error?.message || error || 'Unable to load preview.')}</span></div>`);
@@ -7870,11 +7945,17 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
 const syncDockerStartOrderNow = async () => {
     setUpdateStatus('');
     const title = surfaceT("common.repair.docker-start-order-sync-failed-5c0ab5", "Docker start order sync failed");
+    const previewGeneration = ++dockerStartOrderPreviewGeneration;
+    const editGeneration = dockerStartOrderEditGeneration;
+    const isCurrent = () => previewGeneration === dockerStartOrderPreviewGeneration && editGeneration === dockerStartOrderEditGeneration;
     try {
         await flushDockerStartOrderSaveQueue();
         const response = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
             action: 'sync'
         });
+        if (!isCurrent()) return;
+        dockerStartOrderSyncOutcome = response?.syncOutcome || 'failed';
+        renderDockerStartOrderSyncOutcome();
         if (response?.syncOutcome === 'queued') {
             setUpdateStatus(surfaceT('common.server.folderview-plus-configuration-is-busy-please-retry-the-action-260891', 'FolderView Plus configuration is busy. Please retry the action.'));
         } else if (response?.syncOutcome === 'unmanaged') {
@@ -7886,6 +7967,9 @@ const syncDockerStartOrderNow = async () => {
             showError(title, response?.error || title);
         }
     } catch (error) {
+        if (!isCurrent()) return;
+        dockerStartOrderSyncOutcome = 'failed';
+        renderDockerStartOrderSyncOutcome();
         showError(title, error);
     }
 };

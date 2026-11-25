@@ -2,7 +2,7 @@
 $server = $argv[1]; $root = $argv[2]; $operation = $argv[3] ?? 'rollback';
 $_SERVER['DOCUMENT_ROOT'] = $root . '/host';
 if ($operation === 'writer') file_put_contents($root . '/writer-started', 'yes');
-if ($operation === 'checkpoint-writer') {
+if (in_array($operation, ['checkpoint-writer', 'setup-order-sync-writer'], true)) {
     $probe = fopen($root . '/config/.config-mutation.lock', 'c+');
     $locked = flock($probe, LOCK_EX | LOCK_NB);
     if ($locked) flock($probe, LOCK_UN);
@@ -10,9 +10,23 @@ if ($operation === 'checkpoint-writer') {
     file_put_contents($root . '/writer-started.ready', $locked ? 'unlocked' : 'blocked');
     rename($root . '/writer-started.ready', $root . '/writer-started');
 }
+class DockerUtil {
+    public static function ensureImageTag(string $image): string { return $image; }
+    public static function loadJSON(string $path): array { return []; }
+}
 class DockerClient {
     public function getDockerContainers(): array { return []; }
-    public function getDockerJSON(string $path): array { return []; }
+    public function getDockerJSON(string $path, $method = 'GET', &$code = null, $callback = null): array {
+        global $operation;
+        if ($operation === 'setup-rollback-fence') {
+            $items = [['Id' => str_repeat('a', 64), 'Names' => ['/peer-during-restore'],
+                'Image' => 'fixture/image:latest', 'Labels' => [], 'State' => 'exited', 'Status' => 'Exited']];
+            $code = true;
+            if (is_callable($callback)) $callback(json_encode($items));
+            return $items;
+        }
+        return [];
+    }
 }
 if ($operation === 'environment-legacy-markers') {
     define('FVPLUS_LEGACY_CONFIG_DIRS', [$root . '/folder.view2']);
@@ -30,6 +44,96 @@ function seedState(string $label): void {
     $workspace = defaultThemeWorkspace();
     $workspace['profiles'][0]['layers']['global']['customCss'] = '.' . $label . ' { opacity: .8; }';
     writeThemeWorkspace($workspace);
+}
+
+if ($operation === 'setup-rollback-fence') {
+    putenv("FVPLUS_TEST_SECURITY_STATE_PATH=$root/config/setup-request-state.json");
+    $request = static function (string $endpoint, array $post) use ($server): array {
+        $_POST = $_REQUEST = $post;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_SERVER['SCRIPT_NAME'] = "/plugins/folderview.plus/server/$endpoint";
+        $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
+        $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
+        $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+        $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+        $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $post['action'] ?? '')['nonce'];
+        $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace('\\', '/', $server) . '/',
+            substr(file_get_contents("$server/$endpoint"), 5));
+        ob_start(); eval($body);
+        return [http_response_code() ?: 200, json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR)];
+    };
+    seedState('initial');
+    $path = fvplusEnvironmentDockerAutostartPath();
+    file_put_contents($path, "fixture-app 4\n");
+    $create = static fn(): array => $request('backup.php', ['action' => 'rollback_checkpoint', 'reason' => 'setup_assistant_apply'])[1]['rollback'];
+    $restore = static fn(array $checkpoint, string $fence): array => $request('backup.php', [
+        'action' => 'rollback_restore_setup', 'name' => $checkpoint['name'], 'setupFence' => $fence]);
+    $prefs = static fn(array $checkpoint, string $fence): array => $request('prefs.php', [
+        'type' => 'vm', 'prefs' => '{"setupWizardCompleted":true}', 'setupCheckpoint' => $checkpoint['name'], 'setupFence' => $fence]);
+    $checkpoint = $create();
+    [$prefStatus, $prefResult] = $prefs($checkpoint, $checkpoint['setupFence']);
+    [$batchStatus, $batchResult] = $request('batch.php', ['type' => 'vm', 'setupCheckpoint' => $checkpoint['name'],
+        'setupFence' => $prefResult['setupFence'], 'operations' => '{"upserts":[{"id":"wizard","folder":{"name":"Wizard folder"}}]}']);
+    [$restoreStatus, $restoreResult] = $restore($checkpoint, $batchResult['setupFence']);
+    $normal = [$prefStatus, $batchStatus, $restoreStatus, $restoreResult['restore']['verified'] ?? false,
+        array_keys(readRawFolderMap('vm')), readTypePrefs('vm')['setupWizardCompleted']];
+
+    $checkpoint = $create();
+    $initialNative = "peer-app 17\r\n";
+    file_put_contents($path, $initialNative);
+    [$deferredStatus, $deferred] = $request('prefs.php', ['type' => 'docker',
+        'prefs' => '{"dockerStartOrder":{"mode":"docker-page"}}', 'setupCheckpoint' => $checkpoint['name'],
+        'setupFence' => $checkpoint['setupFence']]);
+    $deferredUnchanged = file_get_contents($path) === $initialNative;
+    $insideNativeWrite = static function (string $contents) use ($path): void {
+        $code = 'file_put_contents(' . var_export($path, true) . ', ' . var_export($contents, true) . ');';
+        $process = proc_open([PHP_BINARY, '-r', $code], [], $pipes);
+        if (!is_resource($process) || proc_close($process) !== 0) throw new RuntimeException('Fixture native writer failed.');
+    };
+    $vmWrite = fvplusRunSetupAssistantMutation($checkpoint['name'], $deferred['setupFence'],
+        static function () use ($insideNativeWrite): array {
+            writeTypePrefs('vm', ['setupWizardCompleted' => true]);
+            $insideNativeWrite("peer-during-mutation 12\n");
+            return [];
+        });
+    $guardedNative = restoreGlobalRollbackSnapshot($checkpoint['name'], ['setupFence' => $vmWrite['setupFence'],
+        'afterStage' => static function (string $stage) use ($insideNativeWrite): void {
+            if ($stage === 'theme-workspace') $insideNativeWrite('peer-during-restore 15');
+        }]);
+    $nativeUntouched = file_get_contents($path) === 'peer-during-restore 15';
+    $completionCheckpoint = $create();
+    [, $completedPrefs] = $request('prefs.php', ['type' => 'docker', 'prefs' => '{"dockerStartOrder":{"mode":"docker-page"}}',
+        'setupCheckpoint' => $completionCheckpoint['name'], 'setupFence' => $completionCheckpoint['setupFence']]);
+    [$completionStatus, $completionSync] = $request('sync_order.php', ['type' => 'docker']);
+    $native = [$deferredStatus, $deferred['setupNeedsDockerSync'], $deferredUnchanged, $guardedNative['verified'], $nativeUntouched,
+        $completedPrefs['setupNeedsDockerSync'], $completionStatus, $completionSync['syncOutcome'] ?? '',
+        file_get_contents($path)];
+    seedState('initial');
+
+    $rejections = [];
+    foreach (['prefs', 'folders', 'theme'] as $peer) {
+        $checkpoint = $create();
+        [, $acknowledged] = $prefs($checkpoint, $checkpoint['setupFence']);
+        if ($peer === 'prefs') {
+            $rules = [['id' => 'peer-rule', 'folderId' => 'initial', 'name' => 'Peer rule', 'enabled' => true,
+                'pattern' => '^peer', 'kind' => 'name_regex', 'effect' => 'include', 'type' => 'vm']];
+            $request('prefs.php', ['type' => 'vm', 'prefs' => json_encode(['autoRules' => $rules])]);
+        } elseif ($peer === 'folders') {
+            writeRawFolderMap('docker', ['peer' => ['name' => 'Peer folder']]);
+        } else {
+            $workspace = readThemeWorkspace();
+            $workspace['profiles'][0]['layers']['global']['customCss'] = '.peer { opacity: .8; }';
+            writeThemeWorkspace($workspace);
+        }
+        $current = fvplusSetupAssistantFence($checkpoint['name']);
+        [$nextWriteStatus] = $prefs($checkpoint, $acknowledged['setupFence']);
+        [$guardedStatus] = $restore($checkpoint, $acknowledged['setupFence']);
+        $preserved = fvplusSetupAssistantFence($checkpoint['name']) === $current;
+        [$manualStatus, $manualResult] = $request('backup.php', ['action' => 'rollback_restore_named', 'name' => $checkpoint['name']]);
+        $rejections[$peer] = [$nextWriteStatus, $guardedStatus, $preserved, $manualStatus, $manualResult['restore']['verified'] ?? false];
+    }
+    echo json_encode(['normal' => $normal, 'native' => $native, 'rejections' => $rejections], JSON_THROW_ON_ERROR);
+    exit;
 }
 
 if ($operation === 'fresh-checkpoint-retention') {
@@ -171,8 +275,8 @@ if (in_array($operation, ['backup-prune-fault', 'checkpoint-collision', 'checkpo
         function unlink(string $path): bool {
             return $path === ($GLOBALS["checkpoint_boundary_unlink"] ?? "") ? false : \\unlink($path);
         }
-        function readRawFolderMap(string $type): array {
-            $value = \\readRawFolderMap($type);
+        function readRawFolderMap(string $type, bool $requireVerified = false, bool $preserveHierarchy = false): array {
+            $value = \\readRawFolderMap($type, $requireVerified, $preserveHierarchy);
             if ($type === "docker" && !empty($GLOBALS["checkpoint_boundary_pause"])) {
                 $GLOBALS["checkpoint_boundary_pause"] = false; $root = $GLOBALS["checkpoint_boundary_root"];
                 file_put_contents($root . "/reader-paused", "yes"); $deadline = microtime(true) + 15;
@@ -253,6 +357,12 @@ if (in_array($operation, ['backup-prune-fault', 'checkpoint-collision', 'checkpo
 if ($operation === 'checkpoint-writer') {
     withConfigMutationLock(static function (): void { seedState('writer'); });
     file_put_contents($root . '/writer-finished', 'yes'); echo '{}'; exit;
+}
+if ($operation === 'setup-order-sync-writer') {
+    $result = syncContainerOrder('docker');
+    file_put_contents($root . '/writer-finished', 'yes');
+    echo json_encode($result, JSON_THROW_ON_ERROR);
+    exit;
 }
 
 if ($operation === 'seed-export') {

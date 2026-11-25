@@ -53,10 +53,9 @@ function fvplusEnvironmentDockerAutostartPath(): string {
 function fvplusEnvironmentWriteTarget(array $normalized, array $options, string $nativePath): array {
     $counts = [];
     foreach (FVPLUS_ALLOWED_TYPES as $type) {
-        $entry = (array)($normalized['types'][$type] ?? []);
-        $folders = (array)($entry['folders'] ?? []);
-        $prefs = (array)($entry['prefs'] ?? defaultTypePrefs());
-        writeRawFolderMap($type, $folders, true);
+        $folders = $normalized['types'][$type]['folders'];
+        $prefs = $normalized['types'][$type]['prefs'];
+        fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), $folders);
         fvplusEnvironmentTransactionStage($options, $type . '-folders');
         writeTypePrefs($type, $prefs);
         fvplusEnvironmentTransactionStage($options, $type . '-prefs');
@@ -74,10 +73,11 @@ function fvplusEnvironmentWriteTarget(array $normalized, array $options, string 
     return ['counts' => $counts, 'workspace' => $workspace];
 }
 
-function fvplusEnvironmentVerifyTarget(array $normalized): void {
+function fvplusEnvironmentVerifyTarget(array $normalized, bool $preserveHierarchy): void {
     foreach (FVPLUS_ALLOWED_TYPES as $type) {
         $expected = (array)($normalized['types'][$type] ?? []);
-        if (jsonObjectsDiffer(normalizeFolderMapPayload((array)($expected['folders'] ?? [])), readRawFolderMap($type))) {
+        $storedFolders = $preserveHierarchy ? readFolderMapForTreeIntegrity($type) : readRawFolderMap($type);
+        if (jsonObjectsDiffer($expected['folders'], $storedFolders)) {
             throw new RuntimeException("Environment transaction verification failed for $type folders.");
         }
         if (jsonObjectsDiffer(normalizeTypePrefs((array)($expected['prefs'] ?? [])), readTypePrefs($type))) {
@@ -90,9 +90,11 @@ function fvplusEnvironmentVerifyTarget(array $normalized): void {
 }
 
 function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName = '', array $options = []): array {
-    $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+    // Only the adapter for stored rollback checkpoints requests preservation of saved links.
+    $preserveHierarchy = ($options['preserveHierarchy'] ?? false) === true;
+    $normalized = normalizeEnvironmentSnapshotPayload($snapshot, $preserveHierarchy);
     $reason = trim((string)($options['reason'] ?? 'environment-import')) ?: 'environment-import';
-    return withConfigMutationLock(static function() use ($normalized, $sourceName, $options, $reason): array {
+    return withConfigMutationLock(static function() use ($normalized, $sourceName, $options, $reason, $preserveHierarchy): array {
         $phase = 'capture'; $checkpointAvailable = false;
         $notify = static function(string $rollback = 'not-needed') use ($options, &$phase, &$checkpointAvailable): void {
             try {
@@ -119,7 +121,7 @@ function applyEnvironmentSnapshotTransaction(array $snapshot, string $sourceName
             $phase = 'writing'; $notify();
             $written = fvplusEnvironmentWriteTarget($normalized, $options, $nativePath);
             $phase = 'verification'; $notify();
-            fvplusEnvironmentVerifyTarget($normalized);
+            fvplusEnvironmentVerifyTarget($normalized, $preserveHierarchy);
             if ($nativeTarget !== null) fvplusVerifyNativeAutostartTarget($nativePath, $nativeTarget);
             fvplusEnvironmentTransactionStage($options, 'verified');
         } catch (Throwable $error) {

@@ -294,6 +294,7 @@ function dockerSyncOrderLockPath(): string {
             'remaining' => $remaining,
             'warnings' => array_values(array_unique($warnings)),
             'autostartCount' => count($autoStartMap),
+            'nativeAutostartReadable' => is_string($context['autoStartContent'] ?? null),
             'containerCount' => count((array)($context['allContainerNames'] ?? [])),
             'staleAutostart' => (array)($context['staleAutostart'] ?? [])
         ];
@@ -362,7 +363,16 @@ function dockerSyncOrderLockPath(): string {
         fv3_debug_log("syncContainerOrder called for type: $type");
 
         if ($type !== 'docker') { return ['syncOutcome' => 'not-applicable']; }
+        // Setup rollback and all plugin writes to native Docker order must share this lock.
+        return withConfigMutationLock(static fn(): array => fvplusSyncDockerOrderWithNativeLock());
+    }
+
+    function fvplusSyncDockerOrderWithNativeLock(): array {
         if (!dockerStartOrderIsManaged()) { fv3_debug_log('syncContainerOrder: skipped before lock because Docker start order is unmanaged'); return ['syncOutcome' => 'unmanaged']; }
+        if (isset($GLOBALS['fvplus_setup_docker_order_sync'])) {
+            $GLOBALS['fvplus_setup_docker_order_sync'] = true;
+            return ['syncOutcome' => 'queued'];
+        }
 
         $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
         if (!is_resource($lockHandle)) {

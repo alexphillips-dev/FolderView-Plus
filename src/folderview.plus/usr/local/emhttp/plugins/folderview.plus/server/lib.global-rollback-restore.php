@@ -1,7 +1,14 @@
 <?php
 
+require_once __DIR__ . '/lib.setup-assistant-rollback.php';
+
 function restoreGlobalRollbackSnapshot(string $name, array $options = []): array {
     return withConfigMutationLock(static function () use ($name, $options): array {
+        $guardedSetup = array_key_exists('setupFence', $options);
+        if ($guardedSetup) {
+            fvplusAssertSetupAssistantFence($name, $options['setupFence']);
+            $options['syncDockerOrder'] = false;
+        }
         $path = getGlobalRollbackSnapshotPath($name);
         if (!is_file($path)) throw new RuntimeException('Rollback snapshot file not found.');
         $decoded = fvplusValidateGlobalRollbackPayload(json_decode((string)@file_get_contents($path), true));
@@ -11,7 +18,8 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
         $target = ['types' => $types, 'themeWorkspace' => $decoded['themeWorkspace'] ?? readThemeWorkspace()];
         $transaction = applyEnvironmentSnapshotTransaction($target, $name,
             array_merge($options, ['reason' => 'global-rollback', 'preserveRollbackNames' => [$name],
-                'nativeAutostart' => $decoded['nativeDockerAutostart'] ?? null]));
+                'preserveHierarchy' => true,
+                'nativeAutostart' => $guardedSetup ? null : ($decoded['nativeDockerAutostart'] ?? null)]));
         $counts = ['docker' => count($types['docker']['folders']), 'vm' => count($types['vm']['folders'])];
         try {
             appendDiagnosticsHistoryEvent('rollback_restore', null, [

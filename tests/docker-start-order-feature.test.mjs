@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+const require = createRequire(import.meta.url);
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-order.php');
 const prefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
@@ -80,6 +82,10 @@ test('Settings acknowledges only a verified sync and keeps queued or unmanaged p
             setUpdateStatus: status => statuses.push(status),
             showError: (...args) => errors.push(args),
             renderDockerStartOrderPreview: value => previews.push(value),
+            renderDockerStartOrderSyncOutcome: () => {},
+            dockerStartOrderSyncOutcome: '',
+            dockerStartOrderPreviewGeneration: 0,
+            dockerStartOrderEditGeneration: 0,
             surfaceT: (_key, fallback) => fallback
         });
         assert.deepEqual(statuses, outcome === 'failed' ? [''] : ['', expected]);
@@ -97,11 +103,13 @@ test('Settings clears the old preview on mode changes and ignores an earlier res
     const { change, refresh } = vm.runInNewContext(`
         let dockerStartOrderPreviewTimer = null;
         let dockerStartOrderPreviewGeneration = 0;
+        let dockerStartOrderDraftPlan = null;
         ${settingsJs.slice(startMode, endMode)}
         ${settingsJs.slice(startPreview, endPreview)}
         ({ change: updateDockerStartOrderMode, refresh: refreshDockerStartOrderPreview });
     `, {
         dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page'] },
+        normalizeDockerStartOrderPrefsForUi: () => ({ mode: 'unmanaged' }),
         saveDockerStartOrderPlan: async (...args) => saves.push(args),
         flushDockerStartOrderSaveQueue: async () => {},
         $: () => ({ length: 0 }),
@@ -120,6 +128,128 @@ test('Settings clears the old preview on mode changes and ignores an earlier res
     requests[0]({ preview: { mode: 'docker-page' } });
     await previous;
     assert.deepEqual(renders, [{ mode: 'unmanaged' }]);
+});
+
+test('a failed mode save restores committed Settings state and permits preview', async () => {
+    const normalizeStart = settingsJs.indexOf('const normalizeDockerStartOrderPrefsForUi =');
+    const normalizeEnd = settingsJs.indexOf('const getDockerStartOrderContainerNames =', normalizeStart);
+    const queueStart = settingsJs.indexOf('let dockerStartOrderPreviewTimer =');
+    const queueEnd = settingsJs.indexOf('const updateDockerStartOrderRemaining =', queueStart);
+    const previewStart = settingsJs.indexOf('const renderDockerStartOrderPreview =');
+    const previewEnd = settingsJs.indexOf('const syncDockerStartOrderNow =', previewStart);
+    const plan = { mode: 'docker-page', batches: [] };
+    const prefsByType = { docker: { dockerStartOrder: plan } };
+    const messages = [], errors = [], renders = [], saves = [];
+    let rejectWrite;
+    const workspace = vm.runInNewContext(`
+        ${settingsJs.slice(normalizeStart, normalizeEnd)}
+        ${settingsJs.slice(queueStart, queueEnd)}
+        ${settingsJs.slice(previewStart, previewEnd)}
+        ({ change: updateDockerStartOrderMode, refresh: refreshDockerStartOrderPreview, mode: () => normalizeDockerStartOrderPrefsForUi().mode });
+    `, {
+        prefsByType,
+        utils: { normalizePrefs: value => value },
+        diagnosticsPrefsCoordinator: { getConfirmedPrefs: () => ({ dockerStartOrder: plan }) },
+        dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page', 'custom-batches'], normalizePlan: value => value },
+        prefsStoreModule: { mergePatch: (_base, patch) => patch },
+        window: { clearTimeout() {}, setTimeout: () => 1 },
+        postPrefs: (_type, patch) => {
+            saves.push(patch);
+            return new Promise((_, reject) => { rejectWrite = reject; });
+        },
+        $: selector => ({ length: 1, html: value => { if (selector === '#docker-start-order-preview') messages.push(value); } }),
+        renderDockerStartOrderWorkspace: options => renders.push(options),
+        infoByType: { docker: {} },
+        dockerStartOrderView: { buildPreviewHtml: preview => `Preview ${preview.mode}`, buildHeaderSummaryHtml: () => '' },
+        apiGetJson: async () => ({ preview: plan }),
+        surfaceT: (_key, fallback) => fallback,
+        showError: (_label, error) => errors.push(error.message)
+    });
+    await workspace.change('unmanaged');
+    assert.equal(workspace.mode(), 'unmanaged');
+    const refresh = workspace.refresh();
+    await Promise.resolve();
+    rejectWrite(new Error('synthetic rejected save'));
+    await refresh;
+    assert.equal(workspace.mode(), 'docker-page');
+    assert.equal(prefsByType.docker.dockerStartOrder.mode, 'docker-page');
+    assert.equal(messages.at(-1), 'Preview docker-page');
+    assert.deepEqual(errors, ['synthetic rejected save']);
+    assert.equal(renders.length, 2);
+    assert.deepEqual(JSON.parse(JSON.stringify(saves)), [{ dockerStartOrder: { mode: 'unmanaged' } }]);
+});
+
+test('the autostart workspace issues a mutation for just the selected container', async () => {
+    const module = { exports: {} };
+    vm.runInNewContext(startOrderWorkspaceJs, { module });
+    const info = { alpha: { autostart: true }, beta: { autostart: true }, gamma: { autostart: false } };
+    const writes = [];
+    const refreshes = [];
+    let mode = 'custom-batches';
+    const workspace = module.exports.createApi({
+        getPlan: () => ({ mode }), getInfo: () => info,
+        writeAutostart: async (...args) => writes.push(args), refreshPreview: async () => refreshes.push(true),
+        showError: error => assert.fail(error), setStatus() {}
+    });
+    await workspace.toggleAutostart('gamma', true);
+    assert.deepEqual(writes, [['gamma', true]]);
+    assert.equal(info.gamma.autostart, true);
+    assert.equal(refreshes.length, 1);
+    mode = 'unmanaged';
+    await workspace.toggleAutostart('gamma', false);
+    assert.deepEqual(writes, [['gamma', true]]);
+});
+
+test('a delayed manual sync response cannot replace a newer startup preview', async () => {
+    const start = settingsJs.indexOf('const syncDockerStartOrderNow =');
+    const end = settingsJs.indexOf('const normalizeSettingsTableRenderType', start);
+    let finishSync;
+    let markSyncRequest;
+    const requested = new Promise(resolve => { markSyncRequest = resolve; });
+    const renders = [];
+    const context = vm.createContext({
+        setUpdateStatus() {}, showError: error => assert.fail(error),
+        surfaceT: (_key, fallback) => fallback,
+        flushDockerStartOrderSaveQueue: async () => {},
+        apiPostJson: () => new Promise(resolve => { finishSync = resolve; markSyncRequest(); }),
+        renderDockerStartOrderSyncOutcome() {}, renderDockerStartOrderPreview: preview => renders.push(preview),
+        dockerStartOrderPreviewGeneration: 0, dockerStartOrderEditGeneration: 1, dockerStartOrderSyncOutcome: ''
+    });
+    const sync = vm.runInContext(settingsJs.slice(start, end) + '\nsyncDockerStartOrderNow();', context);
+    await requested;
+    context.dockerStartOrderPreviewGeneration += 1;
+    renders.push({ sequence: [{ wait: 20 }] });
+    finishSync({ syncOutcome: 'synced', preview: { sequence: [{ wait: 4 }] } });
+    await sync;
+    assert.deepEqual(renders, [{ sequence: [{ wait: 20 }] }]);
+});
+
+test('background preference retry publishes the committed startup sync outcome', async () => {
+    const { createPreferenceSaveCoordinator } = require(path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js'));
+    const seed = { dockerStartOrder: { mode: 'docker-page' }, _metadata: { prefsRevision: 1 } };
+    let attempts = 0;
+    let notify;
+    const observed = new Promise(resolve => { notify = resolve; });
+    const store = createPreferenceSaveCoordinator({
+        debounceMs: 0, retryDelayMs: 20,
+        window: {
+            CustomEvent: class { constructor(_name, { detail }) { this.detail = detail; } },
+            dispatchEvent: ({ detail }) => { if (detail.dockerOrderSync) notify(detail); }
+        },
+        writePrefs: async () => {
+            attempts++;
+            if (attempts === 1) throw Object.assign(new Error('synthetic lost response'), { status: 503 });
+            return { ok: true, prefs: { dockerStartOrder: { mode: 'unmanaged' } },
+                metadata: { prefsRevision: 2 }, dockerOrderSync: 'unmanaged' };
+        }
+    });
+    store.reconcile('docker', seed);
+    await assert.rejects(store.save('docker', { dockerStartOrder: { mode: 'unmanaged' } }), /lost response/);
+    assert.equal(store.getConfirmedPrefs('docker').dockerStartOrder.mode, 'docker-page');
+    const result = await observed;
+    assert.equal(attempts, 2);
+    assert.equal(result.dockerOrderSync, 'unmanaged');
+    assert.equal(store.getConfirmedPrefs('docker').dockerStartOrder.mode, 'unmanaged');
 });
 
 test('settings page exposes a user-friendly Docker start-order workspace', () => {
@@ -147,7 +277,8 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(startOrderWorkspaceJs, /const createPreviewActivation = \(refresh\) =>/);
     assert.match(settingsJs, /toggleDockerStartOrderAutostart/);
     assert.match(settingsJs, /updateDockerStartOrderWait/);
-    assert.match(startOrderWorkspaceJs, /updateAutostartConfiguration/);
+    assert.match(startOrderWorkspaceJs, /deps\.writeAutostart\(name, enabled === true\)/);
+    assert.match(startOrderEndpoint, /setDockerStartOrderAutostart/);
 });
 
 test('Docker start-order workspace uses shared Settings dark-mode tokens', () => {

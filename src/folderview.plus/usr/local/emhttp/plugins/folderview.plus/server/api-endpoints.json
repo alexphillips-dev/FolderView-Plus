@@ -31,7 +31,8 @@
         "rollback_checkpoint": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.checkpoint"},
         "rollback_restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
         "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
-        "rollback_restore_named": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name"], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}}
+        "rollback_restore_named": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name"], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
+        "rollback_restore_setup": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name", "setupFence"], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}}
       }
     },
     "batch.php": {
@@ -84,7 +85,8 @@
       "actionParameter": "action", "defaultAction": "preview",
       "actions": {
         "preview": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "docker.start-order.preview"},
-        "sync": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "docker.start-order.sync"}
+        "sync": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "docker.start-order.sync"},
+        "autostart": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["container", "enabled"], "auditCategory": "docker.start-order.autostart"}
       }
     },
     "environment_snapshot.php": {

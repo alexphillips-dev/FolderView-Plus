@@ -1245,7 +1245,8 @@
         $childFolderOrder = [];
         if (is_array($rawChildFolderOrder)) {
             foreach ($rawChildFolderOrder as $rawChildFolderId) {
-                $childFolderId = truncateUtf8String(trim((string)$rawChildFolderId), 64);
+                $childFolderId = is_string($rawChildFolderId) || is_int($rawChildFolderId)
+                    ? normalizeFolderIdValue($rawChildFolderId) : '';
                 if ($childFolderId === '' || in_array($childFolderId, $childFolderOrder, true)) {
                     continue;
                 }
@@ -2169,7 +2170,10 @@
         if ($id === '') {
             $id = generateId(12);
         }
-        $settings = fvplusStripWebuiProfilesFromSettings($template['settings'] ?? []);
+        $settings = array_diff_key(
+            is_array($template['settings'] ?? null) ? $template['settings'] : [],
+            array_flip(folderSettingsTransferSchema()['protectedSettings'])
+        );
         $actions = is_array($template['actions'] ?? null) ? array_values($template['actions']) : [];
         return [
             'id' => $id,
@@ -2249,15 +2253,15 @@
             throw new RuntimeException('Folder not found.');
         }
         $folder = is_array($folders[$folderId]) ? $folders[$folderId] : [];
-        $template = [
+        $template = normalizeTemplateEntry([
             'id' => generateId(12),
             'name' => $name,
             'icon' => (string)($folder['icon'] ?? ''),
             'regex' => (string)($folder['regex'] ?? ''),
-            'settings' => fvplusStripWebuiProfilesFromSettings($folder['settings'] ?? []),
+            'settings' => $folder['settings'] ?? [],
             'actions' => is_array($folder['actions'] ?? null) ? $folder['actions'] : [],
             'createdAt' => gmdate('c')
-        ];
+        ]);
 
         $templates = readFolderTemplates($type, true);
         $templates[] = $template;
@@ -2327,9 +2331,11 @@
         $folder = is_array($folders[$folderId]) ? $folders[$folderId] : [];
         $folder['icon'] = (string)($template['icon'] ?? ($folder['icon'] ?? ''));
         $folder['regex'] = (string)($template['regex'] ?? ($folder['regex'] ?? ''));
-        $targetProfiles = $folder['settings']['webui_profiles'] ?? [];
-        $folder['settings'] = is_array($template['settings'] ?? null) ? $template['settings'] : (is_array($folder['settings'] ?? null) ? $folder['settings'] : []);
-        $folder['settings']['webui_profiles'] = $targetProfiles;
+        $protectedSettings = array_intersect_key(
+            $folder['settings'] ?? [],
+            array_flip(folderSettingsTransferSchema()['protectedSettings'])
+        );
+        $folder['settings'] = $protectedSettings + $template['settings'];
         $folder['actions'] = is_array($template['actions'] ?? null) ? $template['actions'] : (is_array($folder['actions'] ?? null) ? $folder['actions'] : []);
         $folders[$folderId] = $folder;
         writeRawFolderMap($type, $folders);

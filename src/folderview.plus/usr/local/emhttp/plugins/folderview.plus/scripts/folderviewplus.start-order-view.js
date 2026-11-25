@@ -8,7 +8,6 @@
     modules.startOrderView = factory();
 }(typeof window !== 'undefined' ? window : globalThis, function() {
     'use strict';
-
     const createApi = (deps = {}) => {
         const translate = deps.translate || ((key, fallback, ...params) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match)));
         const escapeHtml = typeof deps.escapeHtml === 'function'
@@ -62,6 +61,7 @@
                     </div>
                 </div>
                 <div class="fv-docker-start-order-help"><i class="fa fa-info-circle" aria-hidden="true"></i><div><strong>${escapeHtml(copy[0])}</strong><span>${escapeHtml(copy[1])}</span></div></div>
+                <div id="docker-start-order-sync-status" class="fv-docker-start-order-warning" role="status" hidden></div>
             </div>`;
         };
 

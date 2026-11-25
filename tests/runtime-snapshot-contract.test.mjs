@@ -339,6 +339,16 @@ test('client projects one snapshot into legacy renderer inputs and falls back pe
     assert.match(api.buildConfigBootstrapUrl(), /runtime_snapshot\.php\?type=all&mode=config/);
 });
 
+test('runtime order keys preserve sequence and distinguish an omitted order from an empty one', () => {
+    const api = loadClientApi();
+    const base = { order: ['folder-A', 'folder-B'], unraidOrder: ['0', '1'] };
+    assert.equal(api.buildRuntimeOrderKey(base), api.buildRuntimeOrderKey({ ...base, unraidOrder: [0, 1], runtime: {} }));
+    assert.notEqual(api.buildRuntimeOrderKey(base), api.buildRuntimeOrderKey({ ...base, order: base.order.toReversed() }));
+    assert.notEqual(api.buildRuntimeOrderKey(base), api.buildRuntimeOrderKey({ ...base, unraidOrder: base.unraidOrder.toReversed() }));
+    assert.notEqual(api.buildRuntimeOrderKey({ order: [], unraidOrder: [] }), null);
+    assert.equal(api.buildRuntimeOrderKey({ order: base.order }), null);
+});
+
 test('combined configuration bootstrap validates both per-type snapshots', () => {
     const api = loadClientApi();
     const result = api.parseConfigBootstrapPayload({

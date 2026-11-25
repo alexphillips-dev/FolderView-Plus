@@ -37,6 +37,7 @@ test('previously omitted mutation surfaces are explicitly classified', () => {
     assert.equal(manifest.endpoints['migrate_legacy_regex.php'].requestToken, 'mutation');
     assert.equal(manifest.endpoints['reconcile_member_identities.php'].requestToken, 'mutation');
     assert.equal(manifest.endpoints['docker_start_order.php'].actions.sync.requestToken, 'mutation');
+    assert.equal(manifest.endpoints['docker_start_order.php'].actions.autostart.requestToken, 'mutation');
     assert.equal(manifest.endpoints['environment_snapshot.php'].actions.apply.requestToken, 'mutation');
     assert.equal(manifest.endpoints['theme_workspace.php'].actions.import_github.requestToken, 'mutation');
 });

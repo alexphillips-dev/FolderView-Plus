@@ -1,6 +1,13 @@
 <?php
-    function diagnosticsRuntimeConnectivity(array $configPaths = []): array {
+    function diagnosticsReadRuntimeReportInventory(array $types): array {
+        $detailsByType = [];
+        foreach ($types as $type) $detailsByType[$type] = readInfo($type);
+        return diagnosticsReadRuntimeInventory() + ['detailsByType' => $detailsByType];
+    }
+
+    function diagnosticsReadRuntimeInventory(array $configPaths = []): array {
         $states = [];
+        $memberNames = [];
         foreach (['docker' => ['/boot/config/docker.cfg', 'DOCKER_ENABLED'], 'vm' => ['/boot/config/domain.cfg', 'SERVICE']] as $type => [$defaultPath, $key]) {
             $path = (string)($configPaths[$type] ?? $defaultPath);
             $config = @file_get_contents($path);
@@ -14,21 +21,19 @@
                 $states[$type] = 'disabled';
                 continue;
             }
-            $ready = false;
             try {
                 if ($type === 'docker' && class_exists('DockerClient')) {
-                    fvplusReadRuntimeEntityList('docker', new DockerClient(), true);
-                    $ready = true;
+                    $containers = fvplusReadRuntimeEntityList('docker', new DockerClient(), true);
+                    $memberNames[$type] = array_map(static fn(array $container): string => ltrim($container['Names'][0], '/'), $containers);
                 } elseif ($type === 'vm' && class_exists('Libvirt')) {
-                    fvplusReadRuntimeEntityList('vm', new Libvirt(), true);
-                    $ready = true;
+                    $memberNames[$type] = fvplusReadRuntimeEntityList('vm', new Libvirt(), true);
                 }
             } catch (Throwable $error) {
                 // Only a bounded state is included in diagnostics and support bundles.
             }
-            $states[$type] = $ready ? 'ready' : ($enabled ? 'unavailable' : 'unknown');
+            $states[$type] = isset($memberNames[$type]) ? 'ready' : ($enabled ? 'unavailable' : 'unknown');
         }
-        return $states;
+        return ['states' => $states, 'memberNames' => $memberNames];
     }
 
     function diagnosticsBackupReadiness(array $typesData, ?int $now = null): array {

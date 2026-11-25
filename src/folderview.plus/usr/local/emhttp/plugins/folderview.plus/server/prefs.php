@@ -1,23 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-fvplus_json_try(function (): array {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-        return withConfigMutationLock(static function () use ($type): array {
-            $prefs = readTypePrefs($type);
-            $metadata = readConfigMetadata($type, true);
-            unset($metadata['prefsMutationReceipt']);
-            return fvplusJsonTypeConfig([
-                'prefs' => $prefs,
-                'metadata' => $metadata
-            ]);
-        });
-    }
-
-    requireMutationRequestGuard();
-    $type = ensureType((string)($_POST['type'] ?? ''));
-
+$writePrefs = static function (string $type): array {
     $incoming = $_POST['prefs'] ?? null;
     $decoded = [];
     if (is_string($incoming) && trim($incoming) !== '') {
@@ -50,6 +34,7 @@ fvplus_json_try(function (): array {
     $receipt = $clientMutationId !== '' && ctype_digit($expectedRevision) && $token !== ''
         ? hash_hmac('sha256', json_encode([$type, $clientMutationId, (int)$expectedRevision, $decoded], JSON_THROW_ON_ERROR), $token)
         : '';
+    $replayDockerStartOrder = false;
     try {
         assertExpectedConfigRevision($type, 'prefs', $expectedRevision);
     } catch (FVPlusConfigConflictException $error) {
@@ -59,6 +44,7 @@ fvplus_json_try(function (): array {
             throw $error;
         }
         // A lost response can be acknowledged while this operation is still the latest preference write.
+        $replayDockerStartOrder = $type === 'docker' && array_key_exists('dockerStartOrder', $decoded);
         $decoded = [];
     }
 
@@ -99,8 +85,14 @@ fvplus_json_try(function (): array {
         || $currentDockerStartOrder !== $savedDockerStartOrder
         || ($followsDockerPage && dockerPageStartOrderUsesSavedLayout($current) !== dockerPageStartOrderUsesSavedLayout($saved))
     );
-    if ($dockerOrderChanged) {
-        syncContainerOrder('docker');
+    $dockerOrderSync = null;
+    if ($dockerOrderChanged || $replayDockerStartOrder) {
+        try {
+            $dockerOrderSync = syncContainerOrder('docker')['syncOutcome'];
+        } catch (Throwable $error) {
+            fv3_debug_log('prefs: committed Docker preferences but the native order sync failed');
+            $dockerOrderSync = 'failed';
+        }
     }
     $auditRelevant = $orderPrefsChanged || $dockerOrderChanged;
     foreach (['autoRules', 'backupSchedule', 'folderDefaults', 'importPresets', 'folderGroups'] as $key) {
@@ -137,8 +129,29 @@ fvplus_json_try(function (): array {
         'metadata' => $metadata,
         'clientMutationId' => $clientMutationId,
         'configChanged' => $configChanged,
+        ...($dockerOrderSync !== null ? ['dockerOrderSync' => $dockerOrderSync] : []),
         'backupRequired' => false,
         'auditRecorded' => $auditRecorded,
         'backupCoalesced' => false
     ]);
+};
+
+fvplus_json_try(static function () use ($writePrefs): array {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
+        return withConfigMutationLock(static function () use ($type): array {
+            $prefs = readTypePrefs($type);
+            $metadata = readConfigMetadata($type, true);
+            unset($metadata['prefsMutationReceipt']);
+            return fvplusJsonTypeConfig([
+                'prefs' => $prefs,
+                'metadata' => $metadata
+            ]);
+        });
+    }
+
+    requireMutationRequestGuard();
+    $type = ensureType((string)($_POST['type'] ?? ''));
+    return fvplusRunSetupAssistantMutation($_POST['setupCheckpoint'] ?? null, $_POST['setupFence'] ?? null,
+        static fn(): array => $writePrefs($type));
 });

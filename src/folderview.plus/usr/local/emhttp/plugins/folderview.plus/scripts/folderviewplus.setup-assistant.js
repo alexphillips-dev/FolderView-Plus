@@ -234,6 +234,45 @@ const validateSetupAssistantImportPlans = (importPlans = {}) => {
     return { blockers, warnings, includeTypes };
 };
 
+const createSetupAssistantApplySession = async (globalRollbackApi, conflictError) => {
+    const checkpoint = await globalRollbackApi('rollback_checkpoint', { reason: 'setup_assistant_apply' });
+    const name = checkpoint?.name;
+    const requireFence = (value) => {
+        if (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value)) throw conflictError();
+        return value;
+    };
+    if (!name) throw conflictError();
+    let fence = requireFence(checkpoint?.setupFence);
+    let changed = false;
+    let needsDockerSync = false;
+    return {
+        name,
+        fields: () => ({ setupCheckpoint: name, setupFence: fence }),
+        acknowledge: (response) => {
+            const nextFence = requireFence(response?.setupFence);
+            changed ||= nextFence !== fence;
+            needsDockerSync ||= response.setupNeedsDockerSync === true;
+            fence = nextFence;
+        },
+        hasChanges: () => changed,
+        needsDockerSync: () => needsDockerSync,
+        restore: () => globalRollbackApi('rollback_restore_setup', { name, setupFence: fence })
+    };
+};
+
+const syncSetupAssistantDockerOrder = async (apiPostJson) => {
+    const result = await apiPostJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
+    if (!result?.ok || result.syncOutcome === 'failed') throw new Error(result?.error || 'Docker start order sync failed');
+};
+
+const emptySetupAssistantTemplateOutcome = () => ({
+    selected: 0, created: 0, skippedExisting: 0,
+    assignment: {
+        enabled: false, totalItems: 0, matched: 0, unmatched: 0,
+        reviewNeededCount: 0, reviewItems: [], itemDetails: [], updatedFolders: 0
+    }
+});
+
 Object.assign(window, {
     WIZARD_DONE_STORAGE_KEY,
     SETUP_ASSISTANT_DONE_STORAGE_KEY,

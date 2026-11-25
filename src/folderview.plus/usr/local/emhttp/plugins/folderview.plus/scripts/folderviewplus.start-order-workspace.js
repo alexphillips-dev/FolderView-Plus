@@ -10,15 +10,12 @@
     'use strict';
 
     const createApi = (deps = {}) => {
-        const rowIdentity = (row) => String(row?.Id || row?.id || row?.shortId || row?.info?.Id || '').trim();
         const rowAutostart = (row) => [true, 1, '1', 'true', 'yes', 'on'].includes(row?.autostart ?? row?.autoStart ?? row?.info?.State?.Autostart ?? row?.State?.Autostart);
-        const buildAutostartMutationEntries = (infoByName, plan, targetName, enabled) => {
-            const waits = plan?.containerWaits && typeof plan.containerWaits === 'object' ? plan.containerWaits : {};
-            return Object.entries(infoByName || {}).map(([name, row]) => ({
-                id: rowIdentity(row),
-                autoStart: String(name) === String(targetName) ? enabled === true : rowAutostart(row),
-                ...(Object.prototype.hasOwnProperty.call(waits, name) ? { wait: Number(waits[name]) || 0 } : {})
-            })).filter((entry) => entry.id);
+        const setRowAutostart = (row, enabled) => {
+            if (!row) return;
+            row.autostart = enabled;
+            if (row.info?.State) row.info.State.Autostart = enabled;
+            if (row.State) row.State.Autostart = enabled;
         };
 
         const updateWait = async (containerName, value) => {
@@ -39,24 +36,22 @@
             const name = decodeURIComponent(String(containerName || '')).trim();
             const info = deps.getInfo();
             const row = info?.[name];
-            const entries = buildAutostartMutationEntries(info, plan, name, enabled === true);
-            if (!row || !entries.length) {
+            if (!row || !Object.prototype.hasOwnProperty.call(info, name)) {
                 deps.showError('Docker autostart update failed', new Error('Container identity data is unavailable. Refresh Settings and try again.'));
                 return;
             }
             try {
-                await deps.runDockerMutation({ operation: 'updateAutostartConfiguration', entries, persistUserPreferences: true });
-                row.autostart = enabled === true;
-                if (row?.info?.State) row.info.State.Autostart = enabled === true;
-                if (row?.State) row.State.Autostart = enabled === true;
+                await deps.writeAutostart(name, enabled === true);
+                setRowAutostart(row, enabled === true);
                 await deps.refreshPreview({ flush: false });
                 deps.setStatus(`Docker autostart ${enabled === true ? 'enabled' : 'disabled'} for ${name}.`);
             } catch (error) {
                 deps.showError('Docker autostart update failed', error);
+                await deps.refreshPreview({ flush: false });
             }
         };
 
-        return Object.freeze({ buildAutostartMutationEntries, rowAutostart, updateWait, toggleAutostart });
+        return Object.freeze({ rowAutostart, setRowAutostart, updateWait, toggleAutostart });
     };
 
     const createPreviewActivation = (refresh) => {

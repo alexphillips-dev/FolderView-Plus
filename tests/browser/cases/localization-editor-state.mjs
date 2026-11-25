@@ -12,11 +12,24 @@ export const registerLocalizedEditorStateCases = ({ test, baseUrl, loadI18n }) =
             await page.goto(baseUrl + '/localization');
             await loadI18n(page, baseUrl);
             await page.addScriptTag({ url: baseUrl + '/plugin/scripts/folder.editor.state.js' });
+            await page.addScriptTag({ url: baseUrl + '/plugin/scripts/folder.editor.member-list.js' });
             await page.evaluate(() => {
                 document.getElementById('dynamic-root').innerHTML = '<label for="editor-name">Folder name</label><input id="editor-name" value="Order">'
                     + '<input id="save-copy" type="button" value="Save as copy" data-i18n="[value]common.runtime.save-as-copy">'
                     + '<span id="unsavedIndicator"></span><span id="fvActionBarDirty"></span><span id="fvActionBarHint"></span>'
-                    + '<span data-fvplus-user-content id="literal-folder">Manual</span>';
+                    + '<span data-fvplus-user-content id="literal-folder">Manual</span><span id="backup-label">Backup</span>'
+                    + '<table class="sortable" aria-label="Members"><tbody></tbody></table><section id="fvFolderMembersSection">'
+                    + '<p id="fvFolderMembersSummary"></p><p id="fvFolderMembersEmpty"></p>'
+                    + '<table aria-label="Child folders"><tbody id="fvFolderMembersBody"></tbody></table></section>';
+                const icon = '/plugin/images/folder-icon.png';
+                window.jQuery.fn.switchButton = function () { return this; };
+                window.localizedMemberList = window.FolderViewPlusFoundationModules.folderEditorMemberList.createApi({
+                    window, $: window.jQuery, iconFallbackPath: icon, getActiveFolderId: () => 'parent',
+                    getAllFolders: () => ({ child: { parentId: 'parent', name: 'Backup', icon } }),
+                    getMemberCollections: () => ({ selected: [{ Name: 'Backup', Icon: icon }], choose: [], selectedRegex: [] })
+                });
+                window.localizedMemberList.updateList();
+                window.localizedMemberList.renderFolderMembersSection();
                 window.localizedEditor = window.FolderViewPlusFolderEditorState.createApi({
                     window, $: window.jQuery, getInitialSnapshot: () => 'Order',
                     computeFormSnapshot: () => document.getElementById('editor-name').value,
@@ -38,6 +51,19 @@ export const registerLocalizedEditorStateCases = ({ test, baseUrl, loadI18n }) =
             assert.equal(await page.locator('#save-copy').inputValue(), catalog['common.runtime.save-as-copy']);
             assert.equal(await page.locator('#editor-name').inputValue(), 'Order');
             assert.equal(await page.locator('#literal-folder').textContent(), 'Manual');
+            if (locale === 'de') assert.equal(await page.locator('#backup-label').textContent(), 'Sicherung');
+            for (let render = 0; render < 2; render++) {
+                assert.equal(await page.locator('tr[data-name="Backup"] .name-col').textContent(), 'Backup');
+                assert.equal(await page.locator('tr[data-child-folder-id="child"] .fv-folder-member-content > span').textContent(), 'Backup');
+                const checkbox = page.locator('tr[data-name="Backup"] .container-switch');
+                assert.equal(await checkbox.getAttribute('aria-label'), 'Backup');
+                assert.equal(await checkbox.inputValue(), 'Backup');
+                if (render === 0) await page.evaluate(() => {
+                    window.localizedMemberList.updateList();
+                    window.localizedMemberList.renderFolderMembersSection();
+                    window.FolderViewPlusI18n.translate(document.getElementById('dynamic-root'));
+                });
+            }
             assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
             for (const width of [375, 1280]) {
                 await page.setViewportSize({ width, height: 900 });

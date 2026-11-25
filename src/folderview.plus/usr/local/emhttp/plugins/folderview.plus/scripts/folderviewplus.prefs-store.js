@@ -355,7 +355,7 @@
             ...(includePrefs ? { prefs: state.optimisticPrefs || state.confirmedPrefs || normalizePrefs({}) } : {})
         });
 
-        const emit = (state, showRecoveryConflict = false) => {
+        const emit = (state, showRecoveryConflict = false, dockerOrderSync = '') => {
             state.optimisticPrefs = buildOptimisticPrefs(state);
             const snapshot = publicSnapshot(state, true);
             for (const subscriber of subscribers) {
@@ -376,7 +376,8 @@
                 }
                 if (win && typeof win.dispatchEvent === 'function' && typeof win.CustomEvent === 'function') {
                     win.dispatchEvent(new win.CustomEvent('fvplus:prefs-save-state', {
-                        detail: { ...publicSnapshot(state, false), recoveryConflict: showRecoveryConflict }
+                        detail: { ...publicSnapshot(state, false), recoveryConflict: showRecoveryConflict,
+                            ...(dockerOrderSync ? { dockerOrderSync } : {}) }
                     }));
                 }
             } catch (_error) {
@@ -441,7 +442,6 @@
             }
             return optimistic;
         };
-
         const resolveWaiters = (state, generation, value, restored = false) => {
             const remaining = [];
             for (const waiter of state.waiters) {
@@ -540,7 +540,7 @@
                 const savedPrefs = response?.prefs && isPlainObject(response.prefs)
                     ? { ...response.prefs, _metadata: response.metadata || response.prefs._metadata || {} }
                     : response;
-                publishConfirmedPrefs(state, savedPrefs || mergePatch(state.confirmedPrefs, batchPatch), mutationPublicationGeneration);
+                const published = publishConfirmedPrefs(state, savedPrefs || mergePatch(state.confirmedPrefs, batchPatch), mutationPublicationGeneration);
                 state.lastBackup = response?.backup || null;
                 state.inFlightBatch = null;
                 if (!outbox.advanceAfterCommit(restored, readRevision(savedPrefs), expectedRevision)) {
@@ -561,7 +561,7 @@
                 state.status = hasQueuedWork(state) ? 'saving' : 'saved';
                 outbox.persist(state);
                 state.externalPatch = outbox.externalPatch(state);
-                emit(state);
+                emit(state, false, published && state.type === 'docker' ? response?.dockerOrderSync : '');
                 resolveWaiters(state, batchGeneration, state.optimisticPrefs, Boolean(restored));
                 broadcast({
                     action: 'committed',

@@ -249,25 +249,28 @@
                 return;
             }
             const existingIds = new Set(Object.keys(folders || {}));
-            const remapId = {};
+            const remapId = Object.create(null);
             const uniqueIdFor = (base, index) => {
-                let candidate = String(base || `branch-${index + 1}`).trim() || `branch-${index + 1}`;
-                candidate = candidate.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || `branch-${index + 1}`;
-                if (!existingIds.has(candidate) && !Object.values(remapId).includes(candidate)) {
-                    return candidate;
-                }
+                const prefix = String(base || '').trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '')
+                    || `branch-${index + 1}`;
+                let candidate = prefix.slice(0, 128);
                 let counter = 1;
-                while (existingIds.has(`${candidate}-${counter}`) || Object.values(remapId).includes(`${candidate}-${counter}`)) {
-                    counter += 1;
+                while (existingIds.has(candidate)) {
+                    const suffix = `-${counter++}`;
+                    candidate = prefix.slice(0, 128 - suffix.length) + suffix;
                 }
-                return `${candidate}-${counter}`;
+                existingIds.add(candidate);
+                return candidate;
             };
             sourceIds.forEach((sourceId, index) => {
                 remapId[sourceId] = uniqueIdFor(sourceId, index);
             });
             const sourceSet = new Set(sourceIds);
             const upserts = sourceIds.map((sourceId) => {
-                const folder = utils.normalizeFolderMap({ [sourceId]: sourceFolders[sourceId] })[sourceId];
+                const sourceFolder = utils.normalizeFolderMap({ [sourceId]: sourceFolders[sourceId] })[sourceId];
+                const folder = utils.remapImportedChildOrder(sourceFolder, childId => (
+                    sourceFolders[childId]?.parentId === sourceId ? remapId[childId] : ''
+                ));
                 const mappedId = remapId[sourceId];
                 const sourceParentId = String(folder?.parentId || '').trim();
                 const remappedParentId = sourceSet.has(sourceParentId)

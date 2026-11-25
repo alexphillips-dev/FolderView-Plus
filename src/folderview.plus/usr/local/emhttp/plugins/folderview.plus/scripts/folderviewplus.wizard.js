@@ -1252,7 +1252,7 @@ const resolveSetupAssistantFolderId = (type, folderName, folderIdHint = '', opti
     return '';
 };
 
-const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
+const applySetupAssistantTemplateAssignmentsForType = async (type, plan, setupApply) => {
     const resolvedType = normalizeManagedType(type);
     const safePlan = plan && typeof plan === 'object' ? plan : buildSetupAssistantTemplatePlanForType(resolvedType);
     if (safePlan.autoAssignEnabled !== true) {
@@ -1398,7 +1398,7 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             id: folderId,
             folder: nextFolders[folderId]
         }))
-    }, { expectedRevision: folderRevision });
+    }, { expectedRevision: folderRevision, setupApply });
     await refreshType(resolvedType);
     return {
         enabled: true,
@@ -1412,7 +1412,7 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
     };
 };
 
-const applySetupAssistantTemplatesForType = async (type) => {
+const applySetupAssistantTemplatesForType = async (type, setupApply) => {
     const resolvedType = normalizeManagedType(type);
     const plan = buildSetupAssistantTemplatePlanForType(resolvedType);
     if (!plan.enabled || !plan.selectedCount) {
@@ -1430,10 +1430,10 @@ const applySetupAssistantTemplatesForType = async (type) => {
         };
     }
 
-    const { createdNames, skipped } = await createSelectedStarterTemplates(resolvedType, plan.selectedBlueprints);
+    const { createdNames, skipped } = await createSelectedStarterTemplates(resolvedType, plan.selectedBlueprints, setupApply);
     await refreshType(resolvedType);
 
-    const assignment = await applySetupAssistantTemplateAssignmentsForType(resolvedType, plan);
+    const assignment = await applySetupAssistantTemplateAssignmentsForType(resolvedType, plan, setupApply);
     return {
         selected: plan.selectedCount,
         created: createdNames.length,
@@ -1442,7 +1442,7 @@ const applySetupAssistantTemplatesForType = async (type) => {
     };
 };
 
-const applySetupAssistantRulesForType = async (type) => {
+const applySetupAssistantRulesForType = async (type, setupApply) => {
     const resolvedType = normalizeManagedType(type);
     const bootstrap = setupAssistantState.ruleBootstrap?.[resolvedType];
     if (!bootstrap || bootstrap.enabled !== true) {
@@ -1514,7 +1514,7 @@ const applySetupAssistantRulesForType = async (type) => {
         ...existingPrefs,
         autoRules: ruleTemplatesModule.insertBeforeCatchAll(existingRules, additions)
     });
-    prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
+    prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs, { setupApply });
     return { created, skipped };
 };
 
@@ -2917,7 +2917,7 @@ const buildSetupAssistantTemplateDecisionLines = (entries = {}) => {
     return lines;
 };
 
-const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
+const buildSetupAssistantVerificationReport = (importOutcomes, importAttempts, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
     const checks = [];
     const register = (label, ok, detail = '') => {
         checks.push({
@@ -2930,8 +2930,8 @@ const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes,
         const prefs = utils.normalizePrefs(prefsByType[type] || {});
         register(`${type.toUpperCase()} setup flag persisted`, prefs.setupWizardCompleted === true);
         register(`${type.toUpperCase()} mode persisted`, prefs.settingsMode === setupAssistantState.mode, `Expected ${setupAssistantState.mode}`);
-        if ((importOutcomes?.[type] || 0) > 0) {
-            register(`${type.toUpperCase()} import applied`, true, `${importOutcomes[type]} operations`);
+        if (importAttempts[type] > 0) {
+            register(`${type.toUpperCase()} import applied`, importOutcomes[type] === importAttempts[type], `${importOutcomes[type]} operations`);
         }
         const templateOutcome = templateOutcomes?.[type] || {};
         const templateBootstrap = getSetupAssistantTemplateBootstrap(type);
@@ -2961,11 +2961,10 @@ const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes,
             register(`${type.toUpperCase()} starter rules created`, true, `${ruleOutcomes[type].created} created`);
         }
     }
-    register(
-        'Rollback checkpoint created',
-        Boolean(setupAssistantState.rollbackCheckpointName),
-        setupAssistantState.rollbackCheckpointName || 'Not available'
-    );
+    if (normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) !== 'fast') {
+        register('Rollback checkpoint created', Boolean(setupAssistantState.rollbackCheckpointName),
+            setupAssistantState.rollbackCheckpointName || 'Not available');
+    }
     if (validationWarnings.length) {
         register('Validation warnings', false, validationWarnings.join(' | '));
     }
@@ -3221,6 +3220,7 @@ const retrySetupAssistantFailures = async (failures = [], reviewedImports = {}) 
     for (let index = 0; index < queue.length; index += 1) {
         const entry = queue[index] || {};
         const phase = String(entry.phase || '').trim();
+        let importCommitted = false;
         const type = normalizeManagedType(entry.type || 'docker');
         const progressBase = Math.round((index / Math.max(1, queue.length)) * 100);
         try {
@@ -3246,10 +3246,16 @@ const retrySetupAssistantFailures = async (failures = [], reviewedImports = {}) 
                             const progress = progressBase + Math.round((safeCompleted / safeTotal) * Math.round(100 / Math.max(1, queue.length)));
                             setSetupAssistantProgress(label || `Retrying ${type} import...`, progress);
                             renderSetupAssistant();
-                        }, { expectedRevision });
+                        }, { expectedRevision, onCommitted: () => { importCommitted = true; } });
                         await Promise.all([refreshType(type), refreshBackups(type)]);
                     }
                 }
+                resolved += 1;
+            } else if (phase === 'import-refresh') {
+                await Promise.all([refreshType(type), refreshBackups(type)]);
+                resolved += 1;
+            } else if (phase === 'docker-order') {
+                await syncSetupAssistantDockerOrder(apiPostJson);
                 resolved += 1;
             } else if (phase === 'rules') {
                 setSetupAssistantProgress(`Retrying ${type.toUpperCase()} starter rules...`, progressBase);
@@ -3269,6 +3275,7 @@ const retrySetupAssistantFailures = async (failures = [], reviewedImports = {}) 
         } catch (error) {
             remaining.push({
                 ...entry,
+                phase: importCommitted ? 'import-refresh' : phase,
                 message: String(error?.message || error)
             });
         }
@@ -3367,43 +3374,14 @@ const applySetupAssistantPlan = async () => {
     setSetupAssistantProgress(setupAssistantState.dryRunOnly ? setupAssistantT("common.repair.running-dry-run-checks-b7d617", "Running dry run checks...") : setupAssistantT("common.repair.preparing-apply-5504c5", "Preparing apply..."), 5);
     renderSetupAssistant();
 
-    let rollbackCreated = false;
+    let setupApply;
+    let setupCommitted = false;
     let folderConflict = false;
     const applyFailures = [];
     const ruleOutcomes = { docker: { created: 0, skipped: 0 }, vm: { created: 0, skipped: 0 } };
     const importOutcomes = { docker: 0, vm: 0 };
-    const templateOutcomes = {
-        docker: {
-            selected: 0,
-            created: 0,
-            skippedExisting: 0,
-            assignment: {
-                enabled: false,
-                totalItems: 0,
-                matched: 0,
-                unmatched: 0,
-                reviewNeededCount: 0,
-                reviewItems: [],
-                itemDetails: [],
-                updatedFolders: 0
-            }
-        },
-        vm: {
-            selected: 0,
-            created: 0,
-            skippedExisting: 0,
-            assignment: {
-                enabled: false,
-                totalItems: 0,
-                matched: 0,
-                unmatched: 0,
-                reviewNeededCount: 0,
-                reviewItems: [],
-                itemDetails: [],
-                updatedFolders: 0
-            }
-        }
-    };
+    const importAttempts = { docker: 0, vm: 0 };
+    const templateOutcomes = { docker: emptySetupAssistantTemplateOutcome(), vm: emptySetupAssistantTemplateOutcome() };
     try {
         if (setupAssistantState.dryRunOnly === true) {
             await new Promise((resolve) => setTimeout(resolve, 140));
@@ -3432,12 +3410,9 @@ const applySetupAssistantPlan = async () => {
         if (safetyMode !== 'fast') {
             setSetupAssistantProgress(setupAssistantT("common.repair.creating-rollback-checkpoint-25ab79", "Creating rollback checkpoint..."), 10);
             renderSetupAssistant();
-            const rollback = await globalRollbackApi('rollback_checkpoint', { reason: 'setup_assistant_apply' });
-            rollbackCreated = true;
-            setupAssistantState.rollbackCheckpointName = rollback?.name || rollback?.checkpoint || '';
-        } else {
-            setupAssistantState.rollbackCheckpointName = '';
+            setupApply = await createSetupAssistantApplySession(globalRollbackApi, setupAssistantImportReviewChanged);
         }
+        setupAssistantState.rollbackCheckpointName = setupApply?.name || '';
 
         setSetupAssistantProgress(setupAssistantT("common.repair.applying-settings-profile-628ca5", "Applying settings profile..."), 20);
         renderSetupAssistant();
@@ -3452,7 +3427,7 @@ const applySetupAssistantPlan = async () => {
                 nextPrefs = applySetupAssistantProfileToPrefs(nextPrefs, setupAssistantState.profile);
             }
             nextPrefs = applySetupAssistantBehaviorToPrefs(nextPrefs, setupAssistantState.behavior[type]);
-            prefsByType[type] = await postPrefs(type, nextPrefs);
+            prefsByType[type] = await postPrefs(type, nextPrefs, { setupApply });
         }
 
         settingsUiState.mode = setupAssistantState.mode;
@@ -3468,7 +3443,7 @@ const applySetupAssistantPlan = async () => {
             if (operationCount <= 0) {
                 continue;
             }
-            importOutcomes[type] = operationCount;
+            importAttempts[type] = operationCount;
             const startPercent = type === 'docker' ? 42 : 56;
             const span = 12;
             try {
@@ -3478,12 +3453,12 @@ const applySetupAssistantPlan = async () => {
                     const progress = startPercent + Math.round((safeCompleted / safeTotal) * span);
                     setSetupAssistantProgress(label || `Applying ${type} import...`, progress);
                     renderSetupAssistant();
-                }, { expectedRevision });
+                }, { expectedRevision, setupApply, onCommitted: ({ completed }) => { importOutcomes[type] = completed; } });
                 await Promise.all([refreshType(type), refreshBackups(type)]);
             } catch (error) {
                 folderConflict ||= Number(error?.status) === 409;
                 applyFailures.push({
-                    phase: 'import',
+                    phase: importOutcomes[type] > 0 ? 'import-refresh' : 'import',
                     type,
                     message: String(error?.message || error)
                 });
@@ -3497,7 +3472,7 @@ const applySetupAssistantPlan = async () => {
                 const startPercent = type === 'docker' ? 74 : 82;
                 setSetupAssistantProgress(`Creating ${type.toUpperCase()} starter folders...`, startPercent);
                 renderSetupAssistant();
-                templateOutcomes[type] = await applySetupAssistantTemplatesForType(type);
+                templateOutcomes[type] = await applySetupAssistantTemplatesForType(type, setupApply);
             } catch (error) {
                 folderConflict ||= Number(error?.status) === 409;
                 applyFailures.push({
@@ -3516,7 +3491,7 @@ const applySetupAssistantPlan = async () => {
                 const startPercent = type === 'docker' ? 90 : 93;
                 setSetupAssistantProgress(`Applying ${type.toUpperCase()} starter rules...`, startPercent);
                 renderSetupAssistant();
-                ruleOutcomes[type] = await applySetupAssistantRulesForType(type);
+                ruleOutcomes[type] = await applySetupAssistantRulesForType(type, setupApply);
             } catch (error) {
                 applyFailures.push({
                     phase: 'rules',
@@ -3545,18 +3520,27 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        const verification = buildSetupAssistantVerificationReport(importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings);
+        const verification = buildSetupAssistantVerificationReport(importOutcomes, importAttempts, templateOutcomes, ruleOutcomes, validationWarnings);
         if (safetyMode === 'strict' && (validationWarnings.length > 0 || applyFailures.length > 0 || verification.passed < verification.total)) {
             if (folderConflict) throw setupAssistantImportReviewChanged();
             throw new Error('Strict safety checks failed after apply. Rolling back to previous checkpoint.');
         }
 
-        markSetupAssistantCompletedLocal();
-        settingsUiState.wizardShown = true;
         await persistSetupPrefsToServer({
             mode: setupAssistantState.mode,
-            completed: true
+            completed: true,
+            setupApply
         });
+        setupCommitted = true;
+        if (setupApply?.needsDockerSync()) {
+            try {
+                await syncSetupAssistantDockerOrder(apiPostJson);
+            } catch (error) {
+                applyFailures.push({ phase: 'docker-order', type: 'docker', message: String(error?.message || error) });
+            }
+        }
+        markSetupAssistantCompletedLocal();
+        settingsUiState.wizardShown = true;
 
         setSetupAssistantProgress(setupAssistantT("common.repair.setup-complete-c820bd", "Setup complete."), 100);
         renderSetupAssistant();
@@ -3564,7 +3548,7 @@ const applySetupAssistantPlan = async () => {
         closeSetupAssistant();
         await maybeShowUpdateNotesPanel();
 
-        const checkpointText = rollbackCreated
+        const checkpointText = setupApply
             ? `Rollback checkpoint: ${setupAssistantState.rollbackCheckpointName || 'created'}`
             : 'Rollback checkpoint skipped (Fast mode).';
         const durationMs = Math.max(0, Date.now() - applyStartedAt);
@@ -3701,20 +3685,20 @@ const applySetupAssistantPlan = async () => {
                 { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
                 { label: 'Preference changes', value: `${impactSummary.prefs.totalChanges}` },
                 { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
-                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)'), wide: true },
+                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (setupApply ? 'created' : 'skipped (Fast mode)'), wide: true },
                 { label: 'Duration', value: `${durationSeconds}s` }
             ],
             warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
             noteLines: templateDecisionLines
-        }, rollbackCreated);
-        if (!undoNow || !rollbackCreated) {
+        }, Boolean(setupApply));
+        if (!undoNow || !setupApply) {
             return;
         }
         try {
             if (typeof swal.close === 'function') {
                 swal.close();
             }
-            const restore = await globalRollbackApi('rollback_restore_named', { name: setupAssistantState.rollbackCheckpointName });
+            const restore = await setupApply.restore();
             await refreshAll();
             swal({
                 title: 'Setup reverted',
@@ -3734,10 +3718,9 @@ const applySetupAssistantPlan = async () => {
             });
         }
         let rollbackMessage = '';
-        // A full checkpoint can contain settings that predate a competing folder write.
-        if (rollbackCreated && !folderConflict) {
+        if (!setupCommitted && setupApply?.hasChanges()) {
             try {
-                await globalRollbackApi('rollback_restore_named', { name: setupAssistantState.rollbackCheckpointName });
+                await setupApply.restore();
                 await refreshAll();
                 rollbackMessage = '\nAutomatic rollback restored the previous checkpoint.';
             } catch (rollbackError) {

@@ -207,7 +207,7 @@
             const rows = entries.map((entry) => `
                 <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
                     <td class="order-col"><div class="order-buttons"><button type="button" class="folder-member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td>
-                    <td class="fv-folder-member-name"><div class="fv-folder-member-content"><img src="${escapeHtml(entry.icon)}" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"><span>${escapeHtml(entry.name)}</span><small>${escapeHtml(repairT5751d6dd("common.repair.items-1-e8a685", "Items: $1", entry.memberCount))}</small></div></td>
+                    <td class="fv-folder-member-name"><div class="fv-folder-member-content"><img src="${escapeHtml(entry.icon)}" alt="" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"><span data-fvplus-user-content>${escapeHtml(entry.name)}</span><small>${escapeHtml(repairT5751d6dd("common.repair.items-1-e8a685", "Items: $1", entry.memberCount))}</small></div></td>
                 </tr>
             `).join('');
             body.append(jq(rows));
@@ -242,8 +242,8 @@
                 return `
                     <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                         <td class="order-col">${orderControls}</td>
-                        <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" alt="" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"></span>${name}</td>
-                        <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" aria-label="${name}" data-fvplus-style="fv-u-569beu"></td>
+                        <td class="name-col"><span data-fvplus-style="fv-u-pyafsr" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" alt="" class="img" data-fv-onerror="this.src='${iconFallbackPath}';"></span><span data-fvplus-user-content>${name}</span></td>
+                        <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" aria-label="${name}" data-fvplus-user-content data-fvplus-style="fv-u-569beu"></td>
                         <td><label class="fv-member-preview-toggle" title="${escapeHtml(translate('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(translate('editor.members.visible', 'Visible'))}</span></label></td>
                     </tr>
                 `;

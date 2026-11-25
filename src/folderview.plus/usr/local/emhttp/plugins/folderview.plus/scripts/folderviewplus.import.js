@@ -263,7 +263,7 @@ const buildOperationSelectionState = (operations, existingFolders) => {
     };
 };
 
-const filterOperationsBySelection = operations => window.FolderViewPlusFoundationModules.importSelection.filterOperationsBySelection(operations, importSelectionState);
+const filterOperationsBySelection = (operations, folders) => window.FolderViewPlusFoundationModules.importSelection.filterOperationsBySelection(operations, importSelectionState, folders);
 
 const renderOperationSelection = (onSelectionChanged = null) => {
     const container = $('#import-preview-selection');
@@ -525,7 +525,7 @@ const showImportPreviewDialog = (type, parsed, folders, { initialMode } = {}) =>
         }
     };
     const updateSelectionSummary = () => {
-        selectedOperations = filterOperationsBySelection(currentOperations);
+        selectedOperations = filterOperationsBySelection(currentOperations, folders);
         const { diffRows, hierarchyConflicts } = window.FolderViewPlusFoundationModules.importSelection
             .reviewImportSelection(folders, currentOperations, selectedOperations);
         selectionHierarchyConflicts = hierarchyConflicts;
@@ -888,7 +888,7 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const applyImportOperations = async (type, operations, onProgress = null, { expectedRevision, backupReason } = {}) => {
+const applyImportOperations = async (type, operations, onProgress = null, { expectedRevision, backupReason, setupApply, onCommitted } = {}) => {
     const resolvedType = normalizeManagedType(type);
     const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
@@ -908,7 +908,9 @@ const applyImportOperations = async (type, operations, onProgress = null, { expe
     }
 
     emit(0, importT("common.repair.applying-folder-changes-in-one-transaction-changes-1-17d06c", "Applying folder changes in one transaction. Changes: $1...", totalSteps));
-    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates, preserveParentLinks: true }, { expectedRevision, backupReason });
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates, preserveParentLinks: true }, { expectedRevision, backupReason, setupApply });
+    const committed = { ...result, completed: totalSteps, total: totalSteps };
+    onCommitted?.(committed);
     emit(totalSteps, importT("common.repair.folder-changes-applied-1-75d681", "Folder changes applied: $1.", totalSteps));
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
@@ -919,11 +921,7 @@ const applyImportOperations = async (type, operations, onProgress = null, { expe
         serverDurationMs: Number(result.durationMs) || 0
     });
 
-    return {
-        ...result,
-        completed: totalSteps,
-        total: totalSteps
-    };
+    return committed;
 };
 
 const offerUndoAction = async (type, backup, actionLabel) => {

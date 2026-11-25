@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/lib.validation.php';
-function normalizeEnvironmentSnapshotPayload($payload): array {
+function normalizeEnvironmentSnapshotPayload($payload, bool $preserveHierarchy = false): array {
         if (!is_array($payload)) {
             throw new RuntimeException('Environment snapshot must be a JSON object.');
         }
@@ -13,7 +13,7 @@ function normalizeEnvironmentSnapshotPayload($payload): array {
         $normalizedTypes = [];
         foreach (FVPLUS_ALLOWED_TYPES as $type) {
             $entry = is_array($typesIncoming[$type] ?? null) ? $typesIncoming[$type] : [];
-            $folders = normalizeFolderMapPayload(is_array($entry['folders'] ?? null) ? $entry['folders'] : []);
+            $folders = normalizeFolderMapPayload($entry['folders'] ?? [], !$preserveHierarchy);
             $prefs = reconcileManualOrderPrefs(
                 normalizeTypePrefs(is_array($entry['prefs'] ?? null) ? $entry['prefs'] : []),
                 $folders

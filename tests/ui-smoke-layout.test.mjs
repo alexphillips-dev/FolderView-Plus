@@ -849,7 +849,7 @@ test('prefs endpoint no longer rewrites retired folder editor mode flags', () =>
     assert.doesNotMatch(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
     assert.doesNotMatch(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
     assert.match(prefsPhp, /\$dockerOrderChanged = \$type === 'docker' && \(/);
-    assert.match(prefsPhp, /if \(\$dockerOrderChanged\) \{\s*syncContainerOrder\('docker'\);\s*\}/);
+    assert.match(prefsPhp, /if \(\$dockerOrderChanged \|\| \$replayDockerStartOrder\) \{\s*try \{\s*\$dockerOrderSync = syncContainerOrder\('docker'\)\['syncOutcome'\];/);
 });
 
 test('runtime folder editor routes always use the modern Folder.page contract', () => {

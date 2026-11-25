@@ -166,6 +166,45 @@ test('release-note guard rejects disagreement between curated notes and the publ
     assert.throws(check, error => String(error.stderr).includes('CHANGES and curated release notes disagree'));
 });
 
+test('curated notes preserve Markdown paragraph breaks and literal backslashes through release validation', { skip: process.platform === 'win32' }, t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-notes-roundtrip-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    fs.mkdirSync(path.join(directory, 'docs/releases'), { recursive: true });
+    fs.mkdirSync(path.join(directory, '.github/workflows'), { recursive: true });
+    for (const name of ['lib.sh', 'build_release_notes.sh', 'ensure_plg_changes_entry.sh', 'release_note_categories.sh', 'release_notes_consistency_guard.sh', 'publish_github_release.sh']) {
+        fs.copyFileSync(path.join(process.cwd(), 'scripts', name), path.join(directory, 'scripts', name));
+    }
+    fs.copyFileSync(path.join(process.cwd(), '.github/workflows/release-on-main.yml'), path.join(directory, '.github/workflows/release-on-main.yml'));
+    const manifest = path.join(directory, 'folderview.plus.plg');
+    const notes = path.join(directory, 'docs/releases/2026.10.05.03.md');
+    const original = '<!ENTITY version "2026.10.05.03">\n<CHANGES>\n###2026.10.05.02\n- Fix: Previous release.\n</CHANGES>\n';
+    const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: 'pipe' });
+    git('init'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.com');
+    git('commit', '--allow-empty', '--no-verify', '-m', 'Notes fixture');
+    const bash = (...args) => execFileSync('bash', args, {
+        cwd: directory, encoding: 'utf8', stdio: 'pipe', env: { ...process.env, FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES: '1' }
+    });
+    for (const body of [
+        '- Fix: Preserve the first Markdown bullet.\n\n- Test: Preserve the next paragraph.',
+        String.raw`- Fix: Explain the literal path C:\temp and the text \n.`
+    ]) {
+        fs.writeFileSync(manifest, original);
+        fs.writeFileSync(notes, `${body}\n`);
+        assert.match(bash('scripts/ensure_plg_changes_entry.sh', '--check-only'), /Validated curated release notes/);
+        assert.equal(fs.readFileSync(manifest, 'utf8'), original);
+        assert.match(bash('scripts/ensure_plg_changes_entry.sh'), /Inserted CHANGES entry/);
+        assert.ok(fs.readFileSync(manifest, 'utf8').includes(body));
+        assert.match(bash('scripts/release_notes_consistency_guard.sh'), /guard passed/);
+    }
+    fs.writeFileSync(manifest, original);
+    for (const delimiter of ['###2026.10.05.01', '### 2026.10.05.01', '</CHANGES>', ']]>']) {
+        fs.writeFileSync(notes, `- Fix: Delimiter.\n${delimiter}\n`);
+        assert.throws(() => bash('scripts/ensure_plg_changes_entry.sh', '--check-only'), /reserved manifest delimiter/);
+        assert.equal(fs.readFileSync(manifest, 'utf8'), original);
+    }
+});
+
 test('qualification dispatches independent checks on an exact tag and never promotes a failed candidate', { skip: process.platform === 'win32' }, t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-qualification-fixture-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

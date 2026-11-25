@@ -35,6 +35,85 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 export const registerFilterViewSettingsFixes = ({ test }) => {
     registerVmRuntimeRecoveryCases({ test });
 
+    test('Docker start order restores a rejected mode and reports failed native sync after a saved plan', async ({ page }) => {
+        const host = await createFilterViewSettingsHost(page);
+        const [first, second] = host.names;
+        const enabled = new Set([first, second]);
+        const writes = [];
+        const prefs = host.prefs('docker');
+        let loseToggleResponse = true;
+        const preview = () => ({
+            mode: prefs.dockerStartOrder.mode, managed: prefs.dockerStartOrder.mode !== 'unmanaged',
+            sequence: [...enabled].map(name => ({ name, wait: name === first ? 7 : 19 })),
+            autostartOrder: [...enabled],
+            autostartCount: enabled.size, containerCount: host.names.length
+        });
+        for (const name of enabled) host.runtime.docker[name].autostart = true;
+        await page.route('**/plugins/dynamix.docker.manager/images/question.png', route => route.fulfill({ status: 204 }));
+        await page.route('**/server/templates.php**', route => route.fulfill({ json: { ok: true, templates: [] } }));
+        await page.route('**/server/docker_start_order.php**', route => {
+            if (route.request().method() === 'GET') return route.fulfill({ json: { ok: true, preview: preview() } });
+            const post = Object.fromEntries(new URLSearchParams(route.request().postData() || ''));
+            if (post.action === 'autostart') {
+                writes.push({ name: post.container, enabled: post.enabled });
+                if (post.enabled === '1') enabled.add(post.container);
+                else enabled.delete(post.container);
+                if (loseToggleResponse) {
+                    loseToggleResponse = false;
+                    return route.fulfill({ status: 400, json: { ok: false, error: 'Fixture lost toggle response' } });
+                }
+                return route.fulfill({ json: { ok: true, enabled: post.enabled === '1' } });
+            }
+            return route.fulfill({ json: { ok: true, syncOutcome: 'synced', preview: preview() } });
+        });
+        await page.route('**/server/prefs.php**', route => {
+            if (route.request().method() !== 'POST') return route.fallback();
+            const post = new URLSearchParams(route.request().postData() || '');
+            const mode = JSON.parse(post.get('prefs') || '{}').dockerStartOrder?.mode;
+            if (mode === 'unmanaged') return route.fulfill({ status: 400, json: { ok: false, error: 'Fixture rejected mode' } });
+            if (mode !== 'custom-batches') return route.fallback();
+            prefs.dockerStartOrder.mode = mode;
+            prefs._metadata.prefsRevision++;
+            return route.fulfill({ json: { ok: true, prefs, metadata: prefs._metadata, dockerOrderSync: 'failed' } });
+        });
+        try {
+            await openSettings(page, host);
+            await page.locator('[data-mode="advanced"]').click();
+            await page.locator('[data-fv-advanced-tab="startup"]').click();
+            const mode = page.locator('#docker-start-order-mode');
+            const rows = page.locator('.fv-docker-start-order-sequence > li');
+            await waitFor(page, async () => await rows.count() === 2, 'stored mode preview loads');
+            await mode.selectOption('unmanaged');
+            await waitFor(page, async () => await mode.inputValue() === 'docker-page', 'rejected mode reverts to the stored mode');
+            const dismiss = page.getByRole('button', { name: 'OK', exact: true });
+            if (await dismiss.isVisible()) await dismiss.click();
+            const previewRequest = page.waitForResponse(response => response.request().method() === 'GET' && response.url().includes('docker_start_order.php?action=preview'));
+            await page.locator('[data-fv-onclick="refreshDockerStartOrderPreview()"]').dispatchEvent('click');
+            await previewRequest;
+            await waitFor(page, async () => await rows.count() === 2, 'manual preview loads after a rejected mode');
+            await rows.filter({ hasText: first }).locator('input[type="checkbox"]').evaluate(input => {
+                input.checked = false;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            await waitFor(page, async () => await rows.count() === 1, 'a single managed toggle removes its row');
+            assert.deepEqual(writes, [{ name: first, enabled: '0' }]);
+            assert.equal(await rows.first().locator('input[type="number"]').inputValue(), '19');
+            const disabled = page.locator('.fv-docker-start-order-disabled');
+            assert.match(await disabled.locator('button').textContent(), new RegExp(first));
+            if (await dismiss.isVisible()) await dismiss.click();
+            await disabled.locator('button').dispatchEvent('click');
+            await waitFor(page, async () => await rows.count() === 2, 'the lost response leaves the correct re-enable control');
+            assert.deepEqual(writes, [{ name: first, enabled: '0' }, { name: first, enabled: '1' }]);
+            await mode.selectOption('custom-batches');
+            const syncStatus = page.locator('#docker-start-order-sync-status');
+            await syncStatus.waitFor({ state: 'visible' });
+            assert.match(await syncStatus.innerText(), /sync failed/i);
+            assert.equal(await mode.inputValue(), 'custom-batches');
+            await page.locator('[data-fv-onclick="syncDockerStartOrderNow()"]').dispatchEvent('click');
+            await syncStatus.waitFor({ state: 'hidden' });
+        } finally { await closeHost(page, host); }
+    }, { skipAccessibility: true, allowedConsoleErrors: [/Failed to load resource:.*400/] });
+
     test('Filters and view settings save Docker row placement after a cached page restore and reload', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);
         const placement = page.locator('#docker-view-settings #docker-row-placement');

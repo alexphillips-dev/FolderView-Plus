@@ -85,19 +85,21 @@ test('rapid Docker start-order changes queue only edited fields and retain both 
     const context = vm.createContext({
         prefsStoreModule: store, utils: { normalizePrefs: value => value },
         prefsByType: { docker: { pinnedFolderIds: ['keep'], dockerStartOrder: { mode: 'docker-page', remaining: 'after', batches: [] } } },
-        normalizeDockerStartOrderPrefsForUi: prefs => prefs.dockerStartOrder,
-        renderDockerStartOrderWorkspace() {}, showError: (_title, error) => { throw error; },
-        postPrefs: async (_type, patch, options) => { writes.push(plain(patch)); assert.ok(options.currentPrefs); return patch; },
+        dockerStartOrderModel: { normalizePlan: value => value }, diagnosticsPrefsCoordinator: null,
+        renderDockerStartOrderWorkspace() {}, renderDockerStartOrderSyncOutcome() {}, showError: (_title, error) => { throw error; },
+        postPrefs: async (_type, patch, options) => { writes.push(plain(patch)); assert.ok(options.currentPrefs); return store.mergePatch(options.currentPrefs, patch); },
         window: { setTimeout: fn => { timers.set(++timer, fn); return timer; }, clearTimeout: id => timers.delete(id) }
     });
-    vm.runInContext(`let dockerStartOrderQueuedPrefs = null, dockerStartOrderSaveTimer = null, dockerStartOrderSaveChain = Promise.resolve();\n${
-        ['persistQueuedDockerStartOrderPrefs', 'queueDockerStartOrderPrefsSave', 'saveDockerStartOrderPlan'].map(name => extract(settings, name)).join('\n')
+    vm.runInContext(`let dockerStartOrderQueuedPrefs = null, dockerStartOrderSaveTimer = null, dockerStartOrderSaveChain = Promise.resolve();
+    let dockerStartOrderDraftPlan = null, dockerStartOrderEditGeneration = 0, dockerStartOrderSyncOutcome = '';\n${
+        ['normalizeDockerStartOrderPrefsForUi', 'persistQueuedDockerStartOrderPrefs', 'queueDockerStartOrderPrefsSave', 'saveDockerStartOrderPlan'].map(name => extract(settings, name)).join('\n')
     }\nthis.save = saveDockerStartOrderPlan; this.flush = () => dockerStartOrderSaveChain;`, context);
-    await context.save({ mode: 'manual' });
+    await context.save({ mode: 'custom-batches' });
     await context.save({ remaining: 'before' });
     for (const fn of timers.values()) fn();
     await context.flush();
-    assert.deepEqual(writes, [{ dockerStartOrder: { mode: 'manual', remaining: 'before' } }]);
+    assert.deepEqual(writes, [{ dockerStartOrder: { mode: 'custom-batches', remaining: 'before' } }]);
+    assert.deepEqual(plain(context.prefsByType.docker), { pinnedFolderIds: ['keep'], dockerStartOrder: { mode: 'custom-batches', remaining: 'before', batches: [] } });
 });
 
 test('folder editor rule saves discard unrelated cached preferences before reaching the coordinator', async () => {

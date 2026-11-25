@@ -27,15 +27,12 @@ test('start-order sequence preview exposes app rows, waits, switches, and safe e
     assert.match(html, /class="fv-start-order-switch"/);
 });
 
-test('autostart mutation entries preserve every current state and only send explicit waits', () => {
-    const entries = api.buildAutostartMutationEntries({
-        alpha: { id: 'sha-alpha', autostart: true },
-        beta: { shortId: 'beta-id', autostart: false }
-    }, { containerWaits: { alpha: 12 } }, 'beta', true);
-    assert.deepEqual(entries, [
-        { id: 'sha-alpha', autoStart: true, wait: 12 },
-        { id: 'beta-id', autoStart: true }
-    ]);
+test('authoritative autostart reconciliation updates both lightweight and full Docker metadata', () => {
+    const row = { autostart: true, info: { State: { Autostart: true } }, State: { Autostart: true } };
+    api.setRowAutostart(row, false);
+    assert.equal(api.rowAutostart(row), false);
+    assert.equal(row.info.State.Autostart, false);
+    assert.equal(row.State.Autostart, false);
 });
 
 test('lightweight and full Docker rows report the same autostart state', () => {
@@ -51,11 +48,12 @@ test('autostart toggle preserves peer lightweight states and updates the local r
     const info = { alpha: { id: 'alpha-id', autostart: true }, beta: { id: 'beta-id', autostart: false } };
     let mutation = null;
     const controller = moduleApi.createApi({
-        getInfo: () => info, getPlan: () => ({}), runDockerMutation: async (payload) => { mutation = payload; },
+        getInfo: () => info, getPlan: () => ({}), writeAutostart: async (name, enabled) => { mutation = { name, enabled }; },
         refreshPreview: async () => {}, setStatus: () => {}, showError: (message, error) => { throw error || new Error(message); }
     });
     await controller.toggleAutostart('beta', true);
-    assert.deepEqual(mutation.entries, [{ id: 'alpha-id', autoStart: true }, { id: 'beta-id', autoStart: true }]);
+    assert.deepEqual(mutation, { name: 'beta', enabled: true });
+    assert.equal(info.alpha.autostart, true);
     assert.equal(info.beta.autostart, true);
 });
 
@@ -85,14 +83,14 @@ test('unmanaged sequence previews are visibly read-only', () => {
     assert.doesNotMatch(html, /will be removed|updateDockerStartOrderWait|toggleDockerStartOrderAutostart/);
 });
 
-test('unmanaged order blocks wait edits and full-list native autostart mutations', async () => {
+test('unmanaged order blocks wait edits and native autostart mutations', async () => {
     const plan = { mode: 'unmanaged', containerWaits: { alpha: 73 } };
     const info = { alpha: { id: 'alpha-id', autostart: true }, beta: { id: 'beta-id', autostart: false } };
     const writes = [];
     const controller = moduleApi.createApi({
         getInfo: () => info, getPlan: () => plan,
         savePlan: async (patch) => writes.push(patch),
-        runDockerMutation: async (payload) => writes.push(payload),
+        writeAutostart: async (...payload) => writes.push(payload),
         refreshPreview: async () => {}, setStatus: () => {}, showError: (_message, error) => { throw error; }
     });
     await controller.updateWait('alpha', 23);
@@ -103,7 +101,8 @@ test('unmanaged order blocks wait edits and full-list native autostart mutations
 
     plan.mode = 'docker-page';
     await controller.toggleAutostart('beta', true);
-    assert.equal(writes[0].entries[0].wait, 73);
+    assert.deepEqual(writes, [['beta', true]]);
+    assert.equal(plan.containerWaits.alpha, 73);
     assert.equal(info.beta.autostart, true);
 });
 

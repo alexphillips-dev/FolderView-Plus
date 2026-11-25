@@ -1,7 +1,7 @@
 <?php
 function dockerStartOrderNativeWait(string $line): int {
-    $parts = preg_split('/\s+/', trim($line), 2);
-    return normalizeIntInRange($parts[1] ?? 0, 0, 3600, 0);
+    $parts = preg_split('/\s+/', trim($line), 3);
+    return preg_match('/^\d+$/D', $parts[1] ?? '') ? (int)$parts[1] : 0;
 }
 
 function buildDockerStartOrderSequence(array $autostartOrder, array $context, array $plan, array $batches): array {
@@ -40,7 +40,7 @@ function applyDockerStartOrderSequenceWaits(array $lines, array $sequence): arra
     $waitByName = [];
     foreach ($sequence as $entry) {
         $name = trim((string)($entry['name'] ?? ''));
-        if ($name !== '') {
+        if ($name !== '' && in_array($entry['waitSource'] ?? '', ['container', 'batch'], true)) {
             $waitByName[$name] = normalizeIntInRange($entry['wait'] ?? 0, 0, 3600, 0);
         }
     }

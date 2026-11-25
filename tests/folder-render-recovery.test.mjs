@@ -108,6 +108,7 @@ for (const [type, title, func] of [['docker', 'Docker', 'Docker'], ['vm', 'Vm', 
             ['all' + title + 'Folders']: folders,
             ['createdNested' + (type === 'vm' ? 'Vm' : '') + 'Ids']: new Set(),
             folderTypePrefs: { [type]: {} }, sortFolderIdsByPrefs: (ids) => ids,
+            orderChildFolderIds: require(root + 'folderviewplus.utils-ordering.js').orderChildFolderIds,
             [type + 'FullMatchCache']: {}, order, containersInfo: {}, vmInfo: {}, foldersDone: {},
             captureDebug: false,
             ['createFolder' + func]: (folder, id, _position, liveOrder, _info, _done, _cache, options) =>

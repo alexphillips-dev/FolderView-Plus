@@ -167,7 +167,15 @@
     };
     const orderFoldersByPrefs = (folders, prefs) => Object.fromEntries(orderFolderEntriesByPrefs(folders, prefs));
 
+    const orderChildFolderIds = (childIds, parent) => {
+        const saved = parent?.settings?.child_folder_order || parent?.settings?.childFolderOrder;
+        if (!Array.isArray(saved) || !saved.length) return childIds;
+        const remaining = new Set(childIds);
+        const preferred = saved.map(id => String(id ?? '').trim()).filter(id => remaining.delete(id));
+        return [...preferred, ...remaining];
+    };
+
     return Object.freeze({
-        orderFoldersByPrefs, orderFolderIdsByPrefs, orderFolderEntriesByPrefs
+        orderFoldersByPrefs, orderFolderIdsByPrefs, orderFolderEntriesByPrefs, orderChildFolderIds
     });
 }));

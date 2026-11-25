@@ -184,6 +184,7 @@ namespace {
     file_put_contents("$root/config/native-autostart", "docker-present 0\nstale-host-entry 0\n");
     if ($operation !== 'repair') file_put_contents("$root/config/native-autostart", "docker-extra 19\r\n\r\ndocker-present 7\nstale-host-entry 31\n");
     if (isset($request['nativeAutostart'])) file_put_contents("$root/config/native-autostart", $request['nativeAutostart']);
+    if (isset($request['nativePageOrder'])) file_put_contents("$root/config/native-userprefs", $request['nativePageOrder']);
     if ($request['scenario'] === 'stale-cache') {
         writeReadInfoCache($type, 'state', ['cached-gone' => []]);
         writeReadInfoCache($type, 'full', ['cached-gone' => []]);
@@ -236,11 +237,12 @@ namespace {
             eval('namespace InventorySyncFixture; use \\Throwable; use \\DockerClient;' . str_replace('__DIR__', var_export($server, true), substr(file_get_contents("$server/lib.docker-order.php"), 5)));
             $response = \InventorySyncFixture\syncContainerOrder('docker');
         } else {
-            $isMutationRequest = in_array($operation, ['sync', 'start-sync', 'diagnostics-sync', 'batch'], true);
+            $isMutationRequest = in_array($operation, ['sync', 'start-sync', 'start-toggle', 'start-save', 'diagnostics-sync', 'batch'], true);
             $_SERVER['REQUEST_METHOD'] = $isMutationRequest ? 'POST' : 'GET';
             $endpoint = ['read' => 'read_info.php', 'snapshot' => 'runtime_snapshot.php',
                 'diagnostics' => 'diagnostics.php', 'diagnostics-sync' => 'diagnostics.php', 'sync' => 'sync_order.php',
-                'preview' => 'docker_start_order.php', 'start-sync' => 'docker_start_order.php', 'batch' => 'batch.php'][$operation];
+                'preview' => 'docker_start_order.php', 'start-sync' => 'docker_start_order.php',
+                'start-toggle' => 'docker_start_order.php', 'start-save' => 'prefs.php', 'batch' => 'batch.php'][$operation];
             $_SERVER['SCRIPT_NAME'] = "/plugins/folderview.plus/server/$endpoint";
             $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
             $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
@@ -250,6 +252,13 @@ namespace {
             if ($operation === 'preview') $_GET['action'] = 'preview';
             $_POST = $isMutationRequest ? ['type' => $type] : [];
             if ($operation === 'start-sync') $_POST['action'] = 'sync';
+            if ($operation === 'start-toggle') {
+                $_POST += ['action' => 'autostart', 'container' => $request['container'], 'enabled' => $request['enabled']];
+            }
+            if ($operation === 'start-save') {
+                $_POST['prefs'] = json_encode(['dockerStartOrder' => $request['planPatch']]);
+                $_POST['expectedRevision'] = (string)readConfigMetadata($type)['prefsRevision'];
+            }
             if ($operation === 'diagnostics-sync') $_POST['action'] = 'sync_docker_order';
             if ($operation === 'batch') {
                 $_POST['operations'] = json_encode($request['batchOperations']
@@ -257,7 +266,7 @@ namespace {
                 if (isset($request['expectedRevision'])) $_POST['expectedRevision'] = (string)$request['expectedRevision'];
             }
             $_REQUEST = array_merge($_GET, $_POST);
-            if ($isMutationRequest) {
+            if ($isMutationRequest && empty($request['withoutToken'])) {
                 $token = getConfiguredRequestToken();
                 $_SERVER['HTTP_X_FV_REQUEST'] = '1'; $_SERVER['HTTP_X_FV_TOKEN'] = $token;
                 $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $_POST['action'] ?? '')['nonce'];
@@ -286,6 +295,7 @@ namespace {
         'localized' => $localized, 'legacy' => $legacy, 'retry' => $retry,
         'response' => $response, 'responseStatus' => $responseStatus, 'syncPending' => hasDockerSyncOrderPending(),
         'nativeBefore' => $nativeBefore, 'hostWritten' => $GLOBALS['inventory_host_written'] ?? null,
+        'nativePageOrder' => is_file("$root/config/native-userprefs") ? file_get_contents("$root/config/native-userprefs") : null,
         'nativeModeBefore' => $nativeModeBefore, 'nativeMode' => fileperms("$root/config/native-autostart") & 0777,
         'folders' => readRawFolderMap($type), 'otherFolders' => readRawFolderMap($type === 'docker' ? 'vm' : 'docker'),
         'metadata' => readConfigMetadata($type, false), 'backups' => listBackupSnapshots($type),

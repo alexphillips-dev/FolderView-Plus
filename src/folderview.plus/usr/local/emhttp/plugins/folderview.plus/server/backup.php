@@ -14,7 +14,8 @@ fvplus_json_try(function (): array {
         'rollback_checkpoint',
         'rollback_restore_latest',
         'rollback_restore_previous',
-        'rollback_restore_named'
+        'rollback_restore_named',
+        'rollback_restore_setup'
     ];
     $guardedReadActions = ['download_post'];
     if (in_array($action, $mutatingActions, true)) {
@@ -33,7 +34,8 @@ fvplus_json_try(function (): array {
     if ($action === 'rollback_checkpoint') {
         $reason = (string)($_POST['reason'] ?? 'manual');
         return [
-            'rollback' => createGlobalRollbackSnapshot($reason),
+            'rollback' => $reason === 'setup_assistant_apply'
+                ? fvplusCreateSetupAssistantCheckpoint() : createGlobalRollbackSnapshot($reason),
             'snapshots' => listGlobalRollbackSnapshots()
         ];
     }
@@ -52,9 +54,10 @@ fvplus_json_try(function (): array {
         ];
     }
 
-    if ($action === 'rollback_restore_named') {
+    if ($action === 'rollback_restore_named' || $action === 'rollback_restore_setup') {
+        $options = $action === 'rollback_restore_setup' ? ['setupFence' => $_POST['setupFence'] ?? null] : [];
         return [
-            'restore' => restoreGlobalRollbackSnapshot((string)($_POST['name'] ?? '')),
+            'restore' => restoreGlobalRollbackSnapshot((string)($_POST['name'] ?? ''), $options),
             'snapshots' => listGlobalRollbackSnapshots()
         ];
     }

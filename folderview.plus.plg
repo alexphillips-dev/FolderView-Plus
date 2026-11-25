@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.05">
-<!ENTITY md5 "e9a299085242f10edeff05717e14ab3c">
-<!ENTITY sha256 "e90244cef1602fd9d9f6139affe6a5a80240e1d33168c903d813e8b614373394">
+<!ENTITY version "2026.11.25.06">
+<!ENTITY md5 "dadf80de9313fd35158ca0861d8de7dc">
+<!ENTITY sha256 "e97facaadc9831d468f8a9d5ae6b4d571e0e915604082ddbf75c7991da7ae0e4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.25.06
+- Fix: Setup Assistant protects newer settings and rules when undoing a failed run, and reports imports as applied only after they are saved.
+- Fix: Global Undo preserves saved parent links for Tree Integrity repair, and unrelated broken parent links no longer block rule previews.
+- Fix: Templates preserve the destination's child-folder order. Imports keep that order when IDs change, long folder IDs remain intact, and the editor preserves literal folder and member names across languages.
+- Fix: Dashboard recovers grouping after a temporary data failure. Dashboard and VMs honor saved child-folder order and refresh when Unraid changes the native row order.
+- Fix: Docker autostart toggles update only the selected container. Native startup waits remain intact, rejected mode changes restore the saved selection, and Settings identifies when a saved plan still needs a native sync.
+- Reliability: Diagnostics distinguishes unavailable inventory from missing members. A rejected plugin removal preserves boot recovery, and completed removal cancels any staged update for this plugin.
+
 
 ###2026.11.25.05
 - Fix: Setup Assistant checks the reviewed folder revision before assigning template members or importing folders. Import review shows the fields that will change, preserves folder names across languages, and prevents unchecked folders from being moved or a matching folder from being deleted during Replace.
@@ -10624,7 +10633,10 @@ FOLDER_VIEW_PLUS_RECOVERY
                 read -r _ removal_digest removal_phase &lt; "${removal_state}" || exit 1
                 if [[ "${removal_digest}" =~ ^[a-f0-9]{64}$ ]]; then
                     removed_dir="/boot/config/plugins-removed"
-                    if [ ! -e "${registered_manifest}" ] &amp;&amp; [ ! -L "${registered_manifest}" ] &amp;&amp; \
+                    removal_helper="/boot/config/plugins/.folderview.plus-removal.sh"
+                    if [ "${removal_phase}" = prepared ] &amp;&amp; [ -f "${removal_helper}" ] &amp;&amp; [ ! -L "${removal_helper}" ]; then
+                        /bin/bash "${removal_helper}" cancel || exit 1
+                    elif [ ! -e "${registered_manifest}" ] &amp;&amp; [ ! -L "${registered_manifest}" ] &amp;&amp; \
                         [ "${removal_phase}" = ready ] &amp;&amp; [ ! -L "${removed_dir}" ] &amp;&amp; \
                         archive_matches "${removed_dir}/&name;.plg" "${removal_digest}"; then
                         # A successful native move may precede its callback.
@@ -10830,10 +10842,19 @@ FOLDER_VIEW_PLUS_RECOVERY
                 exit 1
             fi
             removal_state="/boot/config/plugins/.folderview.plus-removal"
+            nextboot_dir="/boot/config/plugins-nextboot"
+            nextboot_manifest="${nextboot_dir}/&name;.plg"
+            nextboot_assets="${nextboot_dir}/&name;"
+            quarantined_update="${removal_state}.nextboot"
             removal_version=""
+            removal_phase=""
             if [ -e "${removal_state}" ] || [ -L "${removal_state}" ]; then
                 [ -f "${removal_state}" ] &amp;&amp; [ ! -L "${removal_state}" ] || exit 1
-                read -r removal_version _ &lt; "${removal_state}" || exit 1
+                read -r removal_version _ removal_phase &lt; "${removal_state}" || exit 1
+            fi
+            incomplete_removal=false
+            if [ "${removal_version}" = "&version;" ] &amp;&amp; [ -n "${removal_phase}" ] &amp;&amp; [ "${removal_phase}" != prepared ]; then
+                incomplete_removal=true
             fi
             deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
             if [ -n "${deployed_version}" ]; then
@@ -10866,9 +10887,14 @@ FOLDER_VIEW_PLUS_RECOVERY
 #!/bin/bash
 set -eu
 mode="${1:-}"
-[[ "${mode}" = boot || "${1:-}:${2:-}:${3:-}:${4:-}" = plugin:remove:folderview.plus.plg: ]] || exit 0
-exec 9>>/run/folderview.plus-install.lock
-flock 9
+if [[ "${mode}" = cancel ]]; then
+    # The install or removal hook already holds this file description.
+    flock -n 9
+else
+    [[ "${mode}" = boot || "${1:-}:${2:-}:${3:-}:${4:-}" = plugin:remove:folderview.plus.plg: ]] || exit 0
+    exec 9>>/run/folderview.plus-install.lock
+    flock 9
+fi
 state="/boot/config/plugins/.folderview.plus-removal"
 [[ -f "${state}" &amp;&amp; ! -L "${state}" ]] || exit 0
 read -r _ digest phase &lt; "${state}"
@@ -10886,6 +10912,41 @@ restore_retry_entry() {
         mkdir -p -- "${running%/*}" &amp;&amp; ln -sT -- "${active}" "${running}"
     fi
 }
+cancel_removal() {
+    local quarantined_update="${state}.nextboot"
+    local nextboot="/boot/config/plugins-nextboot"
+    local staged="${nextboot}/folderview.plus.plg"
+    if [[ -e "${quarantined_update}" || -L "${quarantined_update}" ]]; then
+        [[ -f "${quarantined_update}" &amp;&amp; ! -L "${quarantined_update}" &amp;&amp; ! -L "${nextboot}" ]] || return 1
+        if [[ -e "${staged}" ]]; then
+            # Keep the active native stage if another download has superseded ours.
+            [[ -f "${staged}" &amp;&amp; ! -L "${staged}" ]] || return 1
+            rm -f -- "${quarantined_update}" || return 1
+        else
+            [[ ! -L "${staged}" ]] &amp;&amp; mkdir -p -- "${nextboot}" &amp;&amp; \
+                mv -fT -- "${quarantined_update}" "${staged}" || return 1
+        fi
+        sync -f /boot/config/plugins || return 1
+    fi
+    rm -f -- "${state}" "${hook}" "$0" || return 1
+    # The boot CLI rereads the wrapper's noInstall attribute after the hook.
+    if [[ "${mode}" != boot ]]; then rm -f -- "${wrapper}" || return 1; fi
+    sync -f /boot/config/plugins
+}
+if [[ "${mode}" = cancel ]]; then
+    cancel_removal
+    exit 0
+fi
+if [[ "${phase}" = prepared &amp;&amp; "${mode}" = boot ]]; then
+    if [[ -f "${active}" &amp;&amp; ! -L "${active}" ]]; then
+        if ! matches_manifest "${active}"; then
+            # Unraid promoted another staged manifest before the recovery wrapper ran.
+            rm -f -- "${state}.nextboot"
+        fi
+        cancel_removal
+    fi
+    exit 0
+fi
 if [[ "${phase}" != ready ]]; then
     if [[ "${mode}" = boot ]] &amp;&amp; matches_manifest "${active}"; then
         restore_retry_entry
@@ -10972,20 +11033,74 @@ FOLDER_VIEW_PLUS_REMOVAL_BOOT
                     return 1
                 fi
             }
-            # Arm the exact manifest before native package removal can leave
-            # the runtime and package record incomplete.
+            snapshot_native_package() (
+                set -o pipefail
+                local record
+                local -a paths=("&plugdir;")
+                [ -d "&plugdir;" ] &amp;&amp; [ ! -L "&plugdir;" ] || return 1
+                for record in /var/lib/pkgtools/packages/&name;-&version; /var/log/packages/&name;-&version;; do
+                    if [ -e "${record}" ] || [ -L "${record}" ]; then paths+=("${record}"); fi
+                done
+                [ "${#paths[@]}" -gt 1 ] || return 1
+                # ctime also detects in-place writes with preserved mtime.
+                find -P "${paths[@]}" -printf '%y %D %i %m %U %G %s %T@ %C@ %p %l\0' | LC_ALL=C sort -z | sha256sum
+            )
+            nextboot_directory_is_safe() {
+                [ ! -L "${nextboot_dir}" ] &amp;&amp; { [ ! -e "${nextboot_dir}" ] || [ -d "${nextboot_dir}" ]; }
+            }
+            quarantine_nextboot_update() {
+                nextboot_directory_is_safe || return 1
+                if [ -e "${nextboot_manifest}" ] || [ -L "${nextboot_manifest}" ]; then
+                    [ -f "${nextboot_manifest}" ] &amp;&amp; [ ! -L "${nextboot_manifest}" ] &amp;&amp; \
+                        mv -fT -- "${nextboot_manifest}" "${quarantined_update}"
+                fi
+            }
+            retire_rejected_removal() {
+                /bin/bash "${removal_helper}" cancel
+            }
             removal_digest="$(sha256sum -- "${registered_manifest}")" || exit 1
-            if ! record_removal cleanup; then
+            if [ "${incomplete_removal}" = false ] &amp;&amp; ! record_removal prepared; then
                 restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                exit 1
+            fi
+            if ! quarantine_nextboot_update; then
+                restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                printf 'FolderView Plus could not suspend its staged update. Check the next-boot plugin directory and retry removal.\n' >&amp;2
+                exit 1
+            fi
+            native_package_snapshot=""
+            if [ "${incomplete_removal}" = false ]; then
+                native_package_snapshot="$(snapshot_native_package)" || native_package_snapshot=""
+            fi
+            # From here onward an interruption may leave a partly removed package.
+            if ! record_removal cleanup; then
+                if ! restore_remove_scheduler; then
+                    printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                elif [ "${incomplete_removal}" = false ] &amp;&amp; ! retire_rejected_removal; then
+                    printf 'FolderView Plus could not retire its removal recovery state. Retry removal.\n' >&amp;2
+                fi
                 exit 1
             fi
             if [ -n "${deployed_version}" ] || [ "${removal_version}" != "&version;" ] ||
                 [ -f "&plugdir;/FolderViewPlus.page" ] ||
                 [ -f "/var/lib/pkgtools/packages/&name;-&version;" ] || [ -f "/var/log/packages/&name;-&version;" ]; then
                 if ! removepkg &name;-&version; 9>&amp;-; then
-                    restore_remove_scheduler || printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                    if ! restore_remove_scheduler; then
+                        printf 'FolderView Plus could not restore its scheduler after a removal error.\n' >&amp;2
+                    elif [ -n "${native_package_snapshot}" ] &amp;&amp; current_snapshot="$(snapshot_native_package)" &amp;&amp; \
+                        [ "${native_package_snapshot}" = "${current_snapshot}" ]; then
+                        # An explicit rejection left the installed package intact. Do not block normal boot installation.
+                        if ! retire_rejected_removal; then
+                            printf 'FolderView Plus could not retire its removal recovery state. Retry removal.\n' >&amp;2
+                        fi
+                    fi
                     exit 1
                 fi
+            fi
+            if ! quarantine_nextboot_update || ! rm -rf -- "${nextboot_assets}" || ! rm -f -- "${quarantined_update}" ||
+                ! sync -f /boot/config/plugins; then
+                printf 'FolderView Plus could not clear its staged update. Retry removal.\n' >&amp;2
+                exit 1
             fi
             if ! rm -f -- "${cron_backup}" ||
                 ! rm -rf -- "&plugdir;" /tmp/folderview.plus-assets "/boot/config/plugins/&name;" ||

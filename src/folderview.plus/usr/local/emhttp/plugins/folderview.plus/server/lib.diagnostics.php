@@ -134,6 +134,7 @@
     function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
+        $runtime = diagnosticsReadRuntimeReportInventory($types);
         $typesData = [];
         foreach ($types as $type) {
             $folderPath = getFolderFilePath($type);
@@ -142,9 +143,10 @@
             $prefs = readTypePrefs($type);
             $backups = listBackupSnapshots($type);
             $templates = readFolderTemplates($type);
-            $infoByName = readInfo($type);
+            $infoByName = $runtime['detailsByType'][$type];
             $configMetadataIntegrity = diagnosticsBuildConfigMetadataIntegrity($type);
-            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName, $privacyMode, $configMetadataIntegrity);
+            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName,
+                $privacyMode, $runtime['memberNames'][$type] ?? null, $configMetadataIntegrity);
             $stateSnapshot = diagnosticsBuildStateSnapshot($type, $folders, $prefs, $infoByName, $privacyMode);
             $typesData[$type] = [
                 'folderPath' => $privacyMode === 'full' ? $folderPath : basename($folderPath),
@@ -225,7 +227,6 @@
         $customIcons = diagnosticsBuildCustomIconStorage($privacyMode);
         $update = checkRemotePluginUpdate();
         $runtimeIntegrity = fvplus_get_runtime_integrity_snapshot($privacyMode);
-        $runtimeConnectivity = diagnosticsRuntimeConnectivity();
         $securityAudit = fvplus_get_security_audit_snapshot();
         $report = [
             'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
@@ -246,7 +247,7 @@
             ],
             'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
             'update' => $update,
-            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit, $runtimeConnectivity),
+            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit, $runtime['states']),
             'types' => $typesData
         ];
         return $privacyMode === 'full' ? $report : diagnosticsSanitizeReport($report);

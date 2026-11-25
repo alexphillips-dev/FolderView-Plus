@@ -18,6 +18,10 @@ export const runInventoryRepair = (request) => {
         // Isolate the host's fixed cache directory; exercise the real cache reader/writer unchanged.
         assertCacheRoot(source);
         fs.writeFileSync(core, source.replace("$cacheRoot = '/tmp/folderview.plus-cache';", `$cacheRoot = '${cacheRoot}';`));
+        const orderLibrary = path.join(fixtureServer, 'lib.docker-page-order.php');
+        const orderSource = fs.readFileSync(orderLibrary, 'utf8');
+        const nativePagePath = path.join(root, 'config', 'native-userprefs').replaceAll('\\', '/');
+        fs.writeFileSync(orderLibrary, orderSource.replace('/boot/config/plugins/dockerMan/userprefs.cfg', nativePagePath));
         return JSON.parse(execFileSync('php', [path.resolve('tests/fixtures/runtime-inventory.php'),
             fixtureServer, root], {
             encoding: 'utf8', timeout: 30000, env: { ...process.env,

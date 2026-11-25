@@ -4,10 +4,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
+import { runInventoryRepair } from './helpers/runtime-inventory-fixture.mjs';
 const require = createRequire(import.meta.url);
 const scripts = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
 const utils = require(path.join(scripts, 'folderviewplus.utils.js'));
-const { reviewImportSelection } = require(path.join(scripts, 'folderviewplus.import-selection.js'));
+const { reviewImportSelection, filterOperationsBySelection } = require(path.join(scripts, 'folderviewplus.import-selection.js'));
 const folder = (name, parentId = '') => ({ name, parentId, icon: '', containers: [], settings: {}, actions: [] });
 const loadFunction = (file, name, nextName, sandbox) => {
     const source = fs.readFileSync(path.join(scripts, file), 'utf8');
@@ -62,7 +63,8 @@ test('replacing from one folder keeps a matching target and discards unavailable
 });
 
 test('import review reports hidden members, identity changes, and legacy child order', () => {
-    const current = { original: { ...folder('Media'), containers: ['app'], hiddenPreviewMembers: [], memberIdentities: [] } };
+    const children = { 'child-a': folder('A', 'original'), 'child-b': folder('B', 'original') };
+    const current = { original: { ...folder('Media'), containers: ['app'], hiddenPreviewMembers: [], memberIdentities: [] }, ...children };
     const existing = current.original;
     for (const [incoming, expectedField] of [
         [{ ...existing, hiddenPreviewMembers: ['app'] }, 'members'],
@@ -70,7 +72,7 @@ test('import review reports hidden members, identity changes, and legacy child o
         [{ ...existing, membershipPolicy: 'folderview3' }, 'members'],
         [{ ...existing, child_folder_order: ['child-b', 'child-a'] }, 'settings']
     ]) {
-        const { summary, operations } = utils.buildImportPlan(current, { mode: 'full', folders: { original: incoming } }, 'merge');
+        const { summary, operations } = utils.buildImportPlan(current, { mode: 'full', folders: { original: incoming, ...children } }, 'merge');
         assert.equal(summary.updates.length, 1);
         assert.deepEqual(reviewImportSelection(current, operations, operations).diffRows[0].fields, [expectedField]);
     }
@@ -78,6 +80,60 @@ test('import review reports hidden members, identity changes, and legacy child o
     const plan = utils.buildImportPlan(current, { mode: 'full', folders: { original: unchanged } }, 'merge');
     assert.equal(plan.diffRows[0].action, 'unchanged');
     assert.equal(plan.summary.unchanged.length, 1);
+});
+
+test('full and partial imports preserve remapped child order and retained destination children', () => {
+    const current = {
+        target: { ...folder('Parent'), settings: { child_folder_order: ['target-b', 'target-a', 'local'] } },
+        'target-a': folder('A', 'target'), 'target-b': folder('B', 'target'), local: folder('Local', 'target')
+    };
+    const parsed = { mode: 'full', folders: {
+        root: { ...folder('Parent'), childFolderOrder: ['b', 'a', 'new', 'invalid'] },
+        a: folder('A', 'root'), b: folder('B', 'root'), new: folder('New', 'root')
+    } };
+    const { operations } = utils.buildImportPlan(current, parsed, 'merge');
+    assert.deepEqual(operations.upserts.find(row => row.id === 'target').folder.settings.child_folder_order, ['target-b', 'target-a', 'new', 'local']);
+    const replacement = utils.buildImportPlan(current, parsed, 'replace').operations;
+    const selection = { creates: [], upserts: replacement.upserts.map((entry, index) => ({ index, checked: entry.id !== 'new' })),
+        deletes: replacement.deletes.map((_, index) => ({ index, checked: false })) };
+    const selected = filterOperationsBySelection(replacement, selection, current);
+    assert.deepEqual(selected.upserts.find(row => row.id === 'target').folder.settings.child_folder_order, ['target-b', 'target-a', 'local']);
+    const { new: _new, ...sameSource } = parsed.folders;
+    const equivalent = utils.buildImportPlan(current, { ...parsed, folders: sameSource }, 'merge');
+    assert.equal(equivalent.diffRows.find(row => row.id === 'target').action, 'unchanged');
+    assert.equal(parsed.folders.root.childFolderOrder.at(0), 'b');
+    const numeric = utils.buildImportPlan(current, { mode: 'full', folders: {
+        root: { ...folder('Parent'), childFolderOrder: [2, 1] }, 1: folder('A', 'root'), 2: folder('B', 'root')
+    } }, 'merge');
+    assert.deepEqual(numeric.operations.upserts.find(row => row.id === 'target').folder.settings.child_folder_order, ['target-b', 'target-a', 'local']);
+});
+
+test('Branch Import persists child order using the IDs reserved by its guarded batch', async () => {
+    const { createApi } = require(path.join(scripts, 'folderviewplus.runtime-actions.js'));
+    const longId = 'x'.repeat(128), longPrefix = 'x'.repeat(126), longMappedId = longPrefix + '-2';
+    const current = { target: folder('Destination'), a: folder('Existing A'), b: folder('Existing B'),
+        [longId]: folder('Existing long ID'), [longPrefix + '-1']: folder('Existing reserved suffix') };
+    const incoming = {
+        root: { ...folder('Imported branch'), settings: { childFolderOrder: ['b', longId, 'a'] } },
+        a: folder('A', 'root'), b: folder('B', 'root'), [longId]: folder('Long ID', 'root')
+    };
+    let persisted;
+    const errors = [];
+    const api = createApi({
+        utils, getFolderMap: () => current, fetchFolders: async () => ({ folders: current, folderRevision: 1 }),
+        selectJsonFile: async () => ({ text: JSON.stringify(utils.buildFullExportPayload({ type: 'docker', folders: incoming })) }),
+        applyImportOperations: async (type, batchOperations, _progress, { expectedRevision }) => {
+            persisted = runInventoryRepair({ operation: 'batch', scenario: 'healthy', type, dockerFolders: current,
+                batchOperations: { ...batchOperations, preserveParentLinks: true }, expectedRevision });
+        },
+        showError: (...args) => errors.push(args)
+    });
+    await api.importFolderBranch('docker', 'target');
+    assert.deepEqual(errors, []);
+    assert.equal(persisted?.responseStatus, 200);
+    assert.equal(persisted.folders.root.parentId, 'target');
+    for (const child of ['a-1', 'b-1', longMappedId]) assert.equal(persisted.folders[child].parentId, 'root');
+    assert.deepEqual(persisted.folders.root.settings.child_folder_order, ['b-1', longMappedId, 'a-1']);
 });
 
 test('starter application replans from authoritative folder names and fences competing creates', async () => {

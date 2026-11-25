@@ -204,7 +204,8 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const isDashboardLegacyLayoutForType = \(type\) =>/);
     assert.match(dashboardScript, /const isDashboardLayoutTransitionInFlightForType = \(type\) =>/);
     assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type, isCurrent\) =>/);
-    assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
+    assert.match(dashboardScript, /await restoreDashboardNativeRowsForType\(resolvedType, canRestore\);\s*if \(!canRestore\(\)\) return false;/);
+    assert.match(dashboardScript, /const rendered = await createFolders\(resolvedType, \{ isCurrent \}\);/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
     assert.doesNotMatch(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);

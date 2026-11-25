@@ -32,6 +32,55 @@ function seedState(string $label): void {
     writeThemeWorkspace($workspace);
 }
 
+if (in_array($operation, ['rule-preview-retention', 'folder-transfer-retention'], true)) {
+    $type = 'vm';
+    writeRawFolderMap($type, ['target' => ['name' => 'Fixture target', 'icon' => 'original.svg']]);
+    writeTypePrefs($type, ['backupSchedule' => ['enabled' => false, 'retention' => 1], 'autoRules' => [
+        ['id' => 'fixture-rule', 'kind' => 'name_regex', 'pattern' => '^fixture$', 'folderId' => 'target']
+    ]]);
+    $oldName = 'vm-20200101-000000-manual.json';
+    $oldPath = getBackupSnapshotPath($type, $oldName);
+    writeJsonObjectAtomic($oldPath, ['folders' => ['historical' => ['name' => 'Older recovery point']]]);
+    touch($oldPath, 1577836800);
+    $oldHash = hash_file('sha256', $oldPath);
+    $paths = fvplusTypeTransactionPaths($type, false);
+    $before = fvplusEnvironmentCaptureFiles($paths);
+    eval('namespace DeferredBackupBoundary;
+        function writeRawFolderMap(string $type, array $folders): void {
+            if (empty($GLOBALS["deferred_backup_write_fault"])) { \\writeRawFolderMap($type, $folders); return; }
+            putenv("FVPLUS_STORAGE_FAILURE_INJECTION=1"); putenv("FVPLUS_STORAGE_FAILURE_STAGE=rename");
+            try { \\writeRawFolderMap($type, $folders); }
+            finally { putenv("FVPLUS_STORAGE_FAILURE_INJECTION"); putenv("FVPLUS_STORAGE_FAILURE_STAGE"); }
+        }');
+    $files = $operation === 'rule-preview-retention'
+        ? ['lib.rules-apply.php', 'lib.folder-rules.php'] : ['lib.folder-settings-transfer.php'];
+    foreach ($files as $file) {
+        $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/' . $file));
+        eval('namespace DeferredBackupBoundary; use \\RuntimeException; use \\Throwable;' . substr($body, 5));
+    }
+    $inventory = ['fixture' => []];
+    $apply = $operation === 'rule-preview-retention'
+        ? static function () use ($type, $inventory): array {
+            $preview = DeferredBackupBoundary\fvplusBuildRulePreview($type, $inventory);
+            return DeferredBackupBoundary\fvplusApplyRulePreview($type, $preview['digest'], $inventory);
+        }
+        : static fn(): array => DeferredBackupBoundary\applySelectiveFolderSettings($type, ['target'],
+            ['icon' => 'new.svg'], ['categories' => ['appearance']]);
+    $error = '';
+    $GLOBALS['deferred_backup_write_fault'] = true;
+    try { $apply(); } catch (Throwable $failure) { $error = $failure->getMessage(); }
+    $GLOBALS['deferred_backup_write_fault'] = false;
+    $failure = ['error' => $error, 'configUnchanged' => $before === fvplusEnvironmentCaptureFiles($paths),
+        'previousRetained' => is_file($oldPath) && hash_file('sha256', $oldPath) === $oldHash,
+        'archives' => count(listBackupSnapshots($type))];
+    $result = $apply();
+    $current = readRawFolderMap($type)['target'];
+    echo json_encode(['failure' => $failure, 'oldName' => $oldName, 'backup' => $result['backup'],
+        'remaining' => array_column(listBackupSnapshots($type), 'name'),
+        'applied' => $operation === 'rule-preview-retention' ? $current['containers'] === ['fixture'] : $current['icon'] === 'new.svg'], JSON_THROW_ON_ERROR);
+    exit;
+}
+
 if (in_array($operation, ['backup-prune-fault', 'checkpoint-collision', 'checkpoint-prune-fault', 'checkpoint-reader', 'export-reader'], true)) {
     $GLOBALS['checkpoint_boundary_root'] = $root;
     $GLOBALS['checkpoint_boundary_pause'] = in_array($operation, ['checkpoint-reader', 'export-reader'], true);

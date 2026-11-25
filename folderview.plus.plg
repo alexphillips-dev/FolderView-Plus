@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.09">
-<!ENTITY md5 "6f9aff3945b5a81f33904771c865437c">
-<!ENTITY sha256 "961750cf1bd09fcf3c38802e76a00483b45185eae961c411bac2ad555e1af598">
+<!ENTITY version "2026.11.24.10">
+<!ENTITY md5 "0f4673163b2800cad3a42fa8e9d11e66">
+<!ENTITY sha256 "37cfad2a9641e4f799087f1b2f8ed05a575e3e41dc31ea34285510de97061632">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.10
+- Reliability: Preserve newer folder changes, editor drafts, and preferences when undoing a bulk move. Conflicting rule saves now ask for a refresh instead of overwriting another tab's changes.
+- Fix: Keep global exclusion rules active across runtime pages. FolderView3 migration rejects regexes that would stop matching after conversion, and the Folder Editor recognizes valid converted legacy rules.
+- Reliability: Keep prior backups after failed operations, skip corrupt snapshots in recovery shortcuts, and show the same newest backup that the server restores.
+- Fix: Preserve numeric folder IDs in configuration and backups, support punctuation in folder controls, and keep pending expansion across runtime refreshes.
+- Fix: Refresh native VM actions and Docker update indicators on the Dashboard. Keep Appearance editing available after the workspace loads and preserve focus when editing colors.
+- Reliability: Keep boot registration consistent during overlapping update and removal, isolate reproducibility checks, and release the build lock when its process exits.
+
 
 ###2026.11.24.09
 - Fix: FolderView Plus upgrades and removal now identify the deployed version even when Unraid retains package records from earlier versions. Upgrade rollback still verifies the previous package before replacing it.
@@ -10188,9 +10197,28 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             set -e
             config_dir="/boot/config/plugins/&name;"
             registered_manifest="/boot/config/plugins/&name;.plg"
+            staged_manifest="/tmp/plugins/&name;.plg"
+            native_update=0
+            # Unraid runs this inline file through a shell. Locate its own CLI invocation
+            # so that a manual install or offline boot never consumes the update staging file.
+            if [[ "$0" = /tmp/inline*-&name;.sh ]]; then
+                installer_pid="${PPID}"
+                for ((ancestor=0; ancestor&lt;4 &amp;&amp; installer_pid>1; ancestor++)); do
+                    if ! readarray -d '' -t installer_args 2>/dev/null &lt; "/proc/${installer_pid}/cmdline"; then
+                        break
+                    fi
+                    if [[ "${installer_args[1]##*/}" = plugin || "${installer_args[1]##*/}" = plugin.php ]]; then
+                        if [ "${installer_args[2]:-}" = update ] &amp;&amp; [ "${installer_args[3]:-}" = "&name;.plg" ]; then
+                            native_update=1
+                        fi
+                        break
+                    fi
+                    installer_pid="$(awk '/^PPid:/ { print $2 }' "/proc/${installer_pid}/status")"
+                done
+            fi
             lock_options=(-n)
             # Unraid quarantines the boot manifest if this hook fails during startup.
-            if [ -r "${registered_manifest}" ] &amp;&amp; [ ! -L "/var/log/plugins/&name;.plg" ]; then
+            if [ "${native_update}" -eq 0 ] &amp;&amp; [ -r "${registered_manifest}" ] &amp;&amp; [ ! -L "/var/log/plugins/&name;.plg" ]; then
                 lock_options=()
             fi
             exec 9>>/run/folderview.plus-install.lock
@@ -10214,6 +10242,10 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             cron_backup=""
             cron_stage=""
             version_stage=""
+            version_backup=""
+            registered_stage=""
+            staged_repair=""
+            version_changed=0
             core_attempted=0
             cron_changed=0
 
@@ -10253,7 +10285,42 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             }
 
             read_manifest_value() {
-                sed -n "s/^&lt;!ENTITY $1 \"\([^\"]*\)\">$/\1/p" "${registered_manifest}" | head -n 1
+                sed -n "s/^&lt;!ENTITY $1 \"\([^\"]*\)\">\r\{0,1\}$/\1/p" "${2:-${registered_manifest}}" | head -n 1
+            }
+
+            prepare_native_registration() {
+                local candidate_url github_entity
+                if [ ! -f "${staged_manifest}" ] || [ -L "${staged_manifest}" ]; then
+                    return 1
+                fi
+                registered_stage="$(mktemp /boot/config/plugins/.folderview.plus.plg.XXXXXX)" || return 1
+                cp -- "${staged_manifest}" "${registered_stage}" || return 1
+                github_entity="$(read_manifest_value github "${registered_stage}")"
+                candidate_url="$(read_manifest_value pluginURL "${registered_stage}")"
+                candidate_url="${candidate_url//\&amp;github\;/${github_entity}}"
+                [ "$(read_manifest_value name "${registered_stage}")" = "&name;" ] \
+                    &amp;&amp; [ "$(read_manifest_value version "${registered_stage}")" = "&version;" ] \
+                    &amp;&amp; [ "$(read_manifest_value sha256 "${registered_stage}")" = "&sha256;" ] \
+                    &amp;&amp; [ "$(read_manifest_value md5 "${registered_stage}")" = "&md5;" ] \
+                    &amp;&amp; [ "$(read_manifest_value iconPackVersion "${registered_stage}")" = "&iconPackVersion;" ] \
+                    &amp;&amp; [ "$(read_manifest_value iconPackSha256 "${registered_stage}")" = "&iconPackSha256;" ] \
+                    &amp;&amp; [ "$(read_manifest_value iconPackMd5 "${registered_stage}")" = "&iconPackMd5;" ] \
+                    &amp;&amp; [ "${candidate_url}" = "&pluginURL;" ]
+            }
+
+            commit_native_registration() {
+                # Native remove deletes the stage before it reaches our activation lock.
+                # Restore that missing input without replacing another downloaded manifest.
+                if [ ! -e "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ]; then
+                    staged_repair="$(mktemp /tmp/plugins/.folderview.plus.plg.XXXXXX)" || return 1
+                    cp -- "${registered_stage}" "${staged_repair}" || return 1
+                    ln -T -- "${staged_repair}" "${staged_manifest}" 2>/dev/null || true
+                fi
+                [ -f "${staged_manifest}" ] &amp;&amp; [ ! -L "${staged_manifest}" ] \
+                    &amp;&amp; cmp -s -- "${registered_stage}" "${staged_manifest}" || return 1
+                # The native CLI ignores a failed final copy. Commit verified boot bytes
+                # atomically before returning so a later deleted stage cannot lose registration.
+                mv -fT -- "${registered_stage}" "${registered_manifest}"
             }
 
             archive_matches() {
@@ -10333,7 +10400,18 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     fi
                     /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || restored=0
                 fi
-                rm -f -- "${version_stage}" "${cron_stage}" "${cron_backup}" || restored=0
+                if [ "${version_changed}" -eq 1 ]; then
+                    if [ -n "${version_backup}" ]; then
+                        if ! mv -fT -- "${version_backup}" "${config_dir}/version"; then
+                            restored=0
+                            printf 'FolderView Plus kept the previous version file at %s.\n' "${version_backup}" >&amp;2
+                            version_backup=""
+                        fi
+                    else
+                        rm -f -- "${config_dir}/version" || restored=0
+                    fi
+                fi
+                rm -f -- "${version_stage}" "${version_backup}" "${registered_stage}" "${staged_repair}" "${cron_stage}" "${cron_backup}" || restored=0
                 cleanup_install_context || restored=0
                 if [ "${core_attempted}" -eq 1 ]; then
                     if [ "${restored}" -eq 1 ]; then
@@ -10347,12 +10425,16 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             trap install_failure EXIT
             capture_install_context
 
+            registered_version=""
+            registered_icon_pack=""
+            if [ -r "${registered_manifest}" ]; then
+                registered_version="$(read_manifest_value version)"
+                registered_icon_pack="$(read_manifest_value iconPackVersion)"
+            fi
+
             if previous_package_is_active; then
-                previous_version=""
-                if [ -r "${registered_manifest}" ]; then
-                    previous_version="$(read_manifest_value version)"
-                fi
-                # Unraid writes the registered manifest after the installation hook returns.
+                previous_version="${registered_version}"
+                # A manifest/package mismatch cannot supply a verified rollback baseline.
                 if [ -n "${active_package_version}" ] &amp;&amp; [ "${active_package_version}" != "${previous_version}" ]; then
                     printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
                     exit 1
@@ -10363,7 +10445,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                     exit 1
                 fi
                 previous_archive="${config_dir}/&name;-${previous_version}.txz"
-                previous_icon_pack="$(read_manifest_value iconPackVersion)"
+                previous_icon_pack="${registered_icon_pack}"
                 if [ -n "${previous_icon_pack}" ]; then
                     previous_icon_sha="$(read_manifest_value iconPackSha256)"
                     if ! [[ "${previous_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
@@ -10371,6 +10453,17 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                         printf 'FolderView Plus cannot verify the previous icon pack for rollback. The active package was kept.\n' >&amp;2
                         exit 1
                     fi
+                fi
+            fi
+            if [ "${native_update}" -eq 1 ]; then
+                install_stage="native update registration"
+                if [ -n "${registered_version}" ] &amp;&amp; version_before "&version;" "${registered_version}"; then
+                    printf 'FolderView Plus cannot update from an older staged manifest. Check for the current release and retry.\n' >&amp;2
+                    exit 1
+                fi
+                if ! prepare_native_registration; then
+                    printf 'FolderView Plus could not verify the staged update manifest. Check for updates and retry.\n' >&amp;2
+                    exit 1
                 fi
             fi
             if [ -L "${cron_file}" ]; then
@@ -10405,37 +10498,44 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             install_stage="installation report"
             install_summary="$(/bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}")"
             install_stage="version metadata"
+            if [ "${native_update}" -eq 1 ] &amp;&amp; { [ -e "${config_dir}/version" ] || [ -L "${config_dir}/version" ]; }; then
+                version_backup="$(mktemp "${config_dir}/.version.rollback.XXXXXX")"
+                cp -pP -- "${config_dir}/version" "${version_backup}"
+            fi
             version_stage="$(mktemp "${config_dir}/.version.XXXXXX")"
             printf '%s\n' "&version;" > "${version_stage}"
             mv -fT -- "${version_stage}" "${config_dir}/version"
+            version_changed=1
+            if [ "${native_update}" -eq 1 ]; then
+                install_stage="native update registration"
+                if ! commit_native_registration; then
+                    printf 'FolderView Plus could not register the chosen update. The staged manifest may have changed.\n' >&amp;2
+                    exit 1
+                fi
+            fi
             trap - EXIT
-            rm -f -- "${cron_backup}" || true
+            rm -f -- "${cron_backup}" "${version_backup}" "${staged_repair}" || true
             cleanup_install_context || true
             printf '%s\n' "${install_summary}"
 
-            # Unraid registers the incoming manifest after this hook returns. Keep the files
-            # named by both manifests until registration is visible on a later install or boot.
-            if [ -r "${registered_manifest}" ]; then
-                if registered_version="$(read_manifest_value version)" \
-                    &amp;&amp; registered_icon_pack="$(read_manifest_value iconPackVersion)" \
-                    &amp;&amp; [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-                    &amp;&amp; [[ "${registered_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    incoming_version="&version;"
-                    for local_archive in "${config_dir}"/&name;-*.txz; do
-                        [ -f "${local_archive}" ] &amp;&amp; [ ! -L "${local_archive}" ] || continue
-                        archive_name="${local_archive##*/}"
-                        if [[ "${archive_name}" =~ ^folderview[.]plus-([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+[.]txz$ ]]; then
-                            archive_date="${BASH_REMATCH[1]}"
-                            version_before "${archive_date}" "${incoming_version%.*}" &amp;&amp; version_before "${archive_date}" "${registered_version%.*}" || continue
-                        elif [[ "${archive_name}" =~ ^folderview[.]plus-icons-([0-9]+\.[0-9]+\.[0-9]+)[.]txz$ ]]; then
-                            archive_version="${BASH_REMATCH[1]}"
-                            version_before "${archive_version}" "&iconPackVersion;" &amp;&amp; version_before "${archive_version}" "${registered_icon_pack}" || continue
-                        else
-                            continue
-                        fi
-                        rm -f -- "${local_archive}" || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
-                    done
-                fi
+            # Retain archives named by both the previous and incoming manifests.
+            if [[ "${registered_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                &amp;&amp; [[ "${registered_icon_pack}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                incoming_version="&version;"
+                for local_archive in "${config_dir}"/&name;-*.txz; do
+                    [ -f "${local_archive}" ] &amp;&amp; [ ! -L "${local_archive}" ] || continue
+                    archive_name="${local_archive##*/}"
+                    if [[ "${archive_name}" =~ ^folderview[.]plus-([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+[.]txz$ ]]; then
+                        archive_date="${BASH_REMATCH[1]}"
+                        version_before "${archive_date}" "${incoming_version%.*}" &amp;&amp; version_before "${archive_date}" "${registered_version%.*}" || continue
+                    elif [[ "${archive_name}" =~ ^folderview[.]plus-icons-([0-9]+\.[0-9]+\.[0-9]+)[.]txz$ ]]; then
+                        archive_version="${BASH_REMATCH[1]}"
+                        version_before "${archive_version}" "&iconPackVersion;" &amp;&amp; version_before "${archive_version}" "${registered_icon_pack}" || continue
+                    else
+                        continue
+                    fi
+                    rm -f -- "${local_archive}" || printf 'FolderView Plus could not remove an obsolete local archive.\n' >&amp;2
+                done
             fi
         </INLINE>
     </FILE>

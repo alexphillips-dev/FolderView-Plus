@@ -149,22 +149,12 @@
         };
 
         const getFolderEditorRuleIssues = (rule) => {
-            const issues = [];
             const kind = normalizeFolderEditorRuleKind(rule?.kind);
-            const pattern = String(rule?.pattern || '').trim();
-            if (ruleRegexKinds.includes(kind)) {
-                if (!pattern) {
-                    issues.push('Empty regex');
-                } else {
-                    try {
-                        // eslint-disable-next-line no-new
-                        new RegExp(pattern, 'u');
-                    } catch (_error) {
-                        issues.push('Invalid regex');
-                    }
-                }
-            }
-            return issues;
+            if (!ruleRegexKinds.includes(kind)) return [];
+            const pattern = String(rule?.pattern || '');
+            if (!pattern) return ['Empty regex'];
+            const compiled = utils?.compileRuleSet?.({ rules: [{ ...rule, kind, pattern, enabled: true }], type });
+            return compiled?.issues.length ? ['Invalid regex'] : [];
         };
 
         const getFolderEditorAutoRules = () => {

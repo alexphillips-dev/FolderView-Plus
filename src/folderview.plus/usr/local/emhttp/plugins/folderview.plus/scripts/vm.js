@@ -841,7 +841,7 @@ const applyVmFolderQuickActionState = (folderId) => {
     if (!id) {
         return;
     }
-    const $row = $(`tr.folder-id-${id}`);
+    const $row = $(`tr[class~="folder-id-${id}"]`);
     if (!$row.length) {
         return;
     }
@@ -875,7 +875,7 @@ const applyVmFocusedFolderState = () => {
         }
         const $row = $(row);
         const className = String(row.className || '');
-        const folderMatch = className.match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
+        const folderMatch = className.match(/(?:^|\s)folder-id-([A-Za-z0-9_.:-]+)(?:\s|$)/);
         if (folderMatch && folderMatch[1]) {
             $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(folderMatch[1]));
             return;
@@ -1336,7 +1336,7 @@ const findVmFolderOwnerIdForRow = (row) => {
 };
 
 const isVmFolderExpanded = (folderId) => (
-    $(`.dropDown-${String(folderId || '').trim()}`).attr('active') === 'true'
+    $(`[class~="dropDown-${String(folderId || '').trim()}"]`).attr('active') === 'true'
 );
 
 const findVmNativeToggleAnchorForDetailId = (detailId) => {
@@ -1425,7 +1425,7 @@ const placeVmNativeDetailRowForOwner = (detailRow, vmRow) => {
             if (isVmFolderExpanded(folderId)) {
                 vmRow.after(detailRow);
             } else {
-                const storage = document.querySelector(`tr.folder-id-${folderId} .folder-storage`);
+                const storage = document.querySelector(`tr[class~="folder-id-${folderId}"] .folder-storage`);
                 if (storage instanceof Element) {
                     storage.appendChild(detailRow);
                 } else {
@@ -1856,20 +1856,20 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     } else {
         $('#kvm_list > tr.sortable').eq(position - 1).next().after($(fld));
     }
-    const $createdFolderRow = $(`tr.folder-id-${id}`).first();
+    const $createdFolderRow = $(`tr[class~="folder-id-${id}"]`).first();
     vmFolderRowActionsController.decorate($createdFolderRow, id);
     const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
     const depthIndentPx = safeDepth * 20;
-    $(`tr.folder-id-${id}`)
+    $(`tr[class~="folder-id-${id}"]`)
         .attr('data-folder-depth', String(safeDepth))
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
     applyVmFolderQuickActionState(id);
 
-    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
+    const $preview = $(`tr[class~="folder-id-${id}"] div.folder-preview`);
     const previewNode = $preview.get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
-    applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
+    applyFolderDropdownStyle($(`tr[class~="folder-id-${id}"]`), folder.settings);
     $preview.addClass(`folder-preview-${folder.settings.preview}`);
     applyFolderPreviewLayout($preview, folder.settings);
 
@@ -1878,32 +1878,32 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     switch (folder.settings.preview) {
         case 1:
             addPreview = (id, autostart) => {
-                $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
-                return $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
+                $(`tr[class~="folder-id-${id}"] div.folder-preview`).append($(`tr[class~="folder-id-${id}"] div.folder-storage > tr > td.vm-name > span.outer:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr[class~="folder-id-${id}"] div.folder-preview > span.outer:last`);
             };
             break;
         case 2:
             addPreview = (id, autostart) => {
-                $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
-                return $(`tr.folder-id-${id} div.folder-preview > span.hand:last`);
+                $(`tr[class~="folder-id-${id}"] div.folder-preview`).append($(`tr[class~="folder-id-${id}"] div.folder-storage > tr > td.vm-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr[class~="folder-id-${id}"] div.folder-preview > span.hand:last`);
             };
             break;
         case 3:
             addPreview = (id, autostart) => {
-                $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
-                return $(`tr.folder-id-${id} div.folder-preview > span.inner:last`);
+                $(`tr[class~="folder-id-${id}"] div.folder-preview`).append($(`tr[class~="folder-id-${id}"] div.folder-storage > tr > td.vm-name > span.outer > span.inner:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr[class~="folder-id-${id}"] div.folder-preview > span.inner:last`);
             };
             break;
         case 4:
             addPreview = (id, autostart) => {
-                let lstSpan = $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
+                let lstSpan = $(`tr[class~="folder-id-${id}"] div.folder-preview > span.outer:last`);
                 if(!lstSpan[0] || lstSpan.children().length >= 2) {
-                    $(`tr.folder-id-${id} div.folder-preview`).append($('<span class="outer"></span>'));
-                    lstSpan = $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
+                    $(`tr[class~="folder-id-${id}"] div.folder-preview`).append($('<span class="outer"></span>'));
+                    lstSpan = $(`tr[class~="folder-id-${id}"] div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
                 const $inner = lstSpan.children('span.inner:last');
-                $inner.append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                $inner.append($(`tr[class~="folder-id-${id}"] div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 return $inner;
             };
             break;
@@ -1971,7 +1971,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
             }).first();
             const vmRowNode = $vmTR.get(0);
             const detailRows = collectExistingVmDetailRowsForVmRow(vmRowNode);
-            const storage = $(`tr.folder-id-${id} div.folder-storage`).get(0);
+            const storage = $(`tr[class~="folder-id-${id}"] div.folder-storage`).get(0);
             if (vmRowNode && storage instanceof Element) {
                 applyVmFolderElementOwnership(vmRowNode, id);
                 vmRowNode.classList.remove('sortable');
@@ -1989,10 +1989,10 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
             if ($previewMember && $previewMember.length) {
                 $previewMember.attr('data-fv-runtime-name', container);
             }
-            $(`tr.folder-id-${id} div.folder-preview span.inner > a`).css("width", folder.settings.preview_text_width || '');
+            $(`tr[class~="folder-id-${id}"] div.folder-preview span.inner > a`).css("width", folder.settings.preview_text_width || '');
 
             // element to set the preview options
-            const element = $(`tr.folder-id-${id} div.folder-preview > span:last`);
+            const element = $(`tr[class~="folder-id-${id}"] div.folder-preview > span:last`);
 
             //temp var
             let sel;
@@ -2048,7 +2048,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     }
 
     // set the border on the last element
-    $(`.folder-${id}-element:last`).css('border-bottom', '1px solid rgba(128, 128, 128, 0.3)');
+    $(`[class~="folder-${id}-element"]:last`).css('border-bottom', '1px solid rgba(128, 128, 128, 0.3)');
 
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
@@ -2059,7 +2059,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     layoutFolderPreviewRows($preview, folder.settings);
     if (lazyPreviewActive) {
         const previewElement = $preview.get(0);
-        const rowElement = $(`tr.folder-id-${id}`).get(0);
+        const rowElement = $(`tr[class~="folder-id-${id}"]`).get(0);
         vmDeferredPreviewController.defer(previewElement, {
             interactionTarget: rowElement,
             placeholder: `${combinedMembers.length} members · preview deferred`,
@@ -2071,15 +2071,15 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
 
     const total = Object.entries(folder.containers).length;
     if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
-        $(`tr.folder-id-${id}`).remove();
-        $(`tr#name-${id}`).remove();
+        $(`tr[class~="folder-id-${id}"]`).remove();
+        $(`tr[id="name-${id}"]`).remove();
         return remBefore;
     }
-    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
     applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
-    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderIcon = $folderRow.find(`i[id="load-folder-${id}"]`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     if (started > 0) {
@@ -2100,16 +2100,16 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     // This prevents the bug where checked:false + click() could fire a change event
     // that propagates to folderAutostart and resets VM autostart settings.
     const folderHasAutostart = autostart > 0;
-    $(`#folder-${id}-auto`).switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on'), checked: folderHasAutostart });
+    $(`[id="folder-${id}-auto"]`).switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on'), checked: folderHasAutostart });
 
     if(autostart === 0) {
-        $(`tr.folder-id-${id}`).addClass('no-autostart');
+        $(`tr[class~="folder-id-${id}"]`).addClass('no-autostart');
     } else if (autostart > 0 && autostartStarted === 0) {
-        $(`tr.folder-id-${id}`).addClass('autostart-off');
+        $(`tr[class~="folder-id-${id}"]`).addClass('autostart-off');
     } else if (autostart > 0 && autostartStarted > 0 && autostart !== autostartStarted) {
-        $(`tr.folder-id-${id}`).addClass('autostart-partial');
+        $(`tr[class~="folder-id-${id}"]`).addClass('autostart-partial');
     } else if (autostart > 0 && autostartStarted > 0 && autostart === autostartStarted) {
-        $(`tr.folder-id-${id}`).addClass('autostart-full');
+        $(`tr[class~="folder-id-${id}"]`).addClass('autostart-full');
     }
 
     // set the status
@@ -2122,7 +2122,7 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
     folder.status.expanded = false;
 
     // Attach handler AFTER switchButton is fully initialized with correct state
-    $(`#folder-${id}-auto`).off("change", folderAutostart).on("change", folderAutostart);
+    $(`[id="folder-${id}-auto"]`).off("change", folderAutostart).on("change", folderAutostart);
 
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-creation', {detail: {
         folder: folder,
@@ -2142,9 +2142,8 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
  */
 const folderAutostart = (el) => {
     const status = el.target.checked;
-    // The id is needded to get the containers, the checkbox has a id folder-${id}-auto, so split and take the second element
-    const id = el.target.id.split('-')[1];
-    const containers = $(`tr.folder-${id}-element`);
+    const id = el.target.id.slice('folder-'.length, -'-auto'.length);
+    const containers = $(`tr[class~="folder-${id}-element"]`);
     for (const container of containers) {
         // Select the td with the switch inside
         const el = $(container).children().last();
@@ -2163,18 +2162,18 @@ const folderAutostart = (el) => {
  */
 const dropDownButton = (id, persistState = true) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-expansion', {detail: { id }}));
-    const element = $(`.dropDown-${id}`);
+    const element = $(`[class~="dropDown-${id}"]`);
     const state = element.attr('active') === "true";
     if (state) {
         element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        $(`tr.folder-id-${id}`).addClass('sortable');
-        $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
+        $(`tr[class~="folder-id-${id}"]`).addClass('sortable');
+        $(`tr[class~="folder-id-${id}"] .folder-storage`).append($(`[class~="folder-${id}-element"]`));
         element.attr('active', 'false');
     } else {
         element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
-        $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
-        $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
-        $(`.folder-${id}-element > td > i.fa-arrows-v`).remove();
+        $(`tr[class~="folder-id-${id}"]`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
+        $(`tr[class~="folder-id-${id}"]`).after($(`[class~="folder-${id}-element"]`));
+        $(`[class~="folder-${id}-element"] > td > i.fa-arrows-v`).remove();
         element.attr('active', 'true');
     }
     if(globalFolders[id]) {
@@ -2501,7 +2500,7 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
             if (!requests.length) return;
 
             setVmFolderActionProgress(key, true);
-            $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
+            $(`i[id="load-folder-${id}"]`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
             try {
                 await settleVmFolderActions(requests, 'folder-action');
             } finally {
@@ -3037,7 +3036,7 @@ const addVMFolderContext = (id) => {
 
     opts = normalizeDividers(opts);
     folderEvents.dispatchEvent(new CustomEvent('vm-folder-context', { detail: { id, opts } }));
-    context.attach('#' + id, opts);
+    context.attach('#' + $.escapeSelector(id), opts);
     queueVmFolderContextQuickIcons();
     vmPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
 };
@@ -3242,8 +3241,8 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
         folder.containers[entry.name] = { ...current, id: entry.uuid || current.id || '', state: entry.state, autostart: entry.autostart === true };
     });
     const total = entries.length;
-    const $folderRow = $(`tr.folder-id-${id}`);
-    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderRow = $(`tr[class~="folder-id-${id}"]`);
+    const $folderIcon = $folderRow.find(`i[id="load-folder-${id}"]`);
     const $folderState = $folderRow.find('span.folder-state');
     const aggregate = started > 0
         ? { count: started, key: 'started', icon: 'fa-play', className: 'started' }
@@ -3265,7 +3264,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
     else if (autostartStarted === 0) $folderRow.addClass('autostart-off');
     else if (autostartStarted < autostart) $folderRow.addClass('autostart-partial');
     else $folderRow.addClass('autostart-full');
-    runtimeHostAdapters?.syncNativeSwitch?.($(`#folder-${id}-auto`), autostart > 0);
+    runtimeHostAdapters?.syncNativeSwitch?.($(`[id="folder-${id}-auto"]`), autostart > 0);
     const expanded = folder?.status?.expanded === true;
     folder.status = { started, paused, stopped, autostart, autostartStarted, expanded };
 };

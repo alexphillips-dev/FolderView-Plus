@@ -118,6 +118,12 @@
             }
             const autostart = type === 'vm' ? entry?.autostart === true : entry?.info?.State?.Autostart === true;
             $surface.toggleClass('autostart', autostart);
+            if (type === 'docker') {
+                const updated = entry?.info?.State?.Updated;
+                if (typeof updated === 'boolean' || entry?.isRebuildReady === true) {
+                    $inner.children('span').first().not('.state').toggleClass('blue-text', updated === false && entry?.isRebuildReady !== true);
+                }
+            }
             return true;
         };
 

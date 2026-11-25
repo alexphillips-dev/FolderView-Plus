@@ -144,7 +144,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /trap cleanup_tmpdir EXIT/);
     assert.match(pkgBuild, /ensure_repo_layout/);
     assert.match(pkgBuild, /acquire_build_lock/);
-    assert.match(pkgBuild, /mkdir "\$build_lock_dir"/);
+    assert.match(pkgBuild, /flock -n 9/);
     assert.match(pkgBuild, /--output-dir D/);
     assert.match(pkgBuild, /--keep-archives N/);
     assert.match(pkgBuild, /--no-prune-archives/);
@@ -180,32 +180,107 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 
-test('all build contenders use the same lock and leave its owner in place', t => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
-    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
-    const lockDirectory = path.join(directory, 'tmp', 'pkg_build.lock.d');
-    const owner = path.join(lockDirectory, 'owner');
-    fs.mkdirSync(lockDirectory, { recursive: true });
-    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
-    fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), '');
-    fs.writeFileSync(path.join(directory, 'folderview.plus.xml'), '');
-    fs.writeFileSync(owner, 'first builder');
-
+function runBuildFixture(directory, script, ...args) {
     const windows = process.platform === 'win32';
     const shellPath = value => windows ? value.replaceAll('\\', '/').replace(/^([A-Z]):/i, (_, drive) => '/mnt/' + drive.toLowerCase()) : value;
-    const command = windows ? 'wsl.exe' : 'bash';
-    const prefix = windows ? ['--exec', 'bash'] : [];
-    const run = 'cd "$1" && shift && exec "$@"';
-    for (const options of [[], ['FVPLUS_PKG_BUILD_DISABLE_FLOCK=1']]) {
-        assert.throws(() => execFileSync(command, [
-            ...prefix, '-c', run, 'bash', shellPath(directory), 'env', ...options, 'bash', shellPath(pkgBuildPath), '--dry-run'
-        ], {
-            cwd: repoRoot,
-            stdio: ['ignore', 'pipe', 'pipe'],
-            encoding: 'utf8'
-        }), error => error.status === 1 && /Another pkg_build\.sh instance is already running/.test(error.stderr));
-        assert.equal(fs.readFileSync(owner, 'utf8'), 'first builder');
+    return execFileSync(windows ? 'wsl.exe' : 'bash', [
+        ...(windows ? ['--exec', 'bash'] : []), '-s', '--', shellPath(directory), ...args.map(shellPath)
+    ], { cwd: repoRoot, encoding: 'utf8', timeout: 30000, input: script });
+}
+
+test('package modes share a lock which recovers after abrupt owner termination', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    for (const file of ['folderview.plus.plg', 'folderview.plus.xml', 'scripts/ensure_plg_changes_entry.sh', 'scripts/generate_runtime_integrity_manifest.mjs']) {
+        fs.writeFileSync(path.join(directory, file), '');
     }
+    fs.writeFileSync(path.join(directory, 'scripts/icon_asset_pack_guard.sh'), `#!/bin/bash
+    if [ "\${FVPLUS_FIXTURE_BLOCK_BUILD:-}" = 1 ]; then
+        touch owner-ready
+        for ((attempt=0; attempt<200; attempt++)); do
+            [ ! -f release-child ] || exit 0
+            sleep 0.05
+        done
+    fi
+`);
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+builder="$2"
+FVPLUS_FIXTURE_BLOCK_BUILD=1 bash "$builder" --branch dev --dry-run --no-validate &
+owner=$!
+trap 'touch release-child' EXIT
+for ((attempt=0; attempt<200; attempt++)); do
+    [ ! -f owner-ready ] || break
+    sleep 0.05
+done
+test -f owner-ready
+for mode in --dry-run --no-prune-archives; do
+    if bash "$builder" --branch dev --no-validate "$mode" > contender.log 2>&1; then exit 10; fi
+    grep -q 'Another pkg_build.sh instance is already running' contender.log
+done
+kill -KILL "$owner"
+wait "$owner" 2>/dev/null || test "$?" -eq 137
+touch release-child
+for ((attempt=0; attempt<200; attempt++)); do
+    if bash "$builder" --branch dev --dry-run --no-validate > recovered.log 2>&1; then
+        cat recovered.log
+        exit 0
+    fi
+    grep -q 'Another pkg_build.sh instance is already running' recovered.log
+    sleep 0.05
+done
+exit 11
+`, pkgBuildPath);
+    assert.match(output, /Dry run: no package or release files will be written/);
+    assert.equal(fs.existsSync(path.join(directory, 'archive')), false);
+});
+
+test('repro guard builds from the same snapshot and preserves concurrent checkout metadata', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-repro-snapshot-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    for (const folder of ['.github', 'archive', 'asset-packs', 'docs/releases', 'scripts', 'src']) {
+        fs.mkdirSync(path.join(directory, folder), { recursive: true });
+    }
+    const version = '2026.01.01.01';
+    const initialManifest = `<!ENTITY version "${version}">\n`;
+    fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), initialManifest);
+    fs.writeFileSync(path.join(directory, 'folderview.plus.xml'), 'original CA metadata\n');
+    fs.writeFileSync(path.join(directory, 'docs/sbom.cdx.json'), 'original SBOM\n');
+    fs.writeFileSync(path.join(directory, 'package-lock.json'), '{}');
+    fs.writeFileSync(path.join(directory, 'archive', `folderview.plus-${version}.txz`), 'synthetic archive\n');
+    fs.copyFileSync(reproBuildGuardPath, path.join(directory, 'scripts', 'repro_build_guard.sh'));
+    fs.copyFileSync(sharedLibPath, path.join(directory, 'scripts', 'lib.sh'));
+    fs.writeFileSync(path.join(directory, 'pkg_build.sh'), `#!/bin/bash
+set -euo pipefail
+test "$PWD" != "$FVPLUS_FIXTURE_REPRO_ROOT"
+test "$1 $2 $3 $5" = "--branch main --output-dir --no-validate"
+grep -q '2026.01.01.01' folderview.plus.plg
+grep -q '^original CA metadata$' folderview.plus.xml
+printf '%s\\n' "$PWD" >> "$FVPLUS_FIXTURE_REPRO_ROOT/build-paths"
+printf 'scratch manifest\\n' > folderview.plus.plg
+printf 'scratch CA metadata\\n' > folderview.plus.xml
+printf 'scratch SBOM\\n' > docs/sbom.cdx.json
+printf 'synthetic archive\\n' > "$4/folderview.plus-$FVPLUS_VERSION_OVERRIDE.txz"
+if mkdir "$FVPLUS_FIXTURE_REPRO_ROOT/competing-release" 2>/dev/null; then
+    printf 'newer manifest\\n' > "$FVPLUS_FIXTURE_REPRO_ROOT/folderview.plus.plg"
+    printf 'newer CA metadata\\n' > "$FVPLUS_FIXTURE_REPRO_ROOT/folderview.plus.xml"
+    printf 'newer SBOM\\n' > "$FVPLUS_FIXTURE_REPRO_ROOT/docs/sbom.cdx.json"
+fi
+`);
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+git -c init.defaultBranch=main init -q
+FVPLUS_REPRO_ALLOW_STALE_STABLE=1 FVPLUS_FIXTURE_REPRO_ROOT="$PWD" bash scripts/repro_build_guard.sh
+`);
+    assert.match(output, /Deterministic build guard passed/);
+    const buildPaths = fs.readFileSync(path.join(directory, 'build-paths'), 'utf8').trim().split('\n');
+    assert.equal(buildPaths.length, 2);
+    assert.notEqual(buildPaths[0], buildPaths[1]);
+    assert.equal(fs.readFileSync(path.join(directory, 'folderview.plus.plg'), 'utf8'), 'newer manifest\n');
+    assert.equal(fs.readFileSync(path.join(directory, 'folderview.plus.xml'), 'utf8'), 'newer CA metadata\n');
+    assert.equal(fs.readFileSync(path.join(directory, 'docs/sbom.cdx.json'), 'utf8'), 'newer SBOM\n');
 });
 
 test('archive pruning script keeps newest versions and preserves current release artifacts', () => {

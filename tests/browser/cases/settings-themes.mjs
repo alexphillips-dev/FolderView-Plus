@@ -276,6 +276,20 @@ export const registerSettingsThemeCases = ({ test, baseUrl }) => {
         await mount(page, baseUrl);
         await chooseTab(page, 'appearance');
         await page.locator('#fv-theme-profile-scope').selectOption('docker');
+        const color = await page.locator('[data-fv-theme-token="--fvplus-theme-accent"]').evaluate(input => {
+            input.focus();
+            for (const value of ['#224466', '#335577']) {
+                input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            const row = input.closest('.fv-theme-variable-row');
+            return {
+                retainsFocus: document.activeElement === input && input.isConnected,
+                customized: row.classList.contains('has-override') && row.querySelector('code').textContent.includes('customized'),
+                preview: document.getElementById('fv-theme-preview-sample').style.getPropertyValue('--fvplus-theme-accent')
+            };
+        });
+        assert.deepEqual(color, { retainsFocus: true, customized: true, preview: '#335577' });
         await page.locator('#fv-theme-custom-css').fill('.draft { opacity: .9; }');
         await page.locator('[data-fv-theme-preset="green"]').click();
         await page.locator('[data-fv-onclick="saveThemeWorkspaceCustomize()"]').click();

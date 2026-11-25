@@ -89,15 +89,11 @@
     };
 
     const patchIsEmpty = (patch) => !isPlainObject(patch) || Object.keys(patch).length === 0;
+    const preferencesChangedMessage = 'Preferences changed in another page. Review and save your changes again.';
     const readRevision = (prefs) => Math.max(0, Number.parseInt(String(prefs?._metadata?.prefsRevision ?? '0'), 10) || 0);
     const normalizeType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
     const createSourceId = () => `prefs-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 10)}`;
     const createMutationId = (sourceId, generation) => `${sourceId}-${Math.max(0, Number(generation) || 0).toString(36)}`.slice(0, 96);
-    const isRetryableSyncError = (error) => {
-        const status = Number(error?.status || error?.httpStatus || 0);
-        return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500
-            || (status === 409 && ['nonce-stale', 'transaction-replayed'].includes(error?.reasonCode));
-    };
 
     const normalizeDashboardLayout = (value, fallback = null) => {
         const normalized = String(value || '').trim().toLowerCase();
@@ -279,7 +275,7 @@
         const clearTimer = typeof options.clearTimeout === 'function' ? options.clearTimeout : clearTimeout;
         const now = typeof options.now === 'function' ? options.now : Date.now;
         const outbox = outboxApi.createStorage({ storage, prefix: storagePrefix, sourceId, now,
-            readRevision, mergePatch, patchIsEmpty, mutationIdFor: generation => createMutationId(sourceId, generation) });
+            readRevision, mergePatch, cloneValue, patchIsEmpty, mutationIdFor: generation => createMutationId(sourceId, generation) });
         const states = new Map();
         const subscribers = new Set();
         let broadcastChannel = null;
@@ -291,6 +287,7 @@
             confirmedPrefs: null,
             optimisticPrefs: null,
             pendingPatch: {},
+            pendingAutoRulesBase: null,
             inFlightBatch: null,
             retryBatch: null,
             restoring: [],
@@ -508,7 +505,7 @@
             const restored = state.restoring[0] || null;
             const recovered = restored && outbox.recoverOperation(restored);
             if (restored && !recovered) {
-                const error = new Error('Preferences changed in another page. Review and save your changes again.');
+                const error = new Error(preferencesChangedMessage);
                 outbox.finish(state, restored);
                 state.lastError = error.message;
                 state.recoveryConflict = true;
@@ -530,6 +527,9 @@
             const startedAt = now();
             const mutationPublicationGeneration = state.mutationPublicationGeneration;
             try {
+                if (outbox.rulesConflictBeforeWrite(batch, state, restored || retry)) {
+                    throw Object.assign(new Error(preferencesChangedMessage), { status: 409, rulesConflict: true });
+                }
                 state.stats.requests += 1;
                 const response = await writePrefs(state.type, batchPatch, {
                     expectedRevision,
@@ -575,10 +575,26 @@
                 }
             } catch (error) {
                 state.inFlightBatch = null;
-                const status = Number(error?.status || error?.httpStatus || 0);
-                const isConflict = outboxApi.isPreferenceRevisionConflict(status, error);
-                const recoveredConflict = isConflict && (restored || retry);
-                const rejected = recoveredConflict || ((status === 400 || status === 422) && (!error?.phase || error.phase === 'request'));
+                let { isConflict, recoveredConflict, rejected } = outboxApi.classifyWriteError(error, restored || retry);
+                if (isConflict && !rejected && fetchPrefs && state.conflictRetries < MAX_CONFLICT_RETRIES) {
+                    outbox.beginRebase(state, batch);
+                    state.lastError = 'Preferences changed in another page. Rebasing pending changes.';
+                    emit(state);
+                    try {
+                        await hydrateFromServer(state.type, { restoreOutbox: false, replay: false, force: true });
+                        if (outbox.rulesChangedSinceEdit(batch, state)) {
+                            rejected = true;
+                            error = new Error(preferencesChangedMessage);
+                        } else {
+                            outbox.completeRebase(state, batch);
+                            scheduleFlush(state, 0);
+                            return;
+                        }
+                    } catch (refreshError) {
+                        error = refreshError;
+                    }
+                    state.inFlightBatch = null;
+                }
                 if (rejected) {
                     outbox.finish(state, restored);
                     state.recoveryConflict = Boolean(recoveredConflict);
@@ -588,24 +604,8 @@
                         try { await hydrateFromServer(state.type, { restoreOutbox: false, replay: false }); } catch (_error) {}
                     }
                 } else if (!restored) {
-                    if (isConflict) state.pendingPatch = mergePatch(batchPatch, state.pendingPatch);
+                    if (isConflict) outbox.requeue(state, batch);
                     else state.retryBatch = batch;
-                }
-                if (isConflict && !recoveredConflict && !restored && fetchPrefs && state.conflictRetries < MAX_CONFLICT_RETRIES) {
-                    state.conflictRetries += 1;
-                    state.stats.conflicts += 1;
-                    state.status = 'sync-pending';
-                    state.lastError = 'Preferences changed in another page. Rebasing pending changes.';
-                    outbox.persist(state);
-                    emit(state);
-                    try {
-                        await hydrateFromServer(state.type, { restoreOutbox: false, replay: false, force: true });
-                        state.flushing = false;
-                        scheduleFlush(state, 0);
-                        return;
-                    } catch (refreshError) {
-                        error = refreshError;
-                    }
                 }
                 state.flushing = false;
                 state.stats.failures += 1;
@@ -617,7 +617,7 @@
                 rejectWaiters(state, batchGeneration, error, Boolean(restored));
                 if (rejected && hasQueuedWork(state)) {
                     scheduleFlush(state, 0);
-                } else if (isRetryableSyncError(error)) {
+                } else if (outboxApi.isRetryableSyncError(error)) {
                     scheduleRetry(state);
                 }
             }
@@ -643,7 +643,7 @@
                 reconcile(state.type, settings.currentPrefs, { restoreOutbox: true, force: true });
             }
             const alreadyPending = !patchIsEmpty(state.pendingPatch);
-            state.pendingPatch = mergePatch(state.pendingPatch, normalizedPatch);
+            outbox.queuePatch(state, normalizedPatch, settings.currentPrefs || state.optimisticPrefs || state.confirmedPrefs);
             state.generation += 1;
             state.stats.queuedMutations += 1;
             if (alreadyPending || state.flushing) {
@@ -844,7 +844,7 @@
         mergePatch,
         cleanPatch,
         protectDashboardLayoutFromBroadPrefsWrite,
-        isRetryableSyncError,
+        isRetryableSyncError: outboxApi.isRetryableSyncError,
         STORAGE_PREFIX,
         CHANNEL_NAME,
         DASHBOARD_LAYOUT_STORAGE_KEYS,

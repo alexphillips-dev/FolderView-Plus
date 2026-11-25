@@ -1,4 +1,5 @@
 import {registerRulesPreviewCase} from './settings-rules-preview.mjs'; import assert from 'node:assert/strict';
+import { registerSettingsGlobalExclusionCase } from './settings-global-exclusion.mjs';
 import fs from 'node:fs/promises';
 import {createProductionPerfFixture} from '../../../scripts/lib/production-perf-fixture.mjs';
 import {verifyWorkspaceControls} from '../helpers/settings-workspace-controls.mjs';
@@ -70,6 +71,8 @@ const waitWrites = async (page, state, count) => {
     assert.equal(state.writes.length, count);
 };
 export const registerSettingsRulesCases = ({test}) => {
+registerSettingsGlobalExclusionCase({test, withRulesFixture});
+
 test('Rules workspace creates, edits, filters and reorders through guarded production saves', async ({page}) => {
     await withRulesFixture(page, async state => {
         const panel = page.locator('.fv-rules-workspace[data-fv-rules-type="docker"]');

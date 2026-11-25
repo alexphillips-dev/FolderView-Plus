@@ -152,6 +152,7 @@ export const registerLocalizationWorkspaceFixtureCases = ({ test, baseUrl }) => 
                     badgesFit: [...document.querySelectorAll('.fv-support-bundle-section-badge')]
                         .every(node => inside(node, node.closest('.fv-support-bundle-section-card'))),
                     buttonsFit: [...document.querySelectorAll('.fv-theme-module button, .fv-theme-profile-toolbar button')]
+                        .filter(node => node.getClientRects().length > 0)
                         .every(node => inside(node, node.closest('.fv-theme-module')) && node.scrollWidth <= node.clientWidth + 1),
                     themeFits: document.getElementById('fv-theme-workspace-panel').scrollWidth <= document.documentElement.clientWidth,
                     focused: document.activeElement?.id,

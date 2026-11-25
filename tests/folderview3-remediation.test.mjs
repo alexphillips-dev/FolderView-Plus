@@ -77,6 +77,18 @@ test('M15/M20: whitespace retains original meaning and invalid or oversized rege
     for (const pattern of ['[', 'a'.repeat(1025), '(?R)', '(?|a|b)', '\\Qservice\\E', 'a++']) { const b = copy(); b.docker.regex.regex = pattern; const r = runMigrationFixture({ bundle: b }); assert.ok(r.error); assert.equal(r.unchanged, true); }
 });
 
+test('FolderView3 rejects legacy predicates that would become inactive managed rules', () => {
+    const bundle = copy();
+    bundle.docker.regex.regex = '^(?:(a)|b)+\\1$';
+    assert.equal(new RegExp(bundle.docker.regex.regex).test('aa'), true);
+    for (const operation of ['plan', 'direct-apply']) {
+        const result = runMigrationFixture({ bundle, operation });
+        assert.match(result.error, /FolderView3 regex is invalid or uses unsupported JavaScript\/PHP syntax/);
+        assert.equal(result.protectedUnchanged, true, operation);
+        assert.equal(Object.keys(result.after).some(key => key.startsWith('backups/') || key.startsWith('rollback/')), false);
+    }
+});
+
 test('M07/M21/M29/M30: preview is pure with missing, legacy and corrupt workspace states', () => {
     for (const request of [{ seed: false }, { workspace: { variables: {}, customCss: '.synthetic {}' } }, { corruptWorkspace: true }]) {
         const r = runMigrationFixture(request); assert.equal(r.error, ''); assert.equal(r.unchanged, true);

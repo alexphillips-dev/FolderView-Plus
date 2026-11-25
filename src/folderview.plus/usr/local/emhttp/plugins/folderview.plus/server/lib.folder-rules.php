@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/lib.legacy-regex-conversion.php';
 
-    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments, ?array $verifiedInventory = null, $expectedRevision = null): array {
         $type = ensureType($type);
         if (count($assignments) <= 0) {
             throw new RuntimeException('At least one folder assignment is required.');
@@ -58,7 +58,8 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
             }
         }
 
-        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem): array {
+        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem, $expectedRevision): array {
+            if ($expectedRevision !== null) assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             $startedAt = microtime(true);
             $originalFolders = readRawFolderMap($type);
             foreach (array_keys($normalizedByFolder) as $folderId) {
@@ -188,13 +189,13 @@ require_once __DIR__ . '/lib.legacy-regex-conversion.php';
         });
     }
 
-    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+    function bulkAssignItemsToFolder(string $type, string $folderId, array $items, $expectedRevision = null): array {
         $type = ensureType($type);
         $folderId = trim($folderId);
         $batch = bulkAssignItemsToFolders($type, [[
             'folderId' => $folderId,
             'items' => $items
-        ]]);
+        ]], null, $expectedRevision);
         $result = is_array($batch['results'][0] ?? null) ? $batch['results'][0] : [];
         return [
             'type' => $type,

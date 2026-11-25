@@ -28,6 +28,8 @@ if ($cliSource !== null) {
     );
 }
 verifyInstallFixture(is_string($source), 'Could not read plugin manifest.');
+$priorSource = isset($argv[3]) ? file_get_contents($argv[3]) : $source;
+verifyInstallFixture(is_string($priorSource), 'Could not read the previous plugin manifest.');
 $candidate = '2026.01.01.02';
 $pluginName = 'folderview.plus';
 $scriptSource = __DIR__ . '/../../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts';
@@ -46,6 +48,7 @@ $cases = $cliSource === null
     ? ['hook-core', 'hook-icon', 'hook-scheduler', 'hook-report', 'hook-damaged-report', 'hook-legacy-damaged-report',
         'hook-version', 'hook-corrupt', 'hook-fresh-report', 'hook-success', 'hook-reinstall-success', 'hook-unknown']
     : ['update-core', 'update-icon', 'update-scheduler', 'update-report', 'update-version', 'update-overlap-version',
+        'update-overlap-success', 'update-late-remove-success', 'update-staged-registration-conflict', 'update-older-staged-manifest',
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
@@ -81,7 +84,7 @@ foreach ($cases as $case) {
         '/tmp/inline' => "$dir/inline",
         '/usr/local/sbin/update_cron' => "$dir/bin/crond"
     ];
-    $manifest = static function (string $version, string $icon) use ($source, $rewrite, $iconArchives): string {
+    $manifest = static function (string $version, string $icon, ?string $template = null) use ($source, $rewrite, $iconArchives): string {
         $values = [
             'version' => $version,
             'md5' => md5("core $version"),
@@ -90,14 +93,14 @@ foreach ($cases as $case) {
             'iconPackMd5' => md5_file($iconArchives[$icon]),
             'iconPackSha256' => hash_file('sha256', $iconArchives[$icon])
         ];
-        $text = $source;
+        $text = $template ?? $source;
         foreach ($values as $name => $value) {
             $text = preg_replace('/^<!ENTITY ' . $name . ' "[^"]+">/m', '<!ENTITY ' . $name . ' "' . $value . '">', $text, 1, $count);
             verifyInstallFixture($count === 1, "Fixture requires the $name entity.");
         }
         return strtr($text, $rewrite);
     };
-    $oldManifest = $manifest($previous, $previousIcon);
+    $oldManifest = $manifest($previous, $previousIcon, $reinstall ? $source : $priorSource);
     $newManifest = $manifest($candidate, '2.0.0');
     $bootManifest = "$boot/$pluginName.plg";
     $runningLink = "$dir/running/$pluginName.plg";
@@ -184,17 +187,27 @@ rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
 exec /usr/bin/flock "$@"',
-        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" == *-version && "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
+        "$dir/bin/mv" => 'if [ "$FVPLUS_FIXTURE_CASE" = update-late-remove-success ] &&
+    [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
+    touch "$FVPLUS_FIXTURE_DIR/registration-commit-paused"
+    for ((attempt=0; attempt<200; attempt++)); do
+        [ ! -f "$FVPLUS_FIXTURE_DIR/allow-registration-commit" ] || exec /bin/mv "$@"
+        sleep 0.05
+    done
+    exit 27
+fi
+if [[ "${@: -1}" == */version && "${@: -2:1}" == */.version.* ]] &&
     [ "$(cat "${@: -2:1}")" = 2026.01.01.02 ] && [ "${FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT:-}" != 1 ]; then
     if [ "${FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION:-}" = 1 ]; then
         touch "$FVPLUS_FIXTURE_DIR/version-commit-paused"
         for ((attempt=0; attempt<200; attempt++)); do
             [ ! -f "$FVPLUS_FIXTURE_DIR/allow-version-failure" ] || exit 25
+            [ ! -f "$FVPLUS_FIXTURE_DIR/allow-version-commit" ] || exec /bin/mv "$@"
             sleep 0.05
         done
         exit 27
     fi
-    exit 25
+    [[ "$FVPLUS_FIXTURE_CASE" != *-version ]] || exit 25
 fi
 exec /bin/mv "$@"'
     ] as $file => $body) {
@@ -335,7 +348,48 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if ($case === 'update-overlap-version') {
+    if ($case === 'update-older-staged-manifest') {
+        $olderManifest = $manifest('2025.01.01.01', '1.0.0');
+        file_put_contents("$dir/downloads/$pluginName.plg", $olderManifest);
+        [$status, $output] = $run($command);
+        verifyInstallFixture($status !== 0 && str_contains($output, 'older staged manifest')
+            && file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$config/version")) === $previous && is_file("$packages/$pluginName-$previous")
+            && file_get_contents("$dir/downloads/$pluginName.plg") === $olderManifest,
+            "$case replaced the active registration or its staged input: $output");
+        $check[] = $case;
+        continue;
+    }
+    if (in_array($case, ['update-overlap-success', 'update-late-remove-success', 'update-staged-registration-conflict'], true)) {
+        $lateRemove = $case === 'update-late-remove-success';
+        $first = $start($command, $lateRemove ? [] : ['FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION' => '1']);
+        $checkpoint = $lateRemove ? 'registration' : 'version';
+        for ($attempt = 0; $attempt < 160 && !is_file("$dir/$checkpoint-commit-paused"); $attempt++) usleep(50000);
+        verifyInstallFixture(is_file("$dir/$checkpoint-commit-paused"), "$case did not reach the $checkpoint commit.");
+        $staged = "$dir/downloads/$pluginName.plg";
+        [$removeStatus, $removeOutput] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        clearstatcache();
+        $removeRefused = $removeStatus !== 0 && str_contains($removeOutput, 'installation or removal is in progress')
+            && !file_exists($staged) && readlink($runningLink) === $bootManifest;
+        $expectedStaged = $newManifest;
+        if ($case === 'update-staged-registration-conflict') {
+            $expectedStaged = $manifest('2026.01.01.03', '3.0.0');
+            file_put_contents($staged, $expectedStaged);
+        }
+        touch("$dir/allow-$checkpoint-commit");
+        [$status, $output] = $finish($first);
+        verifyInstallFixture($removeRefused, "$case did not reproduce native staging deletion on a refused removal: $removeOutput");
+        verifyInstallFixture($lateRemove ? !file_exists($staged) : is_file($staged) && file_get_contents($staged) === $expectedStaged,
+            "$case did not restore the chosen input or preserve a staged peer: $output");
+        if ($failed) {
+            verifyInstallFixture(str_contains($output, 'staged manifest may have changed')
+                && str_contains($output, 'restored the previous installation state') && !str_contains($output, 'Upgrade complete'),
+                "$case did not report staging conflict and rollback: $output");
+        } else {
+            verifyInstallFixture(str_contains($output, 'Upgrade complete') && str_contains($output, 'copy(') === $lateRemove,
+                "$case did not complete native registration: $output");
+        }
+    } elseif ($case === 'update-overlap-version') {
         $first = $start($command, ['FVPLUS_FIXTURE_PAUSE_BEFORE_VERSION' => '1']);
         for ($attempt = 0; $attempt < 160 && !is_file("$dir/version-commit-paused"); $attempt++) usleep(50000);
         verifyInstallFixture(is_file("$dir/version-commit-paused"), "$case did not reach the version commit.");
@@ -382,7 +436,8 @@ exec /bin/mv "$@"'
                 && (fileperms($cronFile) & 0777) === 0644, "$case did not install the scheduler.");
         }
     }
-    verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === [],
+    verifyInstallFixture(glob("$dir/cron.d/.folderview.plus.*") === [] && glob("$config/.version.*") === []
+        && glob("$boot/.folderview.plus.plg.*") === [] && glob("$dir/downloads/.folderview.plus.plg.*") === [],
         "$case left temporary installation state behind.");
     verifyInstallFixture(glob("$dir/folderview.plus-install.*") === [], "$case left installation report state behind.");
     if (str_ends_with($case, '-version')) {

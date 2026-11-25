@@ -243,6 +243,103 @@ test('preference coordinator rebases and retries a revision conflict without rol
     assert.equal(coordinator.getDiagnostics().types.docker.status, 'saved');
 });
 
+test('concurrent rule saves preserve committed rules and still rebase over unrelated preferences', async () => {
+    const api = loadModule();
+    const incoming = [{ id: 'rule-from-this-tab' }];
+    const otherRule = [{ id: 'rule-from-another-tab' }];
+    for (const sameField of [true, false]) {
+        let releaseWrite;
+        let resolveWriteStarted;
+        const allowWrite = new Promise(resolve => { releaseWrite = resolve; });
+        const writeStarted = new Promise(resolve => { resolveWriteStarted = resolve; });
+        let stored = normalizePrefs({ autoRules: [], _metadata: { prefsRevision: 1 } });
+        const writes = [];
+        const storage = createStorage();
+        const writer = api.createPreferenceSaveCoordinator({
+            normalizePrefs, storage, debounceMs: 0,
+            fetchPrefs: async () => stored,
+            writePrefs: async (_type, patch, { expectedRevision }) => {
+                writes.push(expectedRevision);
+                if (writes.length === 1) {
+                    resolveWriteStarted();
+                    await allowWrite;
+                }
+                if (expectedRevision !== stored._metadata.prefsRevision) {
+                    throw Object.assign(new Error('Revision conflict'), { status: 409 });
+                }
+                stored = normalizePrefs({ ...api.mergePatch(stored, patch), _metadata: { prefsRevision: expectedRevision + 1 } });
+                return stored;
+            }
+        });
+        writer.reconcile('docker', stored);
+        const save = writer.save('docker', { autoRules: incoming });
+        const settlement = sameField ? assert.rejects(save, /Review and save your changes again/) : save;
+        await writeStarted;
+        stored = normalizePrefs({
+            autoRules: sameField ? otherRule : [], groupUnassignedItems: true,
+            _metadata: { prefsRevision: 2 }
+        });
+        releaseWrite();
+        await settlement;
+        assert.deepEqual(writes, sameField ? [1] : [1, 2]);
+        assert.deepEqual(stored.autoRules, sameField ? otherRule : incoming);
+        assert.deepEqual(writer.getOptimisticPrefs('docker').autoRules, stored.autoRules);
+        assert.equal(writer.getOptimisticPrefs('docker').groupUnassignedItems, true);
+        assert.deepEqual(storage.snapshot(), {});
+    }
+});
+
+test('a rule save queued from an older view cannot use a newer broadcast revision', async () => {
+    const api = loadModule();
+    const writes = [];
+    const writer = api.createPreferenceSaveCoordinator({
+        normalizePrefs, debounceMs: 0,
+        writePrefs: async (_type, patch) => { writes.push(patch); return patch; }
+    });
+    const previousView = normalizePrefs({ autoRules: [], _metadata: { prefsRevision: 1 } });
+    const newRules = [{ id: 'saved-by-another-tab' }];
+    writer.reconcile('docker', previousView);
+    const save = assert.rejects(writer.save('docker', { autoRules: [{ id: 'local' }] }, { currentPrefs: previousView }),
+        /Review and save your changes again/);
+    writer.reconcile('docker', normalizePrefs({ autoRules: newRules, _metadata: { prefsRevision: 2 } }));
+    await save;
+    assert.deepEqual(writes, []);
+    assert.deepEqual(writer.getOptimisticPrefs('docker').autoRules, newRules);
+});
+
+test('rule retries and reopened pages can acknowledge an already committed rule after hydration', async () => {
+    const api = loadModule();
+    for (const reopen of [false, true]) {
+        const storage = createStorage();
+        const rules = [{ id: 'committed-with-lost-ack' }];
+        let stored = normalizePrefs({ autoRules: [], _metadata: { prefsRevision: 1 } });
+        const requests = [];
+        const options = {
+            window: {}, normalizePrefs, storage, debounceMs: 0, retryDelayMs: 1000, fetchPrefs: async () => stored,
+            setTimeout: (callback, delay) => delay >= 1000 ? null : setTimeout(callback, delay),
+            writePrefs: async (_type, patch, context) => {
+                requests.push(structuredClone({ patch, context }));
+                if (requests.length === 1) {
+                    stored = normalizePrefs({ autoRules: rules, _metadata: { prefsRevision: 2 } });
+                    throw Object.assign(new Error('Response lost'), { status: 503 });
+                }
+                assert.deepEqual(requests[1], requests[0], 'retry must reach the server receipt with its original revision and mutation ID');
+                return { prefs: stored };
+            }
+        };
+        const origin = api.createPreferenceSaveCoordinator({ ...options, sourceId: 'origin' });
+        origin.reconcile('vm', stored);
+        await assert.rejects(origin.save('vm', { autoRules: rules }), /Response lost/);
+        const receiver = reopen ? api.createPreferenceSaveCoordinator({ ...options, sourceId: 'reopened' }) : origin;
+        await receiver.hydrateFromServer('vm');
+        await receiver.flush('vm');
+        assert.equal(requests.length, 2);
+        assert.equal(receiver.getSnapshot('vm').status, 'saved');
+        assert.deepEqual(receiver.getOptimisticPrefs('vm').autoRules, rules);
+        assert.deepEqual(storage.snapshot(), {});
+    }
+});
+
 test('preference coordinator broadcasts committed revisions to another tab', async () => {
     const api = loadModule();
     const channels = [];

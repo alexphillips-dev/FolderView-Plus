@@ -293,10 +293,26 @@ const createExpansionFixture = (type, useCoordinator) => {
         timers.timeouts.clear();
         callback?.();
     };
-    return { controller, requests, flushTimer, current: () => current };
+    return { controller, requests, flushTimer, current: () => current, hydrate: (map) => { current = map; } };
 };
 
 for (const type of ['docker', 'vm']) {
+    test(`${type} rebuilds retain pending expansion while adopting clean server values`, async () => {
+        const fixture = createExpansionFixture(type, true);
+        const folders = { 'fixture.dot:1': {}, peer: {} };
+        fixture.controller.buildStateMap(folders, {}, { 'fixture.dot:1': false, peer: false });
+        fixture.controller.persistStateMap({ 'fixture.dot:1': true, peer: false }, false);
+        fixture.hydrate({ 'fixture.dot:1': false, peer: true });
+        assert.deepEqual(fixture.controller.buildStateMap(folders, {}, fixture.current()), { 'fixture.dot:1': true, peer: true });
+
+        const first = fixture.controller.syncExpandedStateToServer();
+        assert.deepEqual(fixture.requests[0].map, { 'fixture.dot:1': true }, 'do not resubmit clean folder values');
+        fixture.requests[0].resolve({ 'fixture.dot:1': true, peer: false });
+        await first;
+        assert.deepEqual(fixture.current(), { 'fixture.dot:1': true, peer: false }, 'retain a peer change committed during the save');
+        fixture.hydrate({ 'fixture.dot:1': false, peer: true });
+        assert.deepEqual(fixture.controller.buildStateMap(folders, {}, fixture.current()), { 'fixture.dot:1': false, peer: true });
+    });
     for (const useCoordinator of [true, false]) {
         test(`${type} expansion changes survive an older ${useCoordinator ? 'coordinator' : 'direct'} response`, async () => {
             const fixture = createExpansionFixture(type, useCoordinator);

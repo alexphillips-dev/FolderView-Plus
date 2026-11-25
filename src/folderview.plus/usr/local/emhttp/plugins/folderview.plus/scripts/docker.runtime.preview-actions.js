@@ -1137,7 +1137,7 @@
                 const $row = jq(row);
                 return String($row.find('td.ct-name .appname').first().text() || '').trim() === safeContainerName;
             }).first();
-            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
+            const $rows = jq(`tr[class~="folder-id-${folderId}"] div.folder-storage > tr, tr[class~="folder-${folderId}-element"]`);
             const $matchedRow = matchRows($rows);
             if ($matchedRow.length) {
                 return $matchedRow;
@@ -1295,7 +1295,7 @@
         };
 
         const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null, syncMembers = true) => {
-            const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
+            const $preview = jq(`tr[class~="folder-id-${id}"] div.folder-preview`);
             if (!$preview.length) {
                 return;
             }

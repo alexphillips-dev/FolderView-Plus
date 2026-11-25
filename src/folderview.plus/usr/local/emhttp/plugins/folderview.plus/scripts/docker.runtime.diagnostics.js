@@ -430,13 +430,13 @@
 
         const parseFolderId = (row) => {
             const className = String(row?.className || '').trim();
-            const match = className.match(/(?:^|\s)folder-id-([A-Za-z0-9_-]+)(?:\s|$)/);
+            const match = className.match(/(?:^|\s)folder-id-([A-Za-z0-9_.:-]+)(?:\s|$)/);
             return match ? String(match[1] || '').trim() : '';
         };
 
         const parseMemberFolderId = (row) => {
             const className = String(row?.className || '').trim();
-            const match = className.match(/(?:^|\s)folder-([A-Za-z0-9_-]+)-element(?:\s|$)/);
+            const match = className.match(/(?:^|\s)folder-([A-Za-z0-9_.:-]+)-element(?:\s|$)/);
             return match ? String(match[1] || '').trim() : '';
         };
 
@@ -494,7 +494,7 @@
                     const updateCellText = readVisibleUpdateCellText($row.find('td.updatecolumn').first());
                     const actionToken = resolveActionToken(updateCellText);
                     const expectedActionToken = resolveExpectedFolderActionToken(folderId);
-                    const expanded = $(`.dropDown-${folderId}`).attr('active') === 'true';
+                    const expanded = $(`[class~="dropDown-${folderId}"]`).attr('active') === 'true';
                     const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
                     summary.visibleFolderRows += 1;
                     if (expanded) {

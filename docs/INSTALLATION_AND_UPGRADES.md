@@ -67,6 +67,7 @@ Use `Plugins -> Check for Updates`, then install the available FolderView Plus u
 - Keeps configuration under `/boot/config/plugins/folderview.plus`.
 - Downloads or reuses the pinned icon asset pack.
 - Recreates the scheduled-backup cron entry.
+- Preserves the chosen update if a competing removal deletes its staged manifest before registration. If a different staged manifest is present at the registration check, the update rolls back and leaves that download available.
 - At boot, waits for any active FolderView Plus installation or removal before activating the registered package.
 - Keeps the core and icon archives referenced by the currently registered manifest while a replacement is installing. After setup succeeds, it removes older archives and retains core archives from the same release date or newer dates, along with newer icon packs. This keeps downloads staged for another update available.
 

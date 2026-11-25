@@ -103,7 +103,7 @@ test('lib.php supports guarded folder settings transfer for existing folders', (
     assert.match(libPhp, /function normalizeFolderSettingsTransferPayload\(array \$payload\): array/);
     assert.match(libPhp, /fvplus_assert_folder_settings_payload_shape\(\$payload\);/);
     assert.match(libPhp, /function applyFolderSettingsPayload\(string \$type, array \$targetIds, array \$settingsPayload, array \$options = \[\]\): array/);
-    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-apply-folder-settings'\)/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-apply-folder-settings', false\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\('folder_settings_apply', \$type,/);
     assert.match(libPhp, /return applySelectiveFolderSettings\(\$type, \$targetIds, \$settingsPayload, \$options\)/);
     assert.match(libPhp, /function mergeFolderSettingsTransfer\(/);

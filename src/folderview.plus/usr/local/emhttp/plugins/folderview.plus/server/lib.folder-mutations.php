@@ -8,7 +8,7 @@ function writeFolderMapAndManualOrder(string $type, array $folders, bool $reorde
             $prefs = readTypePrefs($type);
             $nextPrefs = reconcileManualOrderPrefs($prefs, $folders);
             if ($reordered) {
-                $nextPrefs['manualOrder'] = array_keys($folders);
+                $nextPrefs['manualOrder'] = array_map('strval', array_keys($folders));
                 if ($nextPrefs['sortMode'] !== 'alpha') $nextPrefs['sortMode'] = 'manual';
             }
             if ($reordered || $nextPrefs !== $prefs) writeTypePrefs($type, $nextPrefs);

@@ -392,12 +392,12 @@
             }
 
             const total = containerEntries.length;
-            const $folderRow = jq(`tr.folder-id-${id}`);
+            const $folderRow = jq(`tr[class~="folder-id-${id}"]`);
             applyFolderStatusColorOverrides($folderRow, folder.settings);
             applyFolderAccentStyle($folderRow, folder.settings);
             applyFolderDropdownStyle($folderRow, folder.settings);
             const $updateColumn = $folderRow.find('td.updatecolumn');
-            const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+            const $folderIcon = $folderRow.find(`i[id="load-folder-${id}"]`);
             const $folderState = $folderRow.find('span.folder-state');
             $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
             if (started > 0) {
@@ -433,7 +433,7 @@
                 ? ancestors.slice(rootIndex)
                 : [safeRootId];
             for (const pathId of pathIds) {
-                const button = jq(`.dropDown-${pathId}`);
+                const button = jq(`[class~="dropDown-${pathId}"]`);
                 if (button.length && button.attr('active') !== 'true') {
                     dropDownButton(pathId, false);
                 }
@@ -445,7 +445,7 @@
             if (!jq) {
                 return;
             }
-            const $folderRow = jq(`tr.folder-id-${folderId}`);
+            const $folderRow = jq(`tr[class~="folder-id-${folderId}"]`);
             if ($folderRow.length && typeof $folderRow.get(0)?.scrollIntoView === 'function') {
                 $folderRow.get(0).scrollIntoView({ block: 'nearest', inline: 'nearest' });
             }
@@ -525,7 +525,7 @@
             if (!jq) {
                 return;
             }
-            const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
+            const $preview = jq(`tr[class~="folder-id-${id}"] div.folder-preview`);
             if (!$preview.length) {
                 return;
             }
@@ -619,7 +619,7 @@
             if (!folder || typeof folder !== 'object') {
                 return;
             }
-            const $row = jq(`tr.folder-id-${id}`);
+            const $row = jq(`tr[class~="folder-id-${id}"]`);
             $row.toggleClass('fv-parent-collapsed', !expanded);
             $row.toggleClass('fv-parent-expanded', !!expanded);
 
@@ -644,7 +644,7 @@
             }
             for (const descendantId of getFolderDescendants(id)) {
                 forceCollapseFolderRow(descendantId, true);
-                jq(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
+                jq(`tr[class~="folder-id-${descendantId}"]`).addClass('fv-nested-hidden').hide();
             }
         };
 
@@ -652,10 +652,10 @@
             if (!jq) {
                 return;
             }
-            let $insertAfter = anchor && anchor.length ? anchor : jq(`tr.folder-id-${id}`);
+            let $insertAfter = anchor && anchor.length ? anchor : jq(`tr[class~="folder-id-${id}"]`);
             for (const childId of getFolderChildren(id)) {
                 forceCollapseFolderRow(childId, false);
-                const $childRow = jq(`tr.folder-id-${childId}`);
+                const $childRow = jq(`tr[class~="folder-id-${childId}"]`);
                 if ($insertAfter.length && $childRow.length) {
                     $insertAfter.after($childRow);
                     $insertAfter = $childRow;
@@ -678,7 +678,7 @@
 
             for (const id of allIds) {
                 const parentId = parentById[id] || '';
-                const $row = jq(`tr.folder-id-${id}`);
+                const $row = jq(`tr[class~="folder-id-${id}"]`);
                 $row.attr('data-folder-parent', parentId);
                 $row.toggleClass('fv-folder-is-child', !!parentId);
                 $row.toggleClass('fv-folder-has-children', folderHasChildren(id));
@@ -703,7 +703,7 @@
                             const direct = buildRuntimeContainerMapForFolder(id, false);
                             updateFolderRowStatusFromContainers(id, folders[id], direct);
                             renderNestedAggregatePreview(id, folders[id], direct);
-                            jq(`tr.folder-id-${id}`).removeClass('fv-parent-collapsed fv-parent-expanded');
+                            jq(`tr[class~="folder-id-${id}"]`).removeClass('fv-parent-collapsed fv-parent-expanded');
                         }
                     }
                     continue;
@@ -717,7 +717,7 @@
             }
             if (reconcilingMove) {
                 [...expandedIds].sort((a, b) => getFolderAncestors(a).length - getFolderAncestors(b).length).forEach(id => {
-                    if (jq(`tr.folder-id-${id}`).length && getFolderAncestors(id).every(parent => jq(`.dropDown-${parent}`).attr('active') === 'true')) dropDownButton(id, false);
+                    if (jq(`tr[class~="folder-id-${id}"]`).length && getFolderAncestors(id).every(parent => jq(`[class~="dropDown-${parent}"]`).attr('active') === 'true')) dropDownButton(id, false);
                 });
                 applyFocusedFolderState();
                 queueRuntimeResizerBind();
@@ -732,7 +732,7 @@
             debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Entry.`);
             debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-pre-folder-expansion event.`);
             folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
-            const element = jq(`.dropDown-${id}`);
+            const element = jq(`[class~="dropDown-${id}"]`);
             const state = element.attr('active') === 'true';
             const hasChildren = folderHasChildren(id);
             debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Current state (active attribute): ${state}.`);
@@ -741,11 +741,11 @@
                 if (hasChildren) {
                     hideNestedDescendants(id);
                 }
-                jq(`tr.folder-id-${id}`).addClass('sortable');
+                jq(`tr[class~="folder-id-${id}"]`).addClass('sortable');
                 const $directRows = getDirectMemberRowsForFolder(id);
-                const $fallbackRows = jq(`.folder-${id}-element`);
+                const $fallbackRows = jq(`[class~="folder-${id}-element"]`);
                 const $rowsToMove = $directRows.length ? $directRows : $fallbackRows;
-                jq(`tr.folder-id-${id} .folder-storage`).append($rowsToMove);
+                jq(`tr[class~="folder-id-${id}"] .folder-storage`).append($rowsToMove);
                 $rowsToMove.addClass('fv-nested-hidden').hide();
                 if (hasChildren) {
                     syncParentFolderVisualState(id, false);
@@ -754,16 +754,16 @@
                 debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
             } else {
                 element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                jq(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
+                jq(`tr[class~="folder-id-${id}"]`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
                 if (hasChildren) {
-                    const $folderRow = jq(`tr.folder-id-${id}`);
+                    const $folderRow = jq(`tr[class~="folder-id-${id}"]`);
                     const $directMemberRows = getDirectMemberRowsForFolder(id);
                     const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
                     let $childAnchor = $folderRow;
                     if ($directMemberRows.length) {
                         $folderRow.after($directMemberRows);
                         $directMemberRows.removeClass('fv-nested-hidden').show();
-                        jq(`.folder-${id}-element > td > i.fa-arrows-v`).remove();
+                        jq(`[class~="folder-${id}-element"] > td > i.fa-arrows-v`).remove();
                         syncDockerFolderMemberRows(id, directRuntimeContainers);
                         $childAnchor = $directMemberRows.last();
                     } else {
@@ -775,10 +775,10 @@
                     debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing direct members, then nested children.`);
                 } else {
                     const $directMemberRows = getDirectMemberRowsForFolder(id);
-                    const $fallbackRows = jq(`.folder-${id}-element`);
+                    const $fallbackRows = jq(`[class~="folder-${id}-element"]`);
                     const $rowsToShow = $directMemberRows.length ? $directMemberRows : $fallbackRows;
                     const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
-                    jq(`tr.folder-id-${id}`).after($rowsToShow);
+                    jq(`tr[class~="folder-id-${id}"]`).after($rowsToShow);
                     $rowsToShow.removeClass('fv-nested-hidden').show();
                     $rowsToShow.children('td').children('i.fa-arrows-v').remove();
                     syncDockerFolderMemberRows(id, directRuntimeContainers);
@@ -808,7 +808,7 @@
                 return;
             }
             const expandNode = (nodeId) => {
-                const button = jq ? jq(`.dropDown-${nodeId}`) : null;
+                const button = jq ? jq(`[class~="dropDown-${nodeId}"]`) : null;
                 if (button && button.length && button.attr('active') !== 'true') {
                     dropDownButton(nodeId, false);
                 }
@@ -830,9 +830,9 @@
             const descendants = getFolderDescendants(id).reverse();
             for (const descendantId of descendants) {
                 forceCollapseFolderRow(descendantId, true);
-                jq(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
+                jq(`tr[class~="folder-id-${descendantId}"]`).addClass('fv-nested-hidden').hide();
             }
-            const button = jq(`.dropDown-${id}`);
+            const button = jq(`[class~="dropDown-${id}"]`);
             if (button.length && button.attr('active') === 'true') {
                 dropDownButton(id, false);
             } else {

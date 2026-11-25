@@ -9,19 +9,56 @@ const fixture = () => {
     return { api, requests };
 };
 
-test('late initial workspace read preserves a preset draft and its undo state', async () => {
-    const { api, requests } = fixture();
-    const read = api.readWorkspace();
-    api.previewPreset('blue');
-    requests[0]({ workspace: {} });
+test('Appearance blocks early edits and retries before opening the authoritative profile', async () => {
+    const requests = [];
+    const handlers = new Map();
+    const status = {};
+    const retry = {};
+    const css = { disabled: true, value: '' };
+    const inputs = [css, { disabled: true }, { disabled: true }];
+    const nodes = {
+        'fv-theme-appearance-loading': status, 'fv-theme-appearance-retry': retry, 'fv-theme-custom-css': css
+    };
+    const document = {
+        getElementById: id => nodes[id] || null, querySelector: () => null, querySelectorAll: () => inputs
+    };
+    const $ = () => ({ off: () => ({ on: (event, _selector, handler) => handlers.set(event, handler) }) });
+    const writes = [];
+    const api = createApi({ document, $,
+        apiGetJson: () => new Promise((resolve, reject) => requests.push({ resolve, reject })),
+        apiPostJson: async (_url, payload) => { writes.push(payload); return { workspace: saved }; }
+    });
+    api.bindEvents();
+    const read = assert.rejects(api.readWorkspace(), /synthetic failure/);
+    css.value = '.early {}';
+    handlers.get('input.fvthemecustomcss')();
+    assert.equal(api.getWorkspace().customCss, '');
+    assert.equal(api.previewPreset('blue'), null);
+    assert.equal(await api.saveCustomize(), null);
+    assert.deepEqual(writes, []);
+    assert.ok(inputs.every(control => control.disabled));
+    requests[0].reject(new Error('synthetic failure'));
     await read;
-    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], '#3b82f6');
-    api.undoPreset();
-    assert.equal(api.getWorkspace().variables['--fvplus-theme-accent'], undefined);
+    assert.equal(retry.hidden, false);
+    handlers.get('click.fvthemehydration')();
+    const saved = { activeProfileId: 'alternate', profiles: [{ id: 'alternate', name: 'Alternate', layers: { global: { customCss: '.saved {}' } } }] };
+    requests[1].resolve({ workspace: saved });
+    await new Promise(setImmediate);
+    assert.equal(retry.hidden, true);
+    assert.equal(status.hidden, true);
+    assert.ok(inputs.every(control => !control.disabled));
+    assert.equal(css.value, '.saved {}');
+    css.value = '.edited {}';
+    handlers.get('input.fvthemecustomcss')();
+    await api.saveCustomize();
+    assert.deepEqual(writes.map(({ action, profileId, customCss }) => [action, profileId, customCss]), [
+        ['preview_profile', 'alternate', '.edited {}'], ['save_profile', 'alternate', '.edited {}']
+    ]);
 });
 
 test('late refresh cannot resurrect tokens removed by a local reset', async () => {
     const { api, requests } = fixture();
+    api.setWorkspace({});
     api.previewPreset('orange');
     const oldState = api.getWorkspace();
     const read = api.readWorkspace();
@@ -80,6 +117,7 @@ test('a refresh retains an existing draft and a stale check cannot replace newer
         apiGetJson: () => new Promise(resolve => reads.push(resolve)),
         apiPostJson: () => new Promise(resolve => checks.push(resolve))
     });
+    api.setWorkspace({});
     api.previewPreset('orange');
     const refresh = api.readWorkspace();
     reads[0]({ workspace: { lastCheckedAt: '2030-01-02' } });

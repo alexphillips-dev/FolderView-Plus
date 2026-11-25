@@ -1181,7 +1181,7 @@ const resolveFolderIdFromCard = ($card) => {
         return fromAttr;
     }
     const className = String($card.attr('class') || '');
-    const match = className.match(/folder-showcase-outer-([A-Za-z0-9._-]+)/);
+    const match = className.match(/(?:^|\s)folder-showcase-outer-([A-Za-z0-9_.:-]+)(?:\s|$)/);
     return match ? String(match[1] || '').trim() : '';
 };
 const scheduleDashboardLayoutApplyForType = (type) => {
@@ -1356,7 +1356,7 @@ const renderDashboardDockerFolders = (prom) => {
                     Object.keys(foldersDone),
                     dockerFullMatchCache[childId] || null,
                     {
-                        appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `#docker_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        appendTo: dashboardFolderRenderRecovery.docker.hasFailed(parentKey) ? undefined : `#docker_view [class~="folder-showcase-outer-${parentKey}"] > [class~="folder-showcase-${parentKey}"]`,
                         preserveWhenEmpty: childHasChildren
                     }
                 );
@@ -1527,7 +1527,7 @@ const renderDashboardVmFolders = (prom) => {
                     Object.keys(foldersDone),
                     vmFullMatchCache[childId] || null,
                     {
-                        appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `#vm_view .folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        appendTo: dashboardFolderRenderRecovery.vm.hasFailed(parentKey) ? undefined : `#vm_view [class~="folder-showcase-outer-${parentKey}"] > [class~="folder-showcase-${parentKey}"]`,
                         preserveWhenEmpty: childHasChildren
                     }
                 );
@@ -1824,7 +1824,7 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
             const ct = containersInfo[container];
 
             // grab the storage folder
-            const element = $(`tbody#docker_view span#folder-id-${id}`).siblings('div.folder-storage');
+            const element = $(`tbody#docker_view span[id="folder-id-${id}"]`).siblings('div.folder-storage');
             // grab the container by name match (not positional index, which drifts as folders remove elements)
             const $containerEl = $('tbody#docker_view > tr.updated > td').children('span.outer').not('.folder-docker').filter(function() {
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
@@ -1887,12 +1887,12 @@ const renderFolderDocker = (folder, id, position, order, containersInfo, folders
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
     if (folderTypePrefs?.docker?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
-        $(`#docker_view .folder-showcase-outer-${id}`).remove();
+        $(`#docker_view [class~="folder-showcase-outer-${id}"]`).remove();
         return remBefore;
     }
 
     //temp var
-    const sel = $(`tbody#docker_view span#folder-id-${id}`);
+    const sel = $(`tbody#docker_view span[id="folder-id-${id}"]`);
     const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
@@ -2103,7 +2103,7 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
                 return innerText === container;
             }).first();
-            $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.attr({
+            $(`tbody#vm_view span[id="folder-id-${id}"]`).siblings('div.folder-storage').append($vmEl.attr({
                 'data-fv-runtime-name': container,
                 'data-fv-runtime-state': getDashboardRuntimeStateMeta('vm', ct).state
             }).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
@@ -2141,13 +2141,13 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
     if (folderTypePrefs?.vm?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
-        $(`#vm_view .folder-showcase-outer-${id}`).remove();
+        $(`#vm_view [class~="folder-showcase-outer-${id}"]`).remove();
         return remBefore;
     }
 
     
     //set tehe status of a folder
-    const sel = $(`tbody#vm_view span#folder-id-${id}`);
+    const sel = $(`tbody#vm_view span[id="folder-id-${id}"]`);
     const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
@@ -2225,7 +2225,7 @@ const toggleFolderExpansion = (type, id, options = {}) => {
     const nextState = forceExpanded === null ? !state : forceExpanded;
     if (state !== nextState && typeof getDashboardVisualDiagnosticsController === 'function') getDashboardVisualDiagnosticsController()?.beginExpansion?.(meta.type, card[0]);
     const storage = el.children('div.folder-storage').first();
-    const showcase = card.children(`div.folder-showcase-${safeId}`).first();
+    const showcase = card.children(`div[class~="folder-showcase-${safeId}"]`).first();
     if (!storage.length || !showcase.length) {
         return;
     }
@@ -2254,7 +2254,7 @@ const toggleFolderExpansion = (type, id, options = {}) => {
                 }
                 const nodeOuter = $node.children(meta.outerSelector).first();
                 const nodeStorage = nodeOuter.children('div.folder-storage').first();
-                const nodeShowcase = $node.children(`div.folder-showcase-${nodeId}`).first();
+                const nodeShowcase = $node.children(`div[class~="folder-showcase-${nodeId}"]`).first();
                 if (!nodeOuter.length || !nodeStorage.length || !nodeShowcase.length) {
                     return;
                 }
@@ -2584,7 +2584,7 @@ const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
         }
     });
     const total = entries.length;
-    const $outer = $(`${resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view'} .folder-showcase-outer-${id}`).first();
+    const $outer = $(`${resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view'} [class~="folder-showcase-outer-${id}"]`).first();
     const $folderSurface = $outer.children('span.outer').first();
     const $statusIcon = $folderSurface.find(`i.folder-load-status-${resolvedType}`).first();
     const $statusText = $folderSurface.find(`span.folder-state-${resolvedType}`).first();
@@ -3057,6 +3057,16 @@ window.getDashboardRuntimePerformanceTelemetrySnapshot = () => dashboardRuntimeP
 const dashboardDockerLifecycleApi = getDashboardDockerRuntimeReconcileApi();
 dashboardDockerLifecycleApi?.bindLifecycleEventControlPatch?.();
 dashboardDockerLifecycleApi?.bindDockerContainerContextStatePatch?.();
+window.FolderViewPlusVmRuntimeLifecycle?.createApi({
+    window,
+    document,
+    hostAdapter: runtimeHostAdapters.getOrCreate('vm', { window, document }),
+    storage: null,
+    getRuntimeEntry: (uuid, name) => {
+        const entry = dashboardRuntimeInfoByType.vm[name];
+        return uuid && entry?.uuid === uuid ? entry : null;
+    }
+}).bindContextStatePatch();
 
 window.FolderViewPlusFoundationModules?.runtimeDebugDownload?.bind('dashboard');
 window.addEventListener('pagehide', function releaseDashboardPage(event) {
@@ -3069,6 +3079,7 @@ window.addEventListener('pagehide', function releaseDashboardPage(event) {
     dashboardThemeReflowUnsubscribe?.();
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
+    runtimeHostAdapters?.release?.('vm', { window, restoreHooks: true });
     dashboardDockerProviderRegistry?.dispose?.();
     window.removeEventListener('pagehide', releaseDashboardPage);
 });

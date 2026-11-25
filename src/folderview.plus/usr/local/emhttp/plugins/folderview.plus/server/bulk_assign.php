@@ -5,7 +5,7 @@ fvplus_json_try(function (): array {
     requireMutationRequestGuard();
 
     $type = ensureType((string)($_POST['type'] ?? ''));
-    if (isset($_POST['expectedRevision'])) assertExpectedConfigRevision($type, 'folder', $_POST['expectedRevision']);
+    $expectedRevision = $_POST['expectedRevision'] ?? null;
     $assignmentsRaw = (string)($_POST['assignments'] ?? '');
     if ($assignmentsRaw !== '') {
         if (strlen($assignmentsRaw) > FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES) {
@@ -16,7 +16,7 @@ fvplus_json_try(function (): array {
             throw new RuntimeException('Invalid bulk assignments payload.');
         }
         return [
-            'result' => bulkAssignItemsToFolders($type, $assignments)
+            'result' => bulkAssignItemsToFolders($type, $assignments, null, $expectedRevision)
         ];
     }
 
@@ -28,6 +28,6 @@ fvplus_json_try(function (): array {
     }
 
     return [
-        'result' => bulkAssignItemsToFolder($type, $folderId, $itemsDecoded)
+        'result' => bulkAssignItemsToFolder($type, $folderId, $itemsDecoded, $expectedRevision)
     ];
 });

@@ -24,8 +24,7 @@ validate_after_build=true
 dry_run=false
 run_install_smoke=false
 tmpdir=""
-build_lock_dir="tmp/pkg_build.lock.d"
-lockdir=""
+build_lock_file="tmp/pkg_build.lock"
 branch_override="${FVPLUS_BUILD_BRANCH:-}"
 
 detect_git_branch() {
@@ -159,9 +158,6 @@ cleanup_tmpdir() {
     if [ -n "${tmpdir:-}" ] && [ -d "${tmpdir}" ]; then
         rm -rf "${tmpdir}"
     fi
-    if [ -n "${lockdir:-}" ] && [ -d "${lockdir}" ]; then
-        rm -rf "${lockdir}"
-    fi
 }
 
 parse_nonnegative_integer() {
@@ -208,12 +204,13 @@ sync_ca_template_metadata() {
 }
 
 acquire_build_lock() {
-    mkdir -p "$(dirname "$build_lock_dir")"
-    if ! mkdir "$build_lock_dir" 2>/dev/null; then
-        echo "ERROR: Another pkg_build.sh instance is already running (lock: $build_lock_dir)." >&2
+    mkdir -p "$(dirname "$build_lock_file")"
+    # Keep this inode in place so all builders contend on the same advisory lock.
+    exec 9>>"$build_lock_file"
+    if ! flock -n 9; then
+        echo "ERROR: Another pkg_build.sh instance is already running (lock: $build_lock_file)." >&2
         exit 1
     fi
-    lockdir="$build_lock_dir"
 }
 
 is_stable_version() {
@@ -439,6 +436,7 @@ if [[ "$archive_dir" != /* && ! "$archive_dir" =~ ^[A-Za-z]:[\\/].* ]]; then
 fi
 
 ensure_repo_layout
+require_commands flock
 trap cleanup_tmpdir EXIT
 acquire_build_lock
 
@@ -540,7 +538,7 @@ if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+)?$ ]]; then
 fi
 
 if [ "$dry_run" = true ]; then
-    echo "Dry run: no files will be written."
+    echo "Dry run: no package or release files will be written."
     echo "Version: $version"
     echo "Branch: $branch"
     echo "Output directory: $archive_dir"

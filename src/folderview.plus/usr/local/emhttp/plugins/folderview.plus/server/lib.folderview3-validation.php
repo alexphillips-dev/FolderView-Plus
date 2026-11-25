@@ -85,6 +85,7 @@ function fvplusFolderView3AssertFolder(array $folder, string $type = 'docker'): 
     fvplusFolderView3AssertNested($folder);
     $pattern = $folder['regex'] ?? '';
     if (trim($pattern) !== '' && (@preg_match(serverRuleRegex($pattern, false), '') === false
+        || fvplusCompileRuleSet([['kind' => 'name_regex', 'pattern' => $pattern]], $type)['issues'] !== []
         || preg_match('/\(\?(?![:=!]|<[=!]|<[A-Za-z_$][A-Za-z0-9_$]*>)|\(\*|\\\\(?:[AKRXCQELNZzaehHvV]|p\{|P\{|g[<{])|(?:[*+?]|\})\+/', $pattern))) {
         throw new RuntimeException('FolderView3 regex is invalid or uses unsupported JavaScript/PHP syntax. Correct the original expression before importing.');
     }

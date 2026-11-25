@@ -106,8 +106,8 @@ $result['indexedLegacy'] = array_keys($indexedFolders) === [0]
 seedFixture($type, [], $currentPrefs);
 $empty = createBackupSnapshot($type, 'before-import-empty');
 writeRawFolderMap($type, $savedFolders);
-restoreBackupSnapshot($type, $empty['name']);
-$result['emptyUndo'] = count(readRawFolderMap($type)) === 0;
+$restoredEmpty = restoreLatestUndoBackupSnapshot($type);
+$result['emptyUndo'] = $restoredEmpty['name'] === $empty['name'] && count(readRawFolderMap($type)) === 0;
 seedFixture($type, $savedFolders, $savedPrefs);
 $target = createBackupSnapshot($type, 'manual');
 writeRawFolderMap($type, []);
@@ -123,6 +123,18 @@ createBackupSnapshot($type, 'before-import-empty');
 writeRawFolderMap($type, $currentFolders);
 $restore = restoreLatestBackupSnapshot($type);
 $result['latestSkipsEmpty'] = $restore['name'] === $target['name'] && readRawFolderMap($type) === $savedFolders;
+foreach (['latest' => 'restoreLatestBackupSnapshot', 'undo' => 'restoreLatestUndoBackupSnapshot'] as $mode => $action) {
+    seedFixture($type, $savedFolders, $savedPrefs);
+    $target = createBackupSnapshot($type, 'before-import');
+    $name = $type . '-newest-broken.json';
+    $broken = ['reason' => 'before-import', 'createdAt' => '2099-01-01T00:00:00.000000+00:00', 'folders' => ['broken' => false]];
+    writeJsonObjectAtomic(getBackupSnapshotPath($type, $name), $broken);
+    writeRawFolderMap($type, $currentFolders); writeTypePrefs($type, $currentPrefs);
+    $listed = listBackupSnapshots($type)[0];
+    $restored = $action($type);
+    $result['skipsMalformed'][$mode] = $listed['name'] === $name && $listed['count'] === null
+        && $restored['name'] === $target['name'] && readRawFolderMap($type) === $savedFolders && readTypePrefs($type) === $savedPrefs;
+}
 foreach (['folders', 'prefs', 'docker-order'] as $stage) {
     if ($stage === 'docker-order' && $type !== 'docker') continue;
     seedFixture($type, $savedFolders, $savedPrefs);
@@ -146,7 +158,7 @@ foreach (['invalid-json', 'missing-folders', 'invalid-prefs', 'wrong-type', 'wro
     'invalid-folders', 'mixed-folders', 'invalid-membership'] as $kind) {
     seedFixture($type, $currentFolders, $currentPrefs);
     $name = $type . '-invalid.json';
-    $payload = ['schemaVersion' => 1, 'type' => $type, 'folders' => $savedFolders, 'prefs' => $savedPrefs];
+    $payload = ['schemaVersion' => 1, 'type' => $type, 'folders' => $savedFolders, 'prefs' => $savedPrefs, 'reason' => 'before-import'];
     if ($kind === 'missing-folders') unset($payload['folders']);
     if ($kind === 'invalid-prefs') $payload['prefs'] = 'invalid';
     if ($kind === 'wrong-type') $payload['type'] = $other;
@@ -161,11 +173,16 @@ foreach (['invalid-json', 'missing-folders', 'invalid-prefs', 'wrong-type', 'wro
     $result['invalid'][$kind] = $rejected && $before === captureFixture($type) && count(listBackupSnapshots($type)) === 1;
 }
 $before = captureFixture($type);
-$rejected = false;
-try { restoreLatestBackupSnapshot($type); }
-catch (RuntimeException $failure) { $rejected = true; }
-$result['latestRejectsMalformed'] = $rejected && $before === captureFixture($type)
-    && listBackupSnapshots($type)[0]['count'] === null && count(listBackupSnapshots($type)) === 1;
+$onlyInvalid = getBackupSnapshotPath($type, $name);
+$invalidHash = hash_file('sha256', $onlyInvalid);
+foreach (['latest' => 'restoreLatestBackupSnapshot', 'undo' => 'restoreLatestUndoBackupSnapshot'] as $mode => $action) {
+    $rejected = false;
+    try { $action($type); }
+    catch (RuntimeException $failure) { $rejected = true; }
+    $result['rejectsOnlyMalformed'][$mode] = $rejected && $before === captureFixture($type)
+        && listBackupSnapshots($type)[0]['count'] === null && count(listBackupSnapshots($type)) === 1
+        && hash_file('sha256', $onlyInvalid) === $invalidHash;
+}
 $result['otherUnchanged'] = $otherBefore === [readRawFolderMap($other), readTypePrefs($other), readConfigMetadata($other, false)];
 echo json_encode($result);
 `;
@@ -202,7 +219,8 @@ for (const type of ['docker', 'vm']) {
         assert.equal(result.emptyUndo, true, 'explicit empty snapshot did not restore empty state');
         assert.equal(result.emptySafety, true, 'empty current state was not protected');
         assert.equal(result.latestSkipsEmpty, true, 'latest restore selected an empty snapshot');
-        assert.equal(result.latestRejectsMalformed, true, 'latest restore accepted malformed backup data');
+        assert.deepEqual(result.skipsMalformed, { latest: true, undo: true }, 'a damaged backup blocked a valid older restore point');
+        assert.deepEqual(result.rejectsOnlyMalformed, { latest: true, undo: true }, 'restore mutated state without valid backup data');
         assert.equal(result.otherUnchanged, true, 'restore changed the other source');
         for (const [stage, failure] of Object.entries(result.failures)) {
             assert.match(failure.error, /Injected restore failure/, stage);

@@ -8,10 +8,10 @@ fvplus_json_try(function (): array {
             $prefs = readTypePrefs($type);
             $metadata = readConfigMetadata($type, true);
             unset($metadata['prefsMutationReceipt']);
-            return [
+            return fvplusJsonTypeConfig([
                 'prefs' => $prefs,
                 'metadata' => $metadata
-            ];
+            ]);
         });
     }
 
@@ -107,7 +107,7 @@ fvplus_json_try(function (): array {
         }
     }
 
-    return [
+    return fvplusJsonTypeConfig([
         'prefs' => $saved,
         'backup' => null,
         'metadata' => $metadata,
@@ -116,5 +116,5 @@ fvplus_json_try(function (): array {
         'backupRequired' => false,
         'auditRecorded' => $auditRecorded,
         'backupCoalesced' => false
-    ];
+    ]);
 });

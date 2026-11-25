@@ -25,6 +25,9 @@ if (!empty($request['corruptWorkspace'])) file_put_contents(getThemeWorkspacePat
 $before = migrationFiles($root . '/config');
 $operation = $request['operation'] ?? 'plan'; $bundle = $request['bundle'];
 try {
+    if ($operation === 'direct-apply') {
+        applyFolderView3Migration($bundle, 'synthetic.json', str_repeat('0', 64));
+    }
     $bundle = decodeFolderView3BundlePayloadString($request['raw'] ?? json_encode($bundle, JSON_THROW_ON_ERROR));
     $plan = buildFolderView3MigrationPlan($bundle, 'synthetic.json');
     $result = ['plan' => $plan, 'report' => folderView3MigrationReport($plan)];

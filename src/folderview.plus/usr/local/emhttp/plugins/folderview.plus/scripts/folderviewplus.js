@@ -4044,14 +4044,8 @@ const getActiveRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().g
 
 const getSortedBackupsForType = (type) => {
     const resolvedType = normalizeRecoveryWorkspaceType(type);
-    return [...(Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType] : [])].sort((left, right) => {
-        const leftTime = new Date(String(left?.createdAt || '')).getTime() || 0;
-        const rightTime = new Date(String(right?.createdAt || '')).getTime() || 0;
-        if (leftTime !== rightTime) {
-            return rightTime - leftTime;
-        }
-        return compareLocalizedText(right?.name || '', left?.name || '');
-    });
+    // The server orders snapshots with timestamps more precise than the display value.
+    return Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].slice() : [];
 };
 
 const buildRecoveryOverviewHtml = (...args) => getSettingsWorkspacesApi().buildRecoveryOverviewHtml(...args);
@@ -6897,7 +6891,7 @@ const getAutoRuleProblems = (type, rule) => {
     const labelKey = String(rule?.labelKey || '').trim();
     const labelValue = String(rule?.labelValue || '').trim();
 
-    if (!folderId || !Object.prototype.hasOwnProperty.call(folders || {}, folderId)) {
+    if (folderId ? !Object.prototype.hasOwnProperty.call(folders || {}, folderId) : rule?.effect !== 'exclude') {
         issues.push('Missing folder');
     }
     if (RULE_REGEX_KINDS.includes(kind)) {
@@ -7325,9 +7319,10 @@ const buildRuleRowHtml = (type, rule, globalIndex, isSelected) => {
     const match = condition.field === 'label' ? `${condition.labelKey}${condition.value ? ` = ${condition.value}` : ''}` : condition.value;
     const issues = getAutoRuleProblems(type, rule);
     const svg = window.FolderViewPlusUI.svgIcon;
+    const folderLabel = !rule.folderId && rule.effect === 'exclude' ? surfaceT('legacy.surface.226fd0e51f770b0b', 'All folders') : folderNameForId(type, rule.folderId);
     return `<tr data-fv-rule-id="${escapeHtml(rule.id)}" data-rule-type="${type}" class="${isSelected ? 'is-selected' : ''}${issues.length ? ' is-invalid' : ''}">
         <td class="fv-rule-select"><input type="checkbox" ${isSelected ? 'checked' : ''} data-fv-onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}',this.checked)" aria-label="${escapeHtml(surfaceT('settings.rules.select-rule', 'Select rule $1', globalIndex + 1))}"><button type="button" draggable="true" data-rule-drag aria-label="${escapeHtml(surfaceT('settings.rules.move-rule', 'Move rule $1. Use Up or Down arrow keys.', globalIndex + 1))}">${svg('grip')}</button></td>
-        <td>${globalIndex + 1}</td><td><span class="fv-rule-folder">${svg('folder')}${escapeHtml(folderNameForId(type, rule.folderId))}</span></td>
+        <td>${globalIndex + 1}</td><td><span class="fv-rule-folder">${svg('folder')}${escapeHtml(folderLabel)}</span></td>
         <td><span class="fv-rule-chip ${rule.effect === 'exclude' ? 'is-invalid' : 'is-active'}">${escapeHtml(rule.effect === 'exclude' ? surfaceT('legacy.surface.5b76f62e1ba0401f', 'Exclude') : surfaceT('legacy.surface.7285576bdacf86fe', 'Include'))}</span></td>
         <td>${escapeHtml(conditionLabel)}</td><td class="fv-rule-match">${escapeHtml(match)}${issues.length ? `<small class="fv-rule-problems">${escapeHtml(issues.join(', '))}</small>` : ''}</td>
         <td><span class="fv-rule-status ${rule.enabled ? 'is-active' : ''}">${escapeHtml(rule.enabled ? surfaceT('legacy.surface.92340695899bd2d8', 'Active') : surfaceT('common.repair.inactive-ac7c94', 'Inactive'))}</span></td>
@@ -9472,7 +9467,7 @@ const addAutoRule = async (type) => {
     const labelValue = String($(`#${type}-rule-label-value`).val() || '').trim();
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-    if (!folderId) {
+    if (!folderId && effect !== 'exclude') {
         swal({ title: 'Error', text: 'Select a folder before adding a rule.', type: 'error' });
         return;
     }

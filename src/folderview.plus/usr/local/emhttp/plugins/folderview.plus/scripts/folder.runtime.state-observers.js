@@ -43,10 +43,9 @@
         let syncTimer = null;
         let syncInFlight = false;
         let syncQueued = false;
-        let lastSyncedPayload = '';
         let lifecycleHooksBound = false;
-        let stateGeneration = 0;
         let latestStateMap = {};
+        const pendingIntents = new Map();
 
         const readLocalMap = () => {
             try {
@@ -80,7 +79,6 @@
 
         const writeServerExpandedStateMap = (map) => {
             latestStateMap = normalizeExpandedStateMap(map);
-            stateGeneration += 1;
             writeServerMap(latestStateMap);
         };
 
@@ -95,12 +93,9 @@
                 return;
             }
 
-            const payloadMap = readServerExpandedStateMap();
-            const payloadString = JSON.stringify(payloadMap);
-            const submittedGeneration = stateGeneration;
-            if (payloadString === lastSyncedPayload) {
-                return;
-            }
+            if (!pendingIntents.size) return;
+            const submitted = new Map(pendingIntents);
+            const payloadMap = Object.fromEntries(submitted);
 
             syncInFlight = true;
             try {
@@ -120,16 +115,15 @@
                         retries: 0,
                         retryDelayMs: 260
                     }))?.prefs || {});
-                const committedMap = normalizeExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
-                lastSyncedPayload = JSON.stringify(committedMap);
-                if (stateGeneration === submittedGeneration) {
-                    writeServerExpandedStateMap(committedMap);
-                } else {
-                    // A coordinator can publish the older response before resolving.
-                    // Restore local intent and let the next save use its current revision.
-                    writeServerMap(latestStateMap);
-                    syncQueued = true;
+                const committedMap = normalizeExpandedStateMap(nextPrefs.expandedFolderState || { ...readServerExpandedStateMap(), ...payloadMap });
+                for (const [id, expanded] of submitted) {
+                    if (pendingIntents.get(id) === expanded) pendingIntents.delete(id);
                 }
+                // The coordinator can publish an older response before resolving.
+                const reconciled = { ...committedMap, ...Object.fromEntries(pendingIntents) };
+                writeLocalMap(reconciled);
+                writeServerExpandedStateMap(reconciled);
+                if (pendingIntents.size) syncQueued = true;
             } catch (_error) {
                 // Best effort only; local persistence still retains behavior.
             } finally {
@@ -157,7 +151,14 @@
             const persistedServer = normalizeExpandedStateMap(serverMap);
             const persistedLocal = readLocalMap();
             const resolved = {};
+            for (const id of pendingIntents.keys()) {
+                if (!Object.hasOwn(source, id)) pendingIntents.delete(id);
+            }
             for (const [id, folder] of Object.entries(source)) {
+                if (pendingIntents.has(id)) {
+                    resolved[id] = pendingIntents.get(id);
+                    continue;
+                }
                 if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
                     resolved[id] = persistedServer[id] === true;
                     continue;
@@ -175,11 +176,12 @@
 
         const persistStateMap = (map, syncServer = true) => {
             const normalized = normalizeExpandedStateMap(map);
+            for (const [id, expanded] of Object.entries(normalized)) {
+                if (latestStateMap[id] !== expanded) pendingIntents.set(id, expanded);
+            }
             writeLocalMap(normalized);
             writeServerExpandedStateMap(normalized);
-            if (syncServer) {
-                scheduleExpandedStateSync();
-            }
+            if (syncServer && pendingIntents.size) scheduleExpandedStateSync();
         };
 
         const persistStateFromGlobal = (syncServer = true) => {
@@ -202,7 +204,7 @@
             const seen = new Set();
             jq?.('button.folder-dropdown').each((_, node) => {
                 const className = String(node.className || '');
-                const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
+                const match = className.match(/(?:^|\s)dropDown-([A-Za-z0-9_.:-]+)(?:\s|$)/);
                 if (!match || !match[1]) {
                     return;
                 }
@@ -221,8 +223,7 @@
             if (!Object.keys(domState).length) {
                 return;
             }
-            const current = readLocalMap();
-            persistStateMap({ ...current, ...domState }, true);
+            writeLocalMap({ ...readLocalMap(), ...domState, ...Object.fromEntries(pendingIntents) });
         };
 
         const ensureLifecycleHooks = () => {

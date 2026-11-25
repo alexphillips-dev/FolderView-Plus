@@ -67,9 +67,11 @@ function applySelectiveFolderSettings(string $type, array $targetIds, array $set
             'unchangedCount' => count($skipped), 'categories' => $categories, 'changes' => $changes,
             'folderRevision' => readConfigMetadata($type, false, false)['folderRevision'], 'backup' => null, 'settings' => $payload];
         if (!empty($options['preview']) || !$changed) return $result;
-        $result['backup'] = createBackupSnapshot($type, 'before-apply-folder-settings');
+        $backup = createBackupSnapshot($type, 'before-apply-folder-settings', false);
         // Membership and hierarchy are unchanged, so no order/preferences write is necessary.
         writeRawFolderMap($type, $nextFolders);
+        $backup['pruned'] = pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
+        $result['backup'] = $backup;
         $result['folderRevision'] = readConfigMetadata($type, false, false)['folderRevision'];
         try {
             appendDiagnosticsHistoryEvent('folder_settings_apply', $type, ['targetCount' => count($changed),

@@ -10,8 +10,21 @@
     const isPreferenceRevisionConflict = (status, error) => status === 409
         && (!error?.phase || error.phase === 'request')
         && !['nonce-stale', 'nonce-target-mismatch', 'transaction-invalid', 'transaction-replayed'].includes(error?.reasonCode);
+    const isRetryableSyncError = (error) => {
+        const status = Number(error?.status || error?.httpStatus || 0);
+        return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500
+            || (status === 409 && ['nonce-stale', 'transaction-replayed'].includes(error?.reasonCode));
+    };
+    const classifyWriteError = (error, alreadySubmitted) => {
+        const status = Number(error?.status || error?.httpStatus || 0);
+        const isConflict = isPreferenceRevisionConflict(status, error);
+        const recoveredConflict = isConflict && alreadySubmitted;
+        const rejected = recoveredConflict || error?.rulesConflict === true
+            || ((status === 400 || status === 422) && (!error?.phase || error.phase === 'request'));
+        return { isConflict, recoveredConflict, rejected };
+    };
 
-    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergePatch, patchIsEmpty, mutationIdFor }) => {
+    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergePatch, cloneValue, patchIsEmpty, mutationIdFor }) => {
         const written = new Map();
         const legacyKey = type => `${prefix}${type}`;
         const key = type => `${legacyKey(type)}.${encodeURIComponent(sourceId)}`;
@@ -137,10 +150,46 @@
 
         const pendingOperation = state => ({
             patch: state.pendingPatch,
+            ...(state.pendingAutoRulesBase !== null ? { autoRulesBase: state.pendingAutoRulesBase } : {}),
             generation: state.generation,
             mutationId: mutationIdFor(state.generation),
             expectedRevision: readRevision(state.confirmedPrefs)
         });
+
+        const hasRulesPatch = (patch) => Object.prototype.hasOwnProperty.call(patch, 'autoRules');
+        const rulesChangedSinceEdit = (batch, state) => Array.isArray(batch.autoRulesBase)
+            && JSON.stringify(batch.autoRulesBase) !== JSON.stringify(state.confirmedPrefs?.autoRules || []);
+        const rulesConflictBeforeWrite = (batch, state, alreadySubmitted) =>
+            // A previously submitted operation can have committed despite a missing response.
+            // Its original revision and mutation ID must reach the server receipt check.
+            (!alreadySubmitted || batch.expectedRevision === readRevision(state.confirmedPrefs))
+            && rulesChangedSinceEdit(batch, state);
+
+        const queuePatch = (state, patch, baseline) => {
+            if (hasRulesPatch(patch) && !hasRulesPatch(state.pendingPatch)) {
+                state.pendingAutoRulesBase = baseline ? cloneValue(baseline.autoRules || []) : null;
+            }
+            state.pendingPatch = mergePatch(state.pendingPatch, patch);
+        };
+
+        const requeue = (state, batch) => {
+            state.pendingPatch = mergePatch(batch.patch, state.pendingPatch);
+            if (hasRulesPatch(batch.patch)) state.pendingAutoRulesBase = batch.autoRulesBase ?? null;
+        };
+
+        const beginRebase = (state, batch) => {
+            state.conflictRetries += 1;
+            state.stats.conflicts += 1;
+            state.status = 'sync-pending';
+            state.inFlightBatch = batch;
+        };
+
+        const completeRebase = (state, batch) => {
+            requeue(state, batch);
+            state.inFlightBatch = null;
+            state.flushing = false;
+            persist(state);
+        };
 
         const persist = (state) => {
             const submitted = state.inFlightBatch || state.retryBatch;
@@ -154,7 +203,10 @@
             const retry = restored ? null : state.retryBatch;
             const batch = recovered || retry || pendingOperation(state);
             if (retry) state.retryBatch = null;
-            if (!restored && !retry) state.pendingPatch = {};
+            if (!restored && !retry) {
+                state.pendingPatch = {};
+                state.pendingAutoRulesBase = null;
+            }
             state.inFlightBatch = restored ? null : batch;
             return { batch, retry };
         };
@@ -168,9 +220,10 @@
         };
 
         return Object.freeze({
-            key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit
+            key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit,
+            queuePatch, requeue, rulesChangedSinceEdit, rulesConflictBeforeWrite, beginRebase, completeRebase
         });
     };
 
-    return Object.freeze({ createStorage, isPreferenceRevisionConflict });
+    return Object.freeze({ createStorage, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
 }));

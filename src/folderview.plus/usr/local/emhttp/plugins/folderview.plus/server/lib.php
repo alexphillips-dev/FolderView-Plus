@@ -4,6 +4,7 @@
     require_once __DIR__ . '/lib.filesystem-security.php';
     require_once __DIR__ . '/lib.security.php';
     require_once __DIR__ . '/lib.request-authority.php';
+    require_once __DIR__ . '/lib.config-json.php';
 
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
@@ -1875,12 +1876,12 @@
             return $nextPrefs;
         }
         $order = [];
-        foreach ((array)($prefs['manualOrder'] ?? []) as $id) {
+        foreach (normalizeStringIdList($prefs['manualOrder'] ?? []) as $id) {
             if (array_key_exists($id, $folders)) {
                 $order[] = $id;
             }
         }
-        foreach (array_keys($folders) as $id) {
+        foreach (array_map('strval', array_keys($folders)) as $id) {
             if (!in_array($id, $order, true)) {
                 $order[] = $id;
             }
@@ -2324,7 +2325,7 @@
             $folders = readRawFolderMap($type);
             syncManualOrderWithFolders($type, $folders);
             $ordered = reorderFolderMapByPrefs($type, $folders);
-            return json_encode($ordered);
+            return json_encode(fvplusJsonKeyedMap($ordered));
         });
     }
 

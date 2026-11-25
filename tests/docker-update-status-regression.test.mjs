@@ -335,7 +335,7 @@ test('folder update-column renderer is reused across initial and synced folder s
     assert.match(dockerJs, /hierarchyApi && typeof hierarchyApi\.resolveFolderUpdateColumnState === 'function'/);
     assert.match(dockerRuntimeHierarchyJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild = false\) =>/);
     assert.match(dockerRuntimeHierarchyJs, /const resolveFolderUpdateColumnState = \(managerTypes,\s*upToDate,\s*managed,\s*options = \{\}\) => \{/);
-    const helperUsages = dockerJs.match(/renderFolderUpdateColumn\(id,\s*(?:\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\)|\$updateColumn),\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/g) || [];
+    const helperUsages = dockerJs.match(/renderFolderUpdateColumn\(id,\s*(?:\$\(`tr\[class~="folder-id-\$\{id\}"\] > td\.updatecolumn`\)|\$updateColumn),\s*managerTypes,\s*upToDate,\s*managed,\s*needsRebuild\);/g) || [];
     assert.ok(helperUsages.length >= 2, 'expected shared folder update-column rendering in both initial and sync paths');
 });
 
@@ -462,7 +462,7 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
     );
     assert.match(dockerPreviewActionsJs, /const getDirectMemberRowsForFolder = typeof deps\.getDirectMemberRowsForFolder === 'function'/);
     assert.match(dockerPreviewActionsJs, /const findDockerFolderMemberRow = \(id,\s*containerName\) => \{/);
-    assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
+    assert.match(dockerPreviewActionsJs, /tr\[class~="folder-id-\$\{folderId\}"\] div\.folder-storage > tr, tr\[class~="folder-\$\{folderId\}-element"\]/);
     assert.match(dockerPreviewActionsJs, /return matchRows\(getDirectMemberRowsForFolder\(folderId\)\);/);
     assert.match(dockerJs, /getDirectMemberRowsForFolder: \(id\) => getDirectMemberRowsForFolder\(id\),/);
 });
@@ -502,5 +502,5 @@ test('docker folder expand path re-syncs direct member rows from runtime state a
     assert.match(dockerJs, /syncDockerFolderMemberRows: \(id,\s*runtimeContainers\) => syncDockerFolderMemberRows\(id,\s*runtimeContainers\),/);
     assert.match(dockerRuntimeHierarchyJs, /const syncDockerFolderMemberRows = typeof deps\.syncDockerFolderMemberRows === 'function'[\s\S]*:\s*\(\(\) => \{\}\);/);
     assert.match(dockerRuntimeHierarchyJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*\$folderRow\.after\(\$directMemberRows\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
-    assert.match(dockerRuntimeHierarchyJs, /const \$rowsToShow = \$directMemberRows\.length \? \$directMemberRows : \$fallbackRows;[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*jq\(`tr\.folder-id-\$\{id\}`\)\.after\(\$rowsToShow\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$rowsToShow = \$directMemberRows\.length \? \$directMemberRows : \$fallbackRows;[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*jq\(`tr\[class~="folder-id-\$\{id\}"\]`\)\.after\(\$rowsToShow\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
 });

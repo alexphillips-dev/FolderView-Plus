@@ -107,7 +107,7 @@ function getBackupSnapshotPath(string $type, string $name): string {
                 'folders' => $folders,
                 'prefs' => $prefs
             ];
-            writeJsonObjectAtomic("$backupDir/$filename", $payload);
+            writeJsonObjectAtomic("$backupDir/$filename", fvplusJsonTypeConfig($payload));
             $pruned = $prune ? pruneBackupSnapshots($type, getTypeBackupRetention($type)) : [];
             try {
                 appendDiagnosticsHistoryEvent('backup_create', $type, [

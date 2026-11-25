@@ -20,10 +20,10 @@ try {
     }
     $includeMetadata = (string)($_GET['includeMetadata'] ?? '') === '1';
     if ($includeMetadata) {
-        $folders = json_decode($foldersJson, true);
+        $folders = json_decode($foldersJson);
         echo json_encode([
             'ok' => true,
-            'folders' => is_array($folders) ? $folders : [],
+            'folders' => $folders ?? [],
             'metadata' => $metadata
         ], JSON_UNESCAPED_SLASHES);
     } else {

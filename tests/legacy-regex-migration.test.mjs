@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const rulesPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js');
@@ -63,6 +64,31 @@ test('legacy regex migration preserves meaningful leading and trailing pattern w
         utils: null
     });
     assert.deepEqual(Array.from(preview.matches), []);
+});
+
+test('Folder Editor cards validate converted rules with the runtime regex mode', async () => {
+    const require = createRequire(import.meta.url);
+    const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+    class Element {
+        appendChild(child) { child.parentElement = this; this.child = child; }
+    }
+    const host = new Element();
+    const document = {
+        querySelector: selector => selector.startsWith('.fv-section-shell') ? host : null,
+        getElementById: () => host.child ?? null,
+        createElement: () => new Element()
+    };
+    const pattern = String.raw`^\u{1F600}$`;
+    const rule = { folderId: 'media', kind: 'name_regex', effect: 'include', pattern };
+    const response = { prefs: { autoRules: [
+        { ...rule, id: 'converted', regexMode: 'legacy' },
+        { ...rule, id: 'invalid', pattern: '[' }
+    ] } };
+    const window = { document, HTMLElement: Element, FolderViewPlusRequest: { getJson: async () => response, postJson: async () => {} } };
+    vm.runInNewContext(rulesSource, { window });
+    await window.FolderViewPlusFolderEditorRules.createApi({ type: 'vm', utils, getActiveFolderId: () => 'media' }).refresh();
+    assert.match(host.child.innerHTML, /<article class="fv-folder-auto-rule-card" data-fv-folder-rule-id="converted">/);
+    assert.match(host.child.innerHTML, /<article class="fv-folder-auto-rule-card is-invalid" data-fv-folder-rule-id="invalid">/);
 });
 
 test('legacy compatibility UI is advanced-first and hides empty legacy data', () => {

@@ -16,7 +16,7 @@ for (const desired of [true, false]) {
             const rows = withDetail ? [first, {}, unchanged, {}, last] : [first, unchanged, last];
             const jquery = value => {
                 if (typeof value === 'string') {
-                    assert.equal(value, 'tr.folder-123-element');
+                    assert.equal(value, 'tr[class~="folder-123-element"]');
                     return rows;
                 }
                 return { children: () => ({ last: () => ({ children: selector => {

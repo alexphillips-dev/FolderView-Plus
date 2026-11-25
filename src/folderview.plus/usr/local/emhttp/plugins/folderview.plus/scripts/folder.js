@@ -3999,7 +3999,7 @@ const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
     });
 };
 
-const restoreEditorBulkMoveBackup = async (backupName) => {
+const restoreEditorBulkMoveBackup = async (backupName, expectedFolderRevision) => {
     const safeBackupName = String(backupName || '').trim();
     if (!safeBackupName) {
         throw new Error('Backup name is required.');
@@ -4010,7 +4010,8 @@ const restoreEditorBulkMoveBackup = async (backupName) => {
     const response = await requestClient.postJson('/plugins/folderview.plus/server/backup.php', {
         type,
         action: 'restore',
-        name: safeBackupName
+        name: safeBackupName,
+        expectedFolderRevision
     });
     if (!response?.ok) {
         throw new Error(response?.error || 'Undo failed.');
@@ -4018,24 +4019,30 @@ const restoreEditorBulkMoveBackup = async (backupName) => {
     return response.restore || {};
 };
 
-function setMemberBulkMoveUndoState(backup, successMessage) {
+function setMemberBulkMoveUndoState(backup, expectedFolderRevision, successMessage) {
     memberBulkMoveUndoState = {
         backupName: String(backup?.name || '').trim(),
+        expectedFolderRevision,
         message: String(successMessage || '').trim() || 'Bulk move complete.'
     };
     memberBulkMoveUndoInFlight = false;
 }
 
 async function undoEditorMemberBulkMove() {
-    const backupName = String(memberBulkMoveUndoState?.backupName || '').trim();
-    if (!backupName || memberBulkMoveUndoInFlight) {
+    const { backupName, expectedFolderRevision } = memberBulkMoveUndoState || {};
+    if (!backupName || !Number.isSafeInteger(expectedFolderRevision) || memberBulkMoveUndoInFlight || memberBulkMoveInFlight) {
+        return false;
+    }
+    if (getAllChangedItems().length > 0) {
+        swal({ title: surfaceT('legacy.surface.a710c2b90913b537', 'Unsaved changes'), type: 'warning' });
         return false;
     }
     memberBulkMoveUndoInFlight = true;
     updateMemberBulkMoveUi();
     try {
-        await restoreEditorBulkMoveBackup(backupName);
-        suppressUnloadPrompt = true;
+        await restoreEditorBulkMoveBackup(backupName, expectedFolderRevision);
+        clearMemberBulkMoveUndoState();
+        updateMemberBulkMoveUi();
         location.reload();
         return true;
     } catch (error) {
@@ -4062,7 +4069,7 @@ const reconcileEditorFolderMutation = async (baseRevision, committedRevision) =>
 
 async function applyEditorMemberBulkMove() {
     const expectedRevision = folderEditorExpectedFolderRevision;
-    if (memberBulkMoveInFlight || folderEditorMissingTarget || !Number.isSafeInteger(expectedRevision)) {
+    if (memberBulkMoveInFlight || memberBulkMoveUndoInFlight || folderEditorMissingTarget || !Number.isSafeInteger(expectedRevision)) {
         return false;
     }
     if (getSectionChangeItems('members').length > 0) {
@@ -4142,7 +4149,7 @@ async function applyEditorMemberBulkMove() {
         closeOnConfirm: false,
         showLoaderOnConfirm: true
     }, async (confirmed) => {
-        if (!confirmed) {
+        if (!confirmed || memberBulkMoveInFlight || memberBulkMoveUndoInFlight) {
             return;
         }
         memberBulkMoveInFlight = true;
@@ -4176,9 +4183,13 @@ async function applyEditorMemberBulkMove() {
             }
             swal.close();
             applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
-            await reconcileEditorFolderMutation(expectedRevision, executionResult?.metadata?.folderRevision);
+            const committedRevision = executionResult?.metadata?.folderRevision;
+            await reconcileEditorFolderMutation(expectedRevision, committedRevision);
             const successMessage = executionResult?.summary || surfaceT("common.repair.items-moved-1-3c0fec", "Items moved: $1.", plan.actionableNames.length);
-            setMemberBulkMoveUndoState(executionResult?.backup || null, successMessage);
+            const undoBackup = executionResult?.assignedCount > 0 && committedRevision === expectedRevision + 1
+                ? executionResult.backup
+                : null;
+            setMemberBulkMoveUndoState(undoBackup, committedRevision, successMessage);
             updateMemberBulkMoveUi();
         } catch (error) {
             $('#fvMemberBulkSummary').text('Bulk move failed.');
@@ -4202,7 +4213,7 @@ function updateMemberBulkMoveUi() {
     const scopeDetails = collectCurrentMemberBulkMoveScope();
     const targetFolderId = String(targetSelect.val() || '').trim();
     if (moveButton.length) {
-        moveButton.prop('disabled', memberBulkMoveInFlight || !targetFolderId || (scopeDetails.movableCount || 0) <= 0);
+        moveButton.prop('disabled', memberBulkMoveInFlight || memberBulkMoveUndoInFlight || !targetFolderId || (scopeDetails.movableCount || 0) <= 0);
         moveButton.html(memberBulkMoveInFlight
             ? '<i class="fa fa-refresh fa-spin"></i> Moving...'
             : '<i class="fa fa-exchange"></i> Move to folder');

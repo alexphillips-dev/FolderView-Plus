@@ -418,6 +418,11 @@
                 continue;
             }
             $currentValue = $merged[$safeKey] ?? null;
+            // Expansion entries are keyed by folder ID, even when PHP decodes them as a list.
+            if ($safeKey === 'expandedFolderState' && is_array($currentValue) && is_array($value) && $value !== []) {
+                $merged[$safeKey] = array_replace($currentValue, $value);
+                continue;
+            }
             $valueRepresentsObject = is_array($value) && (
                 !fvplusPrefsArrayIsList($value)
                 || (count($value) === 0 && is_array($currentValue) && !fvplusPrefsArrayIsList($currentValue))

@@ -123,13 +123,16 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span class="settings-mini-title">Customization layer</span>
                         <p data-i18n="settings.theme.profiles-help">Use named profiles and global or page-specific layers. Changes are previewed before an atomic save.</p>
                     </div>
-                </div><div id="fv-theme-profile-toolbar" class="fv-theme-profile-toolbar"></div>
+                </div>
+                <div id="fv-theme-appearance-loading" role="status" data-i18n="common.loading">Loading…</div>
+                <button type="button" id="fv-theme-appearance-retry" data-i18n="diagnostics.actions.retry" hidden>Retry</button>
+                <div id="fv-theme-profile-toolbar" class="fv-theme-profile-toolbar"></div>
                 <div id="fv-theme-presets"></div>
                 <div class="fv-theme-customize-grid">
                     <div class="fv-theme-customize-card">
                         <div class="fv-theme-card-head">
                             <span class="settings-mini-title">Color tokens</span>
-                            <button type="button" data-fv-onclick="resetThemeWorkspaceTokens()"><i class="fa fa-undo"></i> Reset all</button>
+                            <button type="button" data-fv-theme-requires-workspace data-fv-onclick="resetThemeWorkspaceTokens()" disabled><i class="fa fa-undo"></i> Reset all</button>
                         </div>
                         <div id="fv-theme-variable-grid" class="fv-theme-variable-grid"></div>
                     </div>
@@ -161,11 +164,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Custom CSS</span>
                             <span class="rules-help">Advanced: saved CSS applies to Docker, VMs, and Dashboard generated assets.</span>
                         </div>
-                        <textarea id="fv-theme-custom-css" class="fv-theme-custom-css" spellcheck="false" placeholder="/* Appended after the active managed theme for Docker, VMs, and Dashboard. */"></textarea>
+                        <textarea id="fv-theme-custom-css" class="fv-theme-custom-css" spellcheck="false" data-fv-theme-requires-workspace disabled placeholder="/* Appended after the active managed theme for Docker, VMs, and Dashboard. */"></textarea>
                     </div>
                 </div>
                 <div class="fv-theme-customize-actions">
-                    <button type="button" data-fv-onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
+                    <button type="button" data-fv-theme-requires-workspace data-fv-onclick="saveThemeWorkspaceCustomize()" disabled><i class="fa fa-save"></i> Save customization layer</button>
                 </div>
             </section>
 </div>

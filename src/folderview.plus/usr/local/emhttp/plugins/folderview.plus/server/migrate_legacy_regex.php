@@ -6,5 +6,5 @@ fvplus_json_try(function (): array {
     $type = ensureType((string)($_POST['type'] ?? ''));
     $folderId = trim((string)($_POST['folderId'] ?? ''));
     $expectedPattern = (string)($_POST['expectedPattern'] ?? '');
-    return migrateLegacyRegexToAutoRule($type, $folderId, $expectedPattern);
+    return fvplusJsonTypeConfig(migrateLegacyRegexToAutoRule($type, $folderId, $expectedPattern));
 });

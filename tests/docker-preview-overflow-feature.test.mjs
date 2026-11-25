@@ -118,7 +118,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /if \(folder\.settings\.context === 1 && options\.preferNativeDefaultContext !== false\) \{/);
     assert.match(dockerJs, /compactPreviewItem = buildCompactPreviewDefaultContextItem\(\$sourceRow, folder\.settings, autostart\);/);
     assert.match(dockerJs, /bindDockerPreviewDefaultContextBridge\(\$item, \$sourceRow, folder\.settings\);/);
-    assert.match(dockerJs, /auditDockerPreviewContextBridges\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\);/);
+    assert.match(dockerJs, /auditDockerPreviewContextBridges\(\$\(`tr\[class~="folder-id-\$\{id\}"\] div\.folder-preview`\), folder\.settings\);/);
     assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
@@ -198,7 +198,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerChildFolderPreviewMenuJs, /clientX: rect \? rect\.left \+ Math\.max\(1, rect\.width \/ 2\) : 0/);
     assert.match(dockerChildFolderPreviewMenuJs, /clientY: rect \? rect\.top \+ Math\.max\(1, rect\.height \/ 2\) : 0/);
     assert.match(dockerChildFolderPreviewMenuJs, /activeTrigger\.dispatchEvent/);
-    assert.match(dockerJs, /context\.attach\(options\.targetSelector \|\| '#' \+ id, opts\)/);
+    assert.match(dockerJs, /context\.attach\(options\.targetSelector \|\| '#' \+ \$\.escapeSelector\(id\), opts\)/);
     assert.match(dockerJs, /recordChildFolderPreviewMenuOpen: \(details\) => getDockerPreviewActionsApi\(\)\?\.recordChildFolderPreviewMenuOpen\?\.\(details\)/);
     assert.match(dockerPreviewActionsScript, /childFolderPreview:\s*\{/);
     assert.match(dockerPreviewActionsScript, /recordChildFolderPreviewMenuOpen\(details = \{\}\) \{/);
@@ -215,7 +215,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /restoreLinearPreviewLayout\(\$preview,\s*settings\);/);
     assert.match(dockerJs, /const wrappers = flattenPreviewWrappers\(\$preview\);/);
     assert.match(dockerJs, /finalizePreviewRows\(\$preview,\s*visibleRows,\s*settings\);/);
-    assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
+    assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\[class~="folder-id-\$\{id\}"\] div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerRuntimeHierarchyJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
     assert.match(dockerJs, /decorateDockerPreviewMemberTriggers\(/);

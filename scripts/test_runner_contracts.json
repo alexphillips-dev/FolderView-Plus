@@ -19,6 +19,8 @@
         "../tests/browser/cases/dashboard-runtime-consistency.mjs",
         "../tests/browser/cases/runtime-host-reconciliation.mjs",
         "../tests/browser/cases/dashboard-native-reconciliation.mjs",
+        "../tests/browser/cases/runtime-folder-identity-persistence.mjs",
+        "../tests/browser/cases/dashboard-runtime-native-controls.mjs",
         "../tests/browser/cases/dashboard-lifecycle.mjs",
         "../tests/browser/cases/status-text-theme.mjs",
         "../tests/browser/cases/runtime-interactions.mjs",
@@ -61,6 +63,8 @@
     {"file": "tests/browser/cases/dashboard-runtime-consistency.mjs", "limit": 170, "owner": "Full and incremental Dashboard refresh, native filters, peer layout and keyboard focus"},
     {"file": "tests/browser/cases/runtime-host-reconciliation.mjs", "limit": 160, "owner": "Native switch, deferred Docker config and shared Docker and VM focus"},
     {"file": "tests/browser/cases/dashboard-native-reconciliation.mjs", "limit": 120, "owner": "Dashboard native summary and committed rules across browser tabs"},
+    {"file": "tests/browser/cases/runtime-folder-identity-persistence.mjs", "limit": 110, "owner": "Literal runtime folder IDs and preservation of pending expansion during rebuilds"},
+    {"file": "tests/browser/cases/dashboard-runtime-native-controls.mjs", "limit": 100, "owner": "Dashboard native VM actions and Docker update indicators after live refresh"},
     {"file": "tests/browser/helpers/dashboard-membership-host.mjs", "limit": 40, "owner": "Dashboard native row markup and membership snapshots"},
     {"file": "tests/browser/cases/editor-action-roundtrip.mjs", "limit": 90, "owner": "Unicode and sparse custom action identities through actual editor handlers"},
     {"file": "tests/browser/cases/runtime-preview-color-security.mjs", "limit": 120, "owner": "Persisted preview colors remain CSS values across Docker VM and editor renderers"},
@@ -176,6 +180,7 @@
     { "file": "tests/browser/helpers/docker-hidden-folder-context.mjs", "limit": 32, "owner": "fixture hidden-folder timing and theme assertions" },
     { "file": "tests/browser/cases/settings.mjs", "limit": 635, "owner": "fixture Settings cases", "requiredImports": ["./settings-tree-persistence.mjs", "./settings-search-unicode.mjs"] },
     { "file": "tests/browser/cases/settings-rules.mjs", "limit": 230, "owner": "production Settings rule saves, matching and responsive workspace" },
+    { "file": "tests/browser/cases/settings-global-exclusion.mjs", "limit": 40, "owner": "global exclusion create and edit through the production Rules workspace" },
     { "file": "tests/browser/helpers/settings-workspace-controls.mjs", "limit": 50, "owner": "shared source tab parity, icon centering and Rules page expansion" },
     { "file": "tests/browser/cases/settings-alerts-health.mjs", "limit": 100, "owner": "fixture Settings alerts and health details" },
     { "file": "tests/browser/cases/settings-bulk-assignment.mjs", "limit": 155, "owner": "fixture bulk move layout, filtering, selection and atomic mutation" },
@@ -216,6 +221,8 @@
         "tests/browser/cases/dashboard-runtime-consistency.mjs",
         "tests/browser/cases/runtime-host-reconciliation.mjs",
         "tests/browser/cases/dashboard-native-reconciliation.mjs",
+        "tests/browser/cases/runtime-folder-identity-persistence.mjs",
+        "tests/browser/cases/dashboard-runtime-native-controls.mjs",
         "tests/browser/cases/dashboard-expansion-memory.mjs",
         "tests/browser/cases/status-text-theme.mjs",
         "tests/browser/cases/runtime-privacy-diagnostics.mjs",
@@ -238,6 +245,7 @@
         "tests/browser/cases/settings-initial-hydration.mjs",
         "tests/browser/cases/settings.mjs",
         "tests/browser/cases/vm-runtime-recovery.mjs",
+        "tests/browser/cases/settings-global-exclusion.mjs",
         "tests/browser/cases/settings-rules.mjs",
         "tests/browser/cases/settings-rules-preview.mjs",
         "tests/browser/cases/settings-runtime-actions.mjs",
@@ -350,10 +358,10 @@
         "tests/browser/helpers/icon-pack-filters.mjs",
         "tests/browser/helpers/host-theme.mjs"
       ],
-      "testCount": 193,
-      "assertionCount": 2422,
-      "pageEvaluateCount": 837,
-      "orderedTitleSha256": "5d933a67d8d21c8c23d481f74b761c7d0fc83f438cb066e57bbd03b727c3ff3e"
+      "testCount": 199,
+      "assertionCount": 2443,
+      "pageEvaluateCount": 843,
+      "orderedTitleSha256": "2641e492f6945ef6c29aa1b6e797b994fabc5e1e963e74db927e1d93ba995da9"
     }
   }
 }

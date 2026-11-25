@@ -683,14 +683,15 @@ const renderFolderSelectOptions = (type) => {
     const folders = getFolderMap(type);
     const entries = Object.entries(folders);
     const hasFolders = entries.length > 0;
-    const setOptionsPreserveValue = (selector, html, disabled) => {
+    const setOptionsPreserveValue = (selector, html, disabled, preserveEmpty = false) => {
         const select = $(selector);
         if (!select.length) {
             return;
         }
-        const previous = String(select.val() || '').trim();
+        const priorSelection = select.val();
+        const previous = String(priorSelection || '').trim();
         select.html(html).prop('disabled', disabled === true);
-        if (!previous) {
+        if (!previous && !(preserveEmpty && priorSelection === '')) {
             return;
         }
         const hasPrevious = select.find('option').toArray().some((option) => String(option.value || '') === previous);
@@ -717,7 +718,9 @@ const renderFolderSelectOptions = (type) => {
         }).join('');
     }
 
-    setOptionsPreserveValue(`#${type}-rule-folder`, simpleOptions, !hasFolders);
+    const surfaceT = window.FolderViewPlusI18n?.t || ((_key, fallback) => fallback);
+    const globalOption = `<option value="">${escapeHtml(surfaceT('legacy.surface.226fd0e51f770b0b', 'All folders'))}</option>`;
+    setOptionsPreserveValue(`#${type}-rule-folder`, (hasFolders ? simpleOptions : '') + globalOption, false, true);
     setOptionsPreserveValue(`#${type}-bulk-folder`, bulkOptions, !hasFolders);
     setOptionsPreserveValue(`#${type}-template-source-folder`, simpleOptions, !hasFolders);
     setOptionsPreserveValue(`#${type}-runtime-folder`, simpleOptions, !hasFolders);

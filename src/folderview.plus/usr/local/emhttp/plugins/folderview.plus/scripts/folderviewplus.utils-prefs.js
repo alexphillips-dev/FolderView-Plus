@@ -69,7 +69,7 @@
                 ...(rule.source === 'folderview3' ? { source: 'folderview3' } : {}),
                 ...(rule.kind === 'name_regex' && rule.regexMode === 'legacy' ? { regexMode: 'legacy' } : {})
             }))
-            .filter((rule) => rule.folderId !== '');
+            .filter((rule) => rule.folderId !== '' || rule.effect === 'exclude');
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const incomingBadges = isPlainObject(incoming.badges) ? incoming.badges : {};
         const badges = { // Enable once on upgrade; preserve opt-outs saved after schema 5.

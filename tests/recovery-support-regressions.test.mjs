@@ -130,6 +130,25 @@ test('saved numeric log timestamps include their calendar date across locales an
     assert.match(fallback(at), /2026/);
 });
 
+test('Recovery keeps the server ordering for snapshots created within the same displayed second', () => {
+    const start = source.indexOf('const getSortedBackupsForType =');
+    const end = source.indexOf('const buildRecoveryOverviewHtml =', start);
+    const load = new Function('backupsByType', 'normalizeRecoveryWorkspaceType', `
+        ${source.slice(start, end)}
+        return getSortedBackupsForType;
+    `);
+    const backups = [
+        { name: 'docker-20261124-010000-a.json', reason: 'newer', count: 2, createdAt: '2026-11-24T01:00:00+00:00' },
+        { name: 'docker-20261124-010000-z.json', reason: 'older', count: 1, createdAt: '2026-11-24T01:00:00+00:00' }
+    ];
+    const getSortedBackupsForType = load({ docker: backups }, type => type);
+    const api = workspaces.createApi({ $: () => ({ text: noop }), getSortedBackupsForType, escapeHtml: String });
+    const history = api.buildRecoveryBackupHistoryHtml('docker');
+    assert.match(history, /docker-20261124-010000-a\.json[\s\S]*Latest[\s\S]*docker-20261124-010000-z\.json/);
+    assert.deepEqual(getSortedBackupsForType('docker').map(backup => backup.name), backups.map(backup => backup.name));
+    assert.deepEqual(getSortedBackupsForType('vm'), []);
+});
+
 test('Recovery history keeps selected actions on the active row and expands all snapshots', () => {
     const backups = Array.from({ length: 7 }, (_, index) => ({ name: `snapshot-${index}.json`, count: index === 0 ? 0 : 2,
         createdAt: `2026-09-2${9 - index}T12:00:00Z`, reason: 'manual' }));

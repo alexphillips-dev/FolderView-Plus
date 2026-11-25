@@ -164,6 +164,26 @@ test('System Health honors the compiler’s target policy for global exclusions'
     assert.equal(diagnostics.integrity.invalidAutoRules.rules[0].id, include.id);
 });
 
+test('browser preference hydration retains saved targetless exclusions', () => {
+    const folders = { media: { name: 'Media' } };
+    const info = { 'media-private': {}, 'media-allowed': {} };
+    const rules = [
+        rule({ id: 'global-exclude', effect: 'exclude', folderId: '', pattern: '^media-private$' }),
+        rule({ id: 'invalid-include', folderId: '', pattern: '^media' }),
+        rule({ id: 'catch-all' })
+    ];
+    for (const type of ['docker', 'vm']) {
+        const stored = runPhp({ type, folders, rules, info, operation: 'stored-membership' });
+        const prefs = utils.normalizePrefs(stored.prefs);
+        assert.deepEqual(prefs.autoRules.map(({ id }) => id), ['global-exclude', 'catch-all']);
+        const browser = utils.buildMembershipSnapshot({ type, folders: stored.folders, rules: prefs.autoRules, infoByName: info });
+        for (const snapshot of [stored.membership, browser]) {
+            assert.equal(snapshot.decisionsByName['media-private'].blockedBy.id, 'global-exclude');
+            assert.deepEqual(snapshot.byFolder.media.liveMembers, ['media-allowed']);
+        }
+    }
+});
+
 test('browser and PHP keep legacy VM membership and diagnostics regex matching in sync', () => {
     const names = ['aéb', 'fixture/x', '😀', 'é', '\uE000', 'space fixture', 'with\uFEFFbom'];
     const types = { type: 'vm', rules: [] };

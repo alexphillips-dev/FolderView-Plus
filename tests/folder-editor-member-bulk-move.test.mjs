@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -76,5 +78,104 @@ test('editor only publishes a mutation revision alongside its matching folder ma
         assert.deepEqual(runtime.state(), revision === 4
             ? { folderEditorExpectedFolderRevision: 4, allFoldersById: folders }
             : { folderEditorExpectedFolderRevision: 3, allFoldersById: { original: { name: 'Original' } } });
+    }
+});
+
+test('bulk move undo sends the committed folder revision and respects the editor draft guard', async () => {
+    const start = folderJs.indexOf('const restoreEditorBulkMoveBackup =');
+    const end = folderJs.indexOf('const reconcileEditorFolderMutation =', start);
+    let dirty = true;
+    let reloaded = false;
+    const requests = [];
+    const run = new Function('location', 'getAllChangedItems', 'requestClient', 'swal', `
+        const type = 'vm';
+        let suppressUnloadPrompt = false;
+        let memberBulkMoveInFlight = false;
+        let memberBulkMoveUndoInFlight = false;
+        let memberBulkMoveUndoState = { backupName: 'fixture.json', expectedFolderRevision: 7 };
+        const surfaceT = (_key, fallback) => fallback;
+        const updateMemberBulkMoveUi = () => {};
+        const clearMemberBulkMoveUndoState = () => { memberBulkMoveUndoState = null; memberBulkMoveUndoInFlight = false; };
+        ${folderJs.slice(start, end)}
+        return { undo: undoEditorMemberBulkMove, isPromptSuppressed: () => suppressUnloadPrompt };
+    `)({ reload() { reloaded = true; } }, () => dirty ? ['draft'] : [], {
+        async postJson(url, post) { requests.push({ url, post }); return { ok: true }; }
+    }, () => {});
+    assert.equal(await run.undo(), false);
+    assert.deepEqual(requests, []);
+    assert.equal(reloaded, false);
+    dirty = false;
+    assert.equal(await run.undo(), true);
+    assert.deepEqual(requests, [{
+        url: '/plugins/folderview.plus/server/backup.php',
+        post: { type: 'vm', action: 'restore', name: 'fixture.json', expectedFolderRevision: 7 }
+    }]);
+    assert.equal(run.isPromptSuppressed(), false);
+    assert.equal(reloaded, true);
+});
+
+test('folder-only editor Undo restores mixed member positions, preserves prefs, and rejects stale revisions', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-editor-undo-'));
+    const config = path.join(root, 'config');
+    const documentRoot = path.join(root, 'document-root');
+    fs.mkdirSync(config);
+    fs.mkdirSync(documentRoot);
+    const libraryPath = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php').replaceAll('\\', '/');
+    const fixture = `<?php
+class Libvirt {
+    public function connect(): bool { return false; }
+    public function get_domains(): array { return []; }
+}
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+require ${JSON.stringify(libraryPath)};
+$type = 'vm';
+$start = normalizeFolderMapPayload([
+    'src-a' => ['name' => 'A', 'containers' => ['one']],
+    'src-b' => ['name' => 'B', 'containers' => ['two']],
+    'target' => ['name' => 'Target', 'containers' => ['existing']]
+]);
+writeRawFolderMap($type, $start);
+writeTypePrefs($type, normalizeTypePrefs(['groupUnassignedItems' => false]));
+$base = readConfigMetadata($type, true)['folderRevision'];
+$backup = createBackupSnapshot($type, 'before-folder-editor-bulk-move');
+$move = bulkAssignItemsToFolder($type, 'target', ['one', 'two', 'unassigned'], $base);
+$moved = readRawFolderMap($type);
+writeTypePrefs($type, normalizeTypePrefs(['groupUnassignedItems' => true]));
+$prefsBeforeUndo = readTypePrefs($type);
+$revision = $move['metadata']['folderRevision'];
+$restore = restoreBackupSnapshot($type, $backup['name'], ['expectedFolderRevision' => $revision]);
+$restored = readRawFolderMap($type);
+$safety = readBackupSnapshot($type, $restore['backup']['name']);
+$preservesPrefs = $prefsBeforeUndo === readTypePrefs($type) && !$restore['prefsRestored'];
+$newBackup = createBackupSnapshot($type, 'before-folder-editor-bulk-move');
+$move = bulkAssignItemsToFolder($type, 'target', ['one'], readConfigMetadata($type, true)['folderRevision']);
+$later = readRawFolderMap($type);
+$later['src-b']['icon'] = 'later.png';
+writeRawFolderMap($type, $later);
+$later = readRawFolderMap($type);
+$count = count(listBackupSnapshots($type));
+$rejected = false;
+try { restoreBackupSnapshot($type, $newBackup['name'], ['expectedFolderRevision' => $move['metadata']['folderRevision']]); }
+catch (FVPlusConfigConflictException $error) { $rejected = true; }
+echo json_encode([
+    'restored' => $restored === $start, 'preservesPrefs' => $preservesPrefs,
+    'safetySnapshot' => $safety['folders'] === $moved && $safety['prefs'] === $prefsBeforeUndo,
+    'staleRejected' => $rejected && $later === readRawFolderMap($type) && $count === count(listBackupSnapshots($type)),
+    'movedMembers' => $moved['target']['containers']
+]);
+`;
+    const filename = path.join(root, 'fixture.php');
+    fs.writeFileSync(filename, fixture);
+    try {
+        const result = JSON.parse(execFileSync('php', [filename], { encoding: 'utf8', env: {
+            ...process.env, FVPLUS_TEST_CONFIG_DIR: config, FVPLUS_TEST_STORAGE_DIR: config,
+            FVPLUS_TEST_SOURCE_DIR: root, FVPLUS_TEST_DOCUMENT_ROOT: documentRoot
+        } }));
+        assert.deepEqual(result, {
+            restored: true, preservesPrefs: true, safetySnapshot: true, staleRejected: true,
+            movedMembers: ['existing', 'one', 'two', 'unassigned']
+        });
+    } finally {
+        fs.rmSync(root, { recursive: true, force: true });
     }
 });

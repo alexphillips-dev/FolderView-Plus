@@ -2156,7 +2156,7 @@ const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {
         return '';
     }
-    const match = String(row.className).match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
+    const match = String(row.className).match(/(?:^|\s)folder-id-([A-Za-z0-9_.:-]+)(?:\s|$)/);
     return match && match[1] ? String(match[1] || '').trim() : '';
 };
 const readFolderOwnerFromRow = (row) => {
@@ -2205,7 +2205,7 @@ const applyDockerFolderQuickActionState = (folderId) => {
     if (!id) {
         return;
     }
-    const $row = $(`tr.folder-id-${id}`);
+    const $row = $(`tr[class~="folder-id-${id}"]`);
     if (!$row.length) {
         return;
     }
@@ -2373,10 +2373,9 @@ const applyDockerFocusedFolderState = () => {
             return;
         }
         const $row = $(row);
-        const className = String(row.className || '');
-        const folderMatch = className.match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
-        if (folderMatch && folderMatch[1]) {
-            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(folderMatch[1]));
+        const folderId = readFolderIdFromRow(row);
+        if (folderId) {
+            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(folderId));
             return;
         }
         const ownerId = readFolderOwnerFromRow(row);
@@ -2829,7 +2828,7 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
         const previousFolders = { ...globalFolders };
         const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
         const previousOrder = fullOrder.slice();
-        const expandedIds = Object.keys(globalFolders).filter(folderId => $(`.dropDown-${folderId}`).attr('active') === 'true');
+        const expandedIds = Object.keys(globalFolders).filter(folderId => $(`[class~="dropDown-${folderId}"]`).attr('active') === 'true');
         const nextFolder = {
             ...sourceFolder,
             parentId
@@ -4846,7 +4845,7 @@ const createFolders = async () => {
     dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
     applyNestedFolderHierarchy();
     if (folderTypePrefs?.hideEmptyFolders === true) {
-        dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr.folder-id-${id}, tr#name-${id}`).remove());
+        dockerFolderGroupingSession.filterEmptyFolders(globalFolders, (id) => $(`tr[class~="folder-id-${id}"], tr[id="name-${id}"]`).remove());
     }
     dockerFolderGroupingSession.placeStandaloneRowsLast(reconciledOrder.order);
     syncDockerPinnedFolderUi();
@@ -5199,14 +5198,14 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                const $previewItem = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`)
+                const $previewItem = $(`tr[class~="folder-id-${folderTrId}"] div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`)
                     .clone()
                     .addClass(`${autostart ? 'autostart' : ''}`)
                     .attr('data-fv-container-id', String(ctid || '').trim())
                     .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($previewItem);
+                $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview`).append($previewItem);
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
+                    let tmpId = $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview > span.hand:last`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
                     if(folder.settings.context === 2) { return tmpId; }
@@ -5226,22 +5225,22 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 if (compactMultiRowPreview) {
                     return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
-                let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
+                let lstSpan = $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview > span.outer:last`);
                 if(!lstSpan[0] || lstSpan.children().length >= 2) {
-                    $(`tr.folder-id-${folderTrId} div.folder-preview`).append($('<span class="outer"></span>'));
-                    lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
+                    $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview`).append($('<span class="outer"></span>'));
+                    lstSpan = $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
                 const $previewItem = lstSpan.children('span.inner:last')
                     .attr('data-fv-container-id', String(ctid || '').trim())
                     .attr('data-fv-container-name', String(previewEntry?.name || '').trim());
-                $previewItem.append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                $previewItem.append($(`tr[class~="folder-id-${folderTrId}"] div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
+                    let tmpId = $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview span.inner:last > span.appname > a.exec`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
                     if(folder.settings.context === 2) {
-                        return tmpId.length>0 ? tmpId : $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname`).attr("id", "folder-preview-" + ctid);
+                        return tmpId.length>0 ? tmpId : $(`tr[class~="folder-id-${folderTrId}"] div.folder-preview span.inner:last > span.appname`).attr("id", "folder-preview-" + ctid);
                     }
                 }
             }; break;
@@ -5310,7 +5309,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
                 offsetIndex: indexInLiveOrderArray
             }}));
 
-            $(`tr.folder-id-${id} div.folder-storage`).append(
+            $(`tr[class~="folder-id-${id}"] div.folder-storage`).append(
                 $containerTR.addClass(`folder-${id}-element folder-element`).removeClass('sortable ui-sortable-handle')
             );
             decorateDockerFolderMemberRow($containerTR, id, ct.info.Name || container_name_in_folder);
@@ -5410,7 +5409,7 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
             });
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
-            $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
+            $(`tr[class~="folder-id-${id}"] div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
 
             const bindAdvancedPreviewContext = ($contextTrigger, context = {}) => {
@@ -5723,11 +5722,11 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
             );
             bindAdvancedPreviewContext($(tooltip_trigger_element));
 
-            const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
+            const elementForPreviewOpts = $(`tr[class~="folder-id-${id}"] div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Applying preview options based on folder.settings:`, JSON.parse(JSON.stringify(folder.settings)));
          
-            const $previewElementTarget = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer
+            const $previewElementTarget = $(`tr[class~="folder-id-${id}"] div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer
             let $targetForAppend; // Used for WebUI, Console, Logs icons
             const previewMode = Number(folder?.settings?.preview || 0);
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
@@ -5852,24 +5851,24 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Finished loop over combinedContainers. Final remBefore for this folder = ${remBefore}`);
 
-    $(`.folder-${id}-element:last`).css('border-bottom', '1px solid rgba(128, 128, 128, 0.3)');
+    $(`[class~="folder-${id}-element"]:last`).css('border-bottom', '1px solid rgba(128, 128, 128, 0.3)');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set border-bottom on last .folder-${id}-element.`);
     folder.containers = newFolder;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Replaced folder.containers with newFolder:`, JSON.parse(JSON.stringify(newFolder)));
     syncDockerFolderMemberRows(id, newFolder);
 
-    $(`tr.folder-id-${id} div.folder-storage i[id^="load-"]`).get().forEach((e) => {
+    $(`tr[class~="folder-id-${id}"] div.folder-storage i[id^="load-"]`).get().forEach((e) => {
         folderobserver.observe(e, folderobserverConfig);
     });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Attached folderobserver to .folder-storage load icons.`);
-    $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
+    $(`tr[class~="folder-id-${id}"] div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
-    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    getDockerPreviewActionsApi().auditDockerPreviewContextBridges($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    applyFolderPreviewLayout($(`tr[class~="folder-id-${id}"] div.folder-preview`), folder.settings);
+    layoutFolderPreviewRows($(`tr[class~="folder-id-${id}"] div.folder-preview`), folder.settings);
+    getDockerPreviewActionsApi().auditDockerPreviewContextBridges($(`tr[class~="folder-id-${id}"] div.folder-preview`), folder.settings);
     if (lazyPreviewActive) {
-        const previewElement = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-        const rowElement = $(`tr.folder-id-${id}`).get(0);
+        const previewElement = $(`tr[class~="folder-id-${id}"] div.folder-preview`).get(0);
+        const rowElement = $(`tr[class~="folder-id-${id}"]`).get(0);
         dockerDeferredPreviewController.defer(previewElement, {
             interactionTarget: rowElement,
             placeholder: `${combinedContainers.length} members · preview deferred`,
@@ -5881,22 +5880,22 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     }
     if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
     if(folder.settings.update_column) {
-        $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
+        $(`tr[class~="folder-id-${id}"] > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting folder status indicators based on aggregate states. managerTypes:`, Array.from(managerTypes));
-    renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed, needsRebuild);
-    $(`tr.folder-id-${id} .folder-appname`).toggleClass(
+    renderFolderUpdateColumn(id, $(`tr[class~="folder-id-${id}"] > td.updatecolumn`), managerTypes, upToDate, managed, needsRebuild);
+    $(`tr[class~="folder-id-${id}"] .folder-appname`).toggleClass(
         'orange-text fv-folder-update-ready',
         folder.settings?.folder_update_highlight === true && upToDate === false
     );
     const total = Object.entries(folder.containers).length;
     dockerFolderGroupingSession?.finishFolder?.(id, { renderedMemberCount: total, removedByHideEmpty: false });
-    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
     applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
-    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderIcon = $folderRow.find(`i[id="load-folder-${id}"]`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     if (started > 0) {
@@ -5913,31 +5912,31 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
     const showUpdateBadge = badgePrefs.updates !== false;
 
     if (!showUpdateBadge && !folder.settings.update_column) {
-        $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan', 6).end().remove();
+        $(`tr[class~="folder-id-${id}"] > td.updatecolumn`).next().attr('colspan', 6).end().remove();
     }
 
     folderBadgeApi.applyStatus($folderIcon, badgePrefs);
 
     if (!managerTypes.has('dockerman')) {
-        $(`tr.folder-id-${id} td.folder-autostart`).empty();
+        $(`tr[class~="folder-id-${id}"] td.folder-autostart`).empty();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No dockerman containers - removed autostart toggle.`);
     } else {
         const folderHasAutostart = autostart > 0;
-        $(`#folder-${id}-auto`).switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on'), checked: folderHasAutostart });
+        $(`[id="folder-${id}-auto"]`).switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on'), checked: folderHasAutostart });
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized autostart switchButton with checked=${folderHasAutostart}. Autostart count: ${autostart}`);
-        $(`#folder-${id}-auto`).off("change", folderAutostart).on("change", folderAutostart);
+        $(`[id="folder-${id}-auto"]`).off("change", folderAutostart).on("change", folderAutostart);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Attached 'change' event to folder autostart switch.`);
     }
 
-    if(autostart === 0) { $(`tr.folder-id-${id}`).addClass('no-autostart'); }
-    else if (autostart > 0 && autostartStarted === 0) { $(`tr.folder-id-${id}`).addClass('autostart-off'); }
-    else if (autostart > 0 && autostartStarted > 0 && autostart !== autostartStarted) { $(`tr.folder-id-${id}`).addClass('autostart-partial'); }
-    else if (autostart > 0 && autostartStarted > 0 && autostart === autostartStarted) { $(`tr.folder-id-${id}`).addClass('autostart-full'); }
+    if(autostart === 0) { $(`tr[class~="folder-id-${id}"]`).addClass('no-autostart'); }
+    else if (autostart > 0 && autostartStarted === 0) { $(`tr[class~="folder-id-${id}"]`).addClass('autostart-off'); }
+    else if (autostart > 0 && autostartStarted > 0 && autostart !== autostartStarted) { $(`tr[class~="folder-id-${id}"]`).addClass('autostart-partial'); }
+    else if (autostart > 0 && autostartStarted > 0 && autostart === autostartStarted) { $(`tr[class~="folder-id-${id}"]`).addClass('autostart-full'); }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Applied autostart status class. Autostart: ${autostart}, AutostartStarted: ${autostartStarted}.`);
 
-    if(managed === 0) { $(`tr.folder-id-${id}`).addClass('no-managed'); }
-    else if (managed > 0 && managed < Object.values(folder.containers).length) { $(`tr.folder-id-${id}`).addClass('managed-partial'); }
-    else if (managed > 0 && managed === Object.values(folder.containers).length) { $(`tr.folder-id-${id}`).addClass('managed-full'); }
+    if(managed === 0) { $(`tr[class~="folder-id-${id}"]`).addClass('no-managed'); }
+    else if (managed > 0 && managed < Object.values(folder.containers).length) { $(`tr[class~="folder-id-${id}"]`).addClass('managed-partial'); }
+    else if (managed > 0 && managed === Object.values(folder.containers).length) { $(`tr[class~="folder-id-${id}"]`).addClass('managed-full'); }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Applied managed status class. Managed: ${managed}, Total: ${Object.values(folder.containers).length}.`);
 
     folder.status = { upToDate, needsRebuild, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded: false };
@@ -5960,15 +5959,15 @@ const renderDockerFolder = (folder, id, positionInMainOrder, liveOrderArray, con
 };
 
 const forceCollapseFolderRow = (id, syncStatus = true) => {
-    const element = $(`.dropDown-${id}`);
+    const element = $(`[class~="dropDown-${id}"]`);
     if (element.length) {
         element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
         element.attr('active', 'false');
     }
-    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     $folderRow.addClass('sortable');
     const $directRows = getDirectMemberRowsForFolder(id);
-    const $fallbackRows = $(`.folder-${id}-element`);
+    const $fallbackRows = $(`[class~="folder-${id}-element"]`);
     const $rowsToMove = $directRows.length ? $directRows : $fallbackRows;
     $folderRow.find('.folder-storage').append($rowsToMove);
     $rowsToMove.addClass('fv-nested-hidden').hide();
@@ -5987,7 +5986,7 @@ const getDirectMemberRowsForFolder = (folderId) => {
     if (!directContainerNames.size) {
         return $(`tr.${className}`);
     }
-    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderRow = $(`tr[class~="folder-id-${id}"]`);
     const $storage = $folderRow.find('.folder-storage').first();
     const runtimeInfoApi = getDockerRuntimeInfoApi();
     const rowIndex = runtimeInfoApi?.getDockerNativeRowIndex?.();
@@ -6034,7 +6033,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     if (hierarchyApi && typeof hierarchyApi.updateFolderRowStatusFromContainers === 'function') {
         hierarchyApi.updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
-        runtimeHostAdapters?.syncNativeSwitch?.($(`#folder-${id}-auto`), Number(folder?.status?.autostart) > 0);
+        runtimeHostAdapters?.syncNativeSwitch?.($(`[id="folder-${id}-auto"]`), Number(folder?.status?.autostart) > 0);
     }
 };
 
@@ -6076,7 +6075,7 @@ const applyNestedFolderHierarchy = (expandedIds = null) => {
             applyDockerRuntimeToolbarFilterState();
             if (folderTypePrefs?.hideEmptyFolders === true) {
                 Object.entries(globalFolders).forEach(([id, folder]) => {
-                    if (!Object.keys(folder.runtimeContainers || folder.containers || {}).length) $(`tr.folder-id-${id}`).hide();
+                    if (!Object.keys(folder.runtimeContainers || folder.containers || {}).length) $(`tr[class~="folder-id-${id}"]`).hide();
                 });
             }
             queueDockerSupportBundlePageSnapshot('folder-hierarchy-move', 0);
@@ -6118,7 +6117,7 @@ const advancedAutostart = (el) => {
 const folderAutostart = async (el) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] folderAutostart: Entry. Event target:', el.target);
     const status = el.target.checked;
-    const id = el.target.id.split('-')[1];
+    const id = el.target.id.slice('folder-'.length, -'-auto'.length);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderAutostart: Folder ID: ${id}, New Status: ${status}`);
     const containers = getDirectMemberRowsForFolder(id);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderAutostart: Found ${containers.length} containers in folder ${id}.`);
@@ -6923,7 +6922,7 @@ const addDockerFolderContext = (id, options = {}) => {
     opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
-    context.attach(options.targetSelector || '#' + id, opts);
+    context.attach(options.targetSelector || '#' + $.escapeSelector(id), opts);
     queueDockerFolderContextQuickIcons();
     queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
@@ -7109,9 +7108,9 @@ pluginRequestClient.getText('/plugins/folderview.plus/server/cpu.php').then((dat
             }
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dockerload SSE (folder ${id}): Calculated totals - loadCpu: ${loadCpu.toFixed(2)}%, loadMemB: ${loadMemB}, totalMemB: ${totalMemB}`);
 
-            $(`span.mem-folder-${id}`).text(`${bToMem(loadMemB)} / ${bToMem(totalMemB)}`);
-            $(`span.cpu-folder-${id}`).text((globalThis.FolderViewPlusI18n?.formatNumber?.((loadCpu) / 100, { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }) || `${(loadCpu).toFixed(2)}%`));
-            $(`span#cpu-folder-${id}`).css('width', `${Math.min(100, loadCpu).toFixed(2)}%`); // Cap at 100% for display
+            $(`span[class~="mem-folder-${id}"]`).text(`${bToMem(loadMemB)} / ${bToMem(totalMemB)}`);
+            $(`span[class~="cpu-folder-${id}"]`).text((globalThis.FolderViewPlusI18n?.formatNumber?.((loadCpu) / 100, { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }) || `${(loadCpu).toFixed(2)}%`));
+            $(`span[id="cpu-folder-${id}"]`).css('width', `${Math.min(100, loadCpu).toFixed(2)}%`); // Cap at 100% for display
         }
     });
 }).catch(err => {

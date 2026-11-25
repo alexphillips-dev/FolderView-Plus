@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
@@ -208,6 +209,45 @@ test('numeric VM names stay keyed in snapshots and remain strings in native orde
     }
     assert.deepEqual(empty.runtime, []);
     assert.deepEqual(empty.unraidOrder, []);
+});
+
+test('numeric folder IDs and their expansion survive the real configuration endpoints and backup round trip', () => {
+    const base = fs.realpathSync(os.tmpdir());
+    const root = fs.mkdtempSync(path.join(base, 'fvplus-numeric-folder-'));
+    const server = path.dirname(path.join(repoRoot, runtimeSnapshotLibPath));
+    const require = createRequire(import.meta.url);
+    const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
+    try {
+        for (const directory of ['config', 'source', 'host']) fs.mkdirSync(path.join(root, directory));
+        const result = JSON.parse(execFileSync('php', ['tests/fixtures/numeric-folder-config.php', server, root], {
+            encoding: 'utf8', timeout: 30000, env: {
+                ...process.env, FVPLUS_TEST_CONFIG_DIR: path.join(root, 'config'), FVPLUS_TEST_SOURCE_DIR: path.join(root, 'source'),
+                FVPLUS_TEST_STORAGE_DIR: root, FVPLUS_TEST_SECURITY_STATE_PATH: path.join(root, 'security/state.json'),
+                FVPLUS_TEST_DOCKER_AUTOSTART_FILE: path.join(root, 'config/autostart')
+            }
+        }));
+        assert.deepEqual(result.ids, ['0']);
+        assert.equal(result.stablePrefsAfterReads, true);
+        assert.deepEqual(result.manualOrder, ['0']);
+        assert.deepEqual(result.reordered, ['0']);
+        assert.equal(result.restored, 1);
+        assert.deepEqual(result.expandedDelta, { '0': false, '1': true });
+        for (const folders of [result.direct, result.metadata, result.snapshot.folders, result.backup.folders,
+            result.backupFile.folders, result.environment.folders]) {
+            assert.equal(Array.isArray(folders), false);
+            assert.equal(utils.normalizeFolderMap(folders)['0'].name, 'Numeric ID');
+        }
+        for (const expanded of [result.saved, result.loaded, result.snapshot.prefs.expandedFolderState,
+            result.backup.prefs.expandedFolderState, result.environment.prefs.expandedFolderState]) {
+            assert.deepEqual(expanded, { '0': true });
+            assert.deepEqual(utils.normalizePrefs({ expandedFolderState: expanded }).expandedFolderState, { '0': true });
+        }
+        const legacyBackup = { ...result.backupFile, folders: Object.values(result.backupFile.folders) };
+        assert.equal(utils.parseImportPayload(legacyBackup, 'vm').folders['0'].name, 'Numeric ID');
+    } finally {
+        assert.equal(path.dirname(fs.realpathSync(root)), base);
+        fs.rmSync(root, { recursive: true, force: true });
+    }
 });
 
 test('config snapshots return saved layout without touching host runtime discovery', () => {

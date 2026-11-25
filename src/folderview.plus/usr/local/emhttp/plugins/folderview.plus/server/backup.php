@@ -102,10 +102,16 @@ fvplus_json_try(function (): array {
 
     if ($action === 'restore') {
         $name = (string)($_POST['name'] ?? '');
+        $options = ['createSafetyBackup' => normalizeBool($_POST['createSafetyBackup'] ?? false)];
+        if (array_key_exists('expectedFolderRevision', $_POST)) {
+            $expected = $_POST['expectedFolderRevision'];
+            if (!is_scalar($expected) || !ctype_digit((string)$expected) || (int)$expected < 1) {
+                throw new RuntimeException('Invalid expected configuration revision.');
+            }
+            $options['expectedFolderRevision'] = (int)$expected;
+        }
         return [
-            'restore' => restoreBackupSnapshot($type, $name, [
-                'createSafetyBackup' => normalizeBool($_POST['createSafetyBackup'] ?? false)
-            ])
+            'restore' => restoreBackupSnapshot($type, $name, $options)
         ];
     }
 
@@ -131,7 +137,7 @@ fvplus_json_try(function (): array {
     if ($action === 'read') {
         $name = (string)($_REQUEST['name'] ?? '');
         return [
-            'snapshot' => readBackupSnapshot($type, $name)
+            'snapshot' => fvplusJsonTypeConfig(readBackupSnapshot($type, $name))
         ];
     }
 

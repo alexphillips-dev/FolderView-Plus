@@ -11,6 +11,7 @@ fvplus_json_try(function (): array {
     if ($action === 'export') {
         $snapshot = exportEnvironmentSnapshotPayload();
         $summary = buildEnvironmentSnapshotSummary($snapshot);
+        $snapshot['types'] = array_map('fvplusJsonTypeConfig', $snapshot['types']);
         try {
             appendDiagnosticsHistoryEvent('environment_export', null, [
                 'dockerCount' => (int)($summary['docker']['folderCount'] ?? 0),

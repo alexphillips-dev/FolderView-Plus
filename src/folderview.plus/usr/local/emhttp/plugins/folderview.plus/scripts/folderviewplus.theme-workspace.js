@@ -78,6 +78,7 @@
         const translate = deps.translate || ((key, fallback, ...params) => globalThis?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || String(fallback || key).replace(/\$(\d+)/g, (match, index) => String(params[Number(index) - 1] ?? match)));
 
         let workspace = normalizeWorkspace({});
+        let workspaceLoaded = false;
         let workspaceRevision = 0;
         let publishedWorkspaceRevision = 0;
         let themeCheckRevision = 0;
@@ -112,6 +113,21 @@
             draftLayersByProfile.set(profileId, { ...draftLayersByProfile.get(profileId),
                 [activeScope]: { ...draft, ...draftOptions, layer, base } });
             return layer;
+        };
+
+        const updateInitialWorkspaceUi = (failed = false) => {
+            const status = documentRef?.getElementById('fv-theme-appearance-loading');
+            if (status) {
+                status.hidden = workspaceLoaded;
+                status.textContent = failed
+                    ? translate('legacy.surface.2517b2dd9baadf0e', '$1 failed', translate('settings.navigation.appearance', 'Appearance'))
+                    : translate('common.loading', 'Loading…');
+            }
+            const retry = documentRef?.getElementById('fv-theme-appearance-retry');
+            if (retry) retry.hidden = workspaceLoaded || !failed;
+            documentRef?.querySelectorAll?.('[data-fv-theme-requires-workspace]').forEach(control => {
+                control.disabled = !workspaceLoaded;
+            });
         };
 
         const setStatus = (message) => {
@@ -338,6 +354,10 @@
             `;
         };
 
+        const variableLabel = (token, hasOverride) => token + (hasOverride
+            ? translate('settings.theme.override-suffix', ' · customized')
+            : translate('settings.theme.default-suffix', ' · default'));
+
         const renderVariableGrid = () => {
             if (!documentRef) {
                 return;
@@ -353,7 +373,7 @@
                     <label class="fv-theme-variable-row${hasOverride ? ' has-override' : ''}">
                         <span class="fv-theme-variable-copy">
                             <span>${escapeHtml(definition.label)}</span>
-                            <code>${escapeHtml(definition.token)}${escapeHtml(hasOverride ? translate("settings.theme.override-suffix", " · customized") : translate("settings.theme.default-suffix", " · default"))}</code>
+                            <code>${escapeHtml(variableLabel(definition.token, hasOverride))}</code>
                         </span>
                         <input type="color" data-fv-theme-token="${escapeHtml(definition.token)}" data-fv-theme-fallback="${escapeHtml(definition.fallback || '')}" value="${escapeHtml(value)}">
                         <button type="button" class="fv-theme-token-reset" data-fv-theme-token-reset="${escapeHtml(definition.token)}" title="${escapeHtml(translate("settings.theme.reset-token", "Reset $1", definition.label))}"><i class="fa fa-undo"></i></button>
@@ -453,6 +473,7 @@
             workspaceRevision += 1;
             publishedWorkspaceRevision += 1;
             workspace = normalizeWorkspace(nextWorkspace);
+            workspaceLoaded = true;
             if (!preserveDrafts) draftLayersByProfile.clear();
             if (draftLayersByProfile.size) {
                 const profileIds = new Set(workspace.profiles.map(profile => profile.id));
@@ -464,16 +485,24 @@
                 });
             }
             renderWorkspace();
+            updateInitialWorkspaceUi();
             return workspace;
         };
 
         const readWorkspace = async () => {
             const revision = ++workspaceRevision;
-            const response = await apiGetJson('/plugins/folderview.plus/server/theme_workspace.php', {
-                data: { action: 'read' }
-            });
-            return revision === workspaceRevision ? setWorkspace(response.workspace || {}, { preserveDrafts: true }) : workspace;
+            if (!workspaceLoaded) updateInitialWorkspaceUi();
+            try {
+                const response = await apiGetJson('/plugins/folderview.plus/server/theme_workspace.php', {
+                    data: { action: 'read' }
+                });
+                return revision === workspaceRevision ? setWorkspace(response.workspace || {}, { preserveDrafts: true }) : workspace;
+            } catch (error) {
+                if (!workspaceLoaded && revision === workspaceRevision) updateInitialWorkspaceUi(true);
+                throw error;
+            }
         };
+        const readWorkspaceWithStatus = () => safeAction('Theme workspace load', readWorkspace, '');
 
         // A mutation returns the whole workspace. Apply writes and their replies in the same order.
         const queueWorkspaceMutation = (mutate) => {
@@ -558,6 +587,7 @@
         };
 
         const saveCustomize = () => {
+            if (!workspaceLoaded) return null;
             const customCss = String(documentRef?.getElementById('fv-theme-custom-css')?.value ?? getEditingLayer().customCss);
             const profileId = workspace.activeProfileId;
             const scope = activeScope;
@@ -605,6 +635,7 @@
         });
 
         const saveAsProfile = (name) => {
+            if (!workspaceLoaded) return null;
             const payload = {
                 action: 'create_profile', name, sourceProfileId: workspace.activeProfileId, scope: activeScope,
                 variables: JSON.stringify(collectVariablesFromUi()),
@@ -617,6 +648,7 @@
         };
 
         const previewPreset = (presetId) => {
+            if (!workspaceLoaded) return null;
             const before = getEditingLayer();
             const layer = applyPresetToLayer(before, presetId);
             updateEditingLayer(layer, { presetBeforeLayer: getEditingDraft()?.presetBeforeLayer || before, selectedPreset: presetId });
@@ -626,6 +658,7 @@
         };
 
         const undoPreset = () => {
+            if (!workspaceLoaded) return null;
             const presetBeforeLayer = getEditingDraft()?.presetBeforeLayer;
             if (presetBeforeLayer) {
                 const current = getEditingLayer();
@@ -685,6 +718,7 @@
         });
 
         const resetTokens = () => {
+            if (!workspaceLoaded) return null;
             updateEditingLayer({ variables: {} });
             renderWorkspace();
             setStatus(surfaceT("common.audit.tokens-reset", "Token overrides reset. Save the customization layer to apply this change."));
@@ -695,6 +729,9 @@
             if (!$ || !documentRef) {
                 return;
             }
+            $(documentRef).off('click.fvthemehydration', '#fv-theme-appearance-retry').on('click.fvthemehydration', '#fv-theme-appearance-retry', () => {
+                readWorkspaceWithStatus().catch(() => {});
+            });
             $(documentRef).off('input.fvthemesource', '#fv-theme-github-source').on('input.fvthemesource', '#fv-theme-github-source', () => {
                 scanRevision += 1;
                 pendingScan = null;
@@ -708,6 +745,7 @@
                 safeAction('Theme scan', () => scanGithub(source, { directories, commitSha, directory }), '').catch(() => {});
             });
             $(documentRef).off('input.fvthemeworkspace', '[data-fv-theme-token]').on('input.fvthemeworkspace', '[data-fv-theme-token]', (event) => {
+                if (!workspaceLoaded) return;
                 const token = String(event?.target?.getAttribute('data-fv-theme-token') || '').trim();
                 const value = String(event?.target?.value || '').trim();
                 if (!token || !value) {
@@ -715,7 +753,12 @@
                 }
                 updateEditingLayer({ variables: { ...(workspace.variables || {}), [token]: value } }, { selectedPreset: '' });
                 renderPresetControls();
-                renderVariableGrid();
+                // Keep the native input mounted while its picker or keyboard is active.
+                const row = event.target.closest('.fv-theme-variable-row');
+                if (row) {
+                    row.classList.add('has-override');
+                    row.querySelector('code').textContent = variableLabel(token, true);
+                }
                 applyPreviewCss();
                 renderSummary();
             });
@@ -731,6 +774,7 @@
                 setStatus('Token override reset. Save the customization layer to apply this change.');
             });
             $(documentRef).off('input.fvthemecustomcss', '#fv-theme-custom-css').on('input.fvthemecustomcss', '#fv-theme-custom-css', () => {
+                if (!workspaceLoaded) return;
                 updateEditingLayer({ customCss: String(documentRef.getElementById('fv-theme-custom-css')?.value || '') });
                 renderSummary();
             });
@@ -800,7 +844,7 @@
             renderWorkspace,
             setWorkspace,
             bindEvents,
-            readWorkspace: () => safeAction('Theme workspace load', readWorkspace, ''),
+            readWorkspace: readWorkspaceWithStatus,
             scanGithub: (source) => safeAction('Theme scan', () => scanGithub(source), ''),
             importGithub: (source) => safeAction('Theme import', () => importGithub(source), 'Theme imported.'),
             activateTheme: (themeId) => safeAction('Theme activation', () => activateTheme(themeId), surfaceT("common.audit.theme-activated", "Managed theme activated.")),

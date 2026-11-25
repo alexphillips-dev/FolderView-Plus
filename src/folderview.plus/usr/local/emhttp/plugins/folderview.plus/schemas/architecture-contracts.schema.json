@@ -7,6 +7,7 @@
     "minRegisteredActions": 145,
     "maxRegisteredActionGlobals": 11,
     "fileLineBudgets": {
+      "server/lib.config-json.php": {"limit": 17, "target": 17, "history": [17]},
       "server/lib.rules-apply.php": {"limit": 120, "target": 100, "history": [120]},
       "server/lib.rules-regex.php": {"limit": 84, "target": 84, "history": [84]},
       "server/lib.rules-backreferences.php": {"limit": 45, "target": 45, "history": [45]},
@@ -243,7 +244,7 @@
       "kind": "browser-entrypoint",
       "stateModel": "entrypoint-owned",
       "consumers": ["dashboard"],
-      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js", "scripts/runtime.debug-download.js"],
+      "dependsOn": ["scripts/folderviewplus.utils.js", "scripts/folderviewplus.request.js", "scripts/runtime.host-adapter.js", "scripts/runtime.folder-ordering.js", "scripts/runtime.live-refresh.js", "scripts/runtime.page-diagnostics.js", "scripts/docker.runtime.shared.js", "scripts/docker.runtime.capabilities.js", "scripts/docker.runtime.providers.js", "scripts/docker.runtime.api-coordinator.js", "scripts/dashboard.host-adapter.js", "scripts/dashboard.state-store.js", "scripts/vm.runtime.lifecycle.js", "scripts/runtime.debug-download.js"],
       "lifecycle": { "startup": "host-bootstrap", "teardown": "pagehide-owned" },
       "compatibilityGlobals": ["expandFolderDocker", "expandFolderVM"]
     },
@@ -283,6 +284,7 @@
         "server/lib.filesystem-security.php",
         "server/lib.security.php",
         "server/lib.request-authority.php",
+        "server/lib.config-json.php",
         "server/lib.api-contract.php",
         "server/lib.preflight.php",
         "server/lib.webui-profiles.php",
@@ -374,6 +376,7 @@
     }
   ],
   "serverModuleContracts": [
+    {"file": "server/lib.config-json.php", "owner": "configuration-json-projection", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": [], "compatibilityGlobals": [], "loadedBy": "server/lib.php", "functionInventory": {"count": 2, "sha256": "5244d44f1dd24b70a3663bbb9a73849487580d79158cf0787c70a767579fba91"}},
     {"file": "server/lib.docker-preview-summary.php", "owner": "docker-preview-projection", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": [], "compatibilityGlobals": [], "loadedBy": "server/docker_runtime_preview.php", "functionInventory": { "count": 4, "sha256": "fe96c1d44822b8d539d54c809689fcad373c8e85d48640c550d901cd882cc7e3" }},
     {"file": "server/lib.custom-icon-references.php", "owner": "custom-icon-reference-policy", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.storage.php", "server/lib.prefs.php", "server/lib.preflight.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 6, "sha256": "9b987781f993b548bdaae59e3892adc12f79cdd26f136a7f9356ecf8c9ad1a55" }},
     {"file": "server/lib.custom-icon-repair.php", "owner": "compensated-custom-icon-repair", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.custom-icon-references.php", "server/lib.custom-icon-storage.php", "server/lib.environment-transaction.php", "server/lib.transaction-files.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.custom-icon-storage.php", "functionInventory": { "count": 1, "sha256": "d25a815833ec720bba74fbc5b51751e152b22a3a1f19e05ad7fb542bd05414d8" }},

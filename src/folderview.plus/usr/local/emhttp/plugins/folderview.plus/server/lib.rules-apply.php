@@ -54,8 +54,9 @@ function fvplusApplyRulePreview(string $type, string $expectedDigest, ?array $ve
         if (!$preview['ready']) throw new RuntimeException('Correct invalid rules before applying the preview.');
         if (!$preview['assignments']) return ['assignedCount' => 0, 'results' => [], 'backup' => null];
         // Validate and back up within the same configuration lock as the existing transaction.
-        $backup = createBackupSnapshot($type, 'before-rule-preview-assign');
+        $backup = createBackupSnapshot($type, 'before-rule-preview-assign', false);
         $result = bulkAssignItemsToFolders($type, $preview['assignments'], $info);
+        $backup['pruned'] = pruneBackupSnapshots($type, getTypeBackupRetention($type), [$backup['name']]);
         $result['backup'] = $backup;
         return $result;
     });

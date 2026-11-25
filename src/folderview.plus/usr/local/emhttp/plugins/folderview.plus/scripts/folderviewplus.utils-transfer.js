@@ -156,7 +156,8 @@
                 };
             }
 
-            const folders = normalizeFolderMap(payload.folders);
+            // Older server exports could encode contiguous numeric folder IDs as array indexes.
+            const folders = normalizeFolderMap(Array.isArray(payload.folders) ? { ...payload.folders } : payload.folders);
             return {
                 ok: true,
                 schemaVersion,

@@ -63,6 +63,22 @@ test('failed environment transactions preserve backup and checkpoint history bef
     } finally { harness.cleanup(); }
 });
 
+for (const operation of ['rule-preview-retention', 'folder-transfer-retention']) {
+    test(operation + ' preserves old recovery points until a successful folder write', () => {
+        const harness = setup();
+        try {
+            const result = harness.run(operation);
+            assert.match(result.failure.error, /Injected durable storage failure at 'rename'/);
+            assert.equal(result.failure.configUnchanged, true);
+            assert.equal(result.failure.previousRetained, true);
+            assert.equal(result.failure.archives, 2);
+            assert.equal(result.applied, true);
+            assert.ok(result.backup.pruned.includes(result.oldName));
+            assert.deepEqual(result.remaining, [result.backup.name]);
+        } finally { harness.cleanup(); }
+    });
+}
+
 test('failed environment transactions restore legacy adoption eligibility as well as active files', () => {
     const harness = setup();
     try {

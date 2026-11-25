@@ -55,6 +55,16 @@ if (($request['operation'] ?? '') === 'membership') {
     echo json_encode(fvplusBuildMembershipSnapshot($request['type'], $request['folders'], $request['rules'], $request['info']), JSON_THROW_ON_ERROR);
     exit;
 }
+if (($request['operation'] ?? '') === 'stored-membership') {
+    $type = $request['type'];
+    writeRawFolderMap($type, $request['folders']);
+    writeTypePrefs($type, ['autoRules' => $request['rules']]);
+    $prefs = readTypePrefs($type);
+    $folders = readRawFolderMap($type);
+    echo json_encode(['prefs' => $prefs, 'folders' => $folders,
+        'membership' => fvplusBuildMembershipSnapshot($type, $folders, $prefs['autoRules'], $request['info'])], JSON_THROW_ON_ERROR);
+    exit;
+}
 if (($request['operation'] ?? '') === 'diagnostics') {
     $folders = $request['folders']; $info = $request['info'];
     $prefs = array_replace(defaultTypePrefs(), ['autoRules' => $request['rules']]);

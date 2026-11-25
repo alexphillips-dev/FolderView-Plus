@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/lib.config-json.php';
+
 const FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1;
 const FVPLUS_RUNTIME_SNAPSHOT_KIND = 'runtime_snapshot';
 const FVPLUS_RUNTIME_CONFIG_BOOTSTRAP_KIND = 'runtime_config_bootstrap';
@@ -142,7 +144,7 @@ function buildRuntimeConfigSnapshotFromConfig(string $type, array $config): arra
     $runtimeSignature = runtimeSnapshotSignature($safeType, []);
     $snapshotToken = runtimeSnapshotToken($safeType, $config, [], $runtimeSignature);
     $metadata = is_array($config['metadata'] ?? null) ? $config['metadata'] : [];
-    return [
+    return fvplusJsonTypeConfig([
         'kind' => FVPLUS_RUNTIME_SNAPSHOT_KIND,
         'schemaVersion' => FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION,
         'type' => $safeType,
@@ -168,7 +170,7 @@ function buildRuntimeConfigSnapshotFromConfig(string $type, array $config): arra
         'unraidOrder' => [],
         'prefs' => is_array($config['prefs'] ?? null) ? $config['prefs'] : [],
         'metadata' => $metadata
-    ];
+    ]);
 }
 
 function buildRuntimeConfigBootstrapSnapshot(): array {
@@ -275,8 +277,7 @@ function buildRuntimeSnapshot(
     $response['prefs'] = is_array($config['prefs'] ?? null) ? $config['prefs'] : [];
     $response['metadata'] = $metadata;
     if ($safeMode !== 'config') {
-        // PHP serializes contiguous numeric keys as a JSON list, even for VM names like "0".
-        $response['runtime'] = $runtime !== [] && array_is_list($runtime) ? (object)$runtime : $runtime;
+        $response['runtime'] = fvplusJsonKeyedMap($runtime);
     }
-    return $response;
+    return fvplusJsonTypeConfig($response);
 }

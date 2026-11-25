@@ -27,6 +27,7 @@ test('Unraid 7.4.0 installs, updates, and reinstalls boot assets offline', { ski
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
-        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success'
+        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success',
+        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success'
     ]);
 });

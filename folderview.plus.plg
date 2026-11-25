@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.24.08">
-<!ENTITY md5 "16861ff25f6d4d8d57c651b8ef6db207">
-<!ENTITY sha256 "6cfdde3d1a4c42acceb0627ec18e0601905e36643962837cff4a56aa99e2fe54">
+<!ENTITY version "2026.11.24.09">
+<!ENTITY md5 "6f9aff3945b5a81f33904771c865437c">
+<!ENTITY sha256 "961750cf1bd09fcf3c38802e76a00483b45185eae961c411bac2ad555e1af598">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.24.09
+- Fix: FolderView Plus upgrades and removal now identify the deployed version even when Unraid retains package records from earlier versions. Upgrade rollback still verifies the previous package before replacing it.
+
 
 ###2026.11.24.08
 - Reliability: Preserve backup history and legacy migration eligibility after failed restores. Keep concurrent saves intact during legacy rule conversion.
@@ -10270,13 +10274,28 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
 
             previous_package_is_active() {
                 local package_record
+                if [ ! -d "&plugdir;" ]; then
+                    # A registered package can still provide rollback for a missing runtime.
+                    [ -r "${registered_manifest}" ] || return 1
+                    active_package_version="$(read_manifest_value version)"
+                    [[ "${active_package_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+                    [ -f "/var/lib/pkgtools/packages/&name;-${active_package_version}" ] \
+                        || [ -f "/var/log/packages/&name;-${active_package_version}" ]
+                    return $?
+                fi
+                # Package logs can outlive the deployed version when upgrading older archives.
+                active_package_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
+                [ -z "${active_package_version}" ] || return 0
                 for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
                     if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                        if [ -n "${active_package_version}" ] &amp;&amp; [ "${active_package_version}" != "${BASH_REMATCH[1]}" ]; then
+                            active_package_version="ambiguous"
+                            return 0
+                        fi
                         active_package_version="${BASH_REMATCH[1]}"
-                        return 0
                     fi
                 done
-                [ -f "&plugdir;/FolderViewPlus.page" ]
+                [ -n "${active_package_version}" ] || [ -f "&plugdir;/FolderViewPlus.page" ]
             }
 
             install_failure() {
@@ -10428,13 +10447,21 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
                 printf 'Another FolderView Plus installation or removal is in progress. Retry after it finishes.\n' >&amp;2
                 exit 1
             fi
-            for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
-                if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-                    &amp;&amp; [ "${package_record##*/}" != "&name;-&version;" ]; then
+            deployed_version="$(sed -nE 's/^[[:space:]]*"packageVersion":[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"[,]?[[:space:]]*$/\1/p' "&plugdir;/build-metadata.json" 2>/dev/null || true)"
+            if [ -n "${deployed_version}" ]; then
+                if [ "${deployed_version}" != "&version;" ]; then
                     printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
                     exit 1
                 fi
-            done
+            else
+                for package_record in /var/lib/pkgtools/packages/&name;-* /var/log/packages/&name;-*; do
+                    if [ -f "${package_record}" ] &amp;&amp; [[ "${package_record##*/}" =~ ^folderview[.]plus-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+                        &amp;&amp; [ "${package_record##*/}" != "&name;-&version;" ]; then
+                        printf 'The active FolderView Plus package does not match the registered manifest. Retry after registration finishes.\n' >&amp;2
+                        exit 1
+                    fi
+                done
+            fi
             removepkg &name;-&version; 9>&amp;- || exit $?
             rm -f /etc/cron.d/folderview.plus
             /etc/rc.d/rc.crond restart 9>&amp;- >/dev/null 2>&amp;1 || true

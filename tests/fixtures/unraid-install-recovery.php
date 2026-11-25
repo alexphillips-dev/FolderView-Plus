@@ -49,7 +49,8 @@ $cases = $cliSource === null
         'update-registration-version', 'update-corrupt',
         'install-icon', 'install-scheduler', 'install-report', 'install-damaged-report', 'install-fresh-report',
         'update-success', 'install-success', 'install-reinstall-success',
-        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success'];
+        'install-native-remove-failure', 'install-boot-contention-success', 'update-staged-peer-success',
+        'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success'];
 $check = [];
 
 foreach ($cases as $case) {
@@ -102,12 +103,22 @@ foreach ($cases as $case) {
     $runningLink = "$dir/running/$pluginName.plg";
     $fresh = str_contains($case, '-fresh-') || $case === 'hook-unknown';
     $failed = !str_ends_with($case, 'success') && $case !== 'hook-unknown';
+    $keepsStaleRecords = str_contains($case, '-stale-') || in_array($case, ['update-registration-version', 'update-missing-runtime-core', 'install-native-remove-failure'], true);
     if (!$fresh) {
         file_put_contents($bootManifest, $oldManifest);
         symlink($bootManifest, $runningLink);
         file_put_contents("$config/version", "$previous\n");
         file_put_contents("$dir/core-installed", "$config/$pluginName-$previous.txz\n");
         file_put_contents("$packages/$pluginName-$previous", "PACKAGE NAME: $pluginName-$previous\n");
+        if ($keepsStaleRecords) {
+            foreach (['2025.12.31.01', '2026.01.01.03'] as $stale) {
+                file_put_contents("$packages/$pluginName-$stale", "PACKAGE NAME: $pluginName-$stale\n");
+            }
+            symlink($packages, "$dir/legacy-packages");
+        }
+        if (!str_contains($case, '-legacy-')) {
+            file_put_contents("$runtime/build-metadata.json", "{\n  \"packageVersion\": \"$previous\",\n  \"sourceBranch\": \"dev\"\n}\n");
+        }
         if (!$reinstall && !str_contains($case, '-damaged-')) {
             file_put_contents("$runtime/FolderViewPlus.page", "$config/$pluginName-$previous.txz\n");
         }
@@ -150,17 +161,25 @@ foreach ($cases as $case) {
         "$dir/bin/upgradepkg" => 'archive="${@: -1}"
 if [ "$(cat "$FVPLUS_FIXTURE_CORE" 2>/dev/null)" = "$archive" ] && [[ " $* " != *" --reinstall "* ]]; then exit 0; fi
 package="${archive##*/}"
-rm -f -- "$FVPLUS_FIXTURE_PACKAGES"/folderview.plus-*
+if [ "$FVPLUS_FIXTURE_KEEP_STALE_RECORDS" != 1 ]; then
+    rm -f -- "$FVPLUS_FIXTURE_PACKAGES"/folderview.plus-*
+fi
+if [ ! -d "$FVPLUS_FIXTURE_RUNTIME" ]; then
+    mkdir -p "$FVPLUS_FIXTURE_RUNTIME"
+    cp -R "$FVPLUS_FIXTURE_DIR/package-scripts" "$FVPLUS_FIXTURE_RUNTIME/scripts"
+fi
 printf "PACKAGE NAME: %s\n" "${package%.txz}" > "$FVPLUS_FIXTURE_PACKAGES/${package%.txz}"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_CORE"
 printf "%s\n" "$archive" > "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page"
+version="${package#folderview.plus-}"
+printf "{\n  \"packageVersion\": \"%s\",\n  \"sourceBranch\": \"dev\"\n}\n" "${version%.txz}" > "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json"
 if [[ "$FVPLUS_FIXTURE_CASE" == *-core && "$archive" == *-2026.01.01.02.txz ]]; then exit 22; fi',
         "$dir/bin/removepkg" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-native-remove-failure ]; then
     printf "Native removal fixture failed\n" >&2
     exit 28
 fi
 [ -f "$FVPLUS_FIXTURE_PACKAGES/$1" ] || exit 29
-rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_PACKAGES/$1"',
+rm -f -- "$FVPLUS_FIXTURE_CORE" "$FVPLUS_FIXTURE_RUNTIME/FolderViewPlus.page" "$FVPLUS_FIXTURE_RUNTIME/build-metadata.json" "$FVPLUS_FIXTURE_PACKAGES/$1"',
         "$dir/bin/flock" => 'if [ "$FVPLUS_FIXTURE_CASE" = install-boot-contention-success ] && [ "$#" -eq 1 ] && [ "$1" = 9 ]; then
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
@@ -182,12 +201,13 @@ exec /bin/mv "$@"'
         file_put_contents($file, "#!/bin/bash\n$body\n");
         chmod($file, 0700);
     }
-    $start = static function (array $command, array $extraEnvironment = []) use ($dir, $case, $runtime, $packages): array {
+    $start = static function (array $command, array $extraEnvironment = []) use ($dir, $case, $runtime, $packages, $keepsStaleRecords): array {
         $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, $dir, [
             'PATH' => "$dir/bin:/usr/bin:/bin",
             'DOCUMENT_ROOT' => "$dir/emhttp",
             'FVPLUS_FIXTURE_CORE' => "$dir/core-installed",
             'FVPLUS_FIXTURE_PACKAGES' => $packages,
+            'FVPLUS_FIXTURE_KEEP_STALE_RECORDS' => $keepsStaleRecords ? '1' : '0',
             'FVPLUS_FIXTURE_RUNTIME' => $runtime,
             'FVPLUS_FIXTURE_CASE' => $case,
             'FVPLUS_FIXTURE_DIR' => $dir
@@ -223,6 +243,13 @@ exec /bin/mv "$@"'
     } else {
         $command = $activateHook;
     }
+    if ($case === 'update-missing-runtime-core' || $case === 'install-remove-reinstall-stale-success') {
+        mkdir("$dir/package-scripts");
+        foreach (glob("$runtime/scripts/*.sh") as $script) copy($script, "$dir/package-scripts/" . basename($script));
+    }
+    if ($case === 'update-missing-runtime-core') {
+        rename($runtime, "$dir/missing-runtime");
+    }
     if ($case === 'install-native-remove-failure') {
         [$status, $output] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
         verifyInstallFixture($status !== 0 && str_contains($output, 'Native removal fixture failed') && !str_contains($output, "$pluginName.plg removed"),
@@ -235,11 +262,28 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
+    if ($case === 'install-remove-reinstall-stale-success') {
+        [$status, $output] = $run([PHP_BINARY, $cli, 'remove', "$pluginName.plg"]);
+        verifyInstallFixture($status === 0 && !is_file($bootManifest) && !is_link($runningLink) && !is_dir($runtime)
+            && !is_dir($config) && !is_file("$packages/$pluginName-$previous")
+            && is_file("$packages/$pluginName-2025.12.31.01") && is_file("$packages/$pluginName-2026.01.01.03"),
+            "$case did not remove the registered installation independently of stale records: $output");
+        mkdir($config);
+        file_put_contents("$config/$pluginName-$candidate.txz", "core $candidate");
+        copy($iconArchives['2.0.0'], "$config/$pluginName-icons-2.0.0.txz");
+        [$status, $output] = $run($command);
+        verifyInstallFixture($status === 0 && file_get_contents($bootManifest) === $newManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$config/version")) === $candidate && is_file("$packages/$pluginName-$candidate"),
+            "$case treated leftover package logs as an active installation: $output");
+        $check[] = $case;
+        continue;
+    }
     if ($case === 'install-boot-contention-success') {
         unlink($runningLink);
         unlink("$packages/$pluginName-$previous");
         unlink("$dir/core-installed");
         unlink("$runtime/FolderViewPlus.page");
+        unlink("$runtime/build-metadata.json");
         $lock = fopen("$dir/install.lock", 'a+');
         verifyInstallFixture(is_resource($lock) && flock($lock, LOCK_EX | LOCK_NB), "$case could not reserve the test lock.");
         $bootTask = $start([PHP_BINARY, $cli, 'install', $bootManifest]);
@@ -322,6 +366,8 @@ exec /bin/mv "$@"'
         verifyInstallFixture(trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$activeCoreVersion.txz"
             && trim(file_get_contents("$runtime/FolderViewPlus.page")) === "$config/$pluginName-$activeCoreVersion.txz", "$case left the wrong core package active.");
         verifyInstallFixture(is_file("$packages/$pluginName-$activeCoreVersion"), "$case left the wrong package record active.");
+        verifyInstallFixture(json_decode(file_get_contents("$runtime/build-metadata.json"), true)['packageVersion'] === $activeCoreVersion,
+            "$case left the wrong deployed package version active.");
         $link = "$runtime/images/third-party-icons";
         verifyInstallFixture(is_link($link) && str_contains(readlink($link), "/icons-$activeIconVersion/")
             && str_contains(file_get_contents("$link/fixture.svg"), "<title>$activeIconVersion</title>")
@@ -371,7 +417,8 @@ exec /bin/mv "$@"'
         unlink($runningLink);
         unlink("$dir/core-installed");
         unlink("$runtime/FolderViewPlus.page");
-        unlink("$packages/$pluginName-$activeCoreVersion");
+        unlink("$runtime/build-metadata.json");
+        foreach (glob("$packages/$pluginName-*") as $packageRecord) unlink($packageRecord);
         [$bootStatus, $bootOutput] = $run([PHP_BINARY, $cli, 'install', $bootManifest], ['FVPLUS_FIXTURE_ALLOW_VERSION_COMMIT' => '1']);
         verifyInstallFixture($bootStatus === 0, "$case could not reinstall offline: $bootOutput");
         $bootVersion = $failed ? $previous : $candidate;

@@ -133,7 +133,10 @@
                 ? ui.escapeHtml(value)
                 : String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
         );
-        const captureFeedback = win.FolderViewPlusDashboardCaptureFeedback?.createController({ window: win, translate });
+        const captureFeedback = win.FolderViewPlusDashboardCaptureFeedback?.createController({
+            window: win, translate,
+            onLayoutChange: type => syncDashboardWidgetQuickRailAlignmentForType(type)
+        });
 
         const dashboardTypeMeta = (type) => (
             typeof deps.dashboardTypeMeta === 'function'

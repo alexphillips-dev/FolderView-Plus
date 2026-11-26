@@ -113,6 +113,11 @@ Revisit this pin when a patched toolchain passes the file-selection, font/icon,
 and full required browser suites. This development-only pin does not change
 the installed plugin or its supported user browsers.
 
+The required browser fixture jobs reserve 20 minutes for the full suite and
+artifact upload. Candidate CI 45740549715 reached the old 15-minute WebKit
+limit after 438 passing cases. The longer window preserves the same cases,
+assertions, and artifact requirements.
+
 The layout job reserves 20 minutes for setup, the complete existing desktop/mobile
 light/dark suite, and artifact upload. Candidate CI 43494738697 completed all 468
 layout checks successfully in 877 seconds, then hit the old 15-minute job limit

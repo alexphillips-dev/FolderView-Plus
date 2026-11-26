@@ -118,7 +118,6 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-quick-action')), 'layout-menu');
-
     await rail.locator('[data-fv-quick-action="view-options"]').click();
     await popover.locator('[data-fv-view-action="health-emphasis"]').click();
     assert.equal(await popover.locator('[data-fv-view-action="health-emphasis"]').getAttribute('aria-pressed'), 'true');
@@ -127,7 +126,6 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     await popover.locator('[data-fv-layout-select]').selectOption('classic');
     await page.waitForFunction(() => window.fixtureDashboardLayout.state.layout === 'classic');
     assert.equal(await layoutTrigger.getAttribute('data-fv-layout'), 'classic');
-
     await rail.locator('[data-fv-quick-action="view-options"]').click();
     const capture = popover.locator('[data-fv-view-action="capture-diagnostics"]'); const cardWidths = await page.locator('#fixture-dashboard-host > .folder-showcase-outer').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
     assert.equal(await capture.count(), 1);
@@ -148,7 +146,9 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     await rail.locator('[data-fv-quick-action="view-options"]').click();
     await popover.locator('[data-fv-view-action="capture-diagnostics"]').click();
     assert.equal(await feedback.count(), 1);
-    await feedback.locator('button').click(); assert.equal(await feedback.count(), 0);
+    await feedback.locator('button').click();
+    assert.equal(await feedback.count(), 0);
+    assert.ok(await page.evaluate(() => window.fixtureDashboardLayout.state.dismissAligned), 'the rail must align during dismissal');
     await rail.locator('[data-fv-quick-action="view-options"]').click();
     await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('blocked'); }; });
     await popover.locator('[data-fv-view-action="capture-diagnostics"]').click();

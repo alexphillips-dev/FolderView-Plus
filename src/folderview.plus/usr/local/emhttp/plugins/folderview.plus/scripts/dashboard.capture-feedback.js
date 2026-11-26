@@ -4,7 +4,7 @@
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.FolderViewPlusDashboardCaptureFeedback = api;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
-    const createController = ({ window: win, translate } = {}) => {
+    const createController = ({ window: win, translate, onLayoutChange } = {}) => {
         const show = (type, snapshot) => {
             const body = win.document.querySelector(type === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view');
             const container = body?.querySelector(':scope > tr.updated > td');
@@ -30,11 +30,16 @@
             const close = win.document.createElement('button');
             close.type = 'button'; close.textContent = '×';
             close.setAttribute('aria-label', translate('common.close', 'Close'));
-            close.addEventListener('click', () => { notice.remove(); body.querySelector('[data-fv-quick-action="view-options"]')?.focus(); });
+            close.addEventListener('click', () => {
+                notice.remove();
+                onLayoutChange?.(type);
+                body.querySelector('[data-fv-quick-action="view-options"]')?.focus({ preventScroll: true });
+            });
             notice.append(icon, copy, close);
             const previous = container.querySelector(':scope > .fv-dashboard-capture-feedback');
             if (previous) previous.replaceWith(notice);
             else container.prepend(notice);
+            onLayoutChange?.(type);
         };
         const capture = (type, popover, callback) => {
             popover.close('capture');

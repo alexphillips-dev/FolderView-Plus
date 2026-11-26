@@ -73,6 +73,15 @@
     controller.applyDashboardLayoutStateForType('docker');
     controller.applyDashboardStartedOnlyFilterForType('docker');
 
+    const dashboardHost = document.querySelector('#fixture-dashboard-host');
+    dashboardHost.addEventListener('click', event => {
+        if (!event.target.closest('.fv-dashboard-capture-feedback button')) return;
+        const railHost = dashboardHost.querySelector('.fv-dashboard-layout-inline-host');
+        const card = dashboardHost.querySelector('.folder-showcase-outer');
+        const anchor = card.getClientRects().length ? card : card.querySelector(':scope > span.outer');
+        state.dismissAligned = Math.abs(railHost.getBoundingClientRect().top - anchor.getBoundingClientRect().top) <= 1;
+    });
+
     window.fixtureDashboardLayout = {
         controller,
         visualController,

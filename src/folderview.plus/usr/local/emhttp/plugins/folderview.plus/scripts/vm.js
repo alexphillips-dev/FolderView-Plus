@@ -1572,12 +1572,7 @@ const createFolders = async (currentBundle) => {
     folders = reconcileVmMemberIdentities(folders, vmInfo);
     let order = Object.values(JSON.parse(prom[3]));
     const renderedOrderKey = runtimeSnapshotApi?.buildRuntimeOrderKey?.({ order: unraidOrder, unraidOrder: order }) ?? null;
-    let prefsResponse = {};
-    try {
-        prefsResponse = prom[4] ? JSON.parse(prom[4]) : {};
-    } catch (error) {
-        prefsResponse = {};
-    }
+    const prefsResponse = parseJsonPayloadSafe(prom[4]);
     folderTypePrefs = applyVmPinnedFolderPrefsOverride(normalizeVmPrefsResponse(prefsResponse));
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);

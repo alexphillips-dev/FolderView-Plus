@@ -185,20 +185,21 @@ function fvplusFolderView3ValidateBundle(array &$bundle, ?object $shape = null):
     foreach (['user_notes' => 60000, 'toggle_style' => 96, 'preset' => 96] as $key => $limit) {
         if (array_key_exists($key, $bundle['css_config'])) fvplusFolderView3AssertText($bundle['css_config'][$key], 'appearance metadata', $limit);
     }
-    if (array_key_exists('native_autostart', $bundle)) {
-        $nativeNames = [];
-        if (!is_array($bundle['native_autostart']) || !array_is_list($bundle['native_autostart']) || count($bundle['native_autostart']) > 2000) throw new RuntimeException('Invalid or oversized FolderView3 native autostart list.');
-        foreach ($bundle['native_autostart'] as $line) {
-            fvplusFolderView3AssertText($line, 'native autostart entry', 270);
-            if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9_.-]*(?: [0-9]{1,4})?$/D', $line)) throw new RuntimeException('Invalid FolderView3 native autostart entry.');
-            $parts = explode(' ', $line);
-            if (strlen($parts[0]) > 255 || isset($nativeNames[$parts[0]])) throw new RuntimeException('Invalid FolderView3 native autostart entry.');
-            $nativeNames[$parts[0]] = true;
-            if (isset($parts[1]) && (int)$parts[1] > 3600) throw new RuntimeException('FolderView3 native autostart wait exceeds 3600 seconds.');
-        }
-    }
 }
-
+function fvplusFolderView3NormalizeNativeAutostart($lines): array {
+    if (!is_array($lines) || !array_is_list($lines) || count($lines) > 2000) throw new RuntimeException('Invalid or oversized FolderView3 native autostart list.');
+    $entries = [];
+    foreach ($lines as $line) {
+        fvplusFolderView3AssertText($line, 'native autostart entry', 275);
+        if (!preg_match('/^([A-Za-z0-9][A-Za-z0-9_.-]{0,254})(?: ([0-9]{1,19}))?$/D', $line, $parts)) throw new RuntimeException('Invalid FolderView3 native autostart entry.');
+        $name = $parts[1];
+        $digits = ltrim($parts[2] ?? '', '0');
+        $wait = (int)$digits;
+        if (isset($entries[$name]) || ($digits !== '' && (string)$wait !== $digits)) throw new RuntimeException('Invalid FolderView3 native autostart entry.');
+        $entries[$name] = ['name' => $name, 'wait' => $wait];
+    }
+    return array_values($entries);
+}
 function fvplusFolderView3AssertUniqueJsonKeys(string $raw): void {
     preg_match_all('/"(?:[^"\\\\]|\\\\.)*"|[{}\[\]:,]/s', $raw, $matches);
     $stack = [];

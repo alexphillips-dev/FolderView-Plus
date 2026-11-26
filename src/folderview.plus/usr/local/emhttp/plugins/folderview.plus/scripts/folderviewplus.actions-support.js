@@ -183,7 +183,7 @@
         const rollbackLatestCheckpoint = async () => {
             try {
                 const checkpoint = await deps.globalRollbackApi('rollback_list');
-                if (!checkpoint) throw new Error(repairT88902831('common.server.no-previous-rollback-snapshot-available-d7dc01', 'No previous rollback snapshot available.'));
+                if (!/^[a-f0-9]{64}$/.test(checkpoint?.reviewHash || '')) throw new Error(repairT88902831('common.server.no-previous-rollback-snapshot-available-d7dc01', 'No previous rollback snapshot available.'));
                 const explanation = repairT88902831('legacy.surface.5902ad5c407a5713', 'This restores Docker + VM folders and settings from the previous rollback snapshot.');
                 const confirmed = await requestConfirmation({
                     title: 'Rollback plugin settings?',
@@ -191,7 +191,7 @@
                     confirmButtonText: 'Rollback now'
                 });
                 if (!confirmed) return;
-                const restore = await deps.globalRollbackApi('rollback_restore_previous', { expectedName: checkpoint.name });
+                const restore = await deps.globalRollbackApi('rollback_restore_previous', { expectedName: checkpoint.name, reviewHash: checkpoint.reviewHash });
                 await deps.refreshAll();
                 const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
                 const status = `Restored ${restore?.targetName || restore?.name || 'previous snapshot'}`;

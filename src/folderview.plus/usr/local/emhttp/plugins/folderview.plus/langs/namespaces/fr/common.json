@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "common",
-        "content-revision": "9edf0239d245c3aad93c563499e2c701a89f1ed240972119966cb4c21b1053fd"
+        "content-revision": "bf3d173d1b17b5c86e025787e6d36c91e87efabf1db921e711c8bbc4c7a7f1c6"
     },
     "common.unassigned-group.title": "Éléments non affectés",
     "runtime.action.requests-result": "$1 acceptées · $2 en échec",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Les noms prédéfinis d’apparence de FolderView3 sont dupliqués.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Liste de démarrage automatique native FolderView3 invalide ou surdimensionnée.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Entrée de démarrage automatique natif FolderView3 non valide.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "L’attente de démarrage automatique natif de FolderView3 dépasse 3 600 secondes.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON dépasse la profondeur d'imbrication prise en charge.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON contient des noms de propriétés en double. Corrigez l'export avant d'importer.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "La séquence de démarrage automatique de FolderView3 dépasse la limite de démarrage de 2 000 entrées.",

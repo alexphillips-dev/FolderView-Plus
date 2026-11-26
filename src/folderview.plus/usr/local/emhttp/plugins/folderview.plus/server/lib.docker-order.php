@@ -119,6 +119,8 @@ function dockerSyncOrderLockPath(): string {
             $autoStartMap[$name] = trim((string)$line);
         }
 
+        $batchWaitPendingRecovery = false;
+        $batchWaitOwnership = $autoStartContent !== null ? readDockerBatchWaitOwnership($autoStartContent, $batchWaitPendingRecovery) : [];
         return [
             'prefs' => $prefs,
             'currentOrder' => $currentOrder,
@@ -134,7 +136,8 @@ function dockerSyncOrderLockPath(): string {
             'autoStartFile' => $autoStartFile,
             'autoStartContent' => $autoStartContent,
             'autoStartMap' => $autoStartMap,
-            'batchWaitOwnership' => $autoStartContent !== null ? readDockerBatchWaitOwnership($autoStartContent) : [],
+            'batchWaitOwnership' => $batchWaitOwnership,
+            'batchWaitPendingRecovery' => $batchWaitPendingRecovery,
             'staleAutostart' => $staleAutostart
         ];
     }
@@ -185,7 +188,7 @@ function dockerSyncOrderLockPath(): string {
                 if ($type === 'folder') {
                     $placeholder = 'folder-' . trim((string)($item['id'] ?? ''));
                     if (!array_key_exists($placeholder, $folderContainers)) {
-                        $warnings[] = 'Folder in start plan no longer exists: ' . $placeholder;
+                        $warnings['Folder in start plan no longer exists: ' . $placeholder] = ['missing-folder', $placeholder];
                         continue;
                     }
                     $members = array_map('strval', (array)$folderContainers[$placeholder]);
@@ -200,7 +203,7 @@ function dockerSyncOrderLockPath(): string {
                     continue;
                 }
                 if (!in_array($name, $allContainerNames, true)) {
-                    $warnings[] = 'Container in start plan no longer exists: ' . $name;
+                    $warnings['Container in start plan no longer exists: ' . $name] = ['missing-container', $name];
                     continue;
                 }
                 $batchNames[] = $name;
@@ -209,7 +212,7 @@ function dockerSyncOrderLockPath(): string {
             $batchAutostartNames = [];
             foreach ($batchNames as $name) {
                 if (!isset($autoStartMap[$name])) {
-                    $warnings[] = $name . ' is in the start plan but Docker autostart is off.';
+                    $warnings[$name . ' is in the start plan but Docker autostart is off.'] = ['autostart-off', $name];
                     continue;
                 }
                 if (isset($seen[$name])) continue;
@@ -248,7 +251,7 @@ function dockerSyncOrderLockPath(): string {
         return [
             'order' => $ordered,
             'batches' => $batchesOut,
-            'warnings' => array_values(array_unique($warnings)),
+            'warnings' => $warnings,
             'remaining' => $remainingOrder
         ];
     }
@@ -294,7 +297,8 @@ function dockerSyncOrderLockPath(): string {
             'sequence' => $sequence,
             'batches' => $batches,
             'remaining' => $remaining,
-            'warnings' => array_values(array_unique($warnings)),
+            'warnings' => array_keys($warnings),
+            'warningDetails' => array_values($warnings),
             'autostartCount' => count($autoStartMap),
             'nativeAutostartReadable' => is_string($context['autoStartContent'] ?? null),
             'containerCount' => count((array)($context['allContainerNames'] ?? [])),
@@ -409,4 +413,23 @@ function dockerSyncOrderLockPath(): string {
         $status = $failure === 'docker_order_lock_unavailable' ? 503 : 409;
         fvplus_json_error('Docker start order sync failed', $status, $result);
         return null;
+    }
+
+    function dockerAutostartToggleWaitScope(string $name, array $priorPlan, array $plan, array $ownership): array {
+        // Reconcile only the toggled record and the affected batch tails.
+        $affected = [$name => true];
+        $previousSequence = array_column($priorPlan['sequence'], 'waitSource', 'name');
+        $nextSequence = array_column($plan['sequence'], 'waitSource', 'name');
+        foreach ($priorPlan['batches'] as $index => $beforeBatch) {
+            $previousNames = $beforeBatch['containers'];
+            $nextNames = $plan['batches'][$index]['containers'];
+            if (!in_array($name, $previousNames, true) && !in_array($name, $nextNames, true)) continue;
+            foreach ([[$previousNames, $previousSequence], [$nextNames, $nextSequence]] as [$names, $sources]) {
+                $tail = end($names);
+                if ($tail !== false && (($sources[$tail] ?? '') === 'batch' || isset($ownership[$tail]))) {
+                    $affected[$tail] = true;
+                }
+            }
+        }
+        return $affected;
     }

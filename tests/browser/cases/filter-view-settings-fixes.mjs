@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
 import { createDockerBadgeHost } from '../helpers/folder-badges-host.mjs';
 import { registerVmRuntimeRecoveryCases } from './vm-runtime-recovery.mjs';
+import { registerStartupDurableReplayCases } from './startup-durable-replay.mjs';
 
 const waitFor = async (page, predicate, message) => {
     for (let i = 0; i < 150; i++) {
@@ -34,6 +35,8 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 
 export const registerFilterViewSettingsFixes = ({ test }) => {
     registerVmRuntimeRecoveryCases({ test });
+
+    registerStartupDurableReplayCases({ test, openSettings, waitFor });
 
     test('Docker start order restores a rejected mode and reports failed native sync after a saved plan', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "settings",
-        "content-revision": "bce4d0dc27a1cdef20053ed4ed818032dec8e4eeb1164ba2f5d92b1344657e4d"
+        "content-revision": "5b282c872db93547dc9a2451c6a794022f7414ffa24fde35d19820e6b380f6d0"
     },
     "settings.visibility.group-unassigned-items": "Seskupit nepřiřazené položky",
     "settings.visibility.group-unassigned-items-help": "Platí také pro příslušný panel na řídicím panelu.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Automatické spouštění kontejnerů: $1; zjištěné kontejnery: $2",
     "settings.start-order.order-column": "Pořadí",
     "settings.start-order.container-column": "Kontejner",
+    "settings.start-order.warning-missing-folder": "Složka v plánu zahájení již neexistuje: $1",
+    "settings.start-order.warning-missing-container": "Kontejner v plánu zahájení již neexistuje: $1",
+    "settings.start-order.warning-autostart-off": "$1 je v plánu spuštění, ale automatické spuštění Dockeru je vypnuté.",
     "settings.navigation.bulk-assignment": "Hromadné zadání",
     "settings.navigation.rules": "Pravidla",
     "settings.navigation.recovery": "Zotavení",

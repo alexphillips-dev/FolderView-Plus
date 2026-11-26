@@ -72,6 +72,25 @@ validate_manifest() {
     fi
 }
 
+validate_icon_archive() {
+    local version="$1" sha="$2" archive
+    [ -n "${version}${sha}" ] || return 0
+    [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "${sha}" =~ ^[a-f0-9]{64}$ ]] || return 1
+    archive="${config_dir}/folderview.plus-icons-${version}.txz"
+    [ -f "${archive}" ] && [ ! -L "${archive}" ] &&
+        printf '%s  %s\n' "${sha}" "${archive}" | sha256sum --check --status
+}
+
+has_verified_newer_registration() {
+    local version
+    version="$(manifest_entity version "${registered_manifest}")"
+    # Follow the native manager's string ordering for release revisions.
+    [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ && "${version}" > "${owner_version}" ]] &&
+        validate_manifest "${registered_manifest}" "${version}" &&
+        validate_icon_archive "$(manifest_entity iconPackVersion "${registered_manifest}")" \
+            "$(manifest_entity iconPackSha256 "${registered_manifest}")"
+}
+
 write_registered_manifest() {
     local source="$1" target
     if [ ! -L "${registered_manifest}" ] && cmp -s -- "${source}" "${registered_manifest}"; then
@@ -162,7 +181,7 @@ restore_prior_registration() {
 }
 
 restore_interrupted_activation() {
-    local previous_version previous_icon previous_icon_sha icon_archive restored_version
+    local previous_version previous_icon previous_icon_sha restored_version
     local previous_manifest="${state_dir}/previous-manifest"
     [ ! -f "${state_dir}/core-started" ] && return 0
     [ ! -L "${runtime_dir}" ] || return 1
@@ -179,10 +198,7 @@ restore_interrupted_activation() {
         previous_icon="$(manifest_entity iconPackVersion "${previous_manifest}")"
         if [ -n "${previous_icon}" ]; then
             previous_icon_sha="$(manifest_entity iconPackSha256 "${previous_manifest}")"
-            icon_archive="${config_dir}/folderview.plus-icons-${previous_icon}.txz"
-            [[ "${previous_icon}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "${previous_icon_sha}" =~ ^[a-f0-9]{64}$ ]] &&
-                [ -f "${icon_archive}" ] && [ ! -L "${icon_archive}" ] &&
-                printf '%s  %s\n' "${previous_icon_sha}" "${icon_archive}" | sha256sum --check --status || return 1
+            validate_icon_archive "${previous_icon}" "${previous_icon_sha}" || return 1
         fi
     fi
     if [ -L "${runtime_dir}/images/third-party-icons" ]; then
@@ -226,7 +242,7 @@ case "${mode}" in
         bootstrap=0
         if [ -f "${state_dir}/rollback" ]; then
             restore_prior_registration || fail_registration
-        elif [ -f "${state_dir}/committed" ]; then
+        elif [ -f "${state_dir}/committed" ] && ! has_verified_newer_registration; then
             [ -f "${registered_manifest}" ] || bootstrap=1
             validate_manifest "${state_dir}/manifest" || fail_registration
             write_registered_manifest "${state_dir}/manifest"

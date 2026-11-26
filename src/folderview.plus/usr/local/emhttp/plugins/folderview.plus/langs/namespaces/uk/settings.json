@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "settings",
-        "content-revision": "0a5a11b1ef10534de230137351552c5527f6be7268a784cada1a61d54da04951"
+        "content-revision": "39e9638215ba5fcc081b03767d36ea3b257ade50fcefdba4f827a01dda687983"
     },
     "settings.visibility.group-unassigned-items": "Групувати непризначені елементи",
     "settings.visibility.group-unassigned-items-help": "Також застосовується до відповідної плитки на панелі.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Автозапуск контейнерів: $1; виявлені контейнери: $2",
     "settings.start-order.order-column": "Порядок сортування",
     "settings.start-order.container-column": "Контейнер",
+    "settings.start-order.warning-missing-folder": "Папка в початковому плані більше не існує: $1",
+    "settings.start-order.warning-missing-container": "Контейнер у початковому плані більше не існує: $1",
+    "settings.start-order.warning-autostart-off": "$1 є в плані запуску, але автозапуск Docker вимкнено.",
     "settings.navigation.bulk-assignment": "Масове призначення",
     "settings.navigation.rules": "правила",
     "settings.navigation.recovery": "Відновлення",

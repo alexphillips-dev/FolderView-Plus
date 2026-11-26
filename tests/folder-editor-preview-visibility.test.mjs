@@ -93,7 +93,8 @@ test('running preview states share a display label and remain colored in status 
 });
 
 test('preview visibility participates in editor dirty state and live-preview dependencies', () => {
-    assert.match(editorSource, /previewVisible:\s*\$\(row\)\.find\('input\.member-preview-switch'\)\.prop\('checked'\) === true/);
+    assert.match(editorSource, /hiddenPreviewMembers:\s*\[\.\.\.hiddenPreviewMembers\]\.sort\(\)/);
+    assert.match(editorSource, /areComparableValuesEqual\(baselineSnapshot\.hiddenPreviewMembers, currentSnapshot\.hiddenPreviewMembers\)/);
     assert.match(editorSource, /const getPreviewMemberNames = \(\) =>[\s\S]*input\.container-switch[\s\S]*input\.member-preview-switch/);
     assert.match(editorSource, /getIncludedMemberNames,\s*getPreviewMemberNames,\s*getMemberMapByName/);
     assert.match(editorSource, /input\.member-preview-switch[\s\S]*updateLiveSummary\(\)/);

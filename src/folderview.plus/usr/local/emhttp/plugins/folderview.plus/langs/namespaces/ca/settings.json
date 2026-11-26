@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "settings",
-        "content-revision": "e76797c0906ad587b7bc8ecff764f0640a1706ed2a0a714ea87c3f3b59399d84"
+        "content-revision": "d9b24d289f81163fd50ee0bd55ba3024a624684cac737caf684621bcbd9f2753"
     },
     "settings.visibility.group-unassigned-items": "Agrupa els elements sense assignar",
     "settings.visibility.group-unassigned-items-help": "També s’aplica al bloc corresponent del tauler.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Contenidors d'inici automàtic: $1; contenidors detectats: $2",
     "settings.start-order.order-column": "Ordre d’ordenació",
     "settings.start-order.container-column": "Contenidor",
+    "settings.start-order.warning-missing-folder": "La carpeta del pla d'inici ja no existeix: $1",
+    "settings.start-order.warning-missing-container": "El contenidor del pla d'inici ja no existeix: $1",
+    "settings.start-order.warning-autostart-off": "$1 està al pla d'inici, però l'inici automàtic de Docker està desactivat.",
     "settings.navigation.bulk-assignment": "Assignació massiva",
     "settings.navigation.rules": "Normes",
     "settings.navigation.recovery": "Recuperació",

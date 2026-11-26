@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "settings",
-        "content-revision": "fa18ae5a067b1e65f60405e994b6de2fcb3b504c5806b2e1952548936e694757"
+        "content-revision": "b566ca3043ecd2da7274a05c8f88cec2d86907958078b6bf0de3ad3ff4be3b16"
     },
     "settings.visibility.group-unassigned-items": "Atanmamış öğeleri grupla",
     "settings.visibility.group-unassigned-items-help": "İlgili gösterge paneli kutucuğuna da uygulanır.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Otomatik başlatılan kapsayıcılar: $1; algılanan kapsayıcılar: $2",
     "settings.start-order.order-column": "Sıra",
     "settings.start-order.container-column": "Konteyner",
+    "settings.start-order.warning-missing-folder": "Başlangıç planındaki klasör artık mevcut değil: $1",
+    "settings.start-order.warning-missing-container": "Başlangıç planındaki kapsayıcı artık mevcut değil: $1",
+    "settings.start-order.warning-autostart-off": "$1 başlangıç planında ancak Docker otomatik başlatma kapalı.",
     "settings.navigation.bulk-assignment": "Toplu atama",
     "settings.navigation.rules": "Kurallar",
     "settings.navigation.recovery": "Kurtarma",

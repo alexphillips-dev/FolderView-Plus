@@ -75,6 +75,8 @@ if ($cliSource !== null && $unraidVersion === '7.4.0') {
     $cases[] = 'install-native-remove-nextboot-staged-failure';
     $cases[] = 'install-remove-nextboot-staged-interrupted-prepared-success';
     $cases[] = 'install-native-remove-nextboot-staged-partial-failure';
+    $cases[] = 'update-nextboot-after-interrupted-registration-success';
+    $cases[] = 'update-nextboot-damaged-icons-after-interrupted-registration-success';
 }
 $check = [];
 
@@ -276,7 +278,7 @@ exec /bin/rm "$@"',
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
 exec /usr/bin/flock "$@"',
-        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" = update-late-*-success ]] &&
+        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" = update-late-*-success || "$FVPLUS_FIXTURE_CASE" = update-nextboot-*-registration-success ]] &&
     [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
     touch "$FVPLUS_FIXTURE_DIR/registration-commit-paused"
     for ((attempt=0; attempt<200; attempt++)); do
@@ -375,7 +377,8 @@ exec /bin/mv "$@"'
             $nativeCode = str_replace($needle, 'if (getenv("FVPLUS_FIXTURE_FAIL_NATIVE_REMOVE_MOVE") === "1" && $tar_dir === "'
                 . "$boot-removed" . '") mkdir($tar_dir."/".basename($src_file));' . "\n  " . $needle, $nativeCode, $replaced);
             verifyInstallFixture($replaced === 1, 'Could not inject the final native move failure.');
-        } elseif (in_array($case, ['update-late-check-interrupted-boot-success', 'install-remove-archived-reinstall-success'], true)) {
+        } elseif (in_array($case, ['update-late-check-interrupted-boot-success', 'install-remove-archived-reinstall-success',
+            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'], true)) {
             // Stop the native owner after its flash copy, before it decides which post-hooks to run.
             $needle = 'function post_hooks($error=\'\') {';
             $nativeCode = str_replace($needle, $needle . "\n" . '  if (getenv("FVPLUS_FIXTURE_INTERRUPT") === "1" && $error === "") exit(137);', $nativeCode, $replaced);
@@ -1004,24 +1007,48 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if (in_array($case, ['update-late-check-success', 'update-late-check-interrupted-boot-success'], true)) {
-        $interrupted = $case === 'update-late-check-interrupted-boot-success';
+    if (in_array($case, ['update-late-check-success', 'update-late-check-interrupted-boot-success',
+        'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'], true)) {
+        $interrupted = $case !== 'update-late-check-success';
+        $downloaded = str_contains($case, 'nextboot');
+        $damagedIcons = str_contains($case, 'damaged-icons');
         $stagedVersion = '2026.01.01.03';
         $peerManifest = $manifest($stagedVersion, '3.0.0');
         file_put_contents("$dir/remote.plg", $peerManifest);
         $first = $start($command, $interrupted ? ['FVPLUS_FIXTURE_INTERRUPT' => '1'] : []);
         for ($attempt = 0; $attempt < 160 && !is_file("$dir/registration-commit-paused"); $attempt++) usleep(50000);
         verifyInstallFixture(is_file("$dir/registration-commit-paused") && is_link($registrationHook), "$case did not arm the post-hook at registration.");
-        [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
-        verifyInstallFixture($checkStatus === 0 && str_contains($checkOutput, $stagedVersion)
-            && file_get_contents("$dir/downloads/$pluginName.plg") === $peerManifest && is_link($registrationHook)
-            && file_get_contents($bootManifest) === $oldManifest, "$case let the unrelated check consume the handoff: $checkOutput");
+        if (!$downloaded) {
+            [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
+            verifyInstallFixture($checkStatus === 0 && str_contains($checkOutput, $stagedVersion)
+                && file_get_contents("$dir/downloads/$pluginName.plg") === $peerManifest && is_link($registrationHook)
+                && file_get_contents($bootManifest) === $oldManifest, "$case let the unrelated check consume the handoff: $checkOutput");
+        }
         touch("$dir/allow-registration-commit");
         [$status, $output] = $finish($first);
         if ($interrupted) {
-            verifyInstallFixture($status === 137 && file_get_contents($bootManifest) === $peerManifest
+            verifyInstallFixture($status === 137 && file_get_contents($bootManifest) === ($downloaded ? $newManifest : $peerManifest)
                 && !file_exists("$config/$pluginName-$stagedVersion.txz") && is_file("$journal/committed"),
                 "$case did not stop between the native copy and its post-hook: $output");
+            if ($downloaded) {
+                $stagedDir = "$nextboot/$pluginName";
+                mkdir($stagedDir, 0700, true);
+                // The offline native download uses locally seeded artifacts with the advertised checksums.
+                file_put_contents("$stagedDir/$pluginName-$stagedVersion.txz", "core $stagedVersion");
+                copy($iconArchives['3.0.0'], "$stagedDir/$pluginName-icons-3.0.0.txz");
+                [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
+                verifyInstallFixture($checkStatus === 0 && str_contains($checkOutput, $stagedVersion),
+                    "$case could not check the newer version: $checkOutput");
+                [$downloadStatus, $downloadOutput] = $run([PHP_BINARY, $cli, 'download', "$pluginName.plg"]);
+                verifyInstallFixture($downloadStatus === 0 && file_get_contents("$nextboot/$pluginName.plg") === $peerManifest
+                    && hash_file('sha256', "$stagedDir/$pluginName-$stagedVersion.txz") === hash('sha256', "core $stagedVersion"),
+                    "$case could not stage a verified newer update: $downloadOutput");
+                if ($damagedIcons) file_put_contents("$stagedDir/$pluginName-icons-3.0.0.txz", 'damaged after download');
+                verifyInstallFixture(rename("$nextboot/$pluginName.plg", $bootManifest), "$case could not promote the boot manifest.");
+                foreach (glob("$stagedDir/*") as $asset) {
+                    verifyInstallFixture(rename($asset, "$config/" . basename($asset)), "$case could not promote the boot archive.");
+                }
+            }
             unlink($runningLink);
             unlink("$dir/registration");
             unlink($registrationHook);
@@ -1040,14 +1067,18 @@ exec /bin/mv "$@"'
                     "$case failed to load $manifestPath offline: $bootOutput");
             }
             clearstatcache();
-            verifyInstallFixture(file_get_contents($bootManifest) === $newManifest && readlink($runningLink) === $bootManifest
-                && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$candidate.txz"
+            $expectsPeer = $downloaded && !$damagedIcons;
+            $bootVersion = $expectsPeer ? $stagedVersion : $candidate;
+            $expectedManifest = $expectsPeer ? $peerManifest : $newManifest;
+            verifyInstallFixture(file_get_contents($bootManifest) === $expectedManifest && readlink($runningLink) === $bootManifest
+                && trim(file_get_contents("$config/version")) === $bootVersion
+                && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$bootVersion.txz"
                 && !is_dir($journal) && !is_link("$dir/running/" . basename($recoveryWrapper)),
                 "$case did not boot the exact verified installation.");
             // The wrapper may still be enumerated on a later boot after its record is retired.
             [$inactiveStatus, $inactiveOutput] = $run([PHP_BINARY, $cli, 'install', $recoveryWrapper]);
             verifyInstallFixture($inactiveStatus === 0 && !is_link("$dir/running/" . basename($recoveryWrapper))
-                && file_get_contents($bootManifest) === $newManifest && !is_dir($journal),
+                && file_get_contents($bootManifest) === $expectedManifest && !is_dir($journal),
                 "$case let an inactive wrapper register itself or modify the plugin: $inactiveOutput");
             $check[] = $case;
             continue;

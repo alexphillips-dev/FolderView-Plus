@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pt-PT",
         "namespace": "settings",
-        "content-revision": "8100b2fc9de1a7bc4ebff081e4df0393d541d852cb8ccb5df89ec35e9c716ca4"
+        "content-revision": "3505c2cfbfb587f8b7d3d237cdba4d5f3c5f975c8fb466407d93c62f3a2bcf9a"
     },
     "settings.visibility.group-unassigned-items": "Agrupar itens não atribuídos",
     "settings.visibility.group-unassigned-items-help": "Também se aplica ao mosaico correspondente no painel.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Contentores com arranque automático: $1; contentores detetados: $2",
     "settings.start-order.order-column": "Ordem de ordenação",
     "settings.start-order.container-column": "Contentor",
+    "settings.start-order.warning-missing-folder": "A pasta no plano inicial não existe mais: $1",
+    "settings.start-order.warning-missing-container": "O contêiner no plano inicial não existe mais: $1",
+    "settings.start-order.warning-autostart-off": "$1 está no plano inicial, mas a inicialização automática do Docker está desativada.",
     "settings.navigation.bulk-assignment": "Atribuição em massa",
     "settings.navigation.rules": "Regras",
     "settings.navigation.recovery": "Recuperação",

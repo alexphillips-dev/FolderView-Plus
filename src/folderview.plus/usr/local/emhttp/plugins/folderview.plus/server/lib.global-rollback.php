@@ -12,7 +12,7 @@
         return getGlobalRollbackDirPath() . "/$safeName";
     }
 
-    function listGlobalRollbackSnapshots(): array {
+    function listGlobalRollbackSnapshots(bool $includeReviewHash = false): array {
         $rollbackDir = getGlobalRollbackDirPath();
         if (!is_dir($rollbackDir)) {
             return [];
@@ -29,7 +29,8 @@
             if (!is_file($path)) {
                 continue;
             }
-            $decoded = @json_decode((string)@file_get_contents($path), true);
+            $bytes = (string)@file_get_contents($path);
+            $decoded = @json_decode($bytes, true);
             $reason = '';
             $pluginVersion = '';
             $traceId = '';
@@ -75,6 +76,7 @@
                 'traceId' => $traceId,
                 'transactionId' => $transactionId,
                 'restorable' => $restorable,
+                ...($includeReviewHash && $restorable ? ['reviewHash' => hash('sha256', $bytes)] : []),
                 'dockerCount' => $dockerCount,
                 'vmCount' => $vmCount
             ];

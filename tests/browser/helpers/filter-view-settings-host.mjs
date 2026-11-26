@@ -53,7 +53,7 @@ export const createFilterViewSettingsHost = async page => {
 };
 
 // Execute the shipped VM page with synthetic native rows and the native AJAX lifecycle.
-export const mountFilterViewVmHost = async (page, host, { nativeDetails = false } = {}) => {
+export const mountFilterViewVmHost = async (page, host, { nativeDetails = false, legacyText = false } = {}) => {
     const prefix = '/plugins/folderview.plus/';
     const script = file => `<script src="${file}"></script>`;
     const source = fs.readFileSync(path.join(plugin, 'folderview.plus.VMs.page'), 'utf8');
@@ -98,8 +98,9 @@ window.loadlist = () => {
     await page.route('**/fixture-host.js*', route => route.fulfill({ contentType: 'text/javascript', body: hostSource }));
     await page.route('**/plugins/dynamix.vm.manager/include/VMMachines.php*', route => route.fulfill({ contentType: 'text/html', body: buildRows() }));
     await page.route('**/favicon.ico', route => route.fulfill({ status: 204 }));
-    await page.route('**/server/read.php?**', route => route.fulfill({ json: host.folders }));
-    await page.route('**/server/read_info.php?**', route => route.fulfill({ json: host.runtime.vm }));
+    const response = value => legacyText ? { contentType: 'text/plain', body: JSON.stringify(value) } : { json: value };
+    await page.route('**/server/read.php?**', route => route.fulfill(response(host.folders)));
+    await page.route('**/server/read_info.php?**', route => route.fulfill(response(host.runtime.vm)));
     await page.route('**/server/reconcile_member_identities.php', route => route.fulfill({ json: { ok: true, result: { updatedCount: 0 } } }));
     await page.goto(new URL('/audit-vm', host.url).href, { waitUntil: 'load' });
     await page.waitForFunction(() => document.querySelector('tr.folder-id-fixture-folder-0'));

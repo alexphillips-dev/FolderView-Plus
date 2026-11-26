@@ -59,10 +59,55 @@ test('M04/M05/M06/M07/M10/M33: malformed backups reject with every original file
     const badBoolean = copy(); badBoolean.docker.manual.settings.preview_hover = 'invalid'; invalid.push(badBoolean);
     const badNumber = copy(); badNumber.docker.manual.settings.preview = 1.5; invalid.push(badNumber);
     const badId = copy(); badId.docker.manual.containerIds = { 'service-manual': 'a'.repeat(65) }; invalid.push(badId);
-    const badNative = copy(); badNative.native_autostart = ['service-auto', 'service-auto 12']; invalid.push(badNative);
     const dangerous = copy(); dangerous.docker = JSON.parse('{"__proto__":{"name":"Hostile"}}'); invalid.push(dangerous);
     for (const bundle of invalid) { const r = runMigrationFixture({ bundle }); assert.ok(r.error); assert.equal(r.unchanged, true, r.error); }
     for (const raw of ['', '{', 'null', '[]']) { const r = runMigrationFixture({ raw }); assert.ok(r.error); assert.equal(r.unchanged, true); }
+});
+
+test('FolderView3 migration preserves native waits over the managed plan limit only when selected', () => {
+    const originalNativeBase64 = Buffer.from('existing 5\n').toString('base64');
+    for (const [wait, includeNative] of [[3600, true], [3601, false], [7200, true], [7200, false]]) {
+        const bundle = { ...migrationFixture, native_autostart: [`plex ${wait}`, 'arr-one'] };
+        const result = runMigrationFixture({ bundle, operation: 'native-checkpoint', includeNative, originalNativeBase64 });
+        assert.equal(result.error, '', String(wait));
+        assert.equal(result.plan.nativeAutostart[0].wait, wait);
+        assert.equal(result.appliedNative.contentBase64, includeNative ? Buffer.from(`plex ${wait}\narr-one\n`).toString('base64') : originalNativeBase64);
+        if (includeNative) assert.equal(result.restoredNative.contentBase64, originalNativeBase64);
+    }
+    const native = Buffer.from('existing 7200\n').toString('base64');
+    const installed = runMigrationFixture({ operation: 'installed', originalNativeBase64: native, includeNative: true });
+    assert.equal(installed.error, '');
+    assert.deepEqual(installed.installedNative, [{ name: 'existing', wait: 7200 }]);
+    assert.equal(installed.applied.transaction.verified, true);
+    assert.equal(installed.appliedNativeBase64, native);
+
+    const wideWait = '9223372036854775807';
+    const wide = runMigrationFixture({ bundle: { ...migrationFixture, native_autostart: [`plex ${wideWait}`] },
+        operation: 'native-checkpoint', includeNative: true, originalNativeBase64 });
+    assert.equal(wide.error, '');
+    assert.equal(wide.appliedNative.contentBase64, Buffer.from(`plex ${wideWait}\n`).toString('base64'));
+    assert.doesNotMatch(JSON.stringify(wide.report), new RegExp(wideWait), 'review carries only the count and source digest');
+});
+
+test('unusable optional FolderView3 native data stays out of the plan and an explicit request fails safely', () => {
+    const originalNativeBase64 = Buffer.from('existing 17\n').toString('base64');
+    for (const native_autostart of [['service-auto', 'service-auto 12'], ['service-auto 9223372036854775808'], null]) {
+        const bundle = { ...migrationFixture, native_autostart };
+        const options = { bundle, originalNativeBase64, operation: 'native-checkpoint' };
+        const portable = runMigrationFixture({ ...options, includeNative: false });
+        assert.equal(portable.error, '');
+        assert.equal(portable.report.summary.nativeAutostartCount, 0);
+        assert.ok(portable.report.warnings.some(warning => /native autostart/.test(warning)));
+        assert.equal(portable.appliedNative.contentBase64, originalNativeBase64);
+        const explicit = runMigrationFixture({ ...options, includeNative: true });
+        assert.match(explicit.error, /No native Docker autostart entries are available/);
+        assert.equal(explicit.protectedUnchanged, true);
+        assert.equal(Object.keys(explicit.after).some(key => key.startsWith('backups/') || key.startsWith('rollback/')), false);
+    }
+    const stale = runMigrationFixture({ bundle: { ...migrationFixture, native_autostart: ['service-auto malformed'] },
+        operation: 'stale-native-input', changedNativeInput: ['service-auto still-invalid'], originalNativeBase64 });
+    assert.match(stale.error, /changed after preview/);
+    assert.equal(stale.protectedUnchanged, true);
 });
 
 test('M03: historical verified envelope accepts absent additions and stays unmanaged', () => {

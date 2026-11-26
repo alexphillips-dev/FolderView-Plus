@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "common",
-        "content-revision": "72445b59afa074c3e8c92ce18ae8eb8b99129fbdd909a82e40baf334d9142bca"
+        "content-revision": "e84a72c38ff42b46a9cce163ba23de6b3273aaab1b68dcdac439c4b377770694"
     },
     "common.unassigned-group.title": "Hozzá nem rendelt elemek",
     "runtime.action.requests-result": "Elfogadva: $1 · Sikertelen: $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "A FolderView3 megjelenési előre beállított nevei megkettőződnek.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Érvénytelen vagy túlméretezett a FolderView3 natív automatikus indítási listája.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Érvénytelen FolderView3 natív automatikus indítási bejegyzés.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "A FolderView3 natív automatikus indítási várakozása meghaladja a 3600 másodpercet.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "A FolderView3 JSON meghaladja a támogatott beágyazási mélységet.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "A FolderView3 JSON ismétlődő tulajdonságneveket tartalmaz. Importálás előtt javítsa ki az exportot.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "A FolderView3 automatikus indítási sorrendje meghaladja a 2000 bejegyzéses indítási korlátot.",

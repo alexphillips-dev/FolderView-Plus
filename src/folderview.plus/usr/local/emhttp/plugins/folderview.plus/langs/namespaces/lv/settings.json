@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "settings",
-        "content-revision": "097758a1d9e4da81f06238d124d76f9c58cfad14fe47da3829aa33367fd4f349"
+        "content-revision": "8efe7bb8c0352597736552c45021c337bf1ebb6d4c0562c97d598b00b66c86e4"
     },
     "settings.visibility.group-unassigned-items": "Grupēt nepiešķirtos vienumus",
     "settings.visibility.group-unassigned-items-help": "Attiecas arī uz atbilstošo informācijas paneļa elementu.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart konteineri: $1; konstatēti konteineri: $2",
     "settings.start-order.order-column": "Kārtošanas secība",
     "settings.start-order.container-column": "Konteiners",
+    "settings.start-order.warning-missing-folder": "Sākuma plāna mape vairs nepastāv: $1",
+    "settings.start-order.warning-missing-container": "Sākuma plānā esošais konteiners vairs nepastāv: $1",
+    "settings.start-order.warning-autostart-off": "$1 ir sākuma plānā, bet Docker automātiskā palaišana ir izslēgta.",
     "settings.navigation.bulk-assignment": "Lielapjoma piešķiršana",
     "settings.navigation.rules": "Noteikumi",
     "settings.navigation.recovery": "Atveseļošanās",

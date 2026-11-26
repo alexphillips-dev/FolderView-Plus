@@ -133,3 +133,23 @@ test('start-order view escapes names and rejects executable icon URLs', () => {
     assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
     assert.match(html, /dynamix\.docker\.manager\/images\/question\.png/);
 });
+
+test('the preview translates structured plan warnings and keeps their identifiers literal', () => {
+    const translated = [];
+    const view = viewModule.createApi({ translate: (key, fallback, name) => {
+        if (!key.includes('warning-') && key !== 'legacy.surface.e0fa109077cd03a8') return fallback;
+        translated.push([key, name]);
+        return name + ' – localized';
+    } });
+    const html = view.buildPreviewHtml({ warningDetails: [
+        ['missing-folder', 'folder-example'], ['missing-container', '<fixture>'], ['autostart-off', 'checked-off']
+    ], staleAutostart: ['stale-fixture'] });
+    assert.deepEqual(translated, [
+        ['settings.start-order.warning-missing-folder', 'folder-example'],
+        ['settings.start-order.warning-missing-container', '<fixture>'],
+        ['settings.start-order.warning-autostart-off', 'checked-off'],
+        ['legacy.surface.e0fa109077cd03a8', 'stale-fixture']
+    ]);
+    assert.match(html, /&lt;fixture&gt; – localized/);
+    assert.doesNotMatch(html, /<fixture>/);
+});

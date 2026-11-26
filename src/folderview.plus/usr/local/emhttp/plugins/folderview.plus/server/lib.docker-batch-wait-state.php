@@ -4,17 +4,24 @@ function dockerBatchWaitStatePath(): string {
     return $configDir . '/docker-batch-waits.json';
 }
 
-function readDockerBatchWaitOwnership(string $nativeContent): array {
+function readDockerBatchWaitOwnership(string $nativeContent, bool &$pendingRecovery = false): array {
     $state = readJsonObjectFile(dockerBatchWaitStatePath()) ?? [];
-    // If a process stopped during the write, its pending state is valid only
-    // when the complete target was installed.
-    $pending = $state['pending'] ?? [];
-    $entries = ($pending['digest'] ?? null) === hash('sha256', $nativeContent)
-        ? ($pending['ownership'] ?? [])
-        : ($state['active'] ?? []);
-    return is_array($entries) ? $entries : [];
-}
+    $pending = is_array($state['pending'] ?? null) ? $state['pending'] : [];
+    $active = is_array($state['active'] ?? null) ? $state['active'] : [];
+    $pendingRecovery = $pending !== [];
+    $intent = is_array($pending['ownership'] ?? null) ? $pending['ownership'] : [];
+    if (($pending['digest'] ?? null) === hash('sha256', $nativeContent)) return $intent;
+    if (!$pendingRecovery) return $active;
 
+    // Unraid can edit a different row after the native write and before promotion.
+    $lines = array_fill_keys(preg_split('/\r?\n/', $nativeContent, -1, PREG_SPLIT_NO_EMPTY) ?: [], true);
+    foreach ($intent as $name => $record) {
+        $line = $record['applied'] ?? null;
+        if (is_string($line) && isset($lines[$line])) $active[$name] = $record;
+    }
+    ksort($active, SORT_STRING);
+    return $active;
+}
 function dockerBatchWaitUnderlyingLine(string $line, $owned): string {
     if (is_array($owned) && ($owned['applied'] ?? null) === $line && is_string($owned['original'] ?? null)) {
         $original = $owned['original'];
@@ -52,6 +59,9 @@ function writeDockerStartOrderChanges(array $context, string $next, array $owner
 
     $nativeChangedAfterWrite = false;
     try {
+        if (!$changesOwnership && !empty($context['batchWaitPendingRecovery'])) {
+            writeTrackedDockerOrderFile($statePath, json_encode(['active' => $previous], JSON_THROW_ON_ERROR), $onWrite, 0600);
+        }
         if ($next !== $original) {
             if ($changesOwnership) {
                 $pending = ['digest' => hash('sha256', $next), 'ownership' => $ownership];
@@ -92,24 +102,4 @@ function applyDockerStartOrderSequenceWaits(array $lines, array $sequence, array
     }
     ksort($nextOwnership, SORT_STRING);
     return ['lines' => $lines, 'ownership' => $nextOwnership];
-}
-
-function dockerAutostartToggleWaitScope(string $name, array $priorPlan, array $plan, array $ownership): array {
-    // A toggle can move its batch's wait to or from another line. Restrict the
-    // update to the selected record and that batch's affected tails.
-    $affected = [$name => true];
-    $previousSequence = array_column($priorPlan['sequence'], 'waitSource', 'name');
-    $nextSequence = array_column($plan['sequence'], 'waitSource', 'name');
-    foreach ($priorPlan['batches'] as $index => $beforeBatch) {
-        $previousNames = $beforeBatch['containers'];
-        $nextNames = $plan['batches'][$index]['containers'];
-        if (!in_array($name, $previousNames, true) && !in_array($name, $nextNames, true)) continue;
-        foreach ([[$previousNames, $previousSequence], [$nextNames, $nextSequence]] as [$names, $sources]) {
-            $tail = end($names);
-            if ($tail !== false && (($sources[$tail] ?? '') === 'batch' || isset($ownership[$tail]))) {
-                $affected[$tail] = true;
-            }
-        }
-    }
-    return $affected;
 }

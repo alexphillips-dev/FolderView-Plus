@@ -2222,10 +2222,11 @@ const initSettingsControls = () => {
             }
             if (settingsUiState.initialized && nextRevision > previousRevision) {
                 scheduleTableRender(type);
-                if (type === 'docker' && !dockerStartOrderDraftPlan && settingsUiState.mode === 'advanced' && settingsUiState.advancedTab === 'startup') {
-                    renderDockerStartOrderWorkspace({ preservePreview: true });
-                    scheduleDockerStartOrderPreviewRefresh();
-                }
+            }
+            if (type === 'docker' && !dockerStartOrderPendingWrites && settingsUiState.initialized
+                && settingsUiState.mode === 'advanced' && settingsUiState.advancedTab === 'startup'
+                && reconcileDockerStartOrderWorkspace()) {
+                scheduleDockerStartOrderPreviewRefresh();
             }
         });
     }
@@ -3380,6 +3381,15 @@ const getThemeWorkspaceApi = (() => {
     };
 })();
 
+const flushRecoveryPreferenceSaves = async () => {
+    await Promise.all(['docker', 'vm'].map((type) => (
+        diagnosticsPrefsCoordinator?.getSnapshot?.(type)?.hydrated === false
+            ? diagnosticsPrefsCoordinator.hydrateFromServer(type, { replay: false })
+            : null
+    )));
+    await Promise.all([flushDockerStartOrderSaveQueue(), diagnosticsPrefsCoordinator?.flush?.('vm')]);
+};
+
 const getSettingsWorkspacesApi = (() => {
     let cachedApi = null;
     return () => {
@@ -3417,6 +3427,7 @@ const getSettingsWorkspacesApi = (() => {
             restoreLatestBackup,
             restoreBackupEntry,
             offerRecoveryDockerOrderRetry,
+            flushRecoveryPreferenceSaves,
             downloadBackupEntry,
             deleteBackupEntry,
             deleteAllBackupEntries,
@@ -7525,8 +7536,8 @@ if (!dockerStartOrderWorkspace) throw new Error('FolderView Plus start-order wor
 const dockerStartOrderPreviewActivation = dockerStartOrderWorkspaceModule.createPreviewActivation(() => refreshDockerStartOrderPreview());
 const createDockerStartOrderId = (prefix = 'batch') => dockerStartOrderModel.createId(prefix);
 const normalizeDockerStartOrderPrefsForUi = (prefs = null) => dockerStartOrderModel.normalizePlan(
-    prefs ? prefs.dockerStartOrder : dockerStartOrderDraftPlan
-        || (diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker') || prefsByType.docker)?.dockerStartOrder
+    (prefs || (diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker')
+        ? diagnosticsPrefsCoordinator.getOptimisticPrefs('docker') : prefsByType.docker))?.dockerStartOrder
 );
 
 const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
@@ -7586,11 +7597,8 @@ const buildDockerStartOrderContainerSelectOptions = () => {
 
 let dockerStartOrderPreviewTimer = null;
 let dockerStartOrderPreviewGeneration = 0;
-let dockerStartOrderSaveTimer = null;
-let dockerStartOrderQueuedPrefs = null;
-let dockerStartOrderSaveChain = Promise.resolve();
-const dockerStartOrderPendingSaves = [];
-let dockerStartOrderDraftPlan = null;
+let dockerStartOrderRenderedPlan = null;
+let dockerStartOrderPendingWrites = 0;
 let dockerStartOrderEditGeneration = 0;
 let dockerStartOrderSyncOutcome = '';
 let dockerStartOrderSyncGeneration = 0;
@@ -7604,64 +7612,8 @@ const renderDockerStartOrderSyncOutcome = () => {
     $('#docker-start-order-sync-status').text(warning).prop('hidden', !warning);
 };
 
-const persistQueuedDockerStartOrderPrefs = () => {
-    if (!dockerStartOrderQueuedPrefs) {
-        return dockerStartOrderSaveChain;
-    }
-    const nextPrefs = dockerStartOrderQueuedPrefs;
-    dockerStartOrderQueuedPrefs = null;
-    dockerStartOrderPendingSaves.push(nextPrefs);
-    dockerStartOrderSaveChain = dockerStartOrderSaveChain
-        .then(async () => {
-            let syncOutcome;
-            try {
-                const savedPrefs = await postPrefs('docker', nextPrefs, {
-                    currentPrefs: prefsByType.docker,
-                    onCommitted: (response) => { syncOutcome = response?.dockerOrderSync; }
-                });
-                if (syncOutcome) dockerStartOrderSyncOutcome = syncOutcome;
-                prefsByType.docker = savedPrefs;
-            } catch (error) {
-                const confirmed = diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker');
-                if (confirmed) prefsByType.docker = confirmed;
-                showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
-            }
-            const previousPlan = dockerStartOrderDraftPlan;
-            dockerStartOrderPendingSaves.shift();
-            const confirmedPlan = normalizeDockerStartOrderPrefsForUi(
-                diagnosticsPrefsCoordinator?.getConfirmedPrefs('docker') || prefsByType.docker
-            );
-            const pending = [...dockerStartOrderPendingSaves, dockerStartOrderQueuedPrefs].filter(Boolean);
-            dockerStartOrderDraftPlan = pending.length
-                ? dockerStartOrderModel.normalizePlan(pending.reduce((plan, entry) => prefsStoreModule.mergePatch(plan, entry.dockerStartOrder), confirmedPlan))
-                : null;
-            const currentPlan = dockerStartOrderDraftPlan || confirmedPlan;
-            if (JSON.stringify(previousPlan) !== JSON.stringify(currentPlan)) {
-                renderDockerStartOrderWorkspace({ preservePreview: true, previousPlan });
-            }
-            renderDockerStartOrderSyncOutcome();
-        });
-    return dockerStartOrderSaveChain;
-};
-
 const flushDockerStartOrderSaveQueue = async () => {
-    if (dockerStartOrderSaveTimer) {
-        window.clearTimeout(dockerStartOrderSaveTimer);
-        dockerStartOrderSaveTimer = null;
-    }
-    persistQueuedDockerStartOrderPrefs();
-    await dockerStartOrderSaveChain;
-};
-
-const queueDockerStartOrderPrefsSave = (nextPrefs) => {
-    dockerStartOrderQueuedPrefs = prefsStoreModule.mergePatch(dockerStartOrderQueuedPrefs || {}, nextPrefs);
-    if (dockerStartOrderSaveTimer) {
-        window.clearTimeout(dockerStartOrderSaveTimer);
-    }
-    dockerStartOrderSaveTimer = window.setTimeout(() => {
-        dockerStartOrderSaveTimer = null;
-        persistQueuedDockerStartOrderPrefs();
-    }, 350);
+    await diagnosticsPrefsCoordinator?.flush('docker');
 };
 
 const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
@@ -7674,27 +7626,43 @@ const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
     }, delay);
 };
 
+const reconcileDockerStartOrderWorkspace = () => {
+    const previousPlan = dockerStartOrderRenderedPlan;
+    if (!previousPlan || JSON.stringify(previousPlan) === JSON.stringify(normalizeDockerStartOrderPrefsForUi())) return false;
+    renderDockerStartOrderWorkspace({ preservePreview: true, previousPlan });
+    return true;
+};
+
 const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
-    const current = utils.normalizePrefs(prefsByType.docker || {});
     const currentPlan = normalizeDockerStartOrderPrefsForUi();
-    const nextPlan = prefsStoreModule.mergePatch(currentPlan, patch);
-    const nextPrefs = utils.normalizePrefs({
-        ...current,
-        dockerStartOrder: nextPlan
-    });
-    dockerStartOrderDraftPlan = nextPrefs.dockerStartOrder;
-    dockerStartOrderEditGeneration += 1;
-    renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
-    const changed = Object.fromEntries(Object.keys(patch).map((key) => [key, nextPrefs.dockerStartOrder[key]]));
+    const nextPlan = dockerStartOrderModel.normalizePlan(
+        prefsStoreModule.mergePatch({ dockerStartOrder: currentPlan }, { dockerStartOrder: patch }).dockerStartOrder
+    );
+    const changed = Object.fromEntries(Object.keys(patch).map((key) => [key, key === 'batchChanges' ? patch[key] : nextPlan[key]]));
     // Preserve explicitly edited waits (including zero), while leaving peer waits out of the patch.
     if (patch.containerWaits) {
         changed.containerWaits = Object.fromEntries(Object.keys(patch.containerWaits)
-            .filter((name) => Object.hasOwn(nextPrefs.dockerStartOrder.containerWaits, name))
-            .map((name) => [name, nextPrefs.dockerStartOrder.containerWaits[name]]));
+            .filter((name) => Object.hasOwn(nextPlan.containerWaits, name))
+            .map((name) => [name, nextPlan.containerWaits[name]]));
         if (!Object.keys(changed.containerWaits).length) delete changed.containerWaits;
     }
-    if (Object.keys(changed).length) queueDockerStartOrderPrefsSave({ dockerStartOrder: changed });
-    else if (!dockerStartOrderPendingSaves.length && !dockerStartOrderQueuedPrefs) dockerStartOrderDraftPlan = null;
+    if (!Object.keys(changed).length) return;
+    dockerStartOrderPendingWrites += 1;
+    dockerStartOrderEditGeneration += 1;
+    // postPrefs puts the edit in the durable outbox before the coordinator debounces I/O.
+    void postPrefs('docker', { dockerStartOrder: changed }, {
+        currentPrefs: prefsByType.docker,
+        onCommitted: (response) => { if (response?.dockerOrderSync) dockerStartOrderSyncOutcome = response.dockerOrderSync; }
+    }).then((savedPrefs) => {
+        prefsByType.docker = savedPrefs;
+    }).catch((error) => {
+        showError(surfaceT("common.repair.docker-start-order-save-failed-76cf07", "Docker start order save failed"), error);
+    }).finally(() => {
+        dockerStartOrderPendingWrites -= 1;
+        reconcileDockerStartOrderWorkspace();
+        renderDockerStartOrderSyncOutcome();
+    });
+    renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
     if (options.refreshPreview === true) {
         scheduleDockerStartOrderPreviewRefresh();
     }
@@ -7724,71 +7692,56 @@ const toggleDockerStartOrderAutostart = (...args) => dockerStartOrderWorkspace.t
 
 const addDockerStartOrderBatch = async () => {
     const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = Array.isArray(plan.batches) ? [...plan.batches] : [];
-    batches.push({
+    if (plan.batches.length >= 100) return;
+    const batch = {
         id: createDockerStartOrderId('batch'),
-        name: `Start batch ${batches.length + 1}`,
+        name: `Start batch ${plan.batches.length + 1}`,
         delay: 0,
         parallel: false,
         useFolderOrder: true,
         items: []
-    });
+    };
     try {
-        await saveDockerStartOrderPlan({ mode: 'custom-batches', batches }, { preservePreview: true });
+        await saveDockerStartOrderPlan({ mode: 'custom-batches', batchChanges: [{ action: 'add', id: batch.id, value: batch }] }, { preservePreview: true });
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-batch-add-failed-29b120", "Docker start batch add failed"), error);
     }
 };
 
+const saveDockerStartOrderBatchField = (batch, field, value) => saveDockerStartOrderPlan({
+    batchChanges: [{ action: 'set', id: batch.id, field, previous: batch[field], value }]
+}, { preservePreview: true });
+
 const updateDockerStartOrderBatch = async (batchId, key, value) => {
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = (plan.batches || []).map((batch) => {
-        if (String(batch.id) !== String(batchId)) {
-            return batch;
-        }
-        if (key === 'name') {
-            return { ...batch, name: String(value || '').trim().slice(0, 64) || batch.name || 'Start batch' };
-        }
-        if (key === 'delay') {
-            const parsed = Number(value);
-            return { ...batch, delay: Number.isFinite(parsed) ? Math.max(0, Math.min(3600, Math.round(parsed))) : 0 };
-        }
-        if (key === 'parallel') {
-            return { ...batch, parallel: value === true };
-        }
-        if (key === 'useFolderOrder') {
-            return { ...batch, useFolderOrder: value !== false };
-        }
-        return batch;
-    });
+    const batch = normalizeDockerStartOrderPrefsForUi().batches.find(entry => entry.id === batchId);
+    if (!batch || !['name', 'delay', 'parallel', 'useFolderOrder'].includes(key)) return;
+    if (key === 'name') value = String(value || '').trim().slice(0, 64) || batch.name || 'Start batch';
+    if (key === 'delay') value = Number.isFinite(Number(value)) ? Math.max(0, Math.min(3600, Math.round(Number(value)))) : 0;
+    if (key === 'parallel') value = value === true;
+    if (key === 'useFolderOrder') value = value !== false;
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderBatchField(batch, key, value);
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-batch-save-failed-9c32df", "Docker start batch save failed"), error);
     }
 };
 
 const moveDockerStartOrderBatch = async (batchId, direction) => {
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = [...(plan.batches || [])];
-    const index = batches.findIndex((batch) => String(batch.id) === String(batchId));
-    const nextIndex = index + (direction === 'up' ? -1 : 1);
-    if (index < 0 || nextIndex < 0 || nextIndex >= batches.length) {
-        return;
-    }
-    [batches[index], batches[nextIndex]] = [batches[nextIndex], batches[index]];
+    const { batches } = normalizeDockerStartOrderPrefsForUi();
+    const index = batches.findIndex((batch) => batch.id === batchId);
+    const offset = direction === 'up' ? -1 : 1;
+    const neighbor = batches[index + offset]?.id;
+    if (index < 0 || !neighbor) return;
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderPlan({ batchChanges: [{ action: 'move', id: batchId, offset, neighbor }] }, { preservePreview: true });
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-batch-move-failed-647a75", "Docker start batch move failed"), error);
     }
 };
 
 const removeDockerStartOrderBatch = async (batchId) => {
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = (plan.batches || []).filter((batch) => String(batch.id) !== String(batchId));
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderPlan({ batchChanges: [{ action: 'remove', id: batchId }] }, { preservePreview: true });
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-batch-remove-failed-110848", "Docker start batch remove failed"), error);
     }
@@ -7806,63 +7759,38 @@ const addDockerStartOrderItem = async (batchId, itemType) => {
     if (!selected) {
         return;
     }
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = (plan.batches || []).map((batch) => {
-        if (String(batch.id) !== String(batchId)) {
-            return batch;
-        }
-        const nextItems = Array.isArray(batch.items) ? [...batch.items] : [];
-        const exists = nextItems.some((item) => (
-            type === 'folder'
-                ? item?.type === 'folder' && String(item.id) === selected
-                : item?.type !== 'folder' && String(item.name) === selected
-        ));
-        if (!exists) {
-            nextItems.push(type === 'folder' ? { type: 'folder', id: selected } : { type: 'container', name: selected });
-        }
-        return { ...batch, items: nextItems };
-    });
+    const batch = normalizeDockerStartOrderPrefsForUi().batches.find(entry => entry.id === batchId);
+    if (!batch || batch.items.length >= 2000 || batch.items.some(item =>
+        item.type === type && (type === 'folder' ? item.id : item.name) === selected
+    )) return;
+    const item = type === 'folder' ? { type: 'folder', id: selected } : { type: 'container', name: selected };
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderBatchField(batch, 'items', [...batch.items, item]);
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-item-add-failed-6dbbd5", "Docker start item add failed"), error);
     }
 };
 
 const moveDockerStartOrderItem = async (batchId, itemIndex, direction) => {
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = (plan.batches || []).map((batch) => {
-        if (String(batch.id) !== String(batchId)) {
-            return batch;
-        }
-        const items = [...(batch.items || [])];
-        const index = Number(itemIndex);
-        const nextIndex = index + (direction === 'up' ? -1 : 1);
-        if (index < 0 || nextIndex < 0 || nextIndex >= items.length) {
-            return batch;
-        }
-        [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
-        return { ...batch, items };
-    });
+    const batch = normalizeDockerStartOrderPrefsForUi().batches.find(entry => entry.id === batchId);
+    const index = Number(itemIndex);
+    const nextIndex = index + (direction === 'up' ? -1 : 1);
+    if (!batch || !Number.isInteger(index) || !batch.items[index] || !batch.items[nextIndex]) return;
+    const items = [...batch.items];
+    [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderBatchField(batch, 'items', items);
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-item-move-failed-fea5a2", "Docker start item move failed"), error);
     }
 };
 
 const removeDockerStartOrderItem = async (batchId, itemIndex) => {
-    const plan = normalizeDockerStartOrderPrefsForUi();
-    const batches = (plan.batches || []).map((batch) => {
-        if (String(batch.id) !== String(batchId)) {
-            return batch;
-        }
-        const items = [...(batch.items || [])];
-        items.splice(Number(itemIndex), 1);
-        return { ...batch, items };
-    });
+    const batch = normalizeDockerStartOrderPrefsForUi().batches.find(entry => entry.id === batchId);
+    const index = Number(itemIndex);
+    if (!batch || !Number.isInteger(index) || !batch.items[index]) return;
     try {
-        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+        await saveDockerStartOrderBatchField(batch, 'items', batch.items.filter((_, position) => position !== index));
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-item-remove-failed-8277f0", "Docker start item remove failed"), error);
     }
@@ -7874,6 +7802,7 @@ const renderDockerStartOrderWorkspace = (options = {}) => {
         return;
     }
     const plan = normalizeDockerStartOrderPrefsForUi();
+    dockerStartOrderRenderedPlan = plan;
     const batches = Array.isArray(plan.batches) ? plan.batches : [];
     const batchOptions = {
         folderOptionsCache: getDockerStartOrderFolderOptionsCached(),
@@ -7932,7 +7861,7 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
         dockerStartOrderPreviewTimer = null;
     }
     if (options.flush !== false) {
-        await flushDockerStartOrderSaveQueue();
+        await flushDockerStartOrderSaveQueue().catch(() => {});
     }
     if (generation !== dockerStartOrderPreviewGeneration) return;
     const host = $('#docker-start-order-preview');
@@ -7943,9 +7872,9 @@ const refreshDockerStartOrderPreview = async (options = {}) => {
         const response = await apiGetJson(`/plugins/folderview.plus/server/docker_start_order.php?action=preview&_=${Date.now()}`);
         if (generation !== dockerStartOrderPreviewGeneration) return;
         const preview = response?.preview || {};
-        if (!dockerStartOrderDraftPlan && preview.mode && preview.mode !== normalizeDockerStartOrderPrefsForUi().mode) {
+        if (!diagnosticsPrefsCoordinator?.getSnapshot('docker').pending && preview.mode && preview.mode !== normalizeDockerStartOrderPrefsForUi().mode) {
             const savedPrefs = await apiGetJson(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`);
-            if (generation !== dockerStartOrderPreviewGeneration || dockerStartOrderDraftPlan) return;
+            if (generation !== dockerStartOrderPreviewGeneration || diagnosticsPrefsCoordinator?.getSnapshot('docker').pending) return;
             if (!savedPrefs?.prefs) throw new Error('Failed to load preferences.');
             const confirmed = utils.normalizePrefs({ ...savedPrefs.prefs, _metadata: savedPrefs.metadata || {} });
             prefsByType.docker = diagnosticsPrefsCoordinator

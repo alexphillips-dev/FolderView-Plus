@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "settings",
-        "content-revision": "5eae71d5ab39d83334bda4faf9e19f5624b5970873a3e76343e5d08e3efe1e56"
+        "content-revision": "d128353b834d0e3dcef3a343c9c1228995cace2d57a18db636703d07da0d9f24"
     },
     "settings.visibility.group-unassigned-items": "Grupează elementele nealocate",
     "settings.visibility.group-unassigned-items-help": "Se aplică și panoului corespunzător din tabloul de bord.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Containere cu pornire automată: $1; containere detectate: $2",
     "settings.start-order.order-column": "Ordine de sortare",
     "settings.start-order.container-column": "Container",
+    "settings.start-order.warning-missing-folder": "Dosarul din planul de pornire nu mai există: $1",
+    "settings.start-order.warning-missing-container": "Containerul din planul de pornire nu mai există: $1",
+    "settings.start-order.warning-autostart-off": "$1 este în planul de pornire, dar pornirea automată Docker este dezactivată.",
     "settings.navigation.bulk-assignment": "Atribuire în bloc",
     "settings.navigation.rules": "Reguli",
     "settings.navigation.recovery": "Recuperare",

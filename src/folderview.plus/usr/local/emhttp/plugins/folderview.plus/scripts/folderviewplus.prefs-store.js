@@ -48,12 +48,12 @@
                 continue;
             }
             next[key] = isPlainObject(value) && key !== 'folderDefaults'
-                ? mergeValues(isPlainObject(source[key]) ? source[key] : {}, value)
+                ? (key === 'dockerStartOrder' ? outboxApi.mergeStartOrderPatch(source[key], value, mergeValues) : mergeValues(source[key], value))
                 : cloneValue(value);
         }
         return next;
     };
-    const mergePatch = (base, patch) => outboxApi.applyFolderVisibilityChanges(mergeValues(base, patch));
+    const mergePatch = (base, patch) => outboxApi.applyStartOrderBatchChanges(outboxApi.applyFolderVisibilityChanges(mergeValues(base, patch)));
     const cleanPatch = (patch, baseline = null) => {
         if (!isPlainObject(patch)) return {};
         return Object.fromEntries(Object.entries(patch).flatMap(([key, value]) => {
@@ -595,7 +595,7 @@
                     state.inFlightBatch = null;
                 }
                 if (rejected) {
-                    outbox.finish(state, restored);
+                    if (isConflict || !outbox.keepPendingStartupEdit(restored, readRevision(state.confirmedPrefs), expectedRevision)) outbox.finish(state, restored);
                     state.recoveryConflict = Boolean(recoveredConflict);
                     state.conflictRetries = 0;
                     if (!restored) state.settledGeneration = batchGeneration;

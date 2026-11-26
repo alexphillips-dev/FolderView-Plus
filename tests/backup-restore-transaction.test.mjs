@@ -152,15 +152,18 @@ $result['acceptsExactReview'] = restoreLatestBackupSnapshot($type, $new['name'])
 seedFixture($type, $savedFolders, $savedPrefs);
 $reviewed = createBackupSnapshot($type, 'manual');
 $row = listBackupSnapshots($type, true)[0];
-$request = static function (array $post): array {
+$request = static function (array $fields, string $method = 'POST'): array {
     $endpoint = 'backup.php';
-    $_POST = $_REQUEST = $post;
-    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST = $fields;
+    $_GET = $method === 'GET' ? $fields : [];
+    $_POST = $method === 'POST' ? $fields : [];
+    $_SERVER['REQUEST_METHOD'] = $method;
     $_SERVER['SCRIPT_NAME'] = $_SERVER['REQUEST_URI'] = "/plugins/folderview.plus/server/$endpoint";
     $_SERVER['SCRIPT_FILENAME'] = ${quote(path.join(server, 'backup.php'))};
     $_SERVER['HTTP_X_FV_REQUEST'] = '1';
     $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
-    $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $post['action'])['nonce'];
+    if ($method === 'POST') $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $fields['action'])['nonce'];
+    else unset($_SERVER['HTTP_X_FV_NONCE']);
     $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace(chr(92), '/', dirname($_SERVER['SCRIPT_FILENAME'])) . '/',
         substr(file_get_contents($_SERVER['SCRIPT_FILENAME']), 5));
     http_response_code(200);
@@ -294,6 +297,32 @@ foreach (['latest' => 'restoreLatestBackupSnapshot', 'undo' => 'restoreLatestUnd
         && hash_file('sha256', $onlyInvalid) === $invalidHash;
 }
 $result['otherUnchanged'] = $otherBefore === [readRawFolderMap($other), readTypePrefs($other), readConfigMetadata($other, false)];
+$reviewList = $request(['action' => 'rollback_list'], 'GET');
+$globalRow = $reviewList['body']['snapshots'][1];
+$globalPath = getGlobalRollbackSnapshotPath($globalRow['name']);
+$globalBytes = file_get_contents($globalPath);
+$result['globalListsReviewedBytes'] = $reviewList['status'] === 200 && $globalRow['name'] === $globalOld['name']
+    && $globalRow['reviewHash'] === hash('sha256', $globalBytes);
+writeRawFolderMap($type, $currentFolders);
+$captureGlobal = static fn(): array => fvplusEnvironmentCaptureFiles(fvplusEnvironmentTransactionPaths([fvplusEnvironmentDockerAutostartPath()]));
+$beforeGlobal = $captureGlobal();
+$globalPost = ['action' => 'rollback_restore_previous', 'expectedName' => $globalRow['name'], 'reviewHash' => $globalRow['reviewHash']];
+$modifiedGlobal = json_decode($globalBytes, true, 512, JSON_THROW_ON_ERROR);
+$modifiedGlobal['types'][$type]['folders'] = $currentFolders;
+writeJsonObjectAtomic($globalPath, $modifiedGlobal);
+$rejectedGlobal = $request($globalPost);
+$result['globalRejectsReplacement'] = $rejectedGlobal['status'] === 409 && $beforeGlobal === $captureGlobal()
+    && count(listGlobalRollbackSnapshots()) === 2;
+unlink($globalPath);
+$missingGlobal = $request($globalPost);
+$result['globalRejectsMissingBytes'] = $missingGlobal['status'] === 409 && $beforeGlobal === $captureGlobal()
+    && count(listGlobalRollbackSnapshots()) === 1;
+file_put_contents($globalPath, $globalBytes);
+$differentRow = $request(array_replace($globalPost, ['expectedName' => $globalNew['name']]));
+$result['globalRejectsChangedSelection'] = $differentRow['status'] === 409 && $beforeGlobal === $captureGlobal();
+$restoredGlobal = $request($globalPost);
+$result['globalAcceptsOriginalBytes'] = $restoredGlobal['status'] === 200 && $restoredGlobal['body']['restore']['targetName'] === $globalRow['name']
+    && readRawFolderMap($type) === $savedFolders && readRawFolderMap($other) === $otherBefore[0];
 echo json_encode($result);
 `;
     try {
@@ -333,6 +362,8 @@ for (const type of ['docker', 'vm']) {
         assert.deepEqual(result.skipsMalformed, { latest: true, undo: true }, 'a damaged backup blocked a valid older restore point');
         for (const check of ['retainsUsable', 'rejectsStaleReview', 'acceptsExactReview', 'rejectsReplacement',
             'rejectsNamedReplacement', 'rejectsMissingReview', 'acceptsReviewedBytes', 'globalRetainsUsable',
+            'globalListsReviewedBytes', 'globalRejectsReplacement', 'globalRejectsMissingBytes',
+            'globalRejectsChangedSelection', 'globalAcceptsOriginalBytes',
             'failureLeavesHistory', 'undoSkipsNoop', 'undoProgresses', 'undoExhausted', 'undoResumesAfterEdit', 'undoRechecksExternalChange']) {
             assert.equal(result[check], true, check);
         }

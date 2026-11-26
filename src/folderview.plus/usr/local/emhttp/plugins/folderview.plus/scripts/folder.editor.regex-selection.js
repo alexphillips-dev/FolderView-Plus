@@ -169,64 +169,58 @@
             const requestId = ++latestRegexEvaluationRequestId;
             syncMemberArraysFromTable();
             const collections = getMemberCollections() || {};
-            let choose = (Array.isArray(collections.choose) ? collections.choose : [])
-                .concat(Array.isArray(collections.selectedRegex) ? collections.selectedRegex : []);
-            let selectedRegex = [];
-            const folderName = String(getFolderName() || '').trim();
-            if (folderName) {
-                selectedRegex = choose.filter((member) => member?.Label === folderName);
-                choose = choose.filter((member) => member?.Label !== folderName);
-            }
-            commitRegexCollections(choose, selectedRegex);
+            const candidates = mergeMembersByName(collections.choose, collections.selectedRegex);
+
+            const applyMatchResult = (matchNames, currentCandidates) => {
+                const folderName = String(getFolderName() || '').trim();
+                const matched = new Set(Array.isArray(matchNames) ? matchNames : []);
+                const labelMatches = [];
+                const regexMatches = [];
+                const nextChoose = [];
+                for (const member of currentCandidates) {
+                    if (folderName && member.Label === folderName) {
+                        labelMatches.push(member);
+                    } else if (matched.has(String(member.Name || ''))) {
+                        regexMatches.push(member);
+                    } else {
+                        nextChoose.push(member);
+                    }
+                }
+                commitRegexCollections(nextChoose, [...labelMatches, ...regexMatches]);
+                updateList();
+            };
 
             const regexSource = String(regexField.value || '').trim();
             if (!regexSource) {
-                updateList();
+                applyMatchResult([], candidates);
                 updateRegexSimulator();
                 return true;
             }
             try {
                 new RegExp(regexSource);
             } catch (_error) {
-                updateList();
+                applyMatchResult([], candidates);
                 return false;
             }
-
-            const baseChoose = choose.slice();
-            const applyMatchResult = (matchNames) => {
-                if (requestId !== latestRegexEvaluationRequestId) {
-                    return;
-                }
-                const matched = new Set(Array.isArray(matchNames) ? matchNames : []);
-                const regexMatches = [];
-                const nextChoose = [];
-                baseChoose.forEach((member) => {
-                    if (matched.has(String(member?.Name || ''))) {
-                        regexMatches.push(member);
-                    } else {
-                        nextChoose.push(member);
-                    }
-                });
-                commitRegexCollections(nextChoose, mergeMembersByName(selectedRegex, regexMatches));
-                updateList();
+            if (candidates.length < workerMinItems) {
+                applyMatchResult(runSynchronousMatch(regexSource, candidates.map((member) => member.Name)), candidates);
                 updateRegexSimulator();
-            };
-
-            if (baseChoose.length < workerMinItems) {
-                applyMatchResult(runSynchronousMatch(regexSource, baseChoose.map((member) => member?.Name)));
                 return true;
             }
 
-            runRegexMatch(regexSource, baseChoose.map((member) => member?.Name))
-                .then(applyMatchResult)
-                .catch(() => {
-                    if (requestId !== latestRegexEvaluationRequestId) {
-                        return;
-                    }
-                    applyMatchResult(runSynchronousMatch(regexSource, baseChoose.map((member) => member?.Name)));
-                });
+            // A manual selection may become a regex candidate while this match is in flight.
+            const names = mergeMembersByName(candidates, collections.selected).map((member) => member.Name);
             updateRegexSimulator();
-            return true;
+            return runRegexMatch(regexSource, names)
+                .catch(() => requestId === latestRegexEvaluationRequestId ? runSynchronousMatch(regexSource, names) : [])
+                .then((matchNames) => {
+                    if (requestId !== latestRegexEvaluationRequestId) return false;
+                    syncMemberArraysFromTable();
+                    const latest = getMemberCollections() || {};
+                    applyMatchResult(matchNames, mergeMembersByName(latest.choose, latest.selectedRegex));
+                    updateRegexSimulator();
+                    return true;
+                });
         };
 
         const updateRegex = (field, options = {}) => {

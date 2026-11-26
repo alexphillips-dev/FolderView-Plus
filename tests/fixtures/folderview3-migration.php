@@ -54,12 +54,17 @@ try {
         usleep(1100000);
         $second = buildFolderView3MigrationPlan(fvplusFolderView3ReadInstalledBundle());
         $result['stableDigest'] = $first['source']['digest'] === $second['source']['digest'];
+        $result['installedNative'] = $first['nativeAutostart'];
         if ($operation === 'installed-stale') { file_put_contents($root . '/legacy/settings.json', '{"default_preview":"0"}'); $before = migrationFiles($root . '/config'); }
-        $result['applied'] = applyFolderView3Migration(fvplusFolderView3ReadInstalledBundle(), 'installed', $first['source']['digest']);
+        $result['applied'] = applyFolderView3Migration(fvplusFolderView3ReadInstalledBundle(), 'installed', $first['source']['digest'], ($request['includeNative'] ?? false) === true);
+        $result['appliedNativeBase64'] = is_file($nativePath) ? base64_encode(file_get_contents($nativePath)) : null;
         $result['stored'] = [readRawFolderMap('docker'), readRawFolderMap('vm'), readTypePrefs('docker'), readTypePrefs('vm'), readThemeWorkspace()];
     } elseif ($operation === 'stale') {
         writeRawFolderMap('docker', ['concurrent' => ['name' => 'Concurrent fixture']]);
         $before = migrationFiles($root . '/config');
+        applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest']);
+    } elseif ($operation === 'stale-native-input') {
+        $bundle['native_autostart'] = $request['changedNativeInput'];
         applyFolderView3Migration($bundle, 'synthetic.json', $plan['source']['digest']);
     } elseif ($operation === 'native-checkpoint') {
         $capture = static function () use ($nativePath): array {

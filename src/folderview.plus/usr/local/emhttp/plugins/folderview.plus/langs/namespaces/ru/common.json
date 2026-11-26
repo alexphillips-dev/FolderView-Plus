@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common",
-        "content-revision": "03c57f2143b5cd36fa5fea85b04dca38146719ebd352f82f35003a2302854350"
+        "content-revision": "9aa15a9feef883671ad9742070abcb03a7ac27ce6a9bcc5c82be47d6a6d1548b"
     },
     "common.unassigned-group.title": "Неназначенные элементы",
     "runtime.action.requests-result": "Принято: $1 · Ошибок: $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Имена пресетов внешнего вида FolderView3 дублируются.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Недопустимый или слишком большой собственный список автозапуска FolderView3.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Неверная запись автозапуска FolderView3.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "Время ожидания автозапуска FolderView3 превышает 3600 секунд.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON превышает поддерживаемую глубину вложенности.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "JSON FolderView3 содержит повторяющиеся имена свойств. Исправьте экспорт перед импортом.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Последовательность автозапуска FolderView3 превышает предел запуска в 2000 записей.",

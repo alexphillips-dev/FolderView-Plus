@@ -80,7 +80,7 @@ test('folder editor members tab renders compact bulk move controls and blocks un
     assert.match(folderJs, /renderMemberBulkMoveTargets\(\);/);
     assert.match(folderJs, /applyMemberBulkMoveResultLocally\(plan\.targetFolderId/);
     assert.match(folderJs, /syncMemberSnapshotBaseline\(\);/);
-    assert.match(folderJs, /baseline\.fields\['containers\[\]'\] = current\.fields\['containers\[\]'\];/);
+    assert.match(folderJs, /baseline\.members = current\.members;\s*baseline\.hiddenPreviewMembers = current\.hiddenPreviewMembers;/);
     assert.match(folderJs, /selected = selected\.filter\(\(member\) => \{/);
     assert.match(folderJs, /choose = choose\.filter\(\(member\) => \{/);
     assert.match(folderJs, /memberBulkMoveUndoState = \{/);

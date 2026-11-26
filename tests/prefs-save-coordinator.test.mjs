@@ -1099,6 +1099,61 @@ test('forced storage hydration cannot publish an older revision after a save com
     assert.equal(coordinator.getOptimisticPrefs('docker').dashboard.names, false);
 });
 
+test('Startup mode, wait and batch edits are durable before the network debounce', async () => {
+    const api = loadModule(), storage = createStorage();
+    const initial = normalizePrefs({ dockerStartOrder: { mode: 'docker-page', batches: [], containerWaits: { peer: 11 } }, _metadata: { prefsRevision: 1 } });
+    const origin = api.createPreferenceSaveCoordinator({ window: {}, storage, normalizePrefs,
+        setTimeout: () => 1, clearTimeout() {}, writePrefs: () => assert.fail('debounce has not run') });
+    origin.reconcile('docker', initial);
+    const batch = { id: 'fixture', name: 'Fixture batch', items: [] };
+    void origin.save('docker', { dockerStartOrder: { mode: 'custom-batches' } });
+    void origin.save('docker', { dockerStartOrder: { containerWaits: { selected: 0 } } });
+    void origin.save('docker', { dockerStartOrder: { batchChanges: [{ action: 'add', id: batch.id, value: batch }] } });
+    assert.equal(storage.length, 1);
+    const writes = [];
+    const reopened = api.createPreferenceSaveCoordinator({ window: {}, storage, normalizePrefs, debounceMs: 0,
+        writePrefs: (_type, patch) => {
+            writes.push(patch);
+            return { prefs: api.mergePatch(initial, patch), metadata: { prefsRevision: 2 } };
+        } });
+    reopened.reconcile('docker', initial);
+    const restored = await reopened.flush('docker');
+    assert.equal(writes.length, 1);
+    assert.deepEqual(JSON.parse(JSON.stringify(restored.dockerStartOrder)), {
+        mode: 'custom-batches', batches: [batch], containerWaits: { peer: 11, selected: 0 }
+    });
+    assert.deepEqual(storage.snapshot(), {});
+});
+
+test('a definitive rejected journaled Startup write still restores its disjoint pending successor', async () => {
+    const api = loadModule();
+    const original = { dockerStartOrder: { mode: 'custom-batches', batches: [
+        { id: 'first', name: 'First', delay: 7 }, { id: 'second', name: 'Second', delay: 11 }
+    ] }, _metadata: { prefsRevision: 1 } };
+    const rename = { dockerStartOrder: { batchChanges: [{ action: 'set', id: 'first', field: 'name', previous: 'First', value: 'Rejected' }] } };
+    const waitChange = { dockerStartOrder: { batchChanges: [{ action: 'set', id: 'second', field: 'delay', previous: 11, value: 24 }] } };
+    const storage = createStorage({ [api.STORAGE_PREFIX + 'docker.origin.1']: JSON.stringify({
+        schemaVersion: 2, sourceId: 'origin', patch: { dockerStartOrder: { batchChanges: [
+            ...rename.dockerStartOrder.batchChanges, ...waitChange.dockerStartOrder.batchChanges
+        ] } },
+        operation: { patch: rename, mutationId: 'origin-1', expectedRevision: 1 },
+        pending: { patch: waitChange, mutationId: 'origin-2', expectedRevision: 1 }
+    }) });
+    const writes = [];
+    const reopened = api.createPreferenceSaveCoordinator({ window: {}, storage, normalizePrefs, debounceMs: 0,
+        writePrefs: (_type, patch) => {
+            writes.push(patch);
+            if (writes.length === 1) throw Object.assign(new Error('Invalid rename'), { status: 400 });
+            return { prefs: api.mergePatch(original, patch), metadata: { prefsRevision: 2 } };
+        } });
+    reopened.reconcile('docker', original);
+    await assert.rejects(reopened.flush('docker'), /Invalid rename/);
+    const restored = await reopened.flush('docker');
+    assert.deepEqual(writes, [rename, waitChange]);
+    assert.deepEqual(restored.dockerStartOrder.batches.map(({ name, delay }) => [name, delay]), [['First', 7], ['Second', 24]]);
+    assert.deepEqual(storage.snapshot(), {});
+});
+
 test('public save state and diagnostics share synchronization fields while preserving privacy and empty-value contracts', () => {
     const api = loadModule();
     const coordinator = api.createPreferenceSaveCoordinator({ normalizePrefs, storage: createStorage(),

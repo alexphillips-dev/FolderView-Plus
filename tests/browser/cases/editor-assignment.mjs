@@ -53,7 +53,7 @@ export const registerEditorAssignmentCases = ({ test, baseUrl }) => {
                         surfaceT: (_key, fallback, ...params) => fallback.replace(/\$(\d+)/g, (_token, index) => params[Number(index) - 1]),
                         editingFolderDefaults: false, getActiveFolderIdForChildOrdering: () => 'active', getFolderEditorRulesApi: () => null,
                         getFolderEditorMemberListApi: () => list, folderEditorMembersModule: FolderViewPlusFolderEditorMembers,
-                        getAllMembers: () => names.map(member), isFormInitialized: false };
+                        getAllMembers: () => names.map(member), getExplicitMemberNames: settingsFixture.getExplicitMemberNames, isFormInitialized: false };
                     const makeFixture = new Function(...Object.keys(dependencies), `let folderEditorMembersApi;
                         ${getMembersApi}
                         ${updateList}

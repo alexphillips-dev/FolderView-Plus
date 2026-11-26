@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "common",
-        "content-revision": "137486fbd8d80e89b35a14c48f4a914fb28f1fb5aa74ad58cdacd40be47d8a84"
+        "content-revision": "f61a543902624d7941b6d7378877b6ad8bc572482d943c37e8b055481e33e8b6"
     },
     "common.unassigned-group.title": "Niet-toegewezen items",
     "runtime.action.requests-result": "$1 geaccepteerd · $2 mislukt",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Voorinstellingen voor het uiterlijk van FolderView3 zijn gedupliceerd.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Ongeldige of te grote FolderView3 native autostart-lijst.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Ongeldige FolderView3 native autostart-invoer.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "De native automatische startwachttijd van FolderView3 overschrijdt 3600 seconden.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON overschrijdt de ondersteunde nestdiepte.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON bevat dubbele eigenschapsnamen. Corrigeer de export voordat u importeert.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "De automatische startreeks van FolderView3 overschrijdt de opstartlimiet van 2000 vermeldingen.",

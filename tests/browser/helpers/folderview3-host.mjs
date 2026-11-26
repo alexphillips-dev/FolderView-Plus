@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { explicitMemberNamesSource } from './folder-editor-settings-host.mjs';
 export const withFolderView3Host = async (page, baseUrl, run) => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-browser-migration-'));
     const call = data => {
@@ -50,7 +51,8 @@ export const withFolderView3Host = async (page, baseUrl, run) => {
                 await input.dispose();
             }
         };
-        await run(call, editor.slice(editor.indexOf('    const includedMemberNames ='), editor.indexOf('    const memberIdentities =', editor.indexOf('const buildFolderPayloadFromForm'))), selectFile);
+        await run(call, explicitMemberNamesSource + editor.slice(editor.indexOf('    const includedMemberNames ='),
+            editor.indexOf('    const memberIdentities =', editor.indexOf('const buildFolderPayloadFromForm'))), selectFile);
     } finally {
         await page.evaluate(() => {
             if (window.migrationNativeInputClick) HTMLInputElement.prototype.click = window.migrationNativeInputClick;

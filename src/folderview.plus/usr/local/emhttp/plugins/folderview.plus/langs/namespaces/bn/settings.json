@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "settings",
-        "content-revision": "047d45fd9fa250cd92f3ebd5d23132ead99d156922d7efca186584500f200a19"
+        "content-revision": "be8b9486ff5a5f7d9eeab6585909381ea3eb78a193fecfb2f225873e652b5247"
     },
     "settings.visibility.group-unassigned-items": "অনির্ধারিত আইটেম একত্র করুন",
     "settings.visibility.group-unassigned-items-help": "ড্যাশবোর্ডের সংশ্লিষ্ট টাইলেও প্রযোজ্য।",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "অটোস্টার্ট কন্টেনার: $1; পাত্রে সনাক্ত করা হয়েছে: $2",
     "settings.start-order.order-column": "সাজানোর ক্রম",
     "settings.start-order.container-column": "ধারক",
+    "settings.start-order.warning-missing-folder": "স্টার্ট প্ল্যানের ফোল্ডার আর বিদ্যমান নেই: $1",
+    "settings.start-order.warning-missing-container": "স্টার্ট প্ল্যানে ধারক আর বিদ্যমান নেই: $1",
+    "settings.start-order.warning-autostart-off": "$1 স্টার্ট প্ল্যানে আছে কিন্তু ডকার অটোস্টার্ট বন্ধ আছে।",
     "settings.navigation.bulk-assignment": "একসঙ্গে বরাদ্দ",
     "settings.navigation.rules": "নিয়ম",
     "settings.navigation.recovery": "পুনরুদ্ধার",

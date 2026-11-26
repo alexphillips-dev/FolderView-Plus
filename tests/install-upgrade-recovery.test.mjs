@@ -45,7 +45,8 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         'install-remove-archived-reinstall-success',
         ...(nativeVersion === '7.4.0' ? [
             'install-remove-nextboot-staged-success', 'install-native-remove-nextboot-staged-failure',
-            'install-remove-nextboot-staged-interrupted-prepared-success', 'install-native-remove-nextboot-staged-partial-failure'
+            'install-remove-nextboot-staged-interrupted-prepared-success', 'install-native-remove-nextboot-staged-partial-failure',
+            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'
         ] : [])
     ]);
 });

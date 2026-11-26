@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "settings",
-        "content-revision": "e5a7a1837e62c7d8690027ca685885724ba7e0840d29d3d3d902fe343330e920"
+        "content-revision": "39ce49b3175be354005dd8f9a17a681d5220387896762f32f76f51113c0b3198"
     },
     "settings.visibility.group-unassigned-items": "Gruppér ikke-tildelte elementer",
     "settings.visibility.group-unassigned-items-help": "Gælder også den tilhørende flise på dashboardet.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Containere med autostart: $1; fundne containere: $2",
     "settings.start-order.order-column": "Sorteringsrækkefølge",
     "settings.start-order.container-column": "Container",
+    "settings.start-order.warning-missing-folder": "Mappe i startplan eksisterer ikke længere: $1",
+    "settings.start-order.warning-missing-container": "Container i startplan eksisterer ikke længere: $1",
+    "settings.start-order.warning-autostart-off": "$1 er i startplanen, men Docker-autostart er slået fra.",
     "settings.navigation.bulk-assignment": "Massetildeling",
     "settings.navigation.rules": "Regler",
     "settings.navigation.recovery": "Genopretning",

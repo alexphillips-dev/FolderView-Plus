@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "settings",
-        "content-revision": "3732c1708c13803289760a06478845c8ab9bdcc7b9ab194bc2ee6429e1738d33"
+        "content-revision": "5d66a65324300fdd70aadd892ae9664f964a95ba091989018bb1c029e2023a50"
     },
     "settings.visibility.group-unassigned-items": "Gruppera otilldelade objekt",
     "settings.visibility.group-unassigned-items-help": "Gäller även motsvarande ruta på instrumentpanelen.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart-behållare: $1; behållare upptäckta: $2",
     "settings.start-order.order-column": "Sorteringsordning",
     "settings.start-order.container-column": "Behållare",
+    "settings.start-order.warning-missing-folder": "Mappen i startplanen finns inte längre: $1",
+    "settings.start-order.warning-missing-container": "Behållaren i startplanen finns inte längre: $1",
+    "settings.start-order.warning-autostart-off": "$1 är i startplanen men Docker autostart är avstängd.",
     "settings.navigation.bulk-assignment": "Masstilldelning",
     "settings.navigation.rules": "Regler",
     "settings.navigation.recovery": "Återhämtning",

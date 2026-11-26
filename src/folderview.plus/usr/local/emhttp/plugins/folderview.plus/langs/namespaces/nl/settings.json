@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "settings",
-        "content-revision": "30ae681b303e666f6c84504d7a017f2f70e9efb2aa6c86c81dae352ab657a0f0"
+        "content-revision": "fa3e86ef291ca0f7b96bb53f90177698c54e858e2ede7dc5538131bcd60e1cec"
     },
     "settings.visibility.group-unassigned-items": "Niet-toegewezen items groeperen",
     "settings.visibility.group-unassigned-items-help": "Geldt ook voor de bijbehorende tegel op het dashboard.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart-containers: $1; gedetecteerde containers: $2",
     "settings.start-order.order-column": "Sorteervolgorde",
     "settings.start-order.container-column": "Houder",
+    "settings.start-order.warning-missing-folder": "Map in startplan bestaat niet meer: $1",
+    "settings.start-order.warning-missing-container": "Container in startplan bestaat niet meer: $1",
+    "settings.start-order.warning-autostart-off": "$1 staat in het startplan, maar Docker autostart is uitgeschakeld.",
     "settings.navigation.bulk-assignment": "Bulktoewijzing",
     "settings.navigation.rules": "Regels",
     "settings.navigation.recovery": "Herstel",

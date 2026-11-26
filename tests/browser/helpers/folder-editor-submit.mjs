@@ -13,7 +13,8 @@ export const verifyFolderEditorSubmit = async (page, baseUrl) => {
             await page.locator('[name="name"]').fill('Fixture');
             await page.evaluate(({ snapshot, type }) => {
                 const form = settingsFixture.form;
-                const compute = new Function('$', 'getForm', `return () => {${snapshot}}`)(window.$, () => form);
+                const compute = new Function('$', 'getForm', 'getExplicitMemberNames', 'hiddenPreviewMembers',
+                    `return () => {${snapshot}}`)(window.$, () => form, settingsFixture.getExplicitMemberNames, new Set());
                 const baseline = compute(), saved = settingsFixture.serialize();
                 window.makeSubmitFixture = () => {
                     let finishSave, failSave, finishSync, pending, revision = 7;

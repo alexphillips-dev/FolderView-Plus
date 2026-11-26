@@ -2,6 +2,7 @@ import fs from 'node:fs';
 const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
 const source = fs.readFileSync(`${plugin}/scripts/folder.js`, 'utf8');
 const extract = (name, next) => source.slice(source.indexOf(`const ${name} = `) + `const ${name} = `.length, source.indexOf(`\nconst ${next} = `)).trim().replace(/;$/, '');
+export const explicitMemberNamesSource = source.match(/const getExplicitMemberNames = \(\) => [\s\S]*?;/)[0];
 export const mountSettingsEditor = async (page, baseUrl, type, eventSource = source) => {
     // The optional source enables exact historical-handler characterization without a synthetic refresh listener.
     const eventRuntime = [eventSource.match(/function updateForm\(\) \{[\s\S]*?\n\}/)[0],
@@ -21,7 +22,7 @@ export const mountSettingsEditor = async (page, baseUrl, type, eventSource = sou
         document.body.style.cssText = 'background:var(--fvplus-ui-page);color:var(--fvplus-ui-text-primary);font:14px Arial,sans-serif;margin:16px';
     }, { markup, type });
     for (const name of ['folderviewplus.folder-contract', 'folder.editor.shared', 'folder.editor.schema', `folder.editor.type-${type}`, 'folder.editor.chrome', 'folder.editor.preview-runtime']) await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/${name}.js` });
-    await page.evaluate(({ type, applyMode, serializer, eventRuntime, inputDelay }) => {
+    await page.evaluate(({ type, applyMode, serializer, eventRuntime, inputDelay, explicitMemberNamesSource }) => {
         const form = document.querySelector('form');
         const schema = window.FolderViewPlusFolderEditorSchema.createModernSchema();
         Object.values(schema.SECTION_DEFAULT_VALUES).forEach(fields => Object.entries(fields).forEach(([key, value]) => {
@@ -34,12 +35,13 @@ export const mountSettingsEditor = async (page, baseUrl, type, eventSource = sou
         const api = window.FolderViewPlusFolderEditorPreviewRuntime.createApi({ window, $, type, getForm: () => form, applyTypePreviewConstraints: typeApi.applyPreviewConstraints });
         const switchSection = new Function('$', 'SECTION_META', `let editorMode, activeEditorSection = 'general'; const normalizeEditorMode = () => 'advanced'; const normalizeActiveEditorSection = value => value; const advancedSectionCollapsedState = {}; const apply = ${applyMode}; return section => { activeEditorSection = section; apply(); };`)($, schema.SECTION_META);
         const contract = window.FolderViewPlusFolderContract;
+        const getExplicitMemberNames = new Function('$', `${explicitMemberNamesSource}; return getExplicitMemberNames;`)($);
         const helpers = { ...contract, ...window.FolderViewPlusFolderEditorShared.createApi({}), ...window.FolderViewPlusFolderEditorSchema,
-            $, hiddenPreviewMembers: [], getMemberMapByName: () => new Map(), normalizeParentFolderId: value => value,
+            $, getExplicitMemberNames, hiddenPreviewMembers: [], getMemberMapByName: () => new Map(), normalizeParentFolderId: value => value,
             getChildFolderOrderIds: () => [], getFolderWebuiProfilesApi: () => null, normalizePreviewStatusMode: value => value,
             DEFAULT_BORDER_COLOR: contract.DEFAULT_PREVIEW_BORDER_COLOR };
         const serialize = new Function(...Object.keys(helpers), `return ${serializer};`)(...Object.values(helpers));
-        window.settingsFixture = { form, schema, refresh: api.updatePreviewConstraints, switchSection, serialize: () => serialize(form) };
+        window.settingsFixture = { form, schema, refresh: api.updatePreviewConstraints, switchSection, getExplicitMemberNames, serialize: () => serialize(form) };
         // Only unrelated editor validation, summaries and name/regex integrations are stubbed.
         new Function('$', 'form', 'getFolderEditorPreviewRuntimeApi', `let isFormInitialized = true, folderId = 'fixture', editorRecalcTimer = null;
             const EDITOR_INPUT_RECALC_DEBOUNCE_MS = ${inputDelay}, noop = () => {};
@@ -51,5 +53,5 @@ export const mountSettingsEditor = async (page, baseUrl, type, eventSource = sou
         api.updatePreviewConstraints();
         window.FolderViewPlusRevealModernEditorStage?.({ force: true });
         form.classList.remove('fv-modern-editor-booting');
-    }, { type, applyMode: extract('applyAdvancedMode', 'getIncludedMemberNames'), serializer: extract('buildFolderPayloadFromForm', 'buildFolderSettingsSummaryHtml'), eventRuntime, inputDelay });
+    }, { type, applyMode: extract('applyAdvancedMode', 'getIncludedMemberNames'), serializer: extract('buildFolderPayloadFromForm', 'buildFolderSettingsSummaryHtml'), eventRuntime, inputDelay, explicitMemberNamesSource });
 };

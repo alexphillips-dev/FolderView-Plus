@@ -222,7 +222,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
     assert.match(dashboardScript, /const parseDashboardPayloadOr = \(payload, fallback\) =>/);
-    assert.match(dashboardScript, /let prefsResponse = parseDashboardPayloadOr\(prom\[4\], \{\}\);/);
+    assert.match(dashboardScript, /requests\[4\]\.then\(\(payload\) => \{\s*if \(!isActive\(\)\) return;\s*const response = parseDashboardPayloadOr\(payload, \{\}\);/);
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = typeof utils\.normalizeDashboardOverflowMode === 'function'/);
     assert.match(dashboardScript, /const createFolders = async \(type,/);
     assert.match(dashboardScript, /const dockerTreeIndex = buildFolderChildrenIndex\(allDockerFolders\);/);
@@ -498,7 +498,7 @@ test('dashboard render waits for successful folder hydration and has request fal
     assert.match(dashboardScript, /const legacyFactories = \[[\s\S]*getDashboardRequestWithFallback\(resolvedType, 'runtime info'/);
     assert.match(dashboardScript, /fallbackFactories: legacyFactories/);
     assert.match(dashboardScript, /prepareFolderRequests: prepareDashboardFolderRequestsForType/);
-    assert.match(dashboardScript, /const prom = await Promise\.all\(requests\);\s*if \(!isActive\(\)\) return false;/);
+    assert.match(dashboardScript, /const \[prom\] = await Promise\.all\(\[Promise\.all\(requests\), hydratePrefs\]\);\s*if \(!isActive\(\)\) return false;/);
     assert.match(dashboardScript, /renderFolders: renderDashboardWidget/);
     assert.doesNotMatch(dashboardScript, /let createFoldersPromise =/);
     assert.doesNotMatch(dashboardScript, /let loadedFolder =/);

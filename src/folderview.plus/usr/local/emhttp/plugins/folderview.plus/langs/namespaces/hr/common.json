@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "common",
-        "content-revision": "3d1455ff62c8c2f034af227de5a669cf95dc536768d10e8a791014d3782ea0a7"
+        "content-revision": "2d657efa925eb5cc8cceb47de3fa5786fc4fb9fb9fa89a8b757ec3b9851144b6"
     },
     "common.unassigned-group.title": "Nedodijeljene stavke",
     "runtime.action.requests-result": "Prihvaćeno $1 · Neuspjelo $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Unaprijed postavljeni nazivi izgleda FolderView3 su duplicirani.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Nevažeći ili prevelik izvorni popis za automatsko pokretanje FolderView3.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Nevažeći izvorni unos automatskog pokretanja FolderView3.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "Izvorno automatsko pokretanje FolderView3 čekanje premašuje 3600 sekundi.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON premašuje podržanu dubinu ugniježđivanja.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON sadrži dvostruka imena svojstava. Ispravite izvoz prije uvoza.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Slijed automatskog pokretanja FolderView3 premašuje ograničenje pokretanja od 2000 unosa.",

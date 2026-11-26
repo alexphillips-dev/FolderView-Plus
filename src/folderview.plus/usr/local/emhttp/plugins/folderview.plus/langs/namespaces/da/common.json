@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "common",
-        "content-revision": "d76626d3dbf6cef780d93493bc5b31643c400ce43492f2466c9b36f1431c75c6"
+        "content-revision": "2f5ad9086becd797df80f0201afa1880dbd6183fa0dc512bc40fb2f0cd56840c"
     },
     "common.unassigned-group.title": "Ikke-tildelte elementer",
     "runtime.action.requests-result": "$1 accepteret · $2 mislykkedes",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Forudindstillede navne på FolderView3-udseende er duplikeret.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Ugyldig eller overdimensioneret FolderView3 native autostartliste.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Ugyldig indtastning af Autostart i FolderView3.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 native autostart ventetid overstiger 3600 sekunder.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON overskrider den understøttede indlejringsdybde.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON indeholder duplikerede egenskabsnavne. Ret eksporten før import.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 autostartsekvensen overskrider startgrænsen på 2000 indgange.",

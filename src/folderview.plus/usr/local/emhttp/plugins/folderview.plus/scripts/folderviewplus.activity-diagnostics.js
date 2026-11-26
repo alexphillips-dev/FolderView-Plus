@@ -943,6 +943,7 @@ const globalRollbackApi = async (action, fields = {}) => {
     }
     const creating = action === 'rollback_checkpoint';
     assertRuntimeConflictActionAllowed(creating ? 'Create rollback checkpoint' : 'Restore rollback checkpoint');
+    if (!creating && action !== 'rollback_restore_setup') await flushRecoveryPreferenceSaves();
     const response = await apiPostJson(endpoint, { ...fields, action });
     if (!response?.ok) throw new Error(response?.error || (creating ? 'Rollback checkpoint failed.' : 'Rollback restore failed.'));
     return (creating ? response.rollback : response.restore) || {};

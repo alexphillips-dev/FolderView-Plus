@@ -1312,10 +1312,6 @@ const renderDashboardDockerFolders = (prom) => {
         const dockerChildrenByParent = dockerTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
-        let prefsResponse = parseDashboardPayloadOr(prom[4], {});
-        folderTypePrefs.docker = normalizeDashboardPrefsResponse('docker', prefsResponse);
-        dashboardPrefsHydratedByType.docker = true;
-        recordDashboardLayoutHydration('docker', folderTypePrefs.docker);
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker, 'docker', containersInfo);
@@ -1486,10 +1482,6 @@ const renderDashboardVmFolders = (prom) => {
         const vmChildrenByParent = vmTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
-        let prefsResponse = parseDashboardPayloadOr(prom[4], {});
-        folderTypePrefs.vm = normalizeDashboardPrefsResponse('vm', prefsResponse);
-        dashboardPrefsHydratedByType.vm = true;
-        recordDashboardLayoutHydration('vm', folderTypePrefs.vm);
         const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
         folders = vmRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm, 'vm', vmInfo);
@@ -1664,7 +1656,17 @@ const createFolders = async (type, { isCurrent = () => true } = {}) => {
     let rendering = false;
     let restoreUnassignedFocus = false;
     try {
-        const prom = await Promise.all(requests);
+        // A failed folder read must not block the confirmed refresh policy.
+        const hydratePrefs = requests[4].then((payload) => {
+            if (!isActive()) return;
+            const response = parseDashboardPayloadOr(payload, {});
+            if (!response.prefs || typeof response.prefs !== 'object' || Array.isArray(response.prefs)) return;
+            folderTypePrefs[type] = normalizeDashboardPrefsResponse(type, response);
+            dashboardPrefsHydratedByType[type] = true;
+            recordDashboardLayoutHydration(type, folderTypePrefs[type]);
+            applyDashboardRuntimePrefs();
+        });
+        const [prom] = await Promise.all([Promise.all(requests), hydratePrefs]);
         if (!isActive()) return false;
         restoreUnassignedFocus = unassignedGroup?.isHeader(document.activeElement?.parentElement) === true
             || (restoreNativeFocus && document.activeElement === document.body);

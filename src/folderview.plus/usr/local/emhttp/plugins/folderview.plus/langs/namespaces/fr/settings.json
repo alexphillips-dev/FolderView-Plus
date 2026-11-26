@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "settings",
-        "content-revision": "7c11280392ddac3dd47df180f1e78df3e9699f367889fb14d34a178c4b8e006a"
+        "content-revision": "4f30481e7b25e29113eaaddaefcf79bfc412cdfb35ebf7fc2e7c50854b003eea"
     },
     "settings.visibility.group-unassigned-items": "Regrouper les éléments non affectés",
     "settings.visibility.group-unassigned-items-help": "S’applique aussi à la tuile correspondante du tableau de bord.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Conteneurs à démarrage automatique : $1 ; conteneurs détectés : $2",
     "settings.start-order.order-column": "Ordre de tri",
     "settings.start-order.container-column": "Conteneur",
+    "settings.start-order.warning-missing-folder": "Le dossier du plan de démarrage n'existe plus : $1",
+    "settings.start-order.warning-missing-container": "Le conteneur dans le plan de démarrage n'existe plus : $1",
+    "settings.start-order.warning-autostart-off": "$1 est dans le plan de démarrage mais le démarrage automatique de Docker est désactivé.",
     "settings.navigation.bulk-assignment": "Attribution groupée",
     "settings.navigation.rules": "Règles",
     "settings.navigation.recovery": "Récupération",

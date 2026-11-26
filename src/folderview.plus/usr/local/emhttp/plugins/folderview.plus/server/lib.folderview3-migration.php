@@ -4,19 +4,6 @@ require_once __DIR__ . '/lib.folderview3-appearance.php';
 require_once __DIR__ . '/lib.folderview3-validation.php';
 require_once __DIR__ . '/lib.folderview3-settings.php';
 
-function fvplusFolderView3NormalizeNativeAutostart(array $lines): array {
-    $entries = [];
-    foreach (array_slice($lines, 0, 2000) as $line) {
-        $parts = preg_split('/\s+/', trim((string)$line), 2);
-        $name = truncateUtf8String(trim((string)($parts[0] ?? '')), 255);
-        if ($name === '' || !preg_match('/^[A-Za-z0-9][A-Za-z0-9_.-]*$/', $name)) {
-            continue;
-        }
-        $entries[] = ['name' => $name, 'wait' => normalizeIntInRange($parts[1] ?? 0, 0, 3600, 0)];
-    }
-    return $entries;
-}
-
 function buildFolderView3MigrationPlan(array $bundle, string $sourceName = ''): array {
     $source = fvplusFolderView3NormalizeBundle($bundle);
     $warnings = [];
@@ -55,7 +42,12 @@ function buildFolderView3MigrationPlan(array $bundle, string $sourceName = ''): 
     if (count((array)$source['custom_styles']) > 0 || count((array)$source['css_config']) > 0) {
         $warnings[] = 'Imported CSS may use FolderView3 selectors or variables that differ in FolderView Plus. Preview each appearance profile before activation.';
     }
-    $nativeAutostart = fvplusFolderView3NormalizeNativeAutostart((array)$source['native_autostart']);
+    $nativeAutostart = [];
+    try {
+        $nativeAutostart = fvplusFolderView3NormalizeNativeAutostart($source['native_autostart']);
+    } catch (RuntimeException $error) {
+        $warnings[] = $error->getMessage();
+    }
     $organizerFolders = array_values(array_filter((array)($source['organizer_registry']['folders'] ?? []), 'is_string'));
     if (count($organizerFolders) > 0) {
         $warnings[] = 'FolderView3 organizer registry entries are reported but are not converted into FolderView Plus folders.';
@@ -266,7 +258,8 @@ function detectFolderView3Installation(): array {
         $result['customStyleCount'] = count(array_filter(array_keys((array)($bundle['custom_styles'] ?? [])), static function ($name) {
             return preg_match('/\.css$/i', (string)$name) === 1;
         }));
-        $result['nativeAutostartCount'] = count((array)($bundle['native_autostart'] ?? []));
+        try { $result['nativeAutostartCount'] = count(fvplusFolderView3NormalizeNativeAutostart($bundle['native_autostart'])); }
+        catch (RuntimeException $error) { $result['nativeAutostartCount'] = 0; }
     }
     return $result;
 }
@@ -285,7 +278,8 @@ function fvplusFolderView3NormalizeBundle(array $bundle, ?object $shape = null):
         'css_config' => is_array($bundle['css_config'] ?? null) ? $bundle['css_config'] : [],
         'custom_styles' => is_array($bundle['custom_styles'] ?? null) ? $bundle['custom_styles'] : [],
         'organizer_registry' => is_array($bundle['organizer_registry'] ?? null) ? $bundle['organizer_registry'] : [],
-        'native_autostart' => is_array($bundle['native_autostart'] ?? null) ? $bundle['native_autostart'] : [],
+        // Keep optional native input in the review digest even when it cannot be applied.
+        'native_autostart' => array_key_exists('native_autostart', $bundle) ? $bundle['native_autostart'] : [],
         'css_skipped' => !empty($bundle['css_skipped']),
         'css_skipped_reason' => truncateUtf8String(trim((string)($bundle['css_skipped_reason'] ?? '')), 280),
         '_source_kind' => (string)($bundle['_source_kind'] ?? 'export') === 'installed' ? 'installed' : 'export'

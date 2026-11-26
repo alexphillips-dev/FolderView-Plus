@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "settings",
-        "content-revision": "2d04892869f53228f29ff6fc903f10cfd9d4812a6b6db660deae6ec896ec6343"
+        "content-revision": "dc6f52f80cc3ae9d6fc0c79e85dd842031db9cb2a53158c898dabc5843cff9bb"
     },
     "settings.visibility.group-unassigned-items": "Hozzá nem rendelt elemek csoportosítása",
     "settings.visibility.group-unassigned-items-help": "Az irányítópult megfelelő csempéjére is érvényes.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Automatikus indítási tárolók: $1; tárolók észlelve: $2",
     "settings.start-order.order-column": "Rendezési sorrend",
     "settings.start-order.container-column": "Konténer",
+    "settings.start-order.warning-missing-folder": "A kezdőtervben szereplő mappa már nem létezik: $1",
+    "settings.start-order.warning-missing-container": "A kezdőtervben szereplő tároló már nem létezik: $1",
+    "settings.start-order.warning-autostart-off": "A $1 benne van az indítási tervben, de a Docker automatikus indítása ki van kapcsolva.",
     "settings.navigation.bulk-assignment": "Tömeges hozzárendelés",
     "settings.navigation.rules": "Szabályok",
     "settings.navigation.recovery": "Helyreállítás",

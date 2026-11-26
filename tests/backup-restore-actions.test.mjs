@@ -122,6 +122,7 @@ test('Recovery environment import reports native apply separately from committed
             $: () => ({ length: 0 }),
             window: { setTimeout: callback => callback() },
             selectJsonFile: async () => ({ text: '{}', name: 'fixture.json' }),
+            flushRecoveryPreferenceSaves: async () => calls.push('drain'),
             swal: (options, handler) => {
                 if (handler) confirmImport = handler;
                 else calls.push(['dialog', options.type]);
@@ -137,12 +138,12 @@ test('Recovery environment import reports native apply separately from committed
         });
         await api.importEnvironmentSnapshot();
         await confirmImport(true);
-        assert.deepEqual(calls.slice(0, 2), ['preview', 'apply']);
-        if (status === 'unmanaged') assert.deepEqual(calls.slice(2), [['dialog', 'success']]);
+        assert.deepEqual(calls.slice(0, 3), ['preview', 'drain', 'apply']);
+        if (status === 'unmanaged') assert.deepEqual(calls.slice(3), [['dialog', 'success']]);
         else {
-            assert.equal(calls.length, 3);
-            assert.deepEqual(calls[2].slice(0, 2), ['native', status]);
-            assert.match(calls[2][2], refreshFails ? /folders were saved.*Refresh/ : /fixture-checkpoint/);
+            assert.equal(calls.length, 4);
+            assert.deepEqual(calls[3].slice(0, 2), ['native', status]);
+            assert.match(calls[3][2], refreshFails ? /folders were saved.*Refresh/ : /fixture-checkpoint/);
         }
     }
 });

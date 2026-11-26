@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "common",
-        "content-revision": "c36b83058dd21f6dbf6f5a78c2fc8a6a2d24a1b8abb9214f1cde406eb0ea301d"
+        "content-revision": "fd496f781d234ed4d6bdf6b59fc02c59165b4b26e53753021bc61fd72c899268"
     },
     "common.unassigned-group.title": "অনির্ধারিত আইটেম",
     "runtime.action.requests-result": "$1টি গৃহীত · $2টি ব্যর্থ",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 চেহারা প্রিসেট নাম নকল করা হয়.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "অবৈধ বা বড় আকারের FolderView3 নেটিভ অটোস্টার্ট তালিকা।",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "অবৈধ FolderView3 নেটিভ অটোস্টার্ট এন্ট্রি।",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 নেটিভ অটোস্টার্ট অপেক্ষা 3600 সেকেন্ড অতিক্রম করেছে৷",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON সমর্থিত নেস্টিং গভীরতা অতিক্রম করে।",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON-এ ডুপ্লিকেট সম্পত্তির নাম রয়েছে। আমদানি করার আগে রপ্তানি সংশোধন করুন।",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 অটোস্টার্ট সিকোয়েন্স 2000-এন্ট্রি স্টার্টআপ সীমা ছাড়িয়ে গেছে।",

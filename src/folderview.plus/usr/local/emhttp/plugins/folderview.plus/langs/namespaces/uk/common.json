@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "common",
-        "content-revision": "b076b07b8e1e969b6f0b9e844ad29cac453f20f0a610e34d0f6dcb1c5c9d78b8"
+        "content-revision": "479b75a3333eda4a77a5e8e586e6a774b5fbb2b01995bc8ada71678c8c471ccf"
     },
     "common.unassigned-group.title": "Непризначені елементи",
     "runtime.action.requests-result": "Прийнято: $1 · Помилок: $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Назви стилів зовнішнього вигляду FolderView3 дублюються.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Недійсний або завеликий рідний список автозапуску FolderView3.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Недійсний запис автозапуску FolderView3.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "Очікування внутрішнього автозапуску FolderView3 перевищує 3600 секунд.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON перевищує підтримувану глибину вкладення.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON містить повторювані назви властивостей. Виправте експорт перед імпортом.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Послідовність автозапуску FolderView3 перевищує ліміт запуску в 2000 записів.",

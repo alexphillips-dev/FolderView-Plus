@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "common",
-        "content-revision": "78570c21c99bc7afe92a7d7336d20b3cc75183efab3749045b75aa3fe8cc637b"
+        "content-revision": "99072f8f47e98f73107b6091eea5540a277dfa520525695e4ba665715da2d67f"
     },
     "common.unassigned-group.title": "Elemente nealocate",
     "runtime.action.requests-result": "Acceptate: $1 · Eșuate: $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Numele presetate de aspect FolderView3 sunt duplicate.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Listă de pornire automată FolderView3 nevalidă sau supradimensionată.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Intrare FolderView3 cu pornire automată nativă nevalidă.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "Așteptarea de pornire automată nativă FolderView3 depășește 3600 de secunde.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON depășește adâncimea de imbricare acceptată.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON conține nume de proprietate duplicat. Corectați exportul înainte de a importa.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Secvența de pornire automată FolderView3 depășește limita de pornire de 2000 de intrări.",

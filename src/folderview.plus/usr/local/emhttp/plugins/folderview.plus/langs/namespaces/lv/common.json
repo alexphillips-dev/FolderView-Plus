@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "common",
-        "content-revision": "52bcc4b4293388a3842f289807bd6bf5c5643d3d1ee2753cee65e317f9f63d6c"
+        "content-revision": "ea68585f6fdfb92e0deec7214b7cb080f0548f5a94d27c531eb2a77397f9593d"
     },
     "common.unassigned-group.title": "Nepiešķirtie vienumi",
     "runtime.action.requests-result": "Pieņemti: $1 · Neizdevās: $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 izskata sākotnēji iestatītie nosaukumi tiek dublēti.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Nederīgs vai pārāk liels FolderView3 vietējais automātiskās palaišanas saraksts.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Nederīgs FolderView3 vietējais automātiskās palaišanas ieraksts.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 sākotnējās automātiskās palaišanas gaidīšanas laiks pārsniedz 3600 sekundes.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON pārsniedz atbalstīto ligzdošanas dziļumu.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON satur rekvizītu nosaukumu dublikātus. Labojiet eksportu pirms importēšanas.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 automātiskās palaišanas secība pārsniedz 2000 ierakstu palaišanas ierobežojumu.",

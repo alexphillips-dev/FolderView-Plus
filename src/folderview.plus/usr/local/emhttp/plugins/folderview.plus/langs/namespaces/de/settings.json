@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "settings",
-        "content-revision": "dbad65273dac3185e9dfb6eee44522678650fff0c21ddbeafab24aea8f48e929"
+        "content-revision": "a37548332a5d44cf10b549eda0f7f6bf797ea10046d5d40c723d2dd72f746ef8"
     },
     "settings.visibility.group-unassigned-items": "Nicht zugeordnete Elemente gruppieren",
     "settings.visibility.group-unassigned-items-help": "Gilt auch für die zugehörige Dashboard-Kachel.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart-Container: $1; erkannte Container: $2",
     "settings.start-order.order-column": "Reihenfolge",
     "settings.start-order.container-column": "Container",
+    "settings.start-order.warning-missing-folder": "Ordner im Startplan existiert nicht mehr: $1",
+    "settings.start-order.warning-missing-container": "Container im Startplan existiert nicht mehr: $1",
+    "settings.start-order.warning-autostart-off": "$1 ist im Startplan, aber der Docker-Autostart ist deaktiviert.",
     "settings.navigation.bulk-assignment": "Massenzuweisung",
     "settings.navigation.rules": "Regeln",
     "settings.navigation.recovery": "Wiederherstellung",

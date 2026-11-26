@@ -10,8 +10,13 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
             $options['syncDockerOrder'] = false;
         }
         $path = getGlobalRollbackSnapshotPath($name);
-        if (!is_file($path)) throw new RuntimeException('Rollback snapshot file not found.');
-        $decoded = fvplusValidateGlobalRollbackPayload(json_decode((string)@file_get_contents($path), true));
+        $bytes = is_file($path) ? @file_get_contents($path) : false;
+        $reviewHash = $options['reviewHash'] ?? null;
+        if ($reviewHash !== null && ($bytes === false || !hash_equals(hash('sha256', $bytes), $reviewHash))) {
+            throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
+        }
+        if ($bytes === false) throw new RuntimeException('Rollback snapshot file not found.');
+        $decoded = fvplusValidateGlobalRollbackPayload(json_decode($bytes, true));
         $types = $decoded['types'];
         foreach (FVPLUS_ALLOWED_TYPES as $type) $types[$type]['prefs'] ??= readTypePrefs($type);
         // Older checkpoints can omit Theme Workspace; retain its current state in that adapter.
@@ -34,8 +39,8 @@ function restoreGlobalRollbackSnapshot(string $name, array $options = []): array
     });
 }
 
-function fvplusRestoreSelectedGlobalRollbackSnapshot(bool $previous, ?string $expectedName): array {
-    return withConfigMutationLock(static function () use ($previous, $expectedName): array {
+function fvplusRestoreSelectedGlobalRollbackSnapshot(bool $previous, ?string $expectedName, ?string $reviewHash = null): array {
+    return withConfigMutationLock(static function () use ($previous, $expectedName, $reviewHash): array {
         $snapshots = array_slice(listGlobalRollbackSnapshots(), $previous ? 1 : 0);
         foreach ($snapshots as $snapshot) {
             if (!$snapshot['restorable']) continue;
@@ -43,17 +48,18 @@ function fvplusRestoreSelectedGlobalRollbackSnapshot(bool $previous, ?string $ex
             if ($expectedName !== null && $name !== $expectedName) {
                 throw new FVPlusConfigConflictException('Rollback restore failed.');
             }
-            $restored = restoreGlobalRollbackSnapshot($name);
+            $restored = restoreGlobalRollbackSnapshot($name, ['reviewHash' => $reviewHash]);
             return $previous ? [...$restored, 'targetName' => $name] : $restored;
         }
+        if ($reviewHash !== null) throw new FVPlusConfigConflictException('The selected backup changed. Refresh and try again.');
         throw new RuntimeException($previous ? 'No previous rollback snapshot available.' : 'No rollback snapshots available.');
     });
 }
 
-function restoreLatestGlobalRollbackSnapshot(?string $expectedName = null): array {
-    return fvplusRestoreSelectedGlobalRollbackSnapshot(false, $expectedName);
+function restoreLatestGlobalRollbackSnapshot(?string $expectedName = null, ?string $reviewHash = null): array {
+    return fvplusRestoreSelectedGlobalRollbackSnapshot(false, $expectedName, $reviewHash);
 }
 
-function restorePreviousGlobalRollbackSnapshot(?string $expectedName = null): array {
-    return fvplusRestoreSelectedGlobalRollbackSnapshot(true, $expectedName);
+function restorePreviousGlobalRollbackSnapshot(?string $expectedName = null, ?string $reviewHash = null): array {
+    return fvplusRestoreSelectedGlobalRollbackSnapshot(true, $expectedName, $reviewHash);
 }

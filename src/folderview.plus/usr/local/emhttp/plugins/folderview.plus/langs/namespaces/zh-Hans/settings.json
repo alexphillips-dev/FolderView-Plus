@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "settings",
-        "content-revision": "d3009511c1c4dce5f91b866a54fd15abd3e88ce636baa7f689bbc27e435c38f0"
+        "content-revision": "cd95636b2e104b417eac6ddc6e1bff6bb2d17d77a07d001670da3ed03bf312ac"
     },
     "settings.visibility.group-unassigned-items": "归类未分组的项目",
     "settings.visibility.group-unassigned-items-help": "也适用于仪表板上对应的区块。",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "自动启动容器：$1；检测到的容器：$2",
     "settings.start-order.order-column": "排序顺序",
     "settings.start-order.container-column": "容器",
+    "settings.start-order.warning-missing-folder": "启动计划中的文件夹不再存在：$1",
+    "settings.start-order.warning-missing-container": "启动计划中的容器不再存在：$1",
+    "settings.start-order.warning-autostart-off": "$1 在启动计划中，但 Docker 自动启动已关闭。",
     "settings.navigation.bulk-assignment": "批量分配",
     "settings.navigation.rules": "规则",
     "settings.navigation.recovery": "恢复",

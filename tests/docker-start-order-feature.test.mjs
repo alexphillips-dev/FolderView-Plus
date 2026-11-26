@@ -113,6 +113,7 @@ test('Settings clears the old preview on mode changes and ignores an earlier res
         ({ change: updateDockerStartOrderMode, refresh: refreshDockerStartOrderPreview });
     `, {
         dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page'] },
+        diagnosticsPrefsCoordinator: null,
         normalizeDockerStartOrderPrefsForUi: () => ({ mode: 'unmanaged' }),
         saveDockerStartOrderPlan: async (...args) => saves.push(args),
         flushDockerStartOrderSaveQueue: async () => {},
@@ -145,24 +146,34 @@ test('a failed mode save restores committed Settings state and permits preview',
     const prefsByType = { docker: { dockerStartOrder: plan } };
     const messages = [], errors = [], renders = [], saves = [];
     let rejectWrite;
+    let markStarted;
+    const started = new Promise(resolve => { markStarted = resolve; });
+    const coordinator = prefsStore.createPreferenceSaveCoordinator({
+        window: {}, debounceMs: 0,
+        writePrefs: (_type, patch) => {
+            saves.push(patch);
+            return new Promise((_, reject) => { rejectWrite = reject; markStarted(); });
+        }
+    });
+    coordinator.reconcile('docker', prefsByType.docker);
     const workspace = vm.runInNewContext(`
         ${settingsJs.slice(normalizeStart, normalizeEnd)}
         ${settingsJs.slice(queueStart, queueEnd)}
         ${settingsJs.slice(previewStart, previewEnd)}
+        const renderDockerStartOrderWorkspace = options => {
+            dockerStartOrderRenderedPlan = normalizeDockerStartOrderPrefsForUi(); recordWorkspaceRender(options);
+        };
         ({ change: updateDockerStartOrderMode, refresh: refreshDockerStartOrderPreview, mode: () => normalizeDockerStartOrderPrefsForUi().mode });
     `, {
         prefsByType,
         utils: { normalizePrefs: value => value },
-        diagnosticsPrefsCoordinator: { getConfirmedPrefs: () => ({ dockerStartOrder: plan }) },
+        diagnosticsPrefsCoordinator: coordinator,
         dockerStartOrderModel: { MODES: ['unmanaged', 'docker-page', 'custom-batches'], normalizePlan: value => value },
         prefsStoreModule: prefsStore,
         window: { clearTimeout() {}, setTimeout: () => 1 },
-        postPrefs: (_type, patch) => {
-            saves.push(patch);
-            return new Promise((_, reject) => { rejectWrite = reject; });
-        },
+        postPrefs: (...args) => coordinator.save(...args),
         $: selector => ({ length: 1, html: value => { if (selector === '#docker-start-order-preview') messages.push(value); }, text: () => ({ prop() {} }) }),
-        renderDockerStartOrderWorkspace: options => renders.push(options),
+        recordWorkspaceRender: options => renders.push(options),
         renderDockerStartOrderSyncOutcome() {},
         infoByType: { docker: {} },
         dockerStartOrderView: { buildPreviewHtml: preview => `Preview ${preview.mode}`, buildHeaderSummaryHtml: () => '' },
@@ -173,9 +184,10 @@ test('a failed mode save restores committed Settings state and permits preview',
     await workspace.change('unmanaged');
     assert.equal(workspace.mode(), 'unmanaged');
     const refresh = workspace.refresh();
-    await Promise.resolve();
-    rejectWrite(new Error('synthetic rejected save'));
+    await started;
+    rejectWrite(Object.assign(new Error('synthetic rejected save'), { status: 400 }));
     await refresh;
+    await new Promise(resolve => setImmediate(resolve));
     assert.equal(workspace.mode(), 'docker-page');
     assert.equal(prefsByType.docker.dockerStartOrder.mode, 'docker-page');
     assert.equal(messages.at(-1), 'Preview docker-page');
@@ -240,6 +252,7 @@ test('manual sync outcomes without a current-mode preview let an in-flight previ
             apiPostJson: async () => ({ syncOutcome: outcome, preview: { mode: 'docker-page' } }),
             flushDockerStartOrderSaveQueue: async () => {},
             dockerStartOrderPreviewTimer: null, dockerStartOrderDraftPlan: null,
+            diagnosticsPrefsCoordinator: null,
             dockerStartOrderPreviewGeneration: 0, dockerStartOrderEditGeneration: 1, dockerStartOrderSyncGeneration: 0, dockerStartOrderSyncOutcome: '',
             normalizeDockerStartOrderPrefsForUi: () => ({ mode: 'custom-batches' }),
             setUpdateStatus() {}, renderDockerStartOrderSyncOutcome() {}, showError() {},

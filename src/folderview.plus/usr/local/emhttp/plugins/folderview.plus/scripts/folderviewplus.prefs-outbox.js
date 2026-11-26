@@ -35,6 +35,45 @@
         return { ...next, hiddenFolderIds: [...hiddenIds] };
     };
 
+    const mergeStartOrderPatch = (previous, patch, mergeValues) => {
+        const merged = mergeValues(previous, patch);
+        const previousChanges = !Object.hasOwn(patch, 'batches') && Array.isArray(previous?.batchChanges) ? previous.batchChanges : [];
+        const changes = [
+            ...previousChanges,
+            ...(Array.isArray(patch.batchChanges) ? patch.batchChanges : [])
+        ];
+        if (changes.length) merged.batchChanges = changes;
+        else delete merged.batchChanges;
+        return merged;
+    };
+
+    const applyStartOrderBatchChanges = (prefs) => {
+        const plan = prefs?.dockerStartOrder;
+        if (!Array.isArray(plan?.batchChanges)) return prefs;
+        const { batchChanges, ...next } = plan;
+        const batches = [...(Array.isArray(next.batches) ? next.batches : [])];
+        for (const edit of batchChanges) {
+            if (typeof edit?.id !== 'string' || !edit.id) continue;
+            const index = batches.findIndex(batch => batch?.id === edit.id);
+            if (edit.action === 'add' && edit.value?.id === edit.id && index < 0 && batches.length < 100) {
+                batches.push(edit.value);
+            } else if (index >= 0 && batches.findLastIndex(batch => batch?.id === edit.id) === index) {
+                if (edit.action === 'remove') batches.splice(index, 1);
+                const otherIndex = index + edit.offset;
+                if (edit.action === 'move' && [-1, 1].includes(edit.offset)
+                    && typeof edit.neighbor === 'string' && batches[otherIndex]?.id === edit.neighbor
+                    && batches.findIndex(batch => batch?.id === edit.neighbor) === batches.findLastIndex(batch => batch?.id === edit.neighbor)) {
+                    [batches[index], batches[otherIndex]] = [batches[otherIndex], batches[index]];
+                }
+                if (edit.action === 'set' && ['name', 'delay', 'useFolderOrder', 'parallel', 'items'].includes(edit.field)
+                    && Object.hasOwn(edit, 'value') && JSON.stringify(batches[index][edit.field]) === JSON.stringify(edit.previous)) {
+                    batches[index] = { ...batches[index], [edit.field]: edit.value };
+                }
+            }
+        }
+        return { ...prefs, dockerStartOrder: { ...next, batches } };
+    };
+
     const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergeValues, cloneValue, patchIsEmpty, mutationIdFor }) => {
         const mergePatch = (previous, patch) => {
             if (!Object.hasOwn(patch, 'hiddenFolderIds') || !Object.hasOwn(previous, 'hiddenFolderIdChanges')) {
@@ -253,11 +292,17 @@
             return true;
         };
 
+        const keepPendingStartupEdit = (entry, revision, expectedRevision) => {
+            const patch = entry?.record.pending?.patch;
+            return Object.keys(patch || {}).length === 1 && Boolean(patch.dockerStartOrder)
+                && advanceAfterCommit(entry, revision, expectedRevision);
+        };
+
         return Object.freeze({
-            key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit,
+            key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit, keepPendingStartupEdit,
             queuePatch, requeue, collectionChangedSinceEdit, collectionConflictBeforeWrite, beginRebase, completeRebase
         });
     };
 
-    return Object.freeze({ createStorage, applyFolderVisibilityChanges, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
+    return Object.freeze({ createStorage, applyFolderVisibilityChanges, mergeStartOrderPatch, applyStartOrderBatchChanges, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
 }));

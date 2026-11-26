@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "common",
-        "content-revision": "88fd71ebcb7e4b4f796b2684d7fa981fef01a0f1ac7100e254b36541b8a82cc8"
+        "content-revision": "b2be94a495768bc91f06c5a61f6c2c11c14e2addceb26fc65b5e92b0e0dcc7d4"
     },
     "common.unassigned-group.title": "미할당 항목",
     "runtime.action.requests-result": "$1개 수락 · $2개 실패",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 모양 사전 설정 이름이 중복됩니다.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "FolderView3 기본 자동 시작 목록이 잘못되었거나 너무 큽니다.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "FolderView3 기본 자동 시작 항목이 잘못되었습니다.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 기본 자동 시작 대기 시간이 3600초를 초과합니다.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON이 지원되는 중첩 깊이를 초과합니다.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON에 중복된 속성 이름이 포함되어 있습니다. 가져오기 전에 내보내기를 수정하세요.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 자동 시작 시퀀스가 2000개 항목 시작 제한을 초과합니다.",

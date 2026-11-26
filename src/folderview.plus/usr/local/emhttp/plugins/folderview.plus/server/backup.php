@@ -27,7 +27,7 @@ fvplus_json_try(function (): array {
 
     if ($action === 'rollback_list') {
         return [
-            'snapshots' => listGlobalRollbackSnapshots()
+            'snapshots' => listGlobalRollbackSnapshots(true)
         ];
     }
 
@@ -40,16 +40,13 @@ fvplus_json_try(function (): array {
         ];
     }
 
-    if ($action === 'rollback_restore_latest') {
+    if ($action === 'rollback_restore_latest' || $action === 'rollback_restore_previous') {
+        $name = isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null;
+        $reviewHash = array_key_exists('reviewHash', $_POST) ? (is_string($_POST['reviewHash']) ? $_POST['reviewHash'] : '') : null;
         return [
-            'restore' => restoreLatestGlobalRollbackSnapshot(isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null),
-            'snapshots' => listGlobalRollbackSnapshots()
-        ];
-    }
-
-    if ($action === 'rollback_restore_previous') {
-        return [
-            'restore' => restorePreviousGlobalRollbackSnapshot(isset($_POST['expectedName']) ? (string)$_POST['expectedName'] : null),
+            'restore' => $action === 'rollback_restore_previous'
+                ? restorePreviousGlobalRollbackSnapshot($name, $reviewHash)
+                : restoreLatestGlobalRollbackSnapshot($name, $reviewHash),
             'snapshots' => listGlobalRollbackSnapshots()
         ];
     }

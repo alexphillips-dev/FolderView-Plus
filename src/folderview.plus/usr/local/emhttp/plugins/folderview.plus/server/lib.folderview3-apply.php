@@ -11,7 +11,7 @@ function fvplusFolderView3NativeAutostartContent(array $entries): string {
         if ($name === '' || !preg_match('/^[A-Za-z0-9][A-Za-z0-9_.-]*$/', $name)) {
             continue;
         }
-        $wait = normalizeIntInRange($entry['wait'] ?? 0, 0, 3600, 0);
+        $wait = normalizeIntInRange($entry['wait'] ?? 0, 0, PHP_INT_MAX, 0);
         $lines[] = $wait > 0 ? $name . ' ' . $wait : $name;
     }
     return count($lines) > 0 ? implode("\n", $lines) . "\n" : '';

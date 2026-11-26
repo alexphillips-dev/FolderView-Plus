@@ -6,7 +6,7 @@ const source = fs.readFileSync('src/folderview.plus/usr/local/emhttp/plugins/fol
 const start = source.indexOf('    // iterate over the folders');
 const end = source.indexOf('    choose.sort(', start);
 assert.ok(start > 0 && end > start);
-const applyOtherFolders = new Function('folders', 'choose', source.slice(start, end));
+const applyOtherFolders = new Function('folders', 'choose', 'currentEditFolderId', source.slice(start, end));
 
 test('invalid saved legacy regex does not prevent editing and still reserves explicit members', () => {
     const folders = { broken: { regex: '[', containers: ['owned'] }, valid: { regex: '^auto-', containers: [] } };
@@ -15,7 +15,7 @@ test('invalid saved legacy regex does not prevent editing and still reserves exp
     assert.deepEqual(choose.map(member => member.Name), ['available']);
     assert.equal(folders.broken.regex, '[');
     assert.deepEqual(folders.broken.containers, ['owned']);
-    assert.deepEqual(folders.valid.containers, ['auto-one']);
+    assert.deepEqual(folders.valid.containers, []);
 });
 
 test('valid and empty legacy patterns retain their existing membership behavior', () => {
@@ -23,5 +23,14 @@ test('valid and empty legacy patterns retain their existing membership behavior'
     const choose = ['owned', 'auto-one', 'auto-two', 'available'].map(Name => ({ Name }));
     applyOtherFolders(folders, choose);
     assert.deepEqual(choose.map(member => member.Name), ['available']);
-    assert.deepEqual(folders.valid.containers, ['auto-one', 'auto-two']);
+    assert.deepEqual(folders.valid.containers, []);
+});
+
+test('peer exclusions leave the active folder and all persisted memberships untouched', () => {
+    const folders = { active: { regex: '^auto-', containers: [] }, other: { regex: '^peer-', containers: ['owned'] } };
+    const before = structuredClone(folders);
+    const choose = ['auto-one', 'peer-one', 'owned', 'available'].map(Name => ({ Name }));
+    applyOtherFolders(folders, choose, 'active');
+    assert.deepEqual(choose.map(member => member.Name), ['auto-one', 'available']);
+    assert.deepEqual(folders, before);
 });

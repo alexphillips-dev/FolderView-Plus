@@ -21,7 +21,8 @@ const openEditor = async (page, baseUrl, type, record, eventSource) => {
     await page.evaluate(({ snapshot, cancel, record, type }) => {
         const form = settingsFixture.form;
         $('input.basic-switch').switchButton({ labels_placement: 'right' });
-        const compute = new Function('$', 'getForm', `${snapshot}; return computeFormSnapshot;`)($, () => form);
+        const compute = new Function('$', 'getForm', 'getExplicitMemberNames', 'hiddenPreviewMembers',
+            `${snapshot}; return computeFormSnapshot;`)($, () => form, settingsFixture.getExplicitMemberNames, new Set());
         const fixture = window.dependencyFixture = { baseline: compute(), record: record || settingsFixture.serialize(), accept: false, suppress: false,
             location: { pathname: type === 'docker' ? '/Docker/Folder' : '/VMs/Folder', href: 'editor' } };
         const state = FolderViewPlusFolderEditorState.createApi({ $, getForm: () => form, getInitialSnapshot: () => fixture.baseline, computeFormSnapshot: compute });

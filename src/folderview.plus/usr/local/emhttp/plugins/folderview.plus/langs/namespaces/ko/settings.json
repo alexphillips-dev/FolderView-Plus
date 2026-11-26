@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "settings",
-        "content-revision": "27529135f2bfc4eb4f71719c52076c42de272c702d3ac2b127e7f7ff6aff689c"
+        "content-revision": "2ad497390d652df001d3537431d3a55500b843e4aaf42ce2a42d6e9afc3121ad"
     },
     "settings.visibility.group-unassigned-items": "미할당 항목 그룹화",
     "settings.visibility.group-unassigned-items-help": "대시보드의 해당 타일에도 적용됩니다.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "자동 시작 컨테이너: $1; 감지된 컨테이너: $2",
     "settings.start-order.order-column": "정렬 순서",
     "settings.start-order.container-column": "컨테이너",
+    "settings.start-order.warning-missing-folder": "시작 계획의 폴더가 더 이상 존재하지 않습니다: $1",
+    "settings.start-order.warning-missing-container": "시작 계획의 컨테이너가 더 이상 존재하지 않습니다: $1",
+    "settings.start-order.warning-autostart-off": "$1이 시작 계획에 있지만 Docker 자동 시작이 꺼져 있습니다.",
     "settings.navigation.bulk-assignment": "대량 할당",
     "settings.navigation.rules": "규칙",
     "settings.navigation.recovery": "회복",

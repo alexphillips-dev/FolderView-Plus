@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "settings",
-        "content-revision": "8d92aa997fab8a10764ba78a3282c237a59d88bdb2725a5e480ce55cfd3dc96c"
+        "content-revision": "128e053ce51f9f1b2fd39c69a37a77c258218cdf0e41fecb358cf86a2a7cc8d9"
     },
     "settings.visibility.group-unassigned-items": "未割り当ての項目をまとめる",
     "settings.visibility.group-unassigned-items-help": "ダッシュボードの対応するタイルにも適用されます。",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "自動起動コンテナ: $1、検出されたコンテナ: $2",
     "settings.start-order.order-column": "並び順",
     "settings.start-order.container-column": "コンテナ",
+    "settings.start-order.warning-missing-folder": "開始計画内のフォルダーは存在しません: $1",
+    "settings.start-order.warning-missing-container": "開始計画のコンテナーは存在しません: $1",
+    "settings.start-order.warning-autostart-off": "$1 は開始計画に含まれていますが、Docker の自動起動はオフになっています。",
     "settings.navigation.bulk-assignment": "一括割り当て",
     "settings.navigation.rules": "ルール",
     "settings.navigation.recovery": "回復",

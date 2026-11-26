@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "settings",
-        "content-revision": "4e683ce14b7ca4703fe2162165a741c73054fa8a9955de16e591a29558d8960c"
+        "content-revision": "9d34dd6d2f41a48090c3f3ee368dadd7466dc8842f351ebc0b09cfec1019de15"
     },
     "settings.visibility.group-unassigned-items": "Grupiraj nedodijeljene stavke",
     "settings.visibility.group-unassigned-items-help": "Primjenjuje se i na odgovarajući panel na nadzornoj ploči.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Spremnici automatskog pokretanja: $1; otkriveni spremnici: $2",
     "settings.start-order.order-column": "Redoslijed",
     "settings.start-order.container-column": "Kontejner",
+    "settings.start-order.warning-missing-folder": "Mapa u početnom planu više ne postoji: $1",
+    "settings.start-order.warning-missing-container": "Spremnik u početnom planu više ne postoji: $1",
+    "settings.start-order.warning-autostart-off": "$1 je u početnom planu, ali Docker automatsko pokretanje je isključeno.",
     "settings.navigation.bulk-assignment": "Skupna dodjela",
     "settings.navigation.rules": "Pravila",
     "settings.navigation.recovery": "Oporavak",

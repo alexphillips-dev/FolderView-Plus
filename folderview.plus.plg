@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.25.08">
-<!ENTITY md5 "6d3de866ae09728f8779a7cbe30dd6c6">
-<!ENTITY sha256 "d3c7578039bd091bbbe40b1142984a059c382e98ad4384cea28bac025f0889f6">
+<!ENTITY version "2026.11.26.01">
+<!ENTITY md5 "e7e26897ac49187a1b2189baf3964149">
+<!ENTITY sha256 "7eef4c50b5cbaac5ffd2a810922945348f5583a89a04e7890f23f5d4e9b9c564">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.26.01
+- Fix: Keep automatic folder matches dynamic after an ordinary edit, and preserve manual membership changes while regex matching runs.
+- Fix: Preserve pending Startup edits across a reload, prevent a rejected batch edit from returning in a later save, and retain ownership of batch delays across an interrupted write.
+- Fix: Verify the exact Global Rollback checkpoint that was reviewed, and finish earlier preference saves before replacing settings through rollback or portable environment import.
+- Fix: Keep FolderView3 migration available when the optional native autostart data cannot be imported.
+- Fix: Recover Dashboard grouping after an initial failure, and retain Docker order and VM preferences when a runtime snapshot falls back to the legacy endpoints.
+- Fix: Preserve a verified next-boot update after an interrupted registration and reject unsupported development package channels before building.
+- Fix: Translate Startup plan warnings for missing folders, missing containers, and disabled autostart.
+
 
 ###2026.11.25.08
 - Fix: Keep all assigned Docker containers and VMs when saving or copying a folder with a large member list.

@@ -488,18 +488,21 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'status_color_lock'
 ]);
 const parseSnapshotState = (raw) => {
+    const empty = { fields: {}, members: [], hiddenPreviewMembers: [], childFolders: [], actions: [] };
     try {
         const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
         if (!parsed || typeof parsed !== 'object') {
-            return { fields: {}, members: [], actions: [] };
+            return empty;
         }
         return {
             fields: parsed.fields && typeof parsed.fields === 'object' ? parsed.fields : {},
             members: Array.isArray(parsed.members) ? parsed.members : [],
+            hiddenPreviewMembers: Array.isArray(parsed.hiddenPreviewMembers) ? parsed.hiddenPreviewMembers : [],
+            childFolders: Array.isArray(parsed.childFolders) ? parsed.childFolders : [],
             actions: Array.isArray(parsed.actions) ? parsed.actions : []
         };
     } catch (_error) {
-        return { fields: {}, members: [], actions: [] };
+        return empty;
     }
 };
 
@@ -533,7 +536,9 @@ const setFormControlValue = (fieldName, value) => {
 
 const getSectionChangeItems = (sectionKey, baselineSnapshot = parseSnapshotState(initialSnapshot), currentSnapshot = parseSnapshotState(computeFormSnapshot())) => {
     if (sectionKey === 'members') {
-        return areComparableValuesEqual(baselineSnapshot.members, currentSnapshot.members) ? [] : ['Member assignment or ordering'];
+        return areComparableValuesEqual(baselineSnapshot.members, currentSnapshot.members)
+            && areComparableValuesEqual(baselineSnapshot.hiddenPreviewMembers, currentSnapshot.hiddenPreviewMembers)
+            ? [] : ['Member assignment or ordering'];
     }
     if (sectionKey === 'actions') {
         return areComparableValuesEqual(baselineSnapshot.actions, currentSnapshot.actions) ? [] : ['Custom folder actions'];
@@ -1326,16 +1331,20 @@ const getFolderWebuiProfilesApi = () => {
     folderWebuiProfilesApi = folderWebuiProfilesModule.createEditorApi({ window, document, form: getForm(), type, getMembers: getAllMembers, translate: folderEditorT });
     return folderWebuiProfilesApi;
 };
+const getExplicitMemberNames = () => $('table.sortable > tbody input.container-switch:checked:enabled')
+    .map((_, input) => String(input.value || '').trim()).get().filter(Boolean);
+
 const computeFormSnapshot = () => {
     const form = getForm();
     const state = {
         fields: {},
-        members: [],
+        members: getExplicitMemberNames(),
+        hiddenPreviewMembers: [...hiddenPreviewMembers].sort(),
         childFolders: [],
         actions: $('input[name*="custom_action"]').map((_, el) => $(el).val()).get()
     };
     $(form).find(':input[name]').each((_, element) => {
-        if (!element.name) {
+        if (!element.name || element.name === 'containers[]') {
             return;
         }
         const value = element.type === 'checkbox' ? element.checked : $(element).val();
@@ -1347,15 +1356,6 @@ const computeFormSnapshot = () => {
         } else {
             state.fields[element.name] = value;
         }
-    });
-    $('table.sortable > tbody > tr').each((_, row) => {
-        const input = $(row).find('input.container-switch');
-        state.members.push({
-            name: $(row).attr('data-name') || '',
-            included: input.prop('checked'),
-            locked: input.prop('disabled'),
-            previewVisible: $(row).find('input.member-preview-switch').prop('checked') === true
-        });
     });
     state.childFolders = $('#fvFolderMembersBody > tr[data-child-folder-id]')
         .map((_, row) => String($(row).attr('data-child-folder-id') || '').trim())
@@ -2359,14 +2359,11 @@ const getFolderEditorMembersApi = () => {
         getAssignmentContext: () => {
             const form = getForm();
             const id = getActiveFolderIdForChildOrdering();
-            const savedMembers = new Set(utils.normalizeFolderMembers(allFoldersById[id]?.containers || []));
-            const containers = $('table.sortable > tbody input.container-switch:checked').map((_, input) =>
-                !input.disabled || savedMembers.has(input.value) ? input.value : null).get();
             return {
                 utils, type, folders: allFoldersById, folderId: id, memberIdentity: memberIdentityModule,
                 ordering: window.FolderViewPlusRuntimeFolderOrdering,
                 prefs: getFolderEditorRulesApi()?.getAssignmentPrefs?.() ?? folderEditorTypePrefs,
-                draft: { name: String(form?.name?.value || '').trim(), regex: String(form?.regex?.value || ''), containers }
+                draft: { name: String(form?.name?.value || '').trim(), regex: String(form?.regex?.value || ''), containers: getExplicitMemberNames() }
             };
         }
     });
@@ -3454,7 +3451,7 @@ const startFolderEditorRuntime = async () => {
 
         // make the ui respond to the previus changes
         updateForm();
-        updateRegex(getFormField(form, 'regex'), { immediate: true });
+        await updateRegex(getFormField(form, 'regex'), { immediate: true });
         updateIcon(getFormField(form, 'icon'));
         setParentDefaultsNote('');
     }
@@ -3466,7 +3463,9 @@ const startFolderEditorRuntime = async () => {
     }
 
     // iterate over the folders
-    for (const value of Object.values(folders)) {
+    for (const [id, value] of Object.entries(folders)) {
+        if (id === currentEditFolderId) continue;
+        const occupied = new Set(value.containers);
         // match the element to the regex
         if (value.regex) {
             let regex = null;
@@ -3479,13 +3478,13 @@ const startFolderEditorRuntime = async () => {
                 if (!regex) break;
                 regex.lastIndex = 0;
                 if (regex.test(container.Name)) {
-                    value.containers.push(container.Name);
+                    occupied.add(container.Name);
                 }
             }
         }
 
         // remove the containers from the order
-        for (const container of value.containers) {
+        for (const container of occupied) {
             const index = choose.findIndex((e) => e.Name === container);
             if (index > -1) {
                 choose.splice(index, 1);
@@ -3745,12 +3744,12 @@ const buildFolderPayloadFromForm = (e) => {
     const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
     const normalizedChildFolderPreviewDepth = normalizeChildFolderPreviewDepth(e.preview_child_folder_depth?.value);
     const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
-    const includedMemberNames = [...$('input[name*="containers"]:checked').map((i, el) => String($(el).val() || '').trim())].filter(Boolean);
-    const includedMemberSet = new Set(includedMemberNames);
+    const includedMemberNames = getExplicitMemberNames();
     const nextHiddenPreviewMembers = $('table.sortable > tbody > tr').map((_, row) => {
         const $row = $(row);
         const name = String($row.attr('data-name') || '').trim();
-        return name && includedMemberSet.has(name) && $row.find('input.member-preview-switch').prop('checked') !== true ? name : null;
+        return name && $row.find('input.container-switch').prop('checked') === true
+            && $row.find('input.member-preview-switch').prop('checked') !== true ? name : null;
     }).get().filter(Boolean);
     const preservedHiddenPreviewMembers = [...new Set([...nextHiddenPreviewMembers, ...hiddenPreviewMembers])];
     const memberIdentities = {};
@@ -3927,13 +3926,8 @@ function renderMemberBulkMoveTargets() {
 function syncMemberSnapshotBaseline() {
     const baseline = parseSnapshotState(initialSnapshot || computeFormSnapshot());
     const current = parseSnapshotState(computeFormSnapshot());
-    baseline.members = Array.isArray(current.members) ? current.members : [];
-    if (Object.prototype.hasOwnProperty.call(current.fields || {}, 'containers[]')) {
-        baseline.fields = baseline.fields && typeof baseline.fields === 'object' ? baseline.fields : {};
-        baseline.fields['containers[]'] = current.fields['containers[]'];
-    } else if (baseline.fields && typeof baseline.fields === 'object' && Object.prototype.hasOwnProperty.call(baseline.fields, 'containers[]')) {
-        delete baseline.fields['containers[]'];
-    }
+    baseline.members = current.members;
+    baseline.hiddenPreviewMembers = current.hiddenPreviewMembers;
     initialSnapshot = JSON.stringify(baseline);
     updateUnsavedIndicator();
     updateSectionStateIndicators();

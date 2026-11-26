@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common",
-        "content-revision": "46fbe7fffa6c537fd623c418ecec326ca0aebbce296c11fce9eadf738b117c2d"
+        "content-revision": "4116d34c7bc8900a4b7b346ab6c1dbd297a955de2f63bf5fc77b06f342bab4dc"
     },
     "common.unassigned-group.title": "Atanmamış öğeler",
     "runtime.action.requests-result": "$1 kabul edildi · $2 başarısız",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 görünümü ön ayar adları kopyalanıyor.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Geçersiz veya büyük boyutlu FolderView3 yerel otomatik başlatma listesi.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Geçersiz FolderView3 yerel otomatik başlatma girişi.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 yerel otomatik başlatma bekleme süresi 3600 saniyeyi aşıyor.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON, desteklenen yerleştirme derinliğini aşıyor.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON yinelenen özellik adları içeriyor. İçe aktarmadan önce dışa aktarmayı düzeltin.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 otomatik başlatma sırası 2000 girişli başlatma sınırını aşıyor.",

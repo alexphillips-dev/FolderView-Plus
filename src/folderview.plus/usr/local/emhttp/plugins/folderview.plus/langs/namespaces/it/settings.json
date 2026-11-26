@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "settings",
-        "content-revision": "a3b04eb4ed6203a2cc23d513add266649822fe0532ed6f246ac45cb724cd09ec"
+        "content-revision": "631ae4022b46ec355b222707e7710a25daa863b777d983882382673098db9eab"
     },
     "settings.visibility.group-unassigned-items": "Raggruppa gli elementi non assegnati",
     "settings.visibility.group-unassigned-items-help": "Si applica anche al riquadro corrispondente della dashboard.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Contenitori ad avvio automatico: $1; contenitori rilevati: $2",
     "settings.start-order.order-column": "Ordine di visualizzazione",
     "settings.start-order.container-column": "Contenitore",
+    "settings.start-order.warning-missing-folder": "La cartella nel piano iniziale non esiste più: $1",
+    "settings.start-order.warning-missing-container": "Il contenitore nel piano iniziale non esiste più: $1",
+    "settings.start-order.warning-autostart-off": "$1 è nel piano di avvio ma l'avvio automatico di Docker è disattivato.",
     "settings.navigation.bulk-assignment": "Assegnazione in blocco",
     "settings.navigation.rules": "Regole",
     "settings.navigation.recovery": "Recupero",

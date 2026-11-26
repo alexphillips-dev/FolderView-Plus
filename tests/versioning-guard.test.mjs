@@ -265,6 +265,31 @@ test ! -e "archive/folderview.plus-$today.100.txz"
     assert.equal(output.match(/99 revisions per date/g).length, 2);
 });
 
+test('package build rejects an unsupported channel before preparing artifacts', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-channel-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'src', 'folderview.plus'), { recursive: true });
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    for (const file of ['folderview.plus.plg', 'folderview.plus.xml', 'scripts/release_guard.sh', 'scripts/ensure_plg_changes_entry.sh', 'scripts/generate_runtime_integrity_manifest.mjs']) {
+        fs.writeFileSync(path.join(directory, file), '');
+    }
+    fs.writeFileSync(path.join(directory, 'scripts/icon_asset_pack_guard.sh'), 'touch icon-checked\n');
+    const output = runBuildFixture(directory, `set -euo pipefail
+cd "$1"
+if bash "$2" --branch deev > result 2>&1; then exit 10; fi
+grep -F 'Unsupported package channel: deev' result
+if FVPLUS_BUILD_BRANCH=other bash "$2" --dry-run > result 2>&1; then exit 11; fi
+grep -F 'Unsupported package channel: other' result
+test ! -e icon-checked && test ! -e archive && test ! -e tmp
+for branch in dev main; do
+    bash "$2" --branch "$branch" --dry-run | grep -F "Branch: $branch"
+done
+`, pkgBuildPath);
+    assert.match(output, /Unsupported package channel: deev/);
+    assert.match(output, /Unsupported package channel: other/);
+    assert.match(output, /Branch: dev[\s\S]*Branch: main/);
+});
+
 test('package modes share a lock which recovers after abrupt owner termination', t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-build-lock-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

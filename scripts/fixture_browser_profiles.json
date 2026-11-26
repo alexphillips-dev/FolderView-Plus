@@ -44,7 +44,7 @@
   "editor-help": ["Folder editor info icons"],
   "editor-popovers": ["Icon browser", "Dashboard action rail exposes", "Folder editor dependencies"],
   "folderview3": ["FolderView3"],
-  "folderview-adoption": ["^Folder editor assignment explanations", "^Runtime preview summary"],
+  "folderview-adoption": ["^Folder editor (assignment explanations|keeps changes made while a regex worker|retains unavailable explicit members)", "^Runtime preview summary"],
   "unassigned-group": ["^Unassigned group", "^Docker Unassigned group", "^Dashboard lifecycle (groups|retains).*unassigned", "^Dashboard lifecycle distinguishes real folder-prefixed", "^Filters and view settings persist unassigned grouping"],
   "runtime-native-identity": ["^Dashboard lifecycle distinguishes real folder-prefixed", "^VM view preferences reload the native controls"],
   "dashboard-runtime-consistency": ["^Dashboard lifecycle defers live state", "^Dashboard Started only follows native Unassigned", "^Dashboard lifecycle applies peer Legacy", "^Dashboard lifecycle preserves Unassigned keyboard focus"],

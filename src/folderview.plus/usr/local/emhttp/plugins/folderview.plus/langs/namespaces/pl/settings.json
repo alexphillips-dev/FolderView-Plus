@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "settings",
-        "content-revision": "9a224d70a9908bc2dc1edf65b19be3f59188e7c75ba6c4f23325aa393df178e3"
+        "content-revision": "845bd3fa0e46d5039470c01c75240d1b3bcfe092bcefabc0f053d56138a09019"
     },
     "settings.visibility.group-unassigned-items": "Grupuj nieprzypisane elementy",
     "settings.visibility.group-unassigned-items-help": "Dotyczy także odpowiedniego kafelka na pulpicie.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Kontenery autostartu: $1; wykryte kontenery: $2",
     "settings.start-order.order-column": "Kolejność",
     "settings.start-order.container-column": "Pojemnik",
+    "settings.start-order.warning-missing-folder": "Folder w planie startowym już nie istnieje: $1",
+    "settings.start-order.warning-missing-container": "Kontener w planie początkowym już nie istnieje: $1",
+    "settings.start-order.warning-autostart-off": "$1 jest w planie startowym, ale autostart Dockera jest wyłączony.",
     "settings.navigation.bulk-assignment": "Przypisanie zbiorcze",
     "settings.navigation.rules": "Zasady",
     "settings.navigation.recovery": "Odzyskiwanie",

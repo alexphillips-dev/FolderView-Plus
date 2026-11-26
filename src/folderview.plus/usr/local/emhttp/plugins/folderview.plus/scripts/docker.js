@@ -4672,7 +4672,7 @@ const createFolders = async () => {
 
     // Parse the results
     let folders = JSON.parse(prom[0]);
-    let unraidOrder = Object.values(JSON.parse(prom[1]));
+    const savedOrder = Object.values(JSON.parse(prom[1]));
     const containersStateInfo = parseJsonPayloadSafe(prom[2]);
     let containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo, dockerRuntimeInfoByName);
     dockerRuntimeInfoByName = (containersInfo && typeof containersInfo === 'object' && !Array.isArray(containersInfo))
@@ -4685,19 +4685,14 @@ const createFolders = async () => {
     folders = reconcileDockerMemberIdentities(folders, containersInfo);
     dockerFolderGroupingSession = dockerFolderGroupingModule.createSession({ document, containersInfo });
     let order = dockerFolderGroupingSession.readOrder();
-    let prefsResponse = {};
-    try {
-        prefsResponse = prom[3] ? JSON.parse(prom[3]) : {};
-    } catch (error) {
-        prefsResponse = {};
-    }
+    const prefsResponse = parseJsonPayloadSafe(prom[3]);
     folderTypePrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(prefsResponse));
     resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
     });
     const folderDepthById = buildFolderDepthById(folders);
-    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs, containersInfo);
+    const unraidOrder = reorderFolderSlotsInBaseOrder(savedOrder, folders, folderTypePrefs, containersInfo);
     applyRuntimePrefs(folderTypePrefs);
     queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
@@ -4921,8 +4916,10 @@ const createFolders = async () => {
     recordDockerFatalBannerAction('Docker folders rendered successfully');
     renderedDockerRuleSignature = utils.getMembershipSignature({ type: 'docker', rules: folderTypePrefs.autoRules });
     renderedDockerRowPlacement = useSavedOrder ? 'saved-order' : 'folders-first';
-    const renderedSnapshot = requestBundle.getSnapshot?.();
+    // Legacy read_order.php?native=1 supplies the raw order shared by both snapshot modes.
+    const renderedSnapshot = requestBundle.getSnapshot?.() ?? { nativeSavedOrder: savedOrder };
     getDockerRuntimeInfoApi().rememberRenderedSnapshotOrder(renderedSnapshot);
+    lastDockerRuntimeSnapshotToken = '';
     rememberDockerRuntimeSnapshot(renderedSnapshot);
     foldersRenderedSuccessfully = true;
     dockerRuntimePerformanceTelemetry?.end?.('folderFinalization');

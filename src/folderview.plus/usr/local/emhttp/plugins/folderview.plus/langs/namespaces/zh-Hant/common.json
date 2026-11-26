@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "common",
-        "content-revision": "dafd7a4776652f31645a341aecf1812127de8ab05ed1a812d73e68eb35058643"
+        "content-revision": "7ba291f76e9bd6fcfa38a3b451419044a30be3bbbc9ef07fb14fb11eef50b3d1"
     },
     "common.unassigned-group.title": "未分組的項目",
     "runtime.action.requests-result": "已接受 $1 項 · 失敗 $2 項",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 外觀預設名稱重複。",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "FolderView3 本機自動啟動清單無效或過大。",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "FolderView3 本機自動啟動條目無效。",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 本機自動啟動等待時間超過 3600 秒。",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON 超出了支援的巢狀深度。",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON 包含重複的屬性名稱。匯入前更正匯出。",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 自動啟動序列超出了 2000 個條目的啟動限制。",

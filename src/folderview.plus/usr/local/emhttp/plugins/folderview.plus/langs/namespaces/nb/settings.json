@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "settings",
-        "content-revision": "e11c6b67393f14e90958d0d36103cba417dd0214a0c3d577260bd059fee505b3"
+        "content-revision": "252b4024957419d7abc7651b5e92aa4ce5bb218d7ddbc93f1619136c724d8c15"
     },
     "settings.visibility.group-unassigned-items": "Grupper ikke-tilordnede elementer",
     "settings.visibility.group-unassigned-items-help": "Gjelder også den tilsvarende flisen på dashbordet.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart-beholdere: $1; containere oppdaget: $2",
     "settings.start-order.order-column": "Sorteringsrekkefølge",
     "settings.start-order.container-column": "Beholder",
+    "settings.start-order.warning-missing-folder": "Mappe i startplan eksisterer ikke lenger: $1",
+    "settings.start-order.warning-missing-container": "Beholder i startplan eksisterer ikke lenger: $1",
+    "settings.start-order.warning-autostart-off": "$1 er i startplanen, men Docker-autostart er av.",
     "settings.navigation.bulk-assignment": "Massetildeling",
     "settings.navigation.rules": "Regler",
     "settings.navigation.recovery": "Gjenoppretting",

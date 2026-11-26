@@ -9,7 +9,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "settings",
-        "content-revision": "a65e4354d535748ca5dbd6120a481426489d6b8e88ac1f1e48d1c8ce4ed03284"
+        "content-revision": "62b2cf50adfd8273e9703325251d7f06d1f3e70046cdb79094b139e2d70efc28"
     },
     "settings.rules.save-changes": "Save changes",
     "settings.rules.regex-placeholder": "Regex pattern (e.g. ^media-)",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Autostart containers: $1; containers detected: $2",
     "settings.start-order.order-column": "Order",
     "settings.start-order.container-column": "Container",
+    "settings.start-order.warning-missing-folder": "Folder in start plan no longer exists: $1",
+    "settings.start-order.warning-missing-container": "Container in start plan no longer exists: $1",
+    "settings.start-order.warning-autostart-off": "$1 is in the start plan but Docker autostart is off.",
     "settings.navigation.bulk-assignment": "Bulk assignment",
     "settings.navigation.rules": "Rules",
     "settings.navigation.recovery": "Recovery",

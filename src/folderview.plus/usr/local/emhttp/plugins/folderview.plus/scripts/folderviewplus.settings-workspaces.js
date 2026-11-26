@@ -236,6 +236,7 @@
                 openImportApplyProgressDialog('docker', progressTotal);
                 progressOpen = true;
                 setProgress(0, 'Preparing environment import...');
+                await deps.flushRecoveryPreferenceSaves();
                 const response = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
                     action: 'apply',
                     payload: String(selectedFile?.text || ''),

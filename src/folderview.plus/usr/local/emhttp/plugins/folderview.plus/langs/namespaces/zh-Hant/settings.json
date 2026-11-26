@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "settings",
-        "content-revision": "0f2927d161d173a1ca7b3323a5c28fb8192a9c09bd443064c715025f83b60a76"
+        "content-revision": "3102091e08a9fe81be86176b2f2cd66ddab782994db5a78eaaf3de7c4bb4a539"
     },
     "settings.visibility.group-unassigned-items": "將未分組的項目集中顯示",
     "settings.visibility.group-unassigned-items-help": "也會套用至儀表板上對應的區塊。",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "自動啟動容器：$1；偵測到的容器：$2",
     "settings.start-order.order-column": "順序",
     "settings.start-order.container-column": "容器",
+    "settings.start-order.warning-missing-folder": "啟動計劃中的資料夾不再存在：$1",
+    "settings.start-order.warning-missing-container": "啟動計劃中的容器不再存在：$1",
+    "settings.start-order.warning-autostart-off": "$1 在啟動計畫中，但 Docker 自動啟動已關閉。",
     "settings.navigation.bulk-assignment": "批次分配",
     "settings.navigation.rules": "規則",
     "settings.navigation.recovery": "復原",

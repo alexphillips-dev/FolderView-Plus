@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "settings",
-        "content-revision": "685a44b2fe9867d38964f3aed06ad757d89b129a8207b5a32e6c53a8f8481966"
+        "content-revision": "e7f43f406b699fdb5b6d822aea5f63249d095c8a0a99c5c2a136d658ac9ac556"
     },
     "settings.visibility.group-unassigned-items": "تجميع العناصر غير المعيّنة",
     "settings.visibility.group-unassigned-items-help": "ينطبق أيضًا على القسم المقابل في لوحة المعلومات.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "حاويات التشغيل التلقائي: $1; تم اكتشاف حاويات: $2",
     "settings.start-order.order-column": "الترتيب",
     "settings.start-order.container-column": "حاوية",
+    "settings.start-order.warning-missing-folder": "المجلد الموجود في خطة البدء لم يعد موجودًا: $1",
+    "settings.start-order.warning-missing-container": "الحاوية في خطة البدء لم تعد موجودة: $1",
+    "settings.start-order.warning-autostart-off": "$1 موجود في خطة البدء ولكن تشغيل Docker التلقائي متوقف.",
     "settings.navigation.bulk-assignment": "تعيين جماعي",
     "settings.navigation.rules": "القواعد",
     "settings.navigation.recovery": "التعافي",

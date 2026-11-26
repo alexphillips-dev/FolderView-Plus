@@ -271,6 +271,69 @@ test('a sparse wait patch preserves a newer peer value even when PHP decodes nam
     assert.equal(result.native, '0\n1 55\n');
 });
 
+test('an order-only write settles interrupted wait ownership before the next edit', () => {
+    const proposed = 'docker-present 7\ndocker-extra 29\n';
+    const ownership = { 'docker-extra': { applied: 'docker-extra 29', original: 'docker-extra 19' } };
+    const batchWaitState = { active: [], pending: { digest: createHash('sha256').update(proposed).digest('hex'), ownership } };
+    const batch = { id: 'fixture', delay: 29, items: [{ type: 'container', name: 'docker-extra' }] };
+    const plan = { mode: 'custom-batches', remaining: 'before', batches: [batch] };
+    for (const wait of [7, 11]) {
+        const nativeAutostart = proposed.replace('present 7', `present ${wait}`);
+        const reordered = explicitOrderFixture('start-save', { plan, planPatch: { remaining: 'after' }, nativeAutostart, batchWaitState });
+        assert.equal(reordered.response.dockerOrderSync, 'synced');
+        assert.deepEqual(reordered.batchWaitState, { active: ownership });
+        assert.equal(reordered.native, `docker-extra 29\ndocker-present ${wait}\n`);
+        const removed = explicitOrderFixture('start-save', {
+            plan: { ...plan, remaining: 'after' }, planPatch: { batches: [{ ...batch, delay: 0 }] },
+            nativeAutostart: reordered.native, batchWaitState: reordered.batchWaitState
+        });
+        assert.equal(removed.response.dockerOrderSync, 'synced');
+        assert.equal(removed.native, `docker-extra 19\ndocker-present ${wait}\n`);
+    }
+});
+
+test('Startup batch operations preserve disjoint fields, keep intended order and reject stale edits', () => {
+    const first = { id: 'a', name: 'Confirmed A', delay: 5, items: [{ type: 'container', name: 'docker-present' }] };
+    const second = { id: 'b', name: 'Confirmed B', delay: 8 };
+    const plan = { mode: 'custom-batches', batches: [first, second] };
+    const edit = { action: 'set', id: 'b', field: 'delay', previous: 8, value: 24 };
+    const added = { id: 'c', name: 'Added batch' };
+    const result = explicitOrderFixture('start-save', { plan, planPatch: { batchChanges: [
+        edit, { action: 'add', id: 'c', value: added }, { action: 'move', id: 'c', offset: -1, neighbor: 'b' },
+        { action: 'remove', id: 'a' }
+    ] } });
+    assert.equal(result.responseStatus, 200);
+    assert.deepEqual(result.response.prefs.dockerStartOrder.batches.map(({ id, name, delay }) => [id, name, delay]), [
+        ['c', 'Added batch', 0], ['b', 'Confirmed B', 24]
+    ]);
+    assert.equal(Object.hasOwn(result.response.prefs.dockerStartOrder, 'batchChanges'), false);
+    const stale = explicitOrderFixture('start-save', { plan: { ...plan, batches: [first, { ...second, delay: 12 }] }, planPatch: { batchChanges: [edit] } });
+    assert.equal(stale.responseStatus, 400);
+    assert.equal(stale.native, stale.nativeBefore);
+    const invalid = explicitOrderFixture('start-save', { plan, planPatch: { batchChanges: [{ ...edit, value: [] }] } });
+    assert.equal(invalid.responseStatus, 400);
+    assert.equal(invalid.native, invalid.nativeBefore);
+});
+
+test('Startup preview reports typed descriptions while preserving plain warning compatibility', () => {
+    const result = explicitOrderFixture('preview', { nativeAutostart: 'docker-present 7\n', plan: {
+        mode: 'custom-batches', batches: [{ id: 'fixture', items: [
+            { type: 'folder', id: 'missing' },
+            { type: 'container', name: 'missing-app' },
+            { type: 'container', name: 'docker-extra' }
+        ] }]
+    } });
+    assert.equal(result.responseStatus, 200);
+    assert.deepEqual(result.response.preview.warningDetails, [
+        ['missing-folder', 'folder-missing'], ['missing-container', 'missing-app'], ['autostart-off', 'docker-extra']
+    ]);
+    assert.deepEqual(result.response.preview.warnings, [
+        'Folder in start plan no longer exists: folder-missing',
+        'Container in start plan no longer exists: missing-app',
+        'docker-extra is in the start plan but Docker autostart is off.'
+    ]);
+});
+
 test('Docker startup preview and sync preserve native waits above the plugin limit', () => {
     for (const wait of [3600, 3601, 7200]) {
         const nativeAutostart = `docker-present ${wait}\n`;

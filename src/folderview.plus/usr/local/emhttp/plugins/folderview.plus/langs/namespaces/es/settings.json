@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "settings",
-        "content-revision": "a9e9767268aa68e572b303f8b948a7c6ba49ac7be70cf99fe9c22da090f35730"
+        "content-revision": "dedb3cc1b3d69dda8318f446fd4c0f643fbdcf93efc76da1225d2b1360c29924"
     },
     "settings.visibility.group-unassigned-items": "Agrupar elementos sin asignar",
     "settings.visibility.group-unassigned-items-help": "También se aplica al panel correspondiente del tablero.",
@@ -161,6 +161,9 @@
     "settings.start-order.counts": "Contenedores de inicio automático: $1; contenedores detectados: $2",
     "settings.start-order.order-column": "Orden de clasificación",
     "settings.start-order.container-column": "Contenedor",
+    "settings.start-order.warning-missing-folder": "La carpeta del plan de inicio ya no existe: $1",
+    "settings.start-order.warning-missing-container": "El contenedor en el plan de inicio ya no existe: $1",
+    "settings.start-order.warning-autostart-off": "$1 está en el plan de inicio pero el inicio automático de Docker está desactivado.",
     "settings.navigation.bulk-assignment": "Asignación masiva",
     "settings.navigation.rules": "Reglas",
     "settings.navigation.recovery": "Recuperación",

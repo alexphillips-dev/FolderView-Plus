@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "common",
-        "content-revision": "999091fa8ff4f06c4efed5a76ce9c3e3bb21303d4269cfae15279c32077691ad"
+        "content-revision": "a7922b2f2d3efff5807264835b9b558f53897095680a6a7b9a01ce8d26dfffb3"
     },
     "common.unassigned-group.title": "Nepřiřazené položky",
     "runtime.action.requests-result": "Přijato $1 · Selhalo $2",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Názvy přednastavených vzhledů FolderView3 jsou duplikovány.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Neplatný nebo příliš velký nativní seznam automatického spuštění FolderView3.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Neplatná položka nativního automatického spuštění FolderView3.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "Nativní čekání na automatické spuštění FolderView3 přesahuje 3600 sekund.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON překračuje podporovanou hloubku vnoření.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON obsahuje duplicitní názvy vlastností. Před importem upravte export.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "Sekvence automatického spuštění FolderView3 překračuje limit spouštění 2000 položek.",

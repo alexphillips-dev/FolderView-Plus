@@ -413,7 +413,7 @@
       "loadedBy": "server/lib.php",
       "functionInventory": { "count": 5, "sha256": "4209fb311f950ab02ed1808a29b4c1cb8c56a0d9d7b6e06c19c8cfae0aa0a0dc" }
     },
-    {"file": "server/lib.folderview3-validation.php", "owner": "lib.folderview3-validation.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": { "count": 7, "sha256": "1341c064027882742e95bb4bda093ff7bd87c5cca818e23151e34f3d2f06d1b8" }},
+    {"file": "server/lib.folderview3-validation.php", "owner": "lib.folderview3-validation.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": { "count": 8, "sha256": "3ae417ce319bf733dc0783421d557af9d7ffb1fe281b1842047836bea2409e7a" }},
     {"file": "server/lib.folderview3-settings.php", "owner": "lib.folderview3-settings.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.prefs.php", "server/lib.theme-workspace.php", "server/lib.environment-transaction.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-migration.php", "functionInventory": { "count": 7, "sha256": "fd61eb37545f6e03f8901cd417151d1a227b726c264b445aaa113f1d35e1014b" }},
     {"file": "server/lib.folderview3-presets.php", "owner": "lib.folderview3-presets.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.theme-profiles.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.folderview3-appearance.php", "functionInventory": { "count": 3, "sha256": "48a486836bb34fc2f00ba2fe1dbc2360b1f691259161526cd19a523493bc09e4" }},
     {"file": "server/lib.folder-membership.php", "owner": "lib.folder-membership.php", "consumers": ["server-endpoints"], "stateModel": "request-scoped", "dependsOn": ["server/lib.folder-rules.php"], "compatibilityGlobals": [], "loadedBy": "server/lib.docker-order.php", "functionInventory": { "count": 2, "sha256": "4d30ecfd3856f20d1bdcaa94a55da20f50b175901f42be8e2021d7a2bf0981b5" }},
@@ -617,7 +617,7 @@
       "dependsOn": ["server/lib.environment-snapshot.php", "server/lib.theme-workspace.php", "server/lib.prefs.php", "server/lib.storage.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 12, "sha256": "fac205e4ef1baabd5e875b4742cdf53cdc71468456705b2e079fc5f9421429ba" }
+      "functionInventory": { "count": 11, "sha256": "dc4fa21fd1b332e9887f9189368f172125d78d19a6f3287bb6a4afaa80c7a5a3" }
     },
     {
       "file": "server/lib.environment-transaction.php",
@@ -804,7 +804,7 @@
       "dependsOn": ["server/lib.storage.php", "server/lib.transaction-files.php", "server/lib.docker-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.docker-start-order-sequence.php",
-      "functionInventory": { "count": 7, "sha256": "fb35ed2eb9f0d60ea4dcdf8c5289e4779fb7c9bf99e48133be435a764c271684" }
+      "functionInventory": { "count": 6, "sha256": "b9eee452aa93743edbc75f5b1dfce060554ab1191c7ba8c3ab8ba10ff4cf4b14" }
     },
     {
       "file": "server/lib.docker-page-order.php",
@@ -824,7 +824,7 @@
       "dependsOn": ["server/lib.process.php", "server/lib.prefs.php", "server/lib.docker-start-order-sequence.php", "server/lib.runtime-info.php", "server/lib.docker-runtime.php", "server/lib.rules-engine.php", "server/lib.docker-page-order.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 16, "sha256": "ae252d37f68b1001e61232f672e89cdf88db406af0804591a2ab752e23ac551a" }
+      "functionInventory": { "count": 17, "sha256": "d0559d31156e0414aeac76402223d02cb9252cccf82a04d7a3629249ac51cb54" }
     },
     {
       "file": "server/lib.docker-autostart-toggle.php",
@@ -1096,7 +1096,7 @@
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "prefsOutbox",
       "loader": "commonjs",
-      "exports": ["createStorage"]
+      "exports": ["createStorage", "mergeStartOrderPatch", "applyStartOrderBatchChanges"]
     },
     {
       "file": "scripts/runtime.unassigned-group.js",

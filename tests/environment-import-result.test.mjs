@@ -5,11 +5,13 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const workspaces = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js');
 const summary = { docker: { folderCount: 2 }, vm: { folderCount: 1 }, themeWorkspace: {} };
-const fixture = (response, refresh = async () => ({ hasErrors: false }), themeRefresh = async () => {}, backupsRefresh = async () => true) => {
+const fixture = (response, refresh = async () => ({ hasErrors: false }), themeRefresh = async () => {},
+    backupsRefresh = async () => true, drainPrefs = async () => {}) => {
     const calls = [], notices = [], errors = [];
     let confirm;
     const api = workspaces.createApi({ window: { setTimeout: callback => callback() }, $: () => ({ length: 0 }),
         selectJsonFile: async () => ({ name: 'synthetic.json', text: '{}' }),
+        flushRecoveryPreferenceSaves: async () => { calls.push('drain'); return drainPrefs(); },
         apiPostJson: async (_url, data) => { calls.push(data.action); return data.action === 'preview' ? { summary } : response; },
         swal: (options, callback) => { if (callback) confirm = callback; else notices.push(options); },
         showToastMessage: options => notices.push(options), showError: (...args) => errors.push(args),
@@ -19,6 +21,15 @@ const fixture = (response, refresh = async () => ({ hasErrors: false }), themeRe
         refreshBackups: async type => { calls.push('backups:' + type); return backupsRefresh(type); }, refreshThemeWorkspace: async () => { calls.push('theme'); return themeRefresh(); } });
     return { calls, notices, errors, apply: async () => { await api.importEnvironmentSnapshot(); return confirm(true); } };
 };
+
+test('environment import stops before apply when a pending preference save fails', async () => {
+    const f = fixture({ import: { verified: true } }, undefined, undefined, undefined,
+        async () => { throw new Error('Synthetic pending save failure'); });
+    await assert.rejects(f.apply(), /Synthetic pending save failure/);
+    assert.deepEqual(f.calls, ['preview', 'lock:docker', 'lock:vm', 'drain', 'unlock:vm', 'unlock:docker']);
+    assert.equal(f.errors.length, 1);
+    assert.equal(f.notices.length, 0);
+});
 
 test('environment import requires authoritative verified apply before publishing success', async () => {
     for (const response of [{}, { import: {} }, { import: { summary, verified: false } }]) {
@@ -51,6 +62,7 @@ test('verified environment import with refreshed views preserves success and loc
     await f.apply();
     assert.equal(f.errors.length, 0);
     assert.ok(f.notices.some(notice => notice.level === 'success'));
+    assert.ok(f.calls.indexOf('drain') < f.calls.indexOf('apply'));
     assert.ok(f.notices.some(notice => String(notice.message).includes('synthetic-checkpoint')));
     assert.ok(f.calls.includes('refresh:docker') && f.calls.includes('refresh:vm') && f.calls.includes('theme'));
     assert.deepEqual(f.calls.slice(-2), ['unlock:vm', 'unlock:docker']);

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common",
-        "content-revision": "c08b33a9401bc313cf5ddfe1f2a6bf638642e3e583abffa8b83123495e9f0a03"
+        "content-revision": "104e1238ffef4e98ca5e28ba421e146749cc4817588e324dda21c6d50f701853"
     },
     "common.unassigned-group.title": "未割り当ての項目",
     "runtime.action.requests-result": "受付 $1 件 · 失敗 $2 件",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "FolderView3 の外観プリセット名が重複しています。",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "FolderView3 ネイティブ自動起動リストが無効であるか、サイズが大きすぎます。",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "無効な FolderView3 ネイティブ自動起動エントリ。",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "FolderView3 のネイティブ自動起動待機が 3600 秒を超えています。",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON がサポートされているネストの深さを超えています。",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON に重複したプロパティ名が含まれています。インポートする前にエクスポートを修正してください。",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "FolderView3 の自動起動シーケンスが 2000 エントリの起動制限を超えています。",

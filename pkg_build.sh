@@ -126,7 +126,7 @@ apply_branch_channel_messaging() {
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
-  --branch NAME   Force update URLs to use branch NAME (default: auto dev/main)
+  --branch NAME   Force update URLs to use dev or main (default: auto)
   --dry-run       Show computed version/output paths without writing files
   --keep-archives N
                   Keep latest N archive versions after build (default: 24, 0 disables prune)
@@ -429,6 +429,24 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# Resolve the release channel before acquiring the build lock or preparing files.
+if [ -n "$branch_override" ]; then
+    branch="$branch_override"
+else
+    detected_branch="$(detect_git_branch)"
+    if [ "$detected_branch" = "dev" ] || [ "$detected_branch" = "main" ]; then
+        branch="$detected_branch"
+    elif [ "$(detect_manifest_branch)" = "dev" ]; then
+        branch="dev"
+    else
+        branch="main"
+    fi
+fi
+if [[ "$branch" != dev && "$branch" != main ]]; then
+    echo "ERROR: Unsupported package channel: $branch. Use dev or main." >&2
+    exit 1
+fi
+
 archive_prune_keep="$(parse_nonnegative_integer "$archive_prune_keep_raw")"
 if [ -z "$archive_prune_keep" ]; then
     echo "ERROR: archive prune keep value must be a non-negative integer (received: $archive_prune_keep_raw)." >&2
@@ -480,28 +498,6 @@ if [ "$run_install_smoke" = true ]; then
     fi
 fi
 bash "$icon_asset_pack_guard_script"
-
-# Set branch and base version by build type
-if [ -n "$branch_override" ]; then
-    branch="$branch_override"
-else
-    detected_branch="$(detect_git_branch)"
-    if [ "$detected_branch" = "dev" ] || [ "$detected_branch" = "main" ]; then
-        branch="$detected_branch"
-    else
-        manifest_branch="$(detect_manifest_branch)"
-        if [ "$manifest_branch" = "dev" ]; then
-            branch="dev"
-        else
-            branch="main"
-        fi
-    fi
-fi
-
-if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-    echo "ERROR: Invalid branch name for URL generation: $branch" >&2
-    exit 1
-fi
 
 if [ -n "$version_override" ]; then
     if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then

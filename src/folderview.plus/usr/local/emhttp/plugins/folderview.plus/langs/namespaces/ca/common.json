@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "common",
-        "content-revision": "8a7ca9e935a597e472f8e33287c392e4b311bd673b98d0a5340ddeca885a667e"
+        "content-revision": "ce503a1ee3b840d6ab5b8113aa9c74226646d9da8cd9cff8d987963dc12797f5"
     },
     "common.unassigned-group.title": "Elements sense assignar",
     "runtime.action.requests-result": "$1 acceptades · $2 fallides",
@@ -259,7 +259,6 @@
     "common.server.folderview3-folderview3-appearance-preset-names-are-duplicated-2db639": "Els noms predefinits d'aparença de FolderView3 es dupliquen.",
     "common.server.folderview3-invalid-or-oversized-folderview3-native-autostart-list-5cd00f": "Llista d'inici automàtic FolderView3 no vàlida o de gran mida.",
     "common.server.folderview3-invalid-folderview3-native-autostart-entry-976f04": "Entrada d'inici automàtic nativa de FolderView3 no vàlida.",
-    "common.server.folderview3-folderview3-native-autostart-wait-exceeds-3600-seconds-9f019d": "L'espera d'inici automàtic natiu de FolderView3 supera els 3600 segons.",
     "common.server.folderview3-folderview3-json-exceeds-the-supported-nesting-depth-04f274": "FolderView3 JSON supera la profunditat d'imbricació admesa.",
     "common.server.folderview3-folderview3-json-contains-duplicate-property-names-correct-the-export-befor-b4981a": "FolderView3 JSON conté noms de propietat duplicats. Corregiu l'exportació abans d'importar.",
     "common.server.folderview3-folderview3-autostart-sequence-exceeds-the-2000-entry-startup-limit-f51f27": "La seqüència d'inici automàtic de FolderView3 supera el límit d'inici de 2000 entrades.",

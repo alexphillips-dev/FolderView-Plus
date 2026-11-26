@@ -459,9 +459,21 @@ if (JSON.stringify({ ...priorReport, 'generated-at': catalogDate }) === JSON.str
 writeJson(reportFile, report);
 
 for (const [file, json] of pendingJson) {
-    if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === json) continue;
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, json, 'utf8');
+    try {
+        if (fs.readFileSync(file, 'utf8') === json) continue;
+    } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+    }
+    const directory = path.dirname(file);
+    fs.mkdirSync(directory, { recursive: true });
+    const stagingDirectory = fs.mkdtempSync(path.join(directory, '.fvplus-catalog-'));
+    const staged = path.join(stagingDirectory, path.basename(file));
+    try {
+        fs.writeFileSync(staged, json, { encoding: 'utf8', flag: 'wx' });
+        fs.renameSync(staged, file);
+    } finally {
+        fs.rmSync(stagingDirectory, { recursive: true, force: true });
+    }
 }
 
 console.log(`Built ${phrases.length} auto-bound surface messages across ${locales.length} locales; aggregate catalog ${aggregateCount} messages.`);

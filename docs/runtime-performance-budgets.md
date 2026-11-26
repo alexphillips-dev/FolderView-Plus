@@ -1,5 +1,58 @@
 # Runtime performance budgets
 
+## November 26 hosted release comparison
+
+The [previous stable qualification](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/43505744199)
+measured `64c3c3396fd6f83e7993f1f2a7bd7f47cd455abe`. The
+[first release candidate](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/45739277040)
+measured `ad7c4502eb8928bf6dd8d39cc3fab5f05ba6bae0`.
+The static guards used Node 24.22.2 and 24.22.3 with per-file gzip level 9.
+
+| Metric | Stable or previously credited observation | Candidate | Previously credited | Additional credit |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate JavaScript bytes | 4,815,285 | 5,020,547 | 0 | 205,262 |
+| Aggregate JavaScript gzip bytes | 1,022,510 | 1,079,849 | 9,366 | 47,973 |
+| Aggregate CSS gzip bytes | 115,424 | 116,313 | 76 | 813 |
+| Setup Assistant bytes | 9,244 | 11,297 | 0 | 2,053 |
+| Setup Assistant gzip bytes | At most 2,078 | 2,667 | 0 | 589 |
+| Settings runtime actions bytes | 24,387 | 25,282 | Included in comparison base | 895 |
+| Settings runtime actions gzip bytes | 5,228 | 5,488 | Included in comparison base | 260 |
+
+The [stable size guard](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/43505744199/job/132163014223)
+passed at the old Setup Assistant gzip limit of 2,078 bytes. The credit uses the
+minimum increase that this upper bound supports. The runtime actions comparison
+starts at the already credited [PR #135 guard measurement](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/45430830050/job/138590146813).
+The net aggregate changes include new and expanded browser modules for folder
+assignment, preference recovery, native Docker actions, runtime previews, and theme
+review. This comparison uses aggregate hosted results across different Node patch
+versions, so the gzip values represent observed net changes.
+
+The production startup reports used Chromium 156.0.8078.4 and three samples
+per case. The Docker startup lists add seven scripts. The eighth request is
+consistent with preparing the nonce for guarded order synchronization. The
+November 24 references already include two requests and two scripts per measured
+Docker case, leaving six requests and five scripts to record per case.
+Settings adds four script elements and reports four additional requests and
+scripts in each measured case. The new settings controls and script elements
+account for 22 of the 23 additional settled DOM nodes. The four affected
+small and RTL Settings references include the observed 23-node delta.
+
+| Startup case | Additional cold callback credit | Additional warm callback credit |
+| --- | ---: | ---: |
+| Representative Docker | 7 | 5 |
+| Small Docker | 5 | 5 |
+| Normal Docker | 7 | 6 |
+| RTL Docker | 7 | 3 |
+| Small Settings | 4 | 4 |
+| Normal Settings | 5 | 4 |
+| RTL Settings | 5 | 4 |
+
+The callback credits subtract the November 24 allowances and reflect cross-run
+median changes. Hosted runs can batch observers differently. Timing limits,
+absolute startup limits, the relative count policy, and the static 8% rule retain
+their existing values. The 2,000-resource references are outside this comparison.
+The corrected release candidate needs fresh hosted qualification.
+
 ## November 13 aggregate size reconciliation
 
 The previous stable [hosted qualification](https://github.com/alexphillips-dev/FolderView-Plus/actions/runs/41115418118)

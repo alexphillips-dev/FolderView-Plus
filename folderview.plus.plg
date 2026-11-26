@@ -5,18 +5,36 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.26.03">
-<!ENTITY md5 "b858da4728039c144a9c672cbbfdf1ed">
-<!ENTITY sha256 "6ed8055db228defead58dcf77e4047b13f7c358fd3c76ed618f9d1d371fb1608">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.11.26.04">
+<!ENTITY md5 "70987a37771ddfb662a41bf7047c2448">
+<!ENTITY sha256 "fe1c63442343b5cd5faec50ba86a8c5bee40d7293368f511e29717a43b0ff1b8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.26.04
+- Feature: Preview and save the current Docker container order to Unraid. The confirmation shows how the save can affect native Docker startup.
+- Feature: Turn on Group unassigned items in Filters and view settings to group unassigned Docker containers or VMs on their runtime pages and matching Dashboard tiles.
+- Feature: See the Assignment reason beside each container or VM in the folder editor. The column shows manual and automatic matches, other matching folders, and the effect of unsaved edits.
+- Feature: Expand Runtime details in Docker and Dashboard Advanced Preview to see Compose labels, restart policy, network mode, and environment variable names. The panel follows Docker privacy settings and keeps environment values out of the browser.
+- Improvement: Select a directory when reviewing a GitHub theme import. Theme updates verify stylesheets from the same revision, and Appearance keeps drafts during checks and profile changes.
+- Fix: Choose Saved Docker order under Docker row placement to keep saved folder and standalone container positions through reloads. Folders first remains the default, and changing the display setting leaves native Docker startup order intact.
+- Fix: Keep native Docker and VM controls, action results, folder order, and expansion in sync across refreshes and navigation. Dashboard recovers grouping after transient inventory failures and can load Docker and VM groups independently.
+- Fix: Keep Docker Startup previews, native waits, managed batches, and sync status consistent when the order changes or a save fails.
+- Reliability: Keep the prior verified core and icon packages available for rollback, recognize the active package when Unraid retains older records, and recover registration after an interrupted installation. The package includes the runtime files needed to start Settings and load Docker folders.
+- Reliability: Protect later edits when settings, imports, migrations, or recovery operations overlap. Check the exact reviewed backup or folder state before applying changes, preserve usable backups, and keep saved hierarchy and member order through transfers.
+- Compatibility: Preserve FolderView3 rule behavior and imported member identities. Migration remains available when optional native autostart settings cannot be imported.
+- Fix: Keep Setup Assistant, imports, templates, and hierarchy repairs consistent with the reviewed selection. Keep rule matching consistent across the editor, runtime folders, rule previews, and Docker Startup.
+- Privacy: Redact more identifiers, filenames, and private configuration from sanitized support exports. Improve diagnostics for unavailable inventory, failed requests, and partial actions.
+- Localization: Clarify recovery, migration, import, and startup warnings and improve translated wording across Settings, Docker, VMs, and Dashboard.
+- Compatibility: Unraid 7.0.0 or newer is supported. After updating, hard-refresh the webGUI and check Settings, Docker, VMs, and Dashboard. Before a downgrade or uninstall, keep an external configuration export and a copy of the plugin's persistent configuration directory.
+
 
 ###2026.11.26.03
 - Feature: Show the assignment reason beside each Docker container or VM name in the folder editor's Members tab.
@@ -10291,7 +10309,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

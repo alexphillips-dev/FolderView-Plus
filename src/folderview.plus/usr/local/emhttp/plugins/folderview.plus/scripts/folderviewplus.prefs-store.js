@@ -20,39 +20,7 @@
         vm: 'fv.support.bundle.dashboard.layout.vm.v1'
     });
 
-    const isPlainObject = (value) => (
-        value !== null
-        && typeof value === 'object'
-        && !Array.isArray(value)
-        && Object.prototype.toString.call(value) === '[object Object]'
-    );
-
-    const cloneValue = (value) => {
-        if (Array.isArray(value)) {
-            return value.map((entry) => cloneValue(entry));
-        }
-        if (isPlainObject(value)) {
-            return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
-        }
-        return value;
-    };
-
-    const mergeValues = (base, patch) => {
-        const source = isPlainObject(base) ? base : {};
-        if (!isPlainObject(patch)) {
-            return cloneValue(patch);
-        }
-        const next = { ...source };
-        for (const [key, value] of Object.entries(patch)) {
-            if (key === '_metadata') {
-                continue;
-            }
-            next[key] = isPlainObject(value) && key !== 'folderDefaults'
-                ? (key === 'dockerStartOrder' ? outboxApi.mergeStartOrderPatch(source[key], value, mergeValues) : mergeValues(source[key], value))
-                : cloneValue(value);
-        }
-        return next;
-    };
+    const { isPlainObject, cloneValue, mergeValues, patchIsEmpty } = outboxApi;
     const mergePatch = (base, patch) => outboxApi.applyStartOrderBatchChanges(outboxApi.applyFolderVisibilityChanges(mergeValues(base, patch)));
     const cleanPatch = (patch, baseline = null) => {
         if (!isPlainObject(patch)) return {};
@@ -88,7 +56,6 @@
         return next;
     };
 
-    const patchIsEmpty = (patch) => !isPlainObject(patch) || Object.keys(patch).length === 0;
     const preferencesChangedMessage = 'Preferences changed in another page. Review and save your changes again.';
     const readRevision = (prefs) => Math.max(0, Number.parseInt(String(prefs?._metadata?.prefsRevision ?? '0'), 10) || 0);
     const normalizeType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
@@ -275,7 +242,7 @@
         const clearTimer = typeof options.clearTimeout === 'function' ? options.clearTimeout : clearTimeout;
         const now = typeof options.now === 'function' ? options.now : Date.now;
         const outbox = outboxApi.createStorage({ storage, prefix: storagePrefix, sourceId, now,
-            readRevision, mergeValues, cloneValue, patchIsEmpty, mutationIdFor: generation => createMutationId(sourceId, generation) });
+            readRevision, mutationIdFor: generation => createMutationId(sourceId, generation) });
         const states = new Map();
         const subscribers = new Set();
         let broadcastChannel = null;
@@ -287,6 +254,7 @@
             optimisticPrefs: null,
             pendingPatch: {},
             pendingCollectionBases: {},
+            pendingRecoveryRevision: null,
             inFlightBatch: null,
             retryBatch: null,
             restoring: [],
@@ -355,7 +323,7 @@
             ...(includePrefs ? { prefs: state.optimisticPrefs || state.confirmedPrefs || normalizePrefs({}) } : {})
         });
 
-        const emit = (state, showRecoveryConflict = false, dockerOrderSync = '') => {
+        const emit = (state, showRecoveryConflict = false, dockerOrderSync = '', startupBatchConflict = false) => {
             state.optimisticPrefs = buildOptimisticPrefs(state);
             const snapshot = publicSnapshot(state, true);
             for (const subscriber of subscribers) {
@@ -366,7 +334,7 @@
                 }
             }
             try {
-                if (showRecoveryConflict && win?.FolderViewPlusUI?.alert) {
+                if ((showRecoveryConflict || startupBatchConflict) && win?.FolderViewPlusUI?.alert) {
                     const i18n = win.FolderViewPlusI18n;
                     win.FolderViewPlusUI.alert({
                         title: i18n?.t?.('legacy.surface.53ad6f999b1f062f', 'Save failed') || 'Save failed',
@@ -516,7 +484,7 @@
                 return;
             }
             const { batch, retry } = outbox.prepare(state, restored, recovered);
-            const { patch: batchPatch, mutationId, expectedRevision } = batch;
+            const { patch: batchPatch, mutationId, expectedRevision, expectedRecoveryRevision } = batch;
             const batchGeneration = batch.generation ?? state.generation;
             state.flushing = true;
             state.status = 'saving';
@@ -526,12 +494,16 @@
             const startedAt = now();
             const mutationPublicationGeneration = state.mutationPublicationGeneration;
             try {
+                if (outbox.recoveryChangedSinceEdit(batch, state)) {
+                    throw Object.assign(new Error(preferencesChangedMessage), { status: 422 });
+                }
                 if (outbox.collectionConflictBeforeWrite(batch, state, restored || retry)) {
                     throw Object.assign(new Error(preferencesChangedMessage), { status: 409, collectionConflict: true });
                 }
                 state.stats.requests += 1;
                 const response = await writePrefs(state.type, batchPatch, {
                     expectedRevision,
+                    ...(expectedRecoveryRevision != null ? { expectedRecoveryRevision } : {}),
                     clientMutationId: mutationId
                 });
                 if (response?.ok === false) {
@@ -556,12 +528,13 @@
                 state.stats.totalLatencyMs += state.lastLatencyMs;
                 state.stats.maxLatencyMs = Math.max(state.stats.maxLatencyMs, state.lastLatencyMs);
                 state.lastSavedAt = new Date(now()).toISOString();
-                state.lastError = '';
+                const startupBatchConflict = Number(response?.startupBatchConflicts) > 0;
+                state.lastError = startupBatchConflict ? preferencesChangedMessage : '';
                 state.recoveryConflict = false;
                 state.status = hasQueuedWork(state) ? 'saving' : 'saved';
                 outbox.persist(state);
                 state.externalPatch = outbox.externalPatch(state);
-                emit(state, false, published && state.type === 'docker' ? response?.dockerOrderSync : '');
+                emit(state, false, published && state.type === 'docker' ? response?.dockerOrderSync : '', startupBatchConflict);
                 resolveWaiters(state, batchGeneration, state.optimisticPrefs, Boolean(restored));
                 broadcast({
                     action: 'committed',
@@ -575,13 +548,15 @@
             } catch (error) {
                 state.inFlightBatch = null;
                 let { isConflict, recoveredConflict, rejected } = outboxApi.classifyWriteError(error, restored || retry);
+                let recoveryConflict = Number(error?.status || error?.httpStatus) === 422;
                 if (isConflict && !rejected && fetchPrefs && state.conflictRetries < MAX_CONFLICT_RETRIES) {
                     outbox.beginRebase(state, batch);
                     state.lastError = 'Preferences changed in another page. Rebasing pending changes.';
                     emit(state);
                     try {
                         await hydrateFromServer(state.type, { restoreOutbox: false, replay: false, force: true });
-                        if (outbox.collectionChangedSinceEdit(batch, state)) {
+                        recoveryConflict = outbox.recoveryChangedSinceEdit(batch, state);
+                        if (recoveryConflict || outbox.collectionChangedSinceEdit(batch, state)) {
                             rejected = true;
                             error = new Error(preferencesChangedMessage);
                         } else {
@@ -595,13 +570,16 @@
                     state.inFlightBatch = null;
                 }
                 if (rejected) {
-                    if (isConflict || !outbox.keepPendingStartupEdit(restored, readRevision(state.confirmedPrefs), expectedRevision)) outbox.finish(state, restored);
-                    state.recoveryConflict = Boolean(recoveredConflict);
+                    state.recoveryConflict = Boolean(recoveredConflict || recoveryConflict);
                     state.conflictRetries = 0;
                     if (!restored) state.settledGeneration = batchGeneration;
-                    if (recoveredConflict && fetchPrefs) {
+                    if ((recoveredConflict || recoveryConflict) && fetchPrefs) {
                         try { await hydrateFromServer(state.type, { restoreOutbox: false, replay: false }); } catch (_error) {}
                     }
+                    const keptSuccessor = recoveryConflict
+                        ? outbox.keepPostRecoveryEdit(restored, state)
+                        : !isConflict && outbox.keepPendingStartupEdit(restored, readRevision(state.confirmedPrefs), expectedRevision);
+                    if (!keptSuccessor) outbox.finish(state, restored);
                 } else if (!restored) {
                     if (isConflict) outbox.requeue(state, batch);
                     else state.retryBatch = batch;
@@ -612,7 +590,7 @@
                 state.status = rejected && !hasQueuedWork(state) ? 'failed' : 'sync-pending';
                 state.lastError = String(error?.message || error || 'Preference synchronization failed.');
                 outbox.persist(state);
-                emit(state, Boolean(recoveredConflict));
+                emit(state, Boolean(recoveredConflict || recoveryConflict));
                 const willRetry = !rejected && outboxApi.isRetryableSyncError(error);
                 rejectWaiters(state, batchGeneration, error, Boolean(restored), willRetry);
                 if (rejected && hasQueuedWork(state)) {
@@ -641,6 +619,12 @@
             }
             if (!state.hydrated && settings.currentPrefs) {
                 reconcile(state.type, settings.currentPrefs, { restoreOutbox: true, force: true });
+            }
+            if (outbox.viewRecoveryConflict(settings.currentPrefs, state)) {
+                return Promise.reject(Object.assign(new Error(preferencesChangedMessage), { status: 422 }));
+            }
+            if (outbox.pendingRecoveryConflict(state)) {
+                return flush(state.type).catch(() => {}).then(() => save(state.type, normalizedPatch, settings));
             }
             const alreadyPending = !patchIsEmpty(state.pendingPatch);
             outbox.queuePatch(state, normalizedPatch, settings.currentPrefs || state.optimisticPrefs || state.confirmedPrefs);
@@ -816,6 +800,9 @@
                 };
                 if (Number(context.expectedRevision) > 0) {
                     payload.expectedRevision = Number(context.expectedRevision);
+                }
+                if (context.expectedRecoveryRevision != null) {
+                    payload.expectedRecoveryRevision = context.expectedRecoveryRevision;
                 }
                 return request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
                     retries: 0,

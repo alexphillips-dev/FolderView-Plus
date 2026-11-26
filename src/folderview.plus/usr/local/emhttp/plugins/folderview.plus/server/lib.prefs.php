@@ -274,11 +274,8 @@
             if (!is_array($batch)) {
                 continue;
             }
-            $id = trim((string)($batch['id'] ?? ''));
-            if ($id === '') {
-                $id = generateId(12);
-            }
-            $name = truncateUtf8String(trim((string)($batch['name'] ?? '')), 64);
+            $id = rtrim(truncateUtf8String(trim((string)($batch['id'] ?? '')), 64));
+            $name = rtrim(truncateUtf8String(trim((string)($batch['name'] ?? '')), 64));
             if ($name === '') {
                 $name = 'Start batch ' . (count($batches) + 1);
             }
@@ -311,7 +308,7 @@
                 }
             }
             $batches[] = [
-                'id' => truncateUtf8String($id, 64),
+                'id' => $id,
                 'name' => $name,
                 'delay' => normalizeIntInRange($batch['delay'] ?? 0, 0, 3600, 0),
                 'parallel' => normalizeBool($batch['parallel'] ?? false, false),
@@ -324,6 +321,24 @@
                 break;
             }
         }
+
+        // Keep the first occurrence of every existing ID. Reserve IDs of later batches
+        // so repairing a legacy collision never changes a separate, valid batch's ID.
+        $reserved = array_fill_keys(array_column($batches, 'id'), true);
+        $seen = [];
+        $repairIndex = 1;
+        foreach ($batches as &$batch) {
+            $id = $batch['id'];
+            if ($id === '' || isset($seen[$id])) {
+                do {
+                    $id = 'batch-' . $repairIndex++;
+                } while (isset($reserved[$id]));
+                $batch['id'] = $id;
+                $reserved[$id] = true;
+            }
+            $seen[$id] = true;
+        }
+        unset($batch);
 
         $containerWaits = [];
         $rawContainerWaits = is_array($incoming['containerWaits'] ?? null) ? $incoming['containerWaits'] : [];
@@ -716,9 +731,9 @@
         });
     }
 
-    function writeTypePrefs(string $type, array $prefs, string $mutationReceipt = '', bool $authoritative = true): array {
+    function writeTypePrefs(string $type, array $prefs, string $mutationReceipt = '', bool $authoritative = true, int $prefsStartupConflictCount = 0, bool $recoveryWrite = false): array {
         $type = ensureType($type);
         $normalized = normalizeTypePrefs($prefs);
-        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized, $mutationReceipt, $authoritative);
+        fvplusWriteConfigPayload($type, 'prefs', getTypePrefsPath($type), $normalized, $mutationReceipt, $authoritative, $prefsStartupConflictCount, $recoveryWrite);
         return $normalized;
     }

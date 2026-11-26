@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
 import { closeVmInfoFolder, mountAndOpenVmInfoFolder, registerVmRuntimeRowRecoveryCases } from './vm-runtime-row-recovery.mjs';
+import { registerVmRuntimeRemediationCases } from './vm-runtime-remediation.mjs';
 
 export const registerVmRuntimeRecoveryCases = ({ test }) => {
     test('VM view preferences keep populated ancestors when empty folders are hidden', async ({ page }) => {
@@ -155,45 +156,7 @@ export const registerVmRuntimeRecoveryCases = ({ test }) => {
         }
     }, { skipAccessibility: true });
 
-    test('VM view preferences preserve native names and reset when writing native sort order', async ({ page }) => {
-        const host = await createFilterViewSettingsHost(page);
-        const names = ['folder-native-machine', 'media-folder-backup'];
-        host.names.forEach((previous, index) => {
-            host.runtime.vm[names[index]] = { ...host.runtime.vm[previous], name: names[index] };
-            delete host.runtime.vm[previous];
-        });
-        host.names.splice(0, host.names.length, ...names);
-        host.folders['fixture-folder-0'].containers = [names[0]];
-        host.prefs('vm').sortMode = 'alpha';
-        const writes = [];
-        const endpoint = '/plugins/dynamix.vm.manager/include/UserPrefs.php';
-        await page.route('**' + endpoint, async route => {
-            writes.push(new URLSearchParams(route.request().postData() || ''));
-            await route.fulfill({ status: 200, body: '' });
-        });
-        try {
-            await mountFilterViewVmHost(page, host);
-            assert.equal(await page.locator('tr.folder-id-fixture-folder-0 .folder-storage #fixture-vm-0').count(), 1);
-            await page.evaluate(async endpoint => {
-                const $ = window.jQuery;
-                let names = '', index = '';
-                const row = $('#kvm_list tr:first');
-                row.parent().children().find('td.vm-name').each(function () {
-                    names += $(this).find('a').text() + ';';
-                    index += $(this).parent().parent().children().index($(this).parent()) + ';';
-                });
-                await $.post(endpoint, { names, index });
-                await $.post(endpoint, { reset: true });
-            }, endpoint);
-            const savedNames = writes[0].get('names').split(';').filter(Boolean);
-            assert.ok(savedNames.includes('folder-fixture-folder-0'));
-            assert.deepEqual(savedNames.filter(name => names.includes(name)).sort(), [...names].sort());
-            assert.equal(savedNames.includes('folder-backup'), false);
-            assert.deepEqual(writes[0].get('index').split(';').filter(Boolean).map(Number), savedNames.map((_, index) => index));
-            assert.equal(writes[1].get('reset'), 'true');
-            assert.equal(writes[1].has('names'), false);
-        } finally { await closeHost(page, host); }
-    }, { skipAccessibility: true });
+    registerVmRuntimeRemediationCases({ test });
 
     test('VM view preferences show the same unknown state in Quick Finder and native rows', async ({ page }) => {
         const host = await createFilterViewSettingsHost(page);

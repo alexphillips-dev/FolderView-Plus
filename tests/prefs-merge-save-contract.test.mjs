@@ -538,10 +538,10 @@ $_POST = $_REQUEST = ['type' => 'vm', 'expectedRevision' => $argv[2], 'prefs' =>
     'clientMutationId' => $argv[4], '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
 $injection = <<<'FAULT'
 namespace PrefsFixture;
-function writeTypePrefs(string $type, array $prefs, string $receipt) {
+function writeTypePrefs(string $type, array $prefs, string $receipt, int $prefsStartupConflictCount = 0) {
     putenv('FVPLUS_STORAGE_FAILURE_INJECTION=1');
     putenv('FVPLUS_STORAGE_FAILURE_STAGE=rename');
-    try { return \\writeTypePrefs($type, $prefs, $receipt); }
+    try { return \\writeTypePrefs($type, $prefs, $receipt, prefsStartupConflictCount: $prefsStartupConflictCount); }
     finally {
         putenv('FVPLUS_STORAGE_FAILURE_INJECTION');
         putenv('FVPLUS_STORAGE_FAILURE_STAGE');
@@ -583,5 +583,52 @@ echo json_encode($result + ['prefs' => readTypePrefs('vm'),
         assert.equal(staleOrderReplay.status, 409);
         const validation = submit('write', retry.revision, { groupUnassignedItems: ['bogus'] }, 'fixture-invalid');
         assert.equal(validation.status, 400);
+    });
+});
+
+test('a partial Startup save can replay its receipt and preserves its conflict outcome', () => {
+    const endpoint = prefsEndpoint.replace(/^<\?php\s+require_once\([^;]+;\s*/u, '');
+    runHarness(`<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+putenv('FVPLUS_TEST_SECURITY_STATE_PATH=' . dirname(getenv('FVPLUS_TEST_CONFIG_DIR')) . '/security-state.json');
+require_once ${phpQuote(libPath)};
+$result = [];
+if ($argv[1] === 'init') {
+    writeTypePrefs('docker', ['dockerStartOrder' => ['mode' => 'unmanaged', 'batches' => [
+        ['id' => 'a', 'name' => 'Peer name'], ['id' => 'b', 'name' => 'Independent delay', 'delay' => 8]
+    ]]]);
+} else {
+    $_SERVER['SCRIPT_FILENAME'] = 'prefs.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['HTTP_HOST'] = 'localhost';
+    $_SERVER['HTTP_ORIGIN'] = 'http://localhost';
+    $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+    $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+    $_POST = $_REQUEST = ['type' => 'docker', 'expectedRevision' => $argv[2], 'prefs' => $argv[3],
+        'clientMutationId' => 'startup-partial', '_fv_nonce' => fvplus_issue_mutation_nonce('prefs.php')['nonce']];
+    ob_start();
+    eval(${phpQuote(endpoint)});
+    $result = ['status' => http_response_code(), 'body' => json_decode(ob_get_clean(), true)];
+}
+echo json_encode($result + ['revision' => readConfigMetadata('docker', false)['prefsRevision'],
+    'stored' => readTypePrefs('docker')['dockerStartOrder']['batches']]);`, invoke => {
+        const initial = invoke('init');
+        const patch = { dockerStartOrder: { batchChanges: [
+            { action: 'set', id: 'a', field: 'name', previous: 'Old name', value: 'Local name' },
+            { action: 'set', id: 'b', field: 'delay', previous: 8, value: 21 }
+        ] } };
+        const save = () => invoke('save', String(initial.revision), JSON.stringify(patch));
+        const first = save();
+        const replay = save();
+        assert.equal(first.revision, initial.revision + 1);
+        assert.equal(replay.revision, first.revision);
+        for (const response of [first, replay]) {
+            assert.equal(response.status, 200);
+            assert.equal(response.body.startupBatchConflicts, 1);
+            assert.equal(Object.hasOwn(response.body.metadata, 'prefsStartupConflictCount'), false);
+            assert.equal(response.stored[0].name, 'Peer name');
+            assert.equal(response.stored[1].delay, 21);
+        }
+        assert.equal(replay.body.configChanged, false);
     });
 });

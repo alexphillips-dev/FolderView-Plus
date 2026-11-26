@@ -251,6 +251,7 @@
                     const copy = doc.createElement('span'); copy.className = 'fv-quickfinder-copy';
                     const name = doc.createElement('strong'); name.className = 'fv-quickfinder-name'; name.textContent = item.name;
                     const path = doc.createElement('span'); path.className = 'fv-quickfinder-path'; path.textContent = item.path || labels.root;
+                    name.setAttribute('data-fvplus-user-content', ''); path.setAttribute('data-fvplus-user-content', '');
                     copy.append(name, path); title.append(copy);
                     if (kind === 'item') {
                         row.classList.add('fv-quickfinder-item-result');
@@ -302,8 +303,8 @@
                 const index = entries.findIndex((item) => item.key === focusedKey);
                 const row = results.querySelector(`[data-result-index="${index}"]`);
                 (focusedAction ? row?.querySelector(`[data-finder-action="${focusedAction}"]`) : row?.querySelector('[data-finder-select]'))?.focus();
-                if (!shell.contains(doc.activeElement)) input.focus();
             }
+            if ((focusedGroup || focused) && !shell.contains(doc.activeElement)) input.focus();
         };
         const show = () => {
             if (disposed || !shell?.isConnected) return;

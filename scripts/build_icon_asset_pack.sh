@@ -38,8 +38,8 @@ for command_name in tar sha256sum md5sum find sort awk wc cp mkdir mktemp; do
   fi
 done
 
-mkdir -p "${OUTPUT_DIR}" "${ROOT_DIR}/tmp"
-TMP_DIR="$(mktemp -d "${ROOT_DIR}/tmp/icon-pack.XXXXXX")"
+mkdir -p "${OUTPUT_DIR}"
+TMP_DIR="$(mktemp -d "${OUTPUT_DIR}/.icon-pack.XXXXXX")"
 STAGE_DIR="${TMP_DIR}/stage"
 PACK_ICON_DIR="${STAGE_DIR}/third-party-icons"
 mkdir -p "${PACK_ICON_DIR}"
@@ -86,6 +86,7 @@ EOF
 
 ARCHIVE_NAME="folderview.plus-icons-${VERSION}.txz"
 ARCHIVE_PATH="${OUTPUT_DIR}/${ARCHIVE_NAME}"
+STAGED_ARCHIVE="${TMP_DIR}/${ARCHIVE_NAME}"
 tar --sort=name \
   --mtime='UTC 1970-01-01' \
   --owner=0 \
@@ -93,11 +94,22 @@ tar --sort=name \
   --numeric-owner \
   --mode='a=r,u+w,a+X' \
   -C "${STAGE_DIR}" \
-  -cJf "${ARCHIVE_PATH}" asset-pack.json third-party-icons
+  -cJf "${STAGED_ARCHIVE}" asset-pack.json third-party-icons
 
-SHA256="$(sha256sum "${ARCHIVE_PATH}" | awk '{print $1}')"
-MD5="$(md5sum "${ARCHIVE_PATH}" | awk '{print $1}')"
-printf '%s  %s\n' "${SHA256}" "${ARCHIVE_NAME}" > "${ARCHIVE_PATH}.sha256"
+SHA256="$(sha256sum "${STAGED_ARCHIVE}" | awk '{print $1}')"
+MD5="$(md5sum "${STAGED_ARCHIVE}" | awk '{print $1}')"
+printf '%s  %s\n' "${SHA256}" "${ARCHIVE_NAME}" > "${STAGED_ARCHIVE}.sha256"
+
+publish_immutable_file() {
+  local from="$1" to="$2"
+  if ln -T -- "${from}" "${to}" 2>/dev/null; then return 0; fi
+  if [[ ! -L "${to}" && -f "${to}" ]] && cmp -s -- "${from}" "${to}"; then return 0; fi
+  echo "ERROR: Cannot publish changed bytes for icon asset-pack version ${VERSION}. Increment asset-packs/icon-pack.version for a new pack." >&2
+  return 1
+}
+
+publish_immutable_file "${STAGED_ARCHIVE}" "${ARCHIVE_PATH}"
+publish_immutable_file "${STAGED_ARCHIVE}.sha256" "${ARCHIVE_PATH}.sha256"
 
 echo "Icon asset pack created: ${ARCHIVE_PATH}"
 echo "Version: ${VERSION}"

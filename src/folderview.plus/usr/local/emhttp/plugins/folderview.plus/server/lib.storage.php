@@ -321,6 +321,7 @@ function readJsonObjectFile(string $path): ?array {
             'updatedAt' => $now,
             'folderRevision' => is_file($folderPath) ? 1 : 0,
             'prefsRevision' => is_file($prefsPath) ? 1 : 0,
+            'prefsRecoveryRevision' => 0,
             'folderUpdatedAt' => configMetadataTimestampFromPath($folderPath),
             'prefsUpdatedAt' => configMetadataTimestampFromPath($prefsPath),
             'folderSha256' => configMetadataHashFromPath($folderPath),
@@ -337,14 +338,8 @@ function readJsonObjectFile(string $path): ?array {
         $safeType = ensureType($type);
         $incoming = is_array($value) ? $value : [];
         $defaults = defaultConfigMetadata($safeType);
-        $createdAt = normalizeIsoTimestamp($incoming['createdAt'] ?? '');
-        if ($createdAt === '') {
-            $createdAt = (string)$defaults['createdAt'];
-        }
-        $updatedAt = normalizeIsoTimestamp($incoming['updatedAt'] ?? '');
-        if ($updatedAt === '') {
-            $updatedAt = (string)$defaults['updatedAt'];
-        }
+        $createdAt = normalizeIsoTimestamp($incoming['createdAt'] ?? '') ?: $defaults['createdAt'];
+        $updatedAt = normalizeIsoTimestamp($incoming['updatedAt'] ?? '') ?: $defaults['updatedAt'];
         $normalized = [
             'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
             'type' => $safeType,
@@ -352,6 +347,7 @@ function readJsonObjectFile(string $path): ?array {
             'updatedAt' => $updatedAt,
             'folderRevision' => max(0, (int)($incoming['folderRevision'] ?? $defaults['folderRevision'])),
             'prefsRevision' => max(0, (int)($incoming['prefsRevision'] ?? $defaults['prefsRevision'])),
+            'prefsRecoveryRevision' => max(0, (int)($incoming['prefsRecoveryRevision'] ?? 0)),
             'folderUpdatedAt' => normalizeIsoTimestamp($incoming['folderUpdatedAt'] ?? ''),
             'prefsUpdatedAt' => normalizeIsoTimestamp($incoming['prefsUpdatedAt'] ?? ''),
             'folderSha256' => strtolower(trim((string)($incoming['folderSha256'] ?? ''))),
@@ -365,6 +361,10 @@ function readJsonObjectFile(string $path): ?array {
         $receipt = $incoming['prefsMutationReceipt'] ?? '';
         if (is_string($receipt) && preg_match('/^[a-f0-9]{64}$/D', $receipt)) {
             $normalized['prefsMutationReceipt'] = $receipt;
+            $conflictCount = $incoming['prefsStartupConflictCount'] ?? null;
+            if (is_int($conflictCount) && $conflictCount > 0 && $conflictCount <= 500) {
+                $normalized['prefsStartupConflictCount'] = $conflictCount;
+            }
         }
         foreach (['folderLegacyMigrationClosed', 'prefsLegacyMigrationClosed'] as $key) {
             if (($incoming[$key] ?? false) === true) $normalized[$key] = true;
@@ -413,7 +413,7 @@ function readJsonObjectFile(string $path): ?array {
                     if ($storedHash !== $actualHash) {
                         $metadata[$hashKey] = $actualHash;
                         $metadata[$updatedKey] = configMetadataTimestampFromPath($targetPath);
-                        if ($kind === 'prefs') unset($metadata['prefsMutationReceipt']);
+                        if ($kind === 'prefs') unset($metadata['prefsMutationReceipt'], $metadata['prefsStartupConflictCount']);
                         $changed = true;
                     }
                 }
@@ -443,6 +443,7 @@ function readJsonObjectFile(string $path): ?array {
             $rebuilt['createdAt'] = (string)($previous['createdAt'] ?? $rebuilt['createdAt']);
             $rebuilt['folderRevision'] = max(1, (int)($previous['folderRevision'] ?? 0) + 1);
             $rebuilt['prefsRevision'] = max(1, (int)($previous['prefsRevision'] ?? 0) + 1);
+            $rebuilt['prefsRecoveryRevision'] = $previous['prefsRecoveryRevision'];
             $rebuilt['externalChangeCount'] = max(0, (int)($previous['externalChangeCount'] ?? 0)) + 1;
             $rebuilt['lastExternalChangeAt'] = gmdate('c');
             $rebuilt['updatedAt'] = gmdate('c');
@@ -450,9 +451,9 @@ function readJsonObjectFile(string $path): ?array {
         });
     }
 
-    function assertExpectedConfigRevision(string $type, string $kind, $expectedRevision): array {
+    function assertExpectedConfigRevision(string $type, string $kind, $expectedRevision, ?array $metadata = null): array {
         $safeType = ensureType($type);
-        $metadata = readConfigMetadata($safeType, true);
+        $metadata ??= readConfigMetadata($safeType, true);
         $raw = trim((string)$expectedRevision);
         if ($raw === '') {
             return $metadata;

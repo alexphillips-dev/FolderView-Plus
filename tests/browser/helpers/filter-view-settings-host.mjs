@@ -14,8 +14,8 @@ export const closeFilterViewHost = async (page, host) => {
     await host.close();
 };
 
-export const createFilterViewSettingsHost = async page => {
-    const host = createProductionPerfFixture(path.resolve('.'), { folders: 1, members: 2 });
+export const createFilterViewSettingsHost = async (page, { locale = 'en' } = {}) => {
+    const host = createProductionPerfFixture(path.resolve('.'), { folders: 1, members: 2 }, locale);
     host.folders.empty = { name: 'Empty fixture', containers: [], settings: {}, actions: [] };
     const prefs = Object.fromEntries(['docker', 'vm'].map(type => [type, utils.normalizePrefs({
         setupWizardCompleted: true, _metadata: { prefsRevision: 1, folderRevision: 1 }
@@ -47,13 +47,13 @@ export const createFilterViewSettingsHost = async page => {
     });
     await page.route('**/server/backup.php?**', route => route.fulfill({ json: { ok: true, backups: [] } }));
     await new Promise(resolve => host.server.listen(0, '127.0.0.1', resolve));
-    return { url: `http://127.0.0.1:${host.server.address().port}/settings`, folders: host.folders, runtime, names: host.names, snapshot,
+    return { url: `http://127.0.0.1:${host.server.address().port}/settings`, folders: host.folders, runtime, names: host.names, snapshot, locale,
         prefs: type => prefs[type],
         close: async () => { host.server.closeAllConnections(); await new Promise(resolve => host.server.close(resolve)); } };
 };
 
 // Execute the shipped VM page with synthetic native rows and the native AJAX lifecycle.
-export const mountFilterViewVmHost = async (page, host, { nativeDetails = false, legacyText = false } = {}) => {
+export const mountFilterViewVmHost = async (page, host, { nativeDetails = false, legacyText = false, nativeName = name => name } = {}) => {
     const prefix = '/plugins/folderview.plus/';
     const script = file => `<script src="${file}"></script>`;
     const source = fs.readFileSync(path.join(plugin, 'folderview.plus.VMs.page'), 'utf8');
@@ -72,14 +72,16 @@ export const mountFilterViewVmHost = async (page, host, { nativeDetails = false,
             const toggle = nativeDetails ? ` <a href="#" onclick="toggle_id('name-${index}'); return false">Info</a>` : '';
             const detail = nativeDetails && index === 0
                 ? `<tr child-id="${index}" id="name-${index}" hidden><td colspan="5">VM details</td></tr>` : '';
-            return `<tr class="sortable" id="${uuid}"${nativeDetails ? ` parent-id="${index}"` : ''}><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${name}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span>${toggle}</td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>${detail}`;
+            return `<tr class="sortable" id="${uuid}"${nativeDetails ? ` parent-id="${index}"` : ''}><td class="vm-name"><span class="outer"><span id="vm-${uuid}" class="hand"><img class="img" src="${prefix}images/folder-icon.png"></span><span class="inner"><a>${nativeName(name)}</a><i class="fa fa-play started"></i><span class="state">running</span></span></span>${toggle}</td><td>Linux</td><td>4 vCPU</td><td>4 GB</td><td><input class="autostart" type="checkbox" uuid="${uuid}"></td></tr>${detail}`;
         }).join('');
     };
     const native = `<table id="kvm_table"><thead><tr><th>Name</th><th>OS</th><th>CPU</th><th>RAM</th><th>Autostart</th></tr></thead><tbody id="kvm_list">${buildRows()}</tbody></table>`;
-    const config = { requestedLocale: 'en', resolvedLocale: 'en', direction: 'ltr', namespaces: ['common', 'legacy-surface', 'vm', 'diagnostics'], assets: [
-        { locale: 'en', namespace: 'legacy', url: prefix + 'langs/en.json' },
-        ...['common', 'legacy-surface', 'diagnostics'].map(namespace => ({ locale: 'en', namespace, url: prefix + `langs/namespaces/en/${namespace}.json` }))
-    ] };
+    const locale = host.locale || 'en';
+    const config = { requestedLocale: locale, resolvedLocale: locale, direction: 'ltr', namespaces: ['common', 'legacy-surface', 'vm', 'diagnostics'],
+        assets: [...new Set(['en', locale])].flatMap(language => [
+            { locale: language, namespace: 'legacy', url: prefix + `langs/${language}.json` },
+            ...['common', 'legacy-surface', 'diagnostics'].map(namespace => ({ locale: language, namespace, url: prefix + `langs/namespaces/${language}/${namespace}.json` }))
+        ]) };
     const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="fv-request-token" content="fixture-request-token-1234567890">'
         + `<meta name="fvplus-i18n-config" content='${JSON.stringify(config)}'><meta name="fvplus-page-i18n" content='{"mode":"vms"}'>`
         + '</head><body>' + native + script('/vendor/jquery.js') + script('/fixture-host.js') + langScripts

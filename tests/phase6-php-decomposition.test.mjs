@@ -35,9 +35,13 @@ test('Phase 6 preserves the complete public endpoint manifest', () => {
     const { endpoints } = JSON.parse(manifestSource);
     assert.deepEqual(Object.keys(endpoints).sort(), expectedEndpoints);
     assert.deepEqual(endpoints['bulk_folder_action.php'].requiredParameters, ['type', 'folderId']);
+    assert.deepEqual(endpoints['rule_preview.php'].actions.validate_predicate.methods, ['POST']);
+    assert.equal(endpoints['rule_preview.php'].actions.validate_predicate.access, 'read-only');
+    assert.equal(endpoints['rule_preview.php'].defaultAction, 'apply');
+    assert.equal(endpoints['rule_preview.php'].methodContracts.GET.defaultAction, 'preview');
     assert.equal(
         crypto.createHash('sha256').update(manifestSource).digest('hex'),
-        'ee44ebf932a4f16c2316772df030554375c3b30e267f3e7822ef14897c8aee09'
+        '81f9ac8fb25badea808cbaf5d9bdf4becc37283a9b723c4a8758f92af011a93c'
     );
 });
 
@@ -126,6 +130,8 @@ test('decomposition preserves every historical public PHP function name', () => 
         for (const name of ['fvplusTransactionRecordFileWrites', 'fvplusRecoveryCaptureNativeFiles', 'fvplusApplyRecoveryNativeFile',
             'fvplusRecoverySyncDockerOrder', 'fvplusApplyRecoveryNativeState', 'fvplusEncodeGlobalRollbackFile',
             'fvplusDecodeGlobalRollbackNativeFiles']) additions.add(name);
+        for (const name of ['fvplusLegacyFolderRegexIsValid', 'fvplusValidateRulePredicateRequest',
+            'diagnosticsSupportBundleRedactCorrelationId', 'diagnosticsProjectCorrelationIds']) additions.add(name);
         const functions = graphFiles.flatMap((file) => {
             const source = fs.readFileSync(path.join(pluginRoot, file), 'utf8');
             return [...source.matchAll(/^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)/gm)].map((match) => match[1]);

@@ -64,7 +64,7 @@
             if (String(candidateId) === targetFolderId) {
                 return;
             }
-            const candidatePattern = String(folder?.regex || '').trim();
+            const candidatePattern = String(folder?.regex || '');
             if (!candidatePattern) {
                 return;
             }

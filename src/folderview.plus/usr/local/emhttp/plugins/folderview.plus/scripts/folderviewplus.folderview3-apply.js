@@ -24,6 +24,7 @@
         if (typeof options.confirm !== 'function' || !options.confirm(message)) {
             return null;
         }
+        await options.beforeApply?.();
         return options.postJson('/plugins/folderview.plus/server/environment_snapshot.php', {
             action: 'apply_folderview3',
             sourceKind: source.kind,

@@ -35,6 +35,9 @@ function readInstalledVersion(): string {
     return '2026.04.04.10';
 }
 
+function getRequestTraceId(): string { return '198.51.100.18'; }
+function getRequestTransactionId(): string { return 'private-fixture.example'; }
+
 function fvplus_detect_runtime_plugin_conflicts(): array {
     return [
         [
@@ -67,6 +70,7 @@ require_once ${phpSingleQuote(path.join(path.dirname(libDiagnosticsPath), 'lib.s
 $diagnostics = [
     'schemaVersion' => 7,
     'pluginVersion' => '2026.04.04.10',
+    'durableStorage' => ['traceId' => getRequestTraceId(), 'transactionId' => getRequestTransactionId()],
     'runtimeIntegrity' => fvplus_get_runtime_integrity_snapshot('full'),
     'environment' => [
         'unraidVersion' => '6.12.10',
@@ -179,6 +183,8 @@ $diagnostics = [
                 'type' => 'docker',
                 'status' => 'ok',
                 'source' => 'ui',
+                'traceId' => getRequestTraceId(),
+                'transactionId' => getRequestTransactionId(),
                 'details' => [
                     'name' => 'PlexMediaServer',
                     'folderName' => 'Plex Root Secret',
@@ -227,7 +233,12 @@ $diagnostics = [
             'lastBackup' => ['name' => 'docker-2026-04-04.json', 'createdAt' => '2026-04-04T00:00:00+00:00', 'reason' => 'manual-diagnostics', 'count' => 2],
             'backupCount' => 1,
             'templateCount' => 1,
+            'configurationMetadata' => ['lastTraceId' => getRequestTraceId(), 'lastTransactionId' => getRequestTransactionId()],
             'integrityChecks' => [
+                'configurationMetadata' => ['metadata' => [
+                    'lastTraceId' => getRequestTraceId(),
+                    'lastTransactionId' => getRequestTransactionId()
+                ]],
                 'duplicateFolderNames' => [
                     'count' => 1,
                     'examples' => [
@@ -525,7 +536,7 @@ const loadSupportBundleFixture = () => {
     fs.writeFileSync(
         apiErrorLogPath,
         [
-            '[2026-04-04T12:00:00+00:00] [trace:trace-123] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25',
+            '[2026-04-04T12:00:00+00:00] [trace:198.51.100.18] [transaction:private-fixture.example] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25',
             '[2026-04-04T12:01:00+00:00] [trace:trace-456] RuntimeException in /usr/local/emhttp/plugins/folderview.plus/server/lib.php:910 | Request failed for https://tower-main.local/Docker'
         ].join('\n') + '\n',
         'utf8'
@@ -840,6 +851,25 @@ test('runtime integrity findings retain their counts and kinds with salted paths
     assert.ok(fixture.sanitized.redactionManifest.hashedFields.includes('system.runtimeIntegrity.findings.*.path'));
 });
 
+test('sanitized support bundles correlate opaque request IDs without disclosing their input', () => {
+    const fixtureTrace = '198.51.100.18';
+    const fixtureTransaction = 'private-fixture.example';
+    const { sanitized, full } = fixture;
+    const { traceId, transactionId } = sanitized.bundleMeta;
+    assert.match(traceId, /^[a-f0-9]{16}$/);
+    assert.match(transactionId, /^[a-f0-9]{16}$/);
+    assert.equal(sanitized.pluginState.docker.configurationMetadata.lastTraceId, traceId);
+    assert.equal(sanitized.healthAndHistory.integrityFindings.docker.configurationMetadata.metadata.lastTransactionId, transactionId);
+    assert.equal(sanitized.healthAndHistory.recentMutations.events[0].traceId, traceId);
+    assert.equal(sanitized.system.durableStorage.transactionId, transactionId);
+    assert.ok(sanitized.healthAndHistory.serverLogTail.lines[0].includes(`[trace:${traceId}] [transaction:${transactionId}]`));
+    assert.ok(sanitized.redactionManifest.hashedFields.includes('healthAndHistory.recentMutations.events.*.traceId'));
+    assert.equal(JSON.stringify(sanitized).includes(fixtureTrace), false);
+    assert.equal(JSON.stringify(sanitized).includes(fixtureTransaction), false);
+    assert.equal(full.bundleMeta.traceId, fixtureTrace);
+    assert.equal(full.healthAndHistory.recentMutations.events[0].transactionId, fixtureTransaction);
+});
+
 test('full support bundle fixture keeps raw troubleshooting fields and disables salt metadata', () => {
     const bundle = fixture.full;
 
@@ -887,7 +917,7 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.match(bundle.healthAndHistory.serverLogTail.pathHash, /^[0-9a-f]{12}$/);
     assert.equal(
         bundle.healthAndHistory.serverLogTail.lines[0],
-        '[2026-04-04T12:00:00+00:00] [trace:trace-123] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25'
+        '[2026-04-04T12:00:00+00:00] [trace:198.51.100.18] [transaction:private-fixture.example] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25'
     );
     assert.equal(
         bundle.healthAndHistory.serverLogTail.lines[1],

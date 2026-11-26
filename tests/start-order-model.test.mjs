@@ -40,3 +40,19 @@ test('start-order authoring and preference hydration keep the exact canonical fo
         assert.deepEqual(normalized.batches[0].items.map(item => item.id), ids.slice(0, 3));
     }
 });
+
+test('Startup batch name authoring and hydration use the same UTF-8 limit as storage', () => {
+    for (const [input, expected] of [
+        ['界'.repeat(30), '界'.repeat(21)],
+        ['🎧'.repeat(17), '🎧'.repeat(16)],
+        ['x'.repeat(63) + ' 🎧', 'x'.repeat(63)],
+        ['\u00a0Edge\u00a0', '\u00a0Edge\u00a0']
+    ]) {
+        const plan = { batches: [{ id: input, name: input }] };
+        assert.equal(model.normalizeBatchName(input), expected);
+        for (const normalized of [model.normalizePlan(plan), utils.normalizePrefs({ dockerStartOrder: plan }).dockerStartOrder]) {
+            assert.equal(normalized.batches[0].id, expected);
+            assert.equal(normalized.batches[0].name, expected);
+        }
+    }
+});

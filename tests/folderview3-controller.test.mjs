@@ -52,3 +52,27 @@ test('M38: disconnected apply finishes persistence without refreshing or announc
     commit.resolve({ migration: { transaction: { verified: true }, report: report('valid') } });
     assert.equal((await applying).transaction.verified, true); assert.equal(api.getMigrationResult(), null); assert.equal(refreshed, 0);
 });
+
+test('FolderView3 applies only after an approved preference preflight', async () => {
+    const drain = deferred(), calls = [];
+    let approved = false;
+    const api = createApi({
+        document: null, window: { confirm: () => approved },
+        apiPostJson: async (_url, data) => {
+            if (data.action === 'preview_folderview3') return { report: report('fixture') };
+            calls.push('apply');
+            return { migration: { transaction: { verified: true }, report: report('fixture') } };
+        }
+    });
+    api.configureHooks({ beforeApply: async () => { calls.push('drain'); await drain.promise; } });
+    await api.previewSelection(source('fixture'));
+    assert.equal(await api.applyMigration(), null);
+    assert.deepEqual(calls, []);
+    approved = true;
+    const applying = api.applyMigration();
+    assert.deepEqual(calls, ['drain']);
+    drain.resolve();
+    assert.equal((await applying).transaction.verified, true);
+    assert.deepEqual(calls, ['drain', 'apply']);
+    api.disconnect();
+});

@@ -37,7 +37,7 @@ function restoreBackupSnapshot(string $type, string $name, array $options = []):
             else writeRawFolderMap($type, $folders, true);
             fvplusEnvironmentTransactionStage($options, 'folders');
             if (!$editorUndo) {
-                writeTypePrefs($type, $prefs);
+                writeTypePrefs($type, $prefs, recoveryWrite: true);
                 fvplusEnvironmentTransactionStage($options, 'prefs');
             }
             if ($templates !== null) {

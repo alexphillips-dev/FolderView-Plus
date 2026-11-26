@@ -90,12 +90,16 @@ EOF
 fi
 
 NOTES_BLOCK="$(awk -v version="${VERSION}" '
-  BEGIN { capture = 0 }
-  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
+  /^[[:space:]]*<CHANGES([[:space:]]|>)/ { changes = 1; next }
+  !changes { next }
+  /^[[:space:]]*(<\/CHANGES[[:space:]]*>|\]\]>)/ { exit }
+  /^###[[:blank:]]*[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?[[:space:]]*$/ {
     if (capture) {
       exit
     }
-    if ($0 ~ "^###" version "[[:space:]]*$") {
+    heading = substr($0, 4)
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", heading)
+    if (heading == version) {
       capture = 1
       next
     }

@@ -35,6 +35,24 @@ const mountDashboard = async (page, baseUrl, type, nativeMarkup, prepareRuntime)
 };
 
 export const registerDashboardNativeControlCases = ({ test, baseUrl }) => {
+    test('Dashboard VM folder status agrees on cold render and live reconciliation', async ({ page }) => {
+        const host = await mountDashboard(page, baseUrl, 'vm', (type, markup) => type === 'vm'
+            ? markup.replace('vms started', 'vms stopped') : markup,
+        runtime => { runtime['fixture-vm'].state = 'crashed'; });
+        const folder = host.widget.locator('[data-fv-folder-id="vm-group"]');
+        const label = folder.locator('.folder-state-vm');
+        assert.equal(await label.textContent(), '1/1 stopped');
+        assert.match(await folder.locator('.outer.folder-vm').getAttribute('class'), /\bautostart-off\b/);
+        host.runtime['fixture-vm'].autostart = false;
+        await host.refresh();
+        await page.waitForFunction(() => document.querySelector('#vm_view .outer.folder-vm')?.classList.contains('no-autostart'));
+        assert.equal(await label.textContent(), '1/1 stopped');
+        host.runtime['fixture-vm'].state = 'paused';
+        await host.refresh();
+        await label.getByText('1/1 paused').waitFor();
+        assert.equal(await page.evaluate(() => window.getFolderViewPlusDashboardHostSnapshot().nativeRowsLoadedCount), 1);
+    });
+
     test('Dashboard VM native menu receives current state after a live snapshot', async ({ page }) => {
         await page.addInitScript(() => {
             window.fixtureVmContexts = [];

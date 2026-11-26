@@ -308,8 +308,11 @@
             rootWindow.alert?.(String(options?.text || options?.title || 'Legacy regex conversion'));
         };
 
-        const getLegacyMigrationPreview = () => {
-            const context = getLegacyRuleContext() || {};
+        const getLegacyMigrationPreview = (context) => {
+            if (context.validation && context.validation !== 'valid') {
+                const error = rootWindow.FolderViewPlusFoundationModules.rulePredicateValidation.formatLegacyStatus(context.validation, surfaceT);
+                return { valid: false, error, matches: [], advancedConflicts: [], overlappingLegacyFolders: [] };
+            }
             return buildLegacyRegexMigrationPreview({
                 pattern: context.pattern,
                 folderId: getActiveFolderId(),
@@ -335,7 +338,7 @@
                 });
                 return;
             }
-            const preview = getLegacyMigrationPreview();
+            const preview = getLegacyMigrationPreview(context);
             if (!preview.valid) {
                 showLegacyConversionMessage({
                     title: 'Legacy regex is invalid',
@@ -421,12 +424,12 @@
                 card.className = 'fv-legacy-regex-compatibility';
                 (panel.querySelector('.fv-editor-panel-body') || panel).appendChild(card);
             }
-            const preview = getLegacyMigrationPreview();
+            const preview = getLegacyMigrationPreview(context);
             const warningChips = [
-                `<span>${escapeHtml(surfaceT("common.repair.current-matches-1-611f8b", "Current matches: $1", preview.matches.length))}</span>`,
+                preview.valid ? `<span>${escapeHtml(surfaceT("common.repair.current-matches-1-611f8b", "Current matches: $1", preview.matches.length))}</span>` : '',
                 preview.advancedConflicts.length > 0 ? `<span class="is-warning">${escapeHtml(surfaceT("common.repair.advanced-conflicts-1-f44446", "Advanced conflicts: $1", preview.advancedConflicts.length))}</span>` : '',
                 preview.overlappingLegacyFolders.length > 0 ? `<span class="is-warning">${escapeHtml(surfaceT("common.repair.legacy-overlaps-1-eca247", "Legacy overlaps: $1", preview.overlappingLegacyFolders.length))}</span>` : '',
-                !preview.valid ? '<span class="is-error">Invalid regex</span>' : ''
+                !preview.valid && !preview.error ? '<span class="is-error">Invalid regex</span>' : ''
             ].filter(Boolean).join('');
             card.innerHTML = `
                 <div class="fv-legacy-regex-copy">
@@ -438,7 +441,7 @@
                 ${preview.error ? `<p class="fv-legacy-regex-error">${escapeHtml(preview.error)}</p>` : ''}
                 <div class="fv-legacy-regex-actions">
                     <button type="button" id="fvConvertLegacyRegex"${folderEditorRulesBusy || !preview.valid ? ' disabled' : ''}><i class="fa fa-exchange" aria-hidden="true"></i> Convert to Auto-Rule</button>
-                    ${!preview.valid ? '<button type="button" id="fvRepairLegacyRegex"><i class="fa fa-pencil" aria-hidden="true"></i> Edit invalid pattern</button>' : ''}
+                    ${!preview.valid && !['pending', 'unavailable'].includes(context.validation) ? '<button type="button" id="fvRepairLegacyRegex"><i class="fa fa-pencil" aria-hidden="true"></i> Edit invalid pattern</button>' : ''}
                 </div>
                 <small>Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored.</small>
             `;
@@ -673,6 +676,11 @@
                     labelKey: '',
                     labelValue: ''
                 };
+                if (deps.validateManagedRule) {
+                    const status = await deps.validateManagedRule({ ...nextRule, type });
+                    if (status !== 'valid') throw new Error(status === 'invalid' ? surfaceT('common.server.rules-save-invalid', 'Correct invalid rules before saving.')
+                        : surfaceT('diagnostics.cards.runtime-unavailable', 'Connection failed'));
+                }
                 const nextPrefs = normalizePrefs({
                     ...folderEditorPrefs,
                     autoRules: ruleTemplateWorkspace?.insertRules
@@ -765,6 +773,7 @@
 
         return Object.freeze({
             refresh,
+            renderLegacyCompatibility,
             getAssignmentPrefs: () => folderEditorPrefsLoaded ? folderEditorPrefs : undefined
         });
     };

@@ -174,7 +174,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
         $localeResolution = fvplus_i18n_resolve_locale($requestedLocale);
         $catalogReport = fvplus_i18n_catalog_report();
         $localeCoverage = is_array($catalogReport['locales'] ?? null) ? $catalogReport['locales'] : [];
-        return [
+        return diagnosticsProjectCorrelationIds([
             'bundleType' => 'FolderViewPlusSupportBundle',
             'bundleVersion' => 2,
             'schemaVersion' => (int)($diagnostics['schemaVersion'] ?? 0),
@@ -205,7 +205,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                     : null
             ],
             'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics, $redactor)
-        ];
+        ], 'bundleMeta', $redactor);
     }
 
     function diagnosticsBuildSupportBundlePluginTypeSection(string $type, array $typeData, array $hashes, array &$redactor): array {
@@ -217,7 +217,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
         $configMetadata = is_array($typeData['configurationMetadata'] ?? null) ? $typeData['configurationMetadata'] : [];
 
         return [
-            'configurationMetadata' => [
+            'configurationMetadata' => diagnosticsProjectCorrelationIds([
                 'schemaVersion' => (int)($configMetadata['schemaVersion'] ?? 0),
                 'type' => (string)($configMetadata['type'] ?? $type),
                 'createdAt' => (string)($configMetadata['createdAt'] ?? ''),
@@ -233,7 +233,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'lastTraceId' => (string)($configMetadata['lastTraceId'] ?? ''),
                 'lastTransactionId' => (string)($configMetadata['lastTransactionId'] ?? ''),
                 'lastMutationAt' => (string)($configMetadata['lastMutationAt'] ?? '')
-            ],
+            ], 'pluginState.' . $type . '.configurationMetadata', $redactor),
             'prefs' => [
                 'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
                 'dashboard' => is_array($typeData['dashboard'] ?? null) ? $typeData['dashboard'] : [],
@@ -521,7 +521,9 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 ),
                 'customIcons' => $customIcons
             ],
-            'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
+            'durableStorage' => diagnosticsProjectCorrelationIds(
+                is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [], 'system.durableStorage', $redactor
+            ),
             'runtimeIntegrity' => $runtimeIntegrity,
             'securityAudit' => is_array($diagnostics['securityAudit'] ?? null) ? $diagnostics['securityAudit'] : [],
             'requestSecurity' => is_array($diagnostics['requestSecurity'] ?? null) ? $diagnostics['requestSecurity'] : [],
@@ -577,8 +579,9 @@ function diagnosticsResolveSupportBundleChannel(): string {
 
     function getSupportBundlePreviewSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $redactor = diagnosticsCreateSupportBundleRedactor($mode);
         return [
-            'bundleMeta' => [
+            'bundleMeta' => diagnosticsProjectCorrelationIds([
                 'bundleType' => 'FolderViewPlusSupportBundle',
                 'bundleVersion' => 2,
                 'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
@@ -591,7 +594,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'redactionPolicyVersion' => 1,
                 'bundleSaltScope' => $mode === 'full' ? 'none' : 'per-bundle',
                 'previewOnly' => true
-            ],
+            ], 'bundleMeta', $redactor),
             // These contract placeholders make the preview useful without running
             // host discovery. Full data is collected only when an export is requested.
             'system' => ['previewOnly' => true],
@@ -607,7 +610,7 @@ function diagnosticsResolveSupportBundleChannel(): string {
                 'mode' => $mode,
                 'saltScope' => $mode === 'full' ? 'none' : 'per-bundle',
                 'saltHash' => null,
-                'hashedFields' => [],
+                'hashedFields' => $redactor['hashedFields'],
                 'maskedFields' => [],
                 'omittedFields' => [],
                 'truncatedFields' => [],

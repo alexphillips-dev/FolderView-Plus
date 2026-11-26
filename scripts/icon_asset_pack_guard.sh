@@ -58,36 +58,50 @@ if [[ "${ACTUAL_SHA256}" != "${MANIFEST_SHA256}" || "${SIDECAR_SHA256}" != "${AC
   exit 1
 fi
 
-ARCHIVE_LIST="$(tar -tf "${ARCHIVE_PATH}")"
-if grep -Eq '(^/|(^|/)\.\.(/|$))' <<< "${ARCHIVE_LIST}"; then
-  echo "ERROR: Icon asset pack contains an unsafe path." >&2
-  exit 1
+if command -v git >/dev/null && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  relative_archive="asset-packs/${ARCHIVE_NAME}"
+  archive_blob="$(git -C "${ROOT_DIR}" hash-object "${ARCHIVE_PATH}")"
+  for ref in HEAD HEAD^ origin/main origin/dev "${FVPLUS_ICON_PACK_BASE_REF:-}"; do
+    [[ -n "${ref}" ]] || continue
+    if published_blob="$(git -C "${ROOT_DIR}" rev-parse --verify --quiet "${ref}:${relative_archive}")" &&
+       [[ "${archive_blob}" != "${published_blob}" ]]; then
+      echo "ERROR: Icon asset-pack version ${VERSION} already contains different bytes at ${ref}. Use a new version." >&2
+      exit 1
+    fi
+  done
 fi
-INVALID_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST}" | grep -Ev '^(asset-pack\.json|third-party-icons/?|third-party-icons/.*/|third-party-icons/.*\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif))$' || true)"
-if [[ -n "${INVALID_ENTRIES}" ]]; then
-  echo "ERROR: Icon asset pack contains unsupported entries:" >&2
-  printf '%s\n' "${INVALID_ENTRIES}" >&2
+
+PREFLIGHT="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
+bash "${PREFLIGHT}" "${ARCHIVE_PATH}" icon-pack
+TEMP_DIR="$(mktemp -d)"
+trap 'rm -rf -- "${TEMP_DIR}"' EXIT
+tar --extract --xz --file "${ARCHIVE_PATH}" --directory "${TEMP_DIR}" \
+  --no-same-owner --no-same-permissions --delay-directory-restore
+if [[ ! -f "${TEMP_DIR}/asset-pack.json" || ! -d "${TEMP_DIR}/third-party-icons" ]]; then
+  echo 'ERROR: Icon asset pack is missing its metadata or icon directory.' >&2
   exit 1
 fi
 
-PACK_MANIFEST="$(tar -xOf "${ARCHIVE_PATH}" asset-pack.json)"
+PACK_MANIFEST="$(cat "${TEMP_DIR}/asset-pack.json")"
 PACK_VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 PACK_FILE_COUNT="$(sed -n 's/.*"fileCount": \([0-9][0-9]*\).*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 PACK_SOURCE_BYTES="$(sed -n 's/.*"sourceBytes": \([0-9][0-9]*\).*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 PACK_CONTENT_SHA256="$(sed -n 's/.*"contentSha256": "\([a-f0-9]*\)".*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 SOURCE_FILE_COUNT="$(find "${SOURCE_DIR}" -type f | grep -Eic '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
 SOURCE_BYTES="$(find "${SOURCE_DIR}" -type f -printf '%p\t%s\n' | grep -Ei '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)[[:space:]]' | awk '{sum += $NF} END {print sum + 0}')"
-SOURCE_CONTENT_SHA256="$({
-  cd "${SOURCE_DIR}"
-  while IFS= read -r -d '' icon_file; do
+icon_content_digest() (
+  cd "$1"
+  find . -type f -print0 | sort -z | while IFS= read -r -d '' icon_file; do
     extension="${icon_file##*.}"
     extension="${extension,,}"
     case "${extension}" in
       png|jpg|jpeg|gif|webp|svg|bmp|ico|avif) sha256sum --text "${icon_file}" ;;
     esac
-  done < <(find . -type f -print0 | sort -z)
-} | sha256sum | awk '{print $1}')"
-ARCHIVE_ICON_COUNT="$(printf '%s\n' "${ARCHIVE_LIST}" | grep -Ec '^third-party-icons/.*\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
+  done | sha256sum | awk '{print $1}'
+)
+SOURCE_CONTENT_SHA256="$(icon_content_digest "${SOURCE_DIR}")"
+ARCHIVE_CONTENT_SHA256="$(icon_content_digest "${TEMP_DIR}/third-party-icons")"
+ARCHIVE_ICON_COUNT="$(find "${TEMP_DIR}/third-party-icons" -type f -printf '\n' | wc -l | tr -d '[:space:]')"
 
 if [[ "${PACK_VERSION}" != "${VERSION}" ]]; then
   echo "ERROR: Embedded icon asset-pack version does not match ${VERSION}." >&2
@@ -103,6 +117,10 @@ if [[ "${PACK_SOURCE_BYTES}" != "${SOURCE_BYTES}" ]]; then
 fi
 if [[ "${PACK_CONTENT_SHA256}" != "${SOURCE_CONTENT_SHA256}" ]]; then
   echo "ERROR: Icon source changed without rebuilding or versioning the asset pack." >&2
+  exit 1
+fi
+if [[ "${ARCHIVE_CONTENT_SHA256}" != "${SOURCE_CONTENT_SHA256}" ]]; then
+  echo "ERROR: Archived icon paths or contents do not match the source library." >&2
   exit 1
 fi
 

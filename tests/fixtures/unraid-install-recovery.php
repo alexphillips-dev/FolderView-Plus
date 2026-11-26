@@ -64,7 +64,8 @@ $cases = $cliSource === null
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
-        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
+        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'update-committed-damaged-icons-before-boot-success',
+        'update-committed-damaged-core-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
         'install-remove-stale-cleanup-retry-success', 'install-renamed-local-success',
         'install-fresh-extract-success', 'install-fresh-extract-retry-success', 'install-fresh-unverified-runtime',
         'install-remove-archive-obstructed-success', 'install-remove-native-handoff-success',
@@ -77,6 +78,8 @@ if ($cliSource !== null && $unraidVersion === '7.4.0') {
     $cases[] = 'install-native-remove-nextboot-staged-partial-failure';
     $cases[] = 'update-nextboot-after-interrupted-registration-success';
     $cases[] = 'update-nextboot-damaged-icons-after-interrupted-registration-success';
+    $cases[] = 'update-newer-nextboot-after-rollback-success';
+    $cases[] = 'update-damaged-nextboot-after-rollback-success';
 }
 $check = [];
 
@@ -278,7 +281,8 @@ exec /bin/rm "$@"',
     touch "$FVPLUS_FIXTURE_DIR/boot-lock-waiting"
 fi
 exec /usr/bin/flock "$@"',
-        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" = update-late-*-success || "$FVPLUS_FIXTURE_CASE" = update-nextboot-*-registration-success ]] &&
+        "$dir/bin/mv" => 'if [[ "$FVPLUS_FIXTURE_CASE" = update-late-*-success || "$FVPLUS_FIXTURE_CASE" = update-nextboot-*-registration-success ||
+    "$FVPLUS_FIXTURE_CASE" = update-committed-damaged-*-before-boot-success ]] &&
     [[ "${@: -1}" == */boot/folderview.plus.plg && "${@: -2:1}" == */boot/.folderview.plus.plg.* ]]; then
     touch "$FVPLUS_FIXTURE_DIR/registration-commit-paused"
     for ((attempt=0; attempt<200; attempt++)); do
@@ -378,7 +382,8 @@ exec /bin/mv "$@"'
                 . "$boot-removed" . '") mkdir($tar_dir."/".basename($src_file));' . "\n  " . $needle, $nativeCode, $replaced);
             verifyInstallFixture($replaced === 1, 'Could not inject the final native move failure.');
         } elseif (in_array($case, ['update-late-check-interrupted-boot-success', 'install-remove-archived-reinstall-success',
-            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'], true)) {
+            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success',
+            'update-committed-damaged-icons-before-boot-success', 'update-committed-damaged-core-before-boot-success'], true)) {
             // Stop the native owner after its flash copy, before it decides which post-hooks to run.
             $needle = 'function post_hooks($error=\'\') {';
             $nativeCode = str_replace($needle, $needle . "\n" . '  if (getenv("FVPLUS_FIXTURE_INTERRUPT") === "1" && $error === "") exit(137);', $nativeCode, $replaced);
@@ -477,7 +482,7 @@ exec /bin/mv "$@"'
         $check[] = $case;
         continue;
     }
-    if ($case === 'update-rollback-before-boot-success') {
+    if ($case === 'update-rollback-before-boot-success' || str_ends_with($case, '-nextboot-after-rollback-success')) {
         [$failedStatus, $failedOutput] = $run($command, [
             'FVPLUS_FIXTURE_FAIL_MANIFEST_COMMIT' => '1', 'FVPLUS_FIXTURE_FAIL_PRIOR_PACKAGE' => '1'
         ]);
@@ -485,6 +490,34 @@ exec /bin/mv "$@"'
             && is_file("$journal/committed") && is_file("$journal/rollback") && is_file($recoveryWrapper)
             && trim(file_get_contents("$config/version")) === $candidate && file_get_contents($bootManifest) === $oldManifest,
             "$case did not leave a durable rollback after marking the candidate committed: $failedOutput");
+
+        $bootVersion = $previous;
+        $expectedManifest = $oldManifest;
+        if (str_ends_with($case, '-nextboot-after-rollback-success')) {
+            $stagedVersion = '2026.01.01.03';
+            $peerManifest = $manifest($stagedVersion, '3.0.0');
+            file_put_contents("$dir/remote.plg", $peerManifest);
+            [$checkStatus, $checkOutput] = $run([PHP_BINARY, $cli, 'check', "$pluginName.plg"]);
+            verifyInstallFixture($checkStatus === 0 && str_contains($checkOutput, $stagedVersion),
+                "$case could not discover the newer release: $checkOutput");
+            $stageDir = "$nextboot/$pluginName";
+            mkdir($stageDir, 0700, true);
+            file_put_contents("$stageDir/$pluginName-$stagedVersion.txz", "core $stagedVersion");
+            copy($iconArchives['3.0.0'], "$stageDir/$pluginName-icons-3.0.0.txz");
+            [$downloadStatus, $downloadOutput] = $run([PHP_BINARY, $cli, 'download', "$pluginName.plg"]);
+            verifyInstallFixture($downloadStatus === 0 && file_get_contents("$nextboot/$pluginName.plg") === $peerManifest,
+                "$case could not stage the newer release: $downloadOutput");
+            if (str_contains($case, '-damaged-')) {
+                file_put_contents("$stageDir/$pluginName-icons-3.0.0.txz", 'damaged after download');
+            } else {
+                $bootVersion = $stagedVersion;
+                $expectedManifest = $peerManifest;
+            }
+            verifyInstallFixture(rename("$nextboot/$pluginName.plg", $bootManifest), "$case could not promote the boot manifest.");
+            foreach (glob("$stageDir/*") as $asset) {
+                verifyInstallFixture(rename($asset, "$config/" . basename($asset)), "$case could not promote the archive.");
+            }
+        }
 
         file_put_contents("$dir/boot-id", "synthetic boot two\n");
         unlink($runningLink);
@@ -500,10 +533,10 @@ exec /bin/mv "$@"'
             verifyInstallFixture($bootStatus === 0, "$case could not boot from " . basename($bootFile) . ": $bootOutput");
         }
         clearstatcache();
-        verifyInstallFixture(file_get_contents($bootManifest) === $oldManifest && readlink($runningLink) === $bootManifest
-            && trim(file_get_contents("$config/version")) === $previous && !is_dir($journal)
-            && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$previous.txz",
-            "$case boot favored the explicitly failed candidate over rollback.");
+        verifyInstallFixture(file_get_contents($bootManifest) === $expectedManifest && readlink($runningLink) === $bootManifest
+            && trim(file_get_contents("$config/version")) === $bootVersion && !is_dir($journal)
+            && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$bootVersion.txz",
+            "$case did not boot the selected verified version $bootVersion.");
         $check[] = $case;
         continue;
     }
@@ -1008,10 +1041,12 @@ exec /bin/mv "$@"'
         continue;
     }
     if (in_array($case, ['update-late-check-success', 'update-late-check-interrupted-boot-success',
-        'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'], true)) {
+        'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success',
+        'update-committed-damaged-icons-before-boot-success', 'update-committed-damaged-core-before-boot-success'], true)) {
         $interrupted = $case !== 'update-late-check-success';
         $downloaded = str_contains($case, 'nextboot');
         $damagedIcons = str_contains($case, 'damaged-icons');
+        $damagedCommitted = str_starts_with($case, 'update-committed-damaged-');
         $stagedVersion = '2026.01.01.03';
         $peerManifest = $manifest($stagedVersion, '3.0.0');
         file_put_contents("$dir/remote.plg", $peerManifest);
@@ -1059,6 +1094,10 @@ exec /bin/mv "$@"'
             unlink("$packages/$pluginName-$candidate");
             rename($runtime, "$dir/runtime-before-reboot");
             file_put_contents("$dir/boot-id", "synthetic boot two\n");
+            if ($damagedCommitted) {
+                $damagedArchive = $damagedIcons ? "$pluginName-icons-2.0.0.txz" : "$pluginName-$candidate.txz";
+                file_put_contents("$config/$damagedArchive", 'damaged committed candidate archive');
+            }
             $bootManifests = glob("$boot/*.plg");
             verifyInstallFixture($bootManifests === [$recoveryWrapper, $bootManifest], "$case did not load recovery before the primary manifest.");
             foreach ($bootManifests as $manifestPath) {
@@ -1068,8 +1107,8 @@ exec /bin/mv "$@"'
             }
             clearstatcache();
             $expectsPeer = $downloaded && !$damagedIcons;
-            $bootVersion = $expectsPeer ? $stagedVersion : $candidate;
-            $expectedManifest = $expectsPeer ? $peerManifest : $newManifest;
+            $bootVersion = $damagedCommitted ? $previous : ($expectsPeer ? $stagedVersion : $candidate);
+            $expectedManifest = $damagedCommitted ? $oldManifest : ($expectsPeer ? $peerManifest : $newManifest);
             verifyInstallFixture(file_get_contents($bootManifest) === $expectedManifest && readlink($runningLink) === $bootManifest
                 && trim(file_get_contents("$config/version")) === $bootVersion
                 && trim(file_get_contents("$dir/core-installed")) === "$config/$pluginName-$bootVersion.txz"

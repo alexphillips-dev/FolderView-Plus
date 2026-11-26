@@ -192,7 +192,8 @@ test('configuration metadata revisions track writes, reject stale saves, and rec
 
 test('API and editor contracts expose revisions without breaking the legacy folder response', () => {
     assert.match(prefsEndpoint, /\$expectedRevision = \(string\)\(\$_POST\['expectedRevision'\] \?\? ''\)/);
-    assert.match(prefsEndpoint, /assertExpectedConfigRevision\(\$type, 'prefs', \$expectedRevision\)/);
+    assert.match(prefsEndpoint, /assertExpectedConfigRevision\(\$type, 'prefs', \$expectedRevision, \$metadata\)/);
+    assert.match(prefsEndpoint, /\$expectedRecoveryRevision = \$_POST\['expectedRecoveryRevision'\]/);
     assert.match(readEndpoint, /\$_GET\['includeMetadata'\]/);
     assert.match(readEndpoint, /header\('X-FV-Folder-Revision: '/);
     assert.match(folderEditor, /folderEditorExpectedFolderRevision/);
@@ -206,7 +207,7 @@ test('API and editor contracts expose revisions without breaking the legacy fold
 test('metadata integrity is visible in diagnostics and the sanitized support bundle', () => {
     assert.match(diagnosticsLib, /function diagnosticsBuildConfigMetadataIntegrity\(string \$type\): array/);
     assert.match(diagnosticsLib, /'configurationMetadata'\s*=>\s*\$configMetadataIntegrity/);
-    assert.match(supportBundleLib, /'configurationMetadata'\s*=>\s*\[/);
+    assert.match(supportBundleLib, /'configurationMetadata'\s*=>\s*diagnosticsProjectCorrelationIds\(\[/);
     assert.match(supportBundleLib, /'externalChangeCount'\s*=>/);
     assert.match(supportBundleLib, /'lastTransactionId'\s*=>/);
     assert.match(supportBundleLib, /'transactionId'\s*=>\s*diagnosticsCurrentTransactionId\(\)/);

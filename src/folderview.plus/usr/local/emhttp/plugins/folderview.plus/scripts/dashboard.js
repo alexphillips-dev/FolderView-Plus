@@ -2138,12 +2138,13 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
 
             
             // set the status of the folder
-            const vmState = String(ct.state || '');
-            const isVmPaused = vmState === 'paused' || vmState === 'pmsuspended';
-            started += vmState !== "shutoff" ? 1 : 0;
-            paused += isVmPaused ? 1 : 0;
-            autostart += ct.autostart ? 1 : 0;
-            autostartStarted += (ct.autostart && vmState !== "shutoff") ? 1 : 0;
+            const meta = getDashboardRuntimeStateMeta('vm', ct);
+            if (meta.active) started += 1;
+            if (meta.paused) paused += 1;
+            if (ct.autostart === true) {
+                autostart += 1;
+                if (meta.active) autostartStarted += 1;
+            }
 
             folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-preview', {detail: {
                 folder: folder,
@@ -2192,6 +2193,9 @@ const renderFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
         $nextStatusIcon.css('color', statusColor);
         $statusIcon.replaceWith($nextStatusIcon);
         applyDashboardFolderStatusTextColor($statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`), statusColors.text);
+    } else if (Object.keys(folder.containers).length > 0) {
+        const total = Object.keys(folder.containers).length;
+        applyDashboardFolderStatusTextColor($statusText.text(`${total}/${total} ${$.i18n('stopped')}`), statusColors.text);
     }
 
     const $cardSurfaces = sel.closest('.folder-showcase-outer').add(sel.parent());

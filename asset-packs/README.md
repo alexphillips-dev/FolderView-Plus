@@ -10,6 +10,6 @@ FolderView Plus ships the large third-party icon library separately from the cor
 4. Copy the printed MD5 and SHA-256 into `iconPackMd5` and `iconPackSha256` in `folderview.plus.plg`.
 5. Run `bash scripts/icon_asset_pack_guard.sh` and the icon asset-pack regression test before packaging the plugin.
 
-The builder produces a deterministic `folderview.plus-icons-<version>.txz` archive and SHA-256 sidecar. The guard fails if the source library changes without a rebuilt, newly versioned pack, if manifest checksums drift, or if the archive contains unsupported or unsafe entries.
+The builder produces a deterministic `folderview.plus-icons-<version>.txz` archive and SHA-256 sidecar. Repeating a build for the same version requires byte-identical output. The guard compares the extracted icon paths and bytes to the source library, checks package checksums, and rejects a version whose recorded archive bytes differ from the current pack.
 
 At install time, the archive is retained under `/boot/config/plugins/folderview.plus` and extracted into a checksum-marked `/tmp/folderview.plus-assets/icons-<version>` cache. The public `images/third-party-icons` path is a symlink to that cache, preserving all existing icon URLs. Reinstalling the same pack reuses the verified extracted cache; rebooting rebuilds the RAM cache from the persistent archive.

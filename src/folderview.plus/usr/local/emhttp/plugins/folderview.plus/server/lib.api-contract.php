@@ -74,9 +74,9 @@ function fvplus_resolve_api_endpoint_contract(string $endpoint, ?string $method 
     $actions = $definition['actions'] ?? null;
     if (is_array($actions)) {
         $parameter = trim((string)($definition['actionParameter'] ?? 'action'));
-        $action = trim((string)($_REQUEST[$parameter] ?? fvplus_api_contract_request_value($parameter, $method) ?? ($definition['defaultAction'] ?? '')));
+        $action = trim((string)($_REQUEST[$parameter] ?? fvplus_api_contract_request_value($parameter, $method) ?? ($effective['defaultAction'] ?? '')));
         if ($action === '') {
-            $action = (string)($definition['defaultAction'] ?? '');
+            $action = (string)($effective['defaultAction'] ?? '');
         }
         $actionDefinition = $actions[$action] ?? null;
         if (!is_array($actionDefinition)) {

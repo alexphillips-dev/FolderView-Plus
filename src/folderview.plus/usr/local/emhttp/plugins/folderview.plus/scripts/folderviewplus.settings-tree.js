@@ -700,7 +700,7 @@ const renderFolderSelectOptions = (type) => {
     };
 
     const simpleOptions = hasFolders
-        ? entries.map(([id, folder]) => `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`).join('')
+        ? entries.map(([id, folder]) => `<option value="${escapeHtml(id)}" data-fvplus-user-content>${escapeHtml(folder.name || id)}</option>`).join('')
         : '<option value="">(Create a folder first)</option>';
     let bulkOptions = '<option value="">(Create a folder first)</option>';
     if (hasFolders) {
@@ -713,7 +713,7 @@ const renderFolderSelectOptions = (type) => {
             const depth = Math.max(0, Number(hierarchyMeta.depthById?.[id] || 0));
             const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(12, depth) * 2) : '';
             const label = buildFolderPathLabel(type, id, folders, hierarchyMeta);
-            return `<option value="${escapeHtml(id)}">${indent}${escapeHtml(label)}</option>`;
+            return `<option value="${escapeHtml(id)}" data-fvplus-user-content>${indent}${escapeHtml(label)}</option>`;
         }).join('');
     }
 

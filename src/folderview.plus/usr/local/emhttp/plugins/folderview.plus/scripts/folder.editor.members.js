@@ -97,6 +97,7 @@
         const translate = (key, fallback, ...values) => deps.translate?.(key, fallback, ...values)
             || fallback.replace(/\$(\d+)/g, (token, number) => String(values[Number(number) - 1] ?? token));
         let assignmentInventory = {};
+        let knownMembers = null;
         let assignmentNames = [];
         let assignmentRows = new Map();
         let assignmentContext;
@@ -105,9 +106,39 @@
         let assignmentRenderId = 0;
         let assignmentRenderQueued = false;
         let assignmentDisposed = false;
+        let membershipFilterQueued = false;
+
+        const isAutomaticallyIncluded = (name) => {
+            const member = knownMembers ? knownMembers.get(name) : getAllMembers().find(candidate => candidate.Name === name);
+            if (!member || member.Unavailable) return false;
+            const form = deps.getMembershipForm?.();
+            const folderName = String(form?.name?.value || '').trim();
+            if (folderName && member.Label === folderName) return true;
+            const pattern = String(form?.regex?.value || '');
+            if (!pattern || deps.validateMembershipPattern?.(pattern).status === 'invalid') return false;
+            try { return new RegExp(pattern).test(name); } catch (_error) { return false; }
+        };
+
+        const reconcileMembershipChange = (input, row, name) => {
+            const automatic = !input.checked && isAutomaticallyIncluded(name);
+            if (automatic) {
+                input.checked = true;
+                input.disabled = true;
+            }
+            row.attr('data-membership', automatic ? 'regex' : (input.checked ? 'manual' : 'available'));
+            if (automatic) deps.reconcileAutomaticMembership?.();
+            if (!membershipFilterQueued) {
+                membershipFilterQueued = true;
+                Promise.resolve().then(() => {
+                    membershipFilterQueued = false;
+                    if (!assignmentDisposed) applyMemberFilters();
+                });
+            }
+        };
 
         const setAssignmentInventory = (infoByName, members) => {
             assignmentInventory = infoByName;
+            knownMembers = new Map(members.map(member => [member.Name, member]));
             assignmentNames = members.map(({ Name }) => Name);
         };
 
@@ -225,6 +256,7 @@
             $(assignmentForm).off('.fvMemberAssignment');
             assignmentRows.clear();
             assignmentInventory = {};
+            knownMembers = null;
             assignmentNames = [];
         };
 
@@ -578,6 +610,7 @@
 
         return Object.freeze({
             applyMemberFilters,
+            reconcileMembershipChange,
             setVisibleMemberSelection,
             syncMemberArraysFromTable,
             moveMemberRow,

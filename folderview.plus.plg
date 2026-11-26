@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.26.01">
-<!ENTITY md5 "e7e26897ac49187a1b2189baf3964149">
-<!ENTITY sha256 "7eef4c50b5cbaac5ffd2a810922945348f5583a89a04e7890f23f5d4e9b9c564">
+<!ENTITY version "2026.11.26.02">
+<!ENTITY md5 "d99829722bc1627b48ecbd3ed9003ce3">
+<!ENTITY sha256 "4253488f166f9e6c5117f37a057145f7fed4c433aa16178d51b3496fcd1d533c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.26.02
+- Fix: Recover interrupted updates using verified core and icon archives, and keep a newer verified update selected for the next boot.
+- Fix: Prevent older preference saves from undoing a completed rollback, portable environment import, or FolderView3 migration.
+- Fix: Keep independent Startup edits when another edit conflicts, handle multilingual batch names consistently, repair duplicate batch IDs, and preserve text while Settings refreshes.
+- Fix: Keep child folders under the reviewed parent and make rule validation, editor membership, and Docker Startup agree.
+- Fix: Preserve VM order with punctuation in folder names, keep names intact in localized views, and report VM status consistently after live refresh.
+- Fix: Restore Quick Finder keyboard focus after a refresh and keep Rules controls working after returning to a cached Settings page.
+- Fix: Preserve concurrent Diagnostics history events and redact client-supplied correlation identifiers in sanitized exports.
+- Fix: Verify icon pack contents against source, preserve published icon pack versions, and keep release previews, historical notes, and the clone badge up to date.
+
 
 ###2026.11.26.01
 - Fix: Keep automatic folder matches dynamic after an ordinary edit, and preserve manual membership changes while regex matching runs.

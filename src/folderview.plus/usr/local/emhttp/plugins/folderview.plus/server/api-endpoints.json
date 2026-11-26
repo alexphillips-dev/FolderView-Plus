@@ -106,38 +106,12 @@
       "requiredParameters": ["type", "folderId"], "responseType": "json", "auditCategory": "rules.migrate"
     },
     "rule_preview.php": {
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "access": "mixed",
-      "requestToken": "none",
-      "responseType": "json",
-      "auditCategory": "rules.preview",
-      "methodContracts": {
-        "GET": {
-          "methods": [
-            "GET"
-          ],
-          "access": "read-only",
-          "requestToken": "none",
-          "requiredParameters": [
-            "type"
-          ],
-          "auditCategory": "rules.preview"
-        },
-        "POST": {
-          "methods": [
-            "POST"
-          ],
-          "access": "mutation",
-          "requestToken": "mutation",
-          "requiredParameters": [
-            "type",
-            "expectedDigest"
-          ],
-          "auditCategory": "rules.apply"
-        }
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "rules.preview",
+      "defaultAction": "apply", "methodContracts": {"GET": {"methods": ["GET"], "access": "read-only", "defaultAction": "preview"}},
+      "actions": {
+        "preview": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type"], "auditCategory": "rules.preview"},
+        "apply": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "expectedDigest"], "auditCategory": "rules.apply"},
+        "validate_predicate": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 65536, "requiredParameters": ["type"], "auditCategory": "rules.validate"}
       }
     },
     "prefs.php": {

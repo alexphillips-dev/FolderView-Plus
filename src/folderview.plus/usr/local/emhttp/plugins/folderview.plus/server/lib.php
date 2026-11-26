@@ -1144,7 +1144,7 @@
             $normalized['name'] = 'Folder';
         }
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
-        $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
+        $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), FVPLUS_LEGACY_FOLDER_REGEX_MAX_BYTES);
         $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, folderNormalizationCollectionLimit('containers'));
         $normalized['hiddenPreviewMembers'] = array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000);
         unset($normalized['hidden_preview']);

@@ -1,14 +1,15 @@
 // @ts-check
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('./folderviewplus.utils-foundation.js'));
+        module.exports = factory(require('./folderviewplus.utils-foundation.js'), require('./folderviewplus.utils-prefs.js'));
         return;
     }
     const modules = root.FolderViewPlusFoundationModules = root.FolderViewPlusFoundationModules || {};
-    modules.startOrderModel = factory(modules.utilityFoundation);
-}(typeof window !== 'undefined' ? window : globalThis, function(utilityFoundation) {
+    modules.startOrderModel = factory(modules.utilityFoundation, modules.utilityPrefs);
+}(typeof window !== 'undefined' ? window : globalThis, function(utilityFoundation, utilityPrefs) {
     'use strict';
     const { normalizeFolderId } = utilityFoundation;
+    const { normalizeDockerStartOrderText } = utilityPrefs;
     const MODES = Object.freeze(['unmanaged', 'docker-page', 'custom-batches']);
     const REMAINING_MODES = Object.freeze(['after', 'before', 'keep']);
     const DEFAULT_PLAN = Object.freeze({
@@ -17,7 +18,6 @@
         batches: [],
         containerWaits: {}
     });
-
     const boundedText = (value, maximum) => String(value || '').trim().slice(0, maximum);
     const boundedInteger = (value, minimum, maximum, fallback = minimum) => {
         const parsed = Number(value);
@@ -25,7 +25,6 @@
             ? Math.max(minimum, Math.min(maximum, Math.round(parsed)))
             : fallback;
     };
-
     const normalizeItem = (item) => {
         if (!item || typeof item !== 'object') {
             return null;
@@ -45,8 +44,8 @@
             .map(normalizeItem)
             .filter(Boolean);
         return {
-            id: boundedText(source.id, 64) || `batch-${index + 1}`,
-            name: boundedText(source.name, 64) || `Start batch ${index + 1}`,
+            id: normalizeDockerStartOrderText(source.id, 64) || `batch-${index + 1}`,
+            name: normalizeDockerStartOrderText(source.name, 64) || `Start batch ${index + 1}`,
             delay: boundedInteger(source.delay, 0, 3600, 0),
             parallel: source.parallel === true,
             useFolderOrder: !Object.prototype.hasOwnProperty.call(source, 'useFolderOrder') || source.useFolderOrder !== false,
@@ -91,6 +90,7 @@
         MODES,
         REMAINING_MODES,
         DEFAULT_PLAN,
+        normalizeBatchName: value => normalizeDockerStartOrderText(value, 64),
         normalizePlan,
         patchPlan,
         createId

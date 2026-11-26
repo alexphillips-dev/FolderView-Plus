@@ -64,7 +64,14 @@ function updateFolder(string $type, string $content, string $id = '', $expectedR
         $existingFolder = is_array($fileData[$id] ?? null)
             ? normalizeFolderContentPayload((array)$fileData[$id])
             : null;
+        $submittedPattern = (string)($decodedContent['regex'] ?? '');
+        if ($submittedPattern !== (string)($existingFolder['regex'] ?? '') && !fvplusLegacyFolderRegexIsValid($submittedPattern)) {
+            throw new InvalidArgumentException('Correct invalid rules before saving.');
+        }
         $nextFolder = preserveMigratedFolderReferences(normalizeFolderContentPayload($decodedContent), $existingFolder ?? []);
+        if ($isCreate && $nextFolder['parentId'] !== '' && !array_key_exists($nextFolder['parentId'], $fileData)) {
+            throw new FVPlusConfigConflictException('Selected parent folder no longer exists.');
+        }
         $normalizedPreview = json_encode($nextFolder, JSON_UNESCAPED_SLASHES);
         if (!is_string($normalizedPreview)) {
             throw new RuntimeException('Failed to normalize folder payload.');

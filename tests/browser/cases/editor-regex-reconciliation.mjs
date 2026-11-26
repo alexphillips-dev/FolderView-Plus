@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { registerEditorMemberTransitionCase } from './editor-member-transition.mjs';
 
 const scripts = path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts');
 
 export const registerEditorRegexReconciliationCases = ({ test }) => {
+    registerEditorMemberTransitionCase({ test });
+
     test('Folder editor keeps changes made while a regex worker is pending', async ({ page }) => {
         await page.setContent('<!doctype html><html lang="en"><head><title>Member edits</title></head><body><table class="sortable"><tbody></tbody></table></body></html>');
         await page.addScriptTag({ path: path.resolve('node_modules/jquery/dist/jquery.js') });

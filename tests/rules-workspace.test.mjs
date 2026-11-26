@@ -82,7 +82,8 @@ test('saving an open rule edit rejects a changed target but takes unrelated comm
     };
     const document = { getElementById: node, querySelector: () => node('one-panel'), querySelectorAll: () => [] };
     const workspace = createApi({
-        document, window: { AbortController, addEventListener() {} }, ui: {}, translate: (_key, fallback) => fallback, onDraftChange() {}
+        document, window: { AbortController, addEventListener() {} }, ui: {}, translate: (_key, fallback) => fallback, onDraftChange() {},
+        createPredicateValidator: () => ({ check: () => ({ status: 'valid', done: Promise.resolve('valid') }), clear() {} })
     });
     const source = fs.readFileSync(new URL(plugin + 'folderviewplus.js', import.meta.url), 'utf8');
     const start = source.indexOf('const addAutoRule =');

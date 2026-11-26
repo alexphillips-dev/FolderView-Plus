@@ -509,7 +509,7 @@ test('dashboard status and diagnostics include paused state and sanitized render
     assert.doesNotMatch(dashboardScript, /downloadDashboardRenderDebug|debug original order/);
     assert.match(dashboardScript, /let paused = 0;/);
     assert.match(dashboardScript, /paused \+= newFolder\[container\]\.state && newFolder\[container\]\.pause \? 1 : 0;/);
-    assert.match(dashboardScript, /const isVmPaused = vmState === 'paused' \|\| vmState === 'pmsuspended';/);
+    assert.match(dashboardScript, /const meta = getDashboardRuntimeStateMeta\('vm', ct\);\s*if \(meta.active\) started \+= 1;\s*if \(meta.paused\) paused \+= 1;/);
     assert.match(dashboardScript, /folder\.status\.paused = paused;/);
     assert.match(dashboardScript, /const statusClass = allStartedArePaused \? 'paused' : 'started';/);
 });

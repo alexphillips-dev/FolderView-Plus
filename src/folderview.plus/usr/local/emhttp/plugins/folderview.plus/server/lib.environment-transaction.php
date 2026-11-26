@@ -59,7 +59,7 @@ function fvplusEnvironmentWriteTarget(array $normalized, array $options, array $
         $prefs = $normalized['types'][$type]['prefs'];
         fvplusWriteConfigPayload($type, 'folder', getFolderFilePath($type), $folders);
         fvplusEnvironmentTransactionStage($options, $type . '-folders');
-        writeTypePrefs($type, $prefs);
+        writeTypePrefs($type, $prefs, recoveryWrite: true);
         fvplusEnvironmentTransactionStage($options, $type . '-prefs');
         $counts[$type] = count($folders);
     }

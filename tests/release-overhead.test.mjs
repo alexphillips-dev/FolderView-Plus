@@ -313,6 +313,94 @@ test('icon pack output is independent of the caller umask and staged source mode
     assert.match(modeReport, /^-rw-r--r--.*fixture\.svg$/m);
 });
 
+test('icon packs preserve published versions and verify extracted icon paths and bytes', shellOnly, t => {
+    const f = fixture(t);
+    const plugin = 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus';
+    for (const file of ['scripts/build_icon_asset_pack.sh', 'scripts/icon_asset_pack_guard.sh', `${plugin}/scripts/archive_preflight.sh`]) f.copy(file);
+    const source = `${plugin}/images/third-party-icons/Audit.SVG`;
+    const icon = title => `<svg><title>${title}</title></svg>\n`;
+    const bash = (script, env = {}) => spawnSync('bash', [`scripts/${script}.sh`], {
+        cwd: f.directory, encoding: 'utf8', env: { ...process.env, FVPLUS_ICON_PACK_BASE_REF: '', ...env }
+    });
+    const archiveName = 'folderview.plus-icons-1.0.0.txz';
+    const archive = `asset-packs/${archiveName}`;
+    const bytes = () => fs.readFileSync(path.join(f.directory, archive));
+    const bindManifest = () => {
+        const hash = algorithm => createHash(algorithm).update(bytes()).digest('hex');
+        f.write(`${archive}.sha256`, `${hash('sha256')}  ${archiveName}\n`);
+        f.write('folderview.plus.plg', [
+            '<!ENTITY iconPackVersion "1.0.0">', `<!ENTITY iconPackMd5 "${hash('md5')}">`,
+            `<!ENTITY iconPackSha256 "${hash('sha256')}">`,
+            '<!ENTITY iconPackURL "https://example.invalid/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">', ''
+        ].join('\n'));
+    };
+    f.write(source, icon('A'));
+    f.write('asset-packs/icon-pack.version', '1.0.0\n');
+    assert.equal(bash('build_icon_asset_pack').status, 0);
+    const published = bytes();
+    bindManifest();
+    const valid = bash('icon_asset_pack_guard');
+    assert.equal(valid.status, 0, valid.stderr);
+    assert.equal(bash('build_icon_asset_pack').status, 0);
+    f.write(source, icon('B'));
+    assert.match(bash('build_icon_asset_pack').stderr, /Cannot publish changed bytes/);
+    assert.deepEqual(bytes(), published);
+    f.write(source, icon('A'));
+    fs.mkdirSync(path.join(f.directory, 'extracted'));
+    execFileSync('tar', ['-xf', archive, '-C', 'extracted'], { cwd: f.directory });
+    f.write('extracted/third-party-icons/Audit.SVG', icon('B'));
+    execFileSync('tar', ['-cJf', archive, '-C', 'extracted', 'asset-pack.json', 'third-party-icons'], { cwd: f.directory });
+    bindManifest();
+    assert.match(bash('icon_asset_pack_guard').stderr, /Archived icon paths or contents differ|Archived icon paths or contents do not match/);
+
+    f.write(archive, published);
+    bindManifest();
+    const base = f.commit('Preserve initial pack');
+    f.write(source, icon('C'));
+    assert.equal(bash('build_icon_asset_pack', { FVPLUS_ICON_PACK_OUTPUT_DIR: 'another-directory' }).status, 0);
+    f.write(archive, fs.readFileSync(path.join(f.directory, 'another-directory', archiveName)));
+    bindManifest();
+    f.commit('Attempt to replace immutable pack');
+    f.write('docs/example.md', 'Following commit');
+    f.commit('Unrelated change');
+    const replaced = bash('icon_asset_pack_guard', { FVPLUS_ICON_PACK_BASE_REF: base });
+    assert.equal(replaced.status, 1);
+    assert.match(replaced.stderr, /already contains different bytes/);
+});
+
+test('clone badge publication detects a newly created file and skips an unchanged tracked badge', shellOnly, t => {
+    const f = fixture(t);
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows/clone-traffic-badge.yml'), 'utf8');
+    const gatedPublish = workflow.slice(workflow.indexOf('          cd "${metrics_dir}"\n'), workflow.indexOf('          git config user.name'));
+    assert.ok(gatedPublish.includes('git diff'));
+    const run = () => execFileSync('bash', ['-c', `set -euo pipefail\n${gatedPublish}\nprintf 'changed'`], {
+        cwd: f.directory, encoding: 'utf8', env: { ...process.env, metrics_dir: f.directory }
+    });
+    f.write('clone-traffic.json', '{"message":"23"}\n');
+    assert.equal(run(), 'changed');
+    assert.equal(f.git('diff', '--cached', '--name-only'), 'clone-traffic.json');
+    f.commit('First badge');
+    assert.match(run(), /unchanged/);
+});
+
+test('dev previews accept exact reused qualification when the redundant checks were skipped', () => {
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+    const expression = workflow.match(/\n  release-preview:\n[\s\S]*?\$\{\{ ([\s\S]+?) \}\}/)?.[1];
+    assert.ok(expression);
+    const javascript = expression.replace(/needs\.([\w-]+)\./g, (_match, job) => `needs[${JSON.stringify(job)}].`);
+    const evaluate = new Function('github', 'needs', 'cancelled', 'failure', `return ${javascript};`);
+    const run = ({ reused = 'true', result = 'skipped', branch = 'dev', event = 'push', changed = 'true', cancelled = false, failed = false } = {}) =>
+        evaluate({ ref_name: branch, event_name: event }, {
+            'detect-changes': { result: 'success', outputs: { reused, preview_changed: changed } },
+            'lint-and-syntax': { result }, 'node-tests': { result }, 'guard-suite': { result }
+        }, () => cancelled, () => failed);
+    assert.equal(run(), true);
+    assert.equal(run({ reused: 'false', result: 'success' }), true);
+    for (const state of [{ reused: 'false' }, { changed: 'false' }, { branch: 'main' }, { event: 'pull_request' }, { failed: true }, { cancelled: true }]) {
+        assert.equal(run(state), false);
+    }
+});
+
 test('pre-push rejects a dev candidate other than the clean checked-out commit', shellOnly, t => {
     const f = fixture(t);
     f.copy('.githooks/pre-push');

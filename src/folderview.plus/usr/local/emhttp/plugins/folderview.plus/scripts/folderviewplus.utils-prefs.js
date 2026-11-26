@@ -36,6 +36,14 @@
     } = utilityDependencies;
 
     const normalizeFolderGroups = (value) => folderGroupsModel.normalizeFolderGroups(value);
+    const normalizeDockerStartOrderText = (value, maxBytes) => {
+        // Use the same whitespace and UTF-8 boundaries as PHP.
+        const trim = text => text.replace(/^[ \t\n\r\v\0]+|[ \t\n\r\v\0]+$/g, '');
+        const bytes = new TextEncoder().encode(trim(String(value ?? '')));
+        let end = Math.min(maxBytes, bytes.length);
+        while ((bytes[end] & 0xc0) === 0x80) end--;
+        return trim(new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes.subarray(0, end)));
+    };
     const normalizePrefs = (prefs) => {
         const incoming = isPlainObject(prefs) ? prefs : {};
         const incomingMetadata = isPlainObject(incoming._metadata) ? incoming._metadata : {};
@@ -44,6 +52,7 @@
             type: String(incomingMetadata.type || '').trim(),
             folderRevision: Math.max(0, Number.parseInt(String(incomingMetadata.folderRevision ?? '0'), 10) || 0),
             prefsRevision: Math.max(0, Number.parseInt(String(incomingMetadata.prefsRevision ?? '0'), 10) || 0),
+            prefsRecoveryRevision: Math.max(0, Number.parseInt(String(incomingMetadata.prefsRecoveryRevision ?? '0'), 10) || 0),
             updatedAt: String(incomingMetadata.updatedAt || '').trim()
         };
         const sortMode = FOLDER_SORT_MODES.includes(incoming.sortMode) ? incoming.sortMode : 'created';
@@ -155,42 +164,30 @@
         const startOrderRaw = isPlainObject(incoming.dockerStartOrder) ? incoming.dockerStartOrder : {};
         const startOrderMode = String(startOrderRaw.mode || '').trim().toLowerCase();
         const startOrderRemaining = String(startOrderRaw.remaining || '').trim().toLowerCase();
-        const startOrderBatches = [];
-        const startOrderBatchRaw = Array.isArray(startOrderRaw.batches) ? startOrderRaw.batches : [];
-        startOrderBatchRaw.forEach((batch, index) => {
-            if (!isPlainObject(batch) || startOrderBatches.length >= 100) {
-                return;
-            }
+        const batchSource = Array.isArray(startOrderRaw.batches) ? startOrderRaw.batches : [];
+        const startOrderBatches = batchSource.filter(isPlainObject).slice(0, 100).map((batch, index) => {
             const items = [];
             const rawItems = Array.isArray(batch.items) ? batch.items : [];
-            rawItems.forEach((item) => {
-                if (!isPlainObject(item) || items.length >= 2000) {
-                    return;
-                }
-                const itemType = String(item.type || '').trim().toLowerCase();
-                if (itemType === 'folder') {
+            for (const item of rawItems) {
+                if (items.length === 2000) break;
+                if (!isPlainObject(item)) continue;
+                if (String(item.type || '').trim().toLowerCase() === 'folder') {
                     const id = normalizeFolderId(item.id ?? item.folderId);
-                    if (id) {
-                        items.push({ type: 'folder', id });
-                    }
-                    return;
+                    if (id) items.push({ type: 'folder', id });
+                    continue;
                 }
                 const name = typeof item.name === 'string' ? item.name.trim() : '';
-                if (name) {
-                    items.push({ type: 'container', name: name.slice(0, 255) });
-                }
-            });
-            const name = typeof batch.name === 'string' && batch.name.trim()
-                ? batch.name.trim().slice(0, 64)
-                : `Start batch ${index + 1}`;
-            startOrderBatches.push({
-                id: typeof batch.id === 'string' && batch.id.trim() ? batch.id.trim().slice(0, 64) : `batch-${index + 1}`,
+                if (name) items.push({ type: 'container', name: name.slice(0, 255) });
+            }
+            const name = typeof batch.name === 'string' && normalizeDockerStartOrderText(batch.name, 64) || `Start batch ${index + 1}`;
+            return {
+                id: typeof batch.id === 'string' && normalizeDockerStartOrderText(batch.id, 64) || `batch-${index + 1}`,
                 name,
                 delay: clampNumber(batch.delay, 0, 3600, 0),
                 parallel: batch.parallel === true,
                 useFolderOrder: !Object.prototype.hasOwnProperty.call(batch, 'useFolderOrder') ? true : batch.useFolderOrder !== false,
                 items
-            });
+            };
         });
         const startOrderWaitsSource = isPlainObject(incoming.dockerStartOrder?.containerWaits) ? incoming.dockerStartOrder.containerWaits : {}, containerWaits = {};
         Object.entries(startOrderWaitsSource).slice(0, 2000).forEach(([name, delay]) => { const normalizedName = String(name || '').trim().slice(0, 255); if (normalizedName) containerWaits[normalizedName] = clampNumber(delay, 0, 3600, 0); });
@@ -377,6 +374,6 @@
     };
 
     return Object.freeze({
-        normalizePrefs, normalizeFolderGroups
+        normalizePrefs, normalizeFolderGroups, normalizeDockerStartOrderText
     });
 }));

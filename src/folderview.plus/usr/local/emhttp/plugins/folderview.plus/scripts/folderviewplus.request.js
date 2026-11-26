@@ -374,6 +374,7 @@
         signal = null,
         onRequest = null,
         onProgress = null,
+        readOnlyPost = false,
         parseMutationJson = false,
         parseResponse = parseMutationJson ? parseResponseJson : null
     }) => {
@@ -402,8 +403,10 @@
             if (normalizedMethod === 'POST') {
                 if (!token) throw Object.assign(new Error('A mutation request token is required.'), { reasonCode: 'plugin-token-missing' });
                 transport.requireMutationContext(url);
-                phase = 'nonce';
-                nonce = await requestMutationNonce(url, data, token, signal, traceId, safeTimeoutMs);
+                if (!readOnlyPost) {
+                    phase = 'nonce';
+                    nonce = await requestMutationNonce(url, data, token, signal, traceId, safeTimeoutMs);
+                }
             }
         } catch (error) {
             throw reportFailure(error, { method: normalizedMethod, url, traceId, transactionId, phase, startedAt });

@@ -40,7 +40,7 @@ test('Docker start-order preferences are normalized and accepted', () => {
     assert.match(prefsPhp, /'unmanaged'/);
     assert.match(prefsPhp, /'containerWaits'\s*=>\s*\$containerWaits/);
     assert.match(startOrderModelJs, /const MODES = Object\.freeze\(\['unmanaged', 'docker-page', 'custom-batches'\]\)/);
-    assert.match(startOrderModelJs, /modules\.startOrderModel = factory\(modules\.utilityFoundation\)/);
+    assert.match(startOrderModelJs, /modules\.startOrderModel = factory\(modules\.utilityFoundation, modules\.utilityPrefs\)/);
 });
 
 test('server builds preview and sync order from Docker page or custom batches', () => {
@@ -314,9 +314,9 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsPage, /Docker start order/);
     assert.match(settingsJs, /const renderDockerStartOrderWorkspace = \(options = \{\}\) =>/);
     assert.match(startOrderViewJs, /data-fv-start-order-region="preview"/);
-    assert.match(settingsJs, /const preservePreview = options\.preservePreview === true && host\.find\('#docker-start-order-preview'\)\.length > 0;/);
+    assert.match(settingsJs, /if \(options\.preservePreview !== true\) preview\.replaceWith\(dockerStartOrderView\.buildPreviewPlaceholderHtml\(\)\);/);
     assert.match(settingsJs, /top\.replaceWith\(dockerStartOrderView\.buildControlsHtml\(plan\)\);/);
-    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(dockerStartOrderView\.buildBatchesHtml\(batches, batchOptions\)\);/);
+    assert.match(settingsJs, /batchRegion\.replaceWith\(dockerStartOrderView\.buildBatchesHtml\(batches, batchOptions\)\);/);
     assert.match(settingsJs, /dockerStartOrderFolderOptionsCache/);
     assert.match(settingsJs, /dockerStartOrderContainerOptionsCache/);
     assert.match(startOrderViewJs, /Leave Unraid order unmanaged/);

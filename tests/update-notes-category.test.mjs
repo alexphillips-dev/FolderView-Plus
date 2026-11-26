@@ -24,7 +24,7 @@ const libPath = path.join(
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-const runReleaseSummaryHarness = () => {
+const runReleaseSummaryHarness = (version = '2026.07.15.10') => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-update-notes-'));
     const configDir = path.join(tempDir, 'config');
     const sourceDir = path.join(tempDir, 'source');
@@ -33,7 +33,7 @@ const runReleaseSummaryHarness = () => {
     fs.mkdirSync(configDir, { recursive: true });
     fs.mkdirSync(sourceDir, { recursive: true });
     fs.mkdirSync(documentRoot, { recursive: true });
-    fs.writeFileSync(path.join(configDir, 'version'), '2026.07.15.10\n', 'utf8');
+    fs.writeFileSync(path.join(configDir, 'version'), `${version}\n`, 'utf8');
     fs.writeFileSync(path.join(configDir, 'folderview.plus.plg'), `
 <CHANGES>
 ###2026.07.15.10
@@ -41,10 +41,14 @@ const runReleaseSummaryHarness = () => {
 - Fix: Replaced canned update copy with the exact notes recorded for the installed version.
 - Test: Added release-note parser coverage.
 
-###2026.07.15.09
+###2026.07.15.9
 ### Previous release
 - UI/UX: Previous release detail that must not leak into the current summary.
 </CHANGES>
+<FILE Run="/bin/bash">
+###2026.07.15.08
+Installer-only text.
+</FILE>
 `, 'utf8');
     fs.writeFileSync(harnessPath, `<?php
 $_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
@@ -67,6 +71,13 @@ echo json_encode(readCurrentVersionChangeSummary(18), JSON_UNESCAPED_SLASHES);
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 };
+
+test('historical update notes stop at the end of CHANGES', () => {
+    const summary = runReleaseSummaryHarness('2026.07.15.9');
+    assert.equal(summary.sourceVersion, '2026.07.15.9');
+    assert.deepEqual(summary.lines, ['UI/UX: Previous release detail that must not leak into the current summary.']);
+    assert.deepEqual(runReleaseSummaryHarness('2026.07.15.08').lines, []);
+});
 
 const runCategoryContractHarness = () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-update-note-categories-'));

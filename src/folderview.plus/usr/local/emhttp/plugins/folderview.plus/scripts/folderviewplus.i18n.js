@@ -15,6 +15,7 @@
         '[data-fvplus-user-content]',
         'script', 'style', 'code', 'pre', 'textarea', 'svg',
         '.appname', '.folder-appname', '.folder-appname-docker', '.folder-appname-vm',
+        'td.vm-name span.outer span.inner a',
         '.folder-name', '.preview-name', '[data-container-name]', '[data-folder-name]'
     ].join(',');
     const RTL_LANGUAGES = new Set(['ar', 'dv', 'fa', 'he', 'ku', 'ps', 'ur', 'yi']);

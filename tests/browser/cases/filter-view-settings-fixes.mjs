@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost, mountFilterViewVmHost } from '../helpers/filter-view-settings-host.mjs';
 import { createDockerBadgeHost } from '../helpers/folder-badges-host.mjs';
 import { registerVmRuntimeRecoveryCases } from './vm-runtime-recovery.mjs';
+import { registerLocalizedSettingsPickerCase } from './vm-runtime-remediation.mjs';
 import { registerStartupDurableReplayCases } from './startup-durable-replay.mjs';
 
 const waitFor = async (page, predicate, message) => {
@@ -35,6 +36,8 @@ const publishFromSettingsPeer = async (page, url, type, prefs) => {
 
 export const registerFilterViewSettingsFixes = ({ test }) => {
     registerVmRuntimeRecoveryCases({ test });
+
+    registerLocalizedSettingsPickerCase({ test, openSettings });
 
     registerStartupDurableReplayCases({ test, openSettings, waitFor });
 

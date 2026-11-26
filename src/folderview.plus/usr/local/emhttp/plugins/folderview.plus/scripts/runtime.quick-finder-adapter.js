@@ -22,11 +22,20 @@
         }
         return null;
     };
-    const findVmRows = (doc, name) => {
+    const getVmRowName = (row) => String(row.getAttribute('data-name')
+        || row.querySelector(':scope > td.vm-name span.outer span.inner a')?.textContent || '').trim();
+    const getVmRowUuid = (row) => String(row.querySelector(':scope > td input.autostart[uuid]')?.getAttribute('uuid')
+        || row.querySelector(':scope > td.vm-name .hand[id^="vm-"]')?.id.slice(3) || '').trim();
+    const matchesVmRow = (row, name, uuid, readName = getVmRowName) => {
+        if (row.classList.contains('folder')) return false;
+        const rowUuid = getVmRowUuid(row);
+        return uuid && rowUuid ? rowUuid === uuid : Boolean(name) && readName(row) === name;
+    };
+    const findVmRows = (doc, name, uuid = '') => {
         const safeName = String(name || '').trim();
-        if (!safeName) return [];
-        return Array.from(doc.querySelectorAll('#kvm_list tr')).filter((row) => !row.classList.contains('folder')
-            && String(row.querySelector('td.vm-name span.outer span.inner a')?.textContent || '').trim() === safeName);
+        const safeUuid = String(uuid || '').trim();
+        if (!safeName && !safeUuid) return [];
+        return Array.from(doc.querySelectorAll('#kvm_list tr')).filter((row) => matchesVmRow(row, safeName, safeUuid));
     };
     const resolveMount = (doc, table, type) => {
         if (!table) return null;
@@ -47,14 +56,15 @@
         const getFolders = deps.getFolders;
         const table = () => deps.hostAdapter.getTable();
         const folderRow = (id) => Array.from(table()?.querySelectorAll('tr.folder') || []).find((row) => row.classList.contains(`folder-id-${id}`)) || null;
-        const itemRow = (name) => Array.from(table()?.querySelectorAll('tr') || []).find((row) => {
+        const itemRow = ({ id: name, entry }) => Array.from(table()?.querySelectorAll('tr') || []).find((row) => {
+            if (type === 'vm') return matchesVmRow(row, name, String(entry.uuid || entry.id || '').trim(), deps.readRowName);
             if (row.classList.contains('folder')) return false;
-            if (type === 'docker' && row.id === `ct-${name}`) return true;
+            if (row.id === `ct-${name}`) return true;
             const label = deps.readRowName ? deps.readRowName(row) : String(row.getAttribute('data-name')
-                || row.querySelector(type === 'vm' ? 'td.vm-name span.outer span.inner a' : 'td.ct-name .appname')?.textContent || '').trim();
+                || row.querySelector('td.ct-name .appname')?.textContent || '').trim();
             return label === name;
         }) || null;
-        const findRow = (item) => item.kind === 'folder' ? folderRow(item.id) : itemRow(item.id);
+        const findRow = (item) => item.kind === 'folder' ? folderRow(item.id) : itemRow(item);
         const getIcon = (item) => {
             const sanitize = win.FolderViewPlusFoundationModules?.utilityFoundation?.sanitizeImageUrl;
             if (!sanitize) return '';
@@ -170,5 +180,5 @@
         });
         return Object.freeze({ ...api, dispose: () => { active = false; api.dispose(); } });
     };
-    return Object.freeze({ createApi, resolveMount, findViewToggleAnchor, findVmRows });
+    return Object.freeze({ createApi, resolveMount, findViewToggleAnchor, getVmRowName, getVmRowUuid, matchesVmRow, findVmRows });
 }));

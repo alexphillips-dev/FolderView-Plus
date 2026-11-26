@@ -70,6 +70,15 @@
         ]);
         let drag = null, busy = false, menu = null;
         const saving = new Set();
+        const predicateValidators = Object.fromEntries(['docker', 'vm'].map(type => [type, deps.createPredicateValidator(type)]));
+        const checkPredicate = (type, rule) => {
+            const validator = predicateValidators[type];
+            if (!rule || !value(type, 'regex').checked) {
+                validator.clear();
+                return 'valid';
+            }
+            return validator.check({ ...rule, type }, () => deps.onDraftChange(type)).status;
+        };
         const controller = new window.AbortController();
         const on = (target, event, callback) => target.addEventListener(event, callback, { signal: controller.signal });
         const closeMenu = () => { menu?.close('refresh', { restoreFocus: false }); menu = null; };
@@ -238,10 +247,18 @@
             const row = handle.closest('[data-fv-rule-id]');
             void runMove(row.dataset.ruleType, row.dataset.fvRuleId, null, false, event.key === 'ArrowUp' ? -1 : 1);
         });
-        const dispose = () => { closeMenu(); controller.abort(); };
-        window.addEventListener('pagehide', dispose, { once: true });
+        const dispose = () => {
+            closeMenu();
+            controller.abort();
+            Object.values(predicateValidators).forEach(validator => validator.clear());
+        };
+        window.addEventListener('pagehide', function releaseWorkspace(event) {
+            if (event.persisted) return;
+            window.removeEventListener('pagehide', releaseWorkspace);
+            dispose();
+        });
         return { sync, reset, edit, matchesEditBaseline: (type, rule) => editBaselines.get(type) === editSignature(rule),
-            updateSuggestions, closeMenu, dispose, hydrateIcons, setSaving, isSaving: type => saving.has(type) };
+            updateSuggestions, closeMenu, dispose, hydrateIcons, checkPredicate, setSaving, isSaving: type => saving.has(type) };
     };
     return { escapeLiteral, normalizeBuilderRule, describeCondition, reorderRules, createApi };
 }));

@@ -1,24 +1,10 @@
 <?php
 
-function diagnosticsProjectBackupRecord(?array $backup, string $fieldPath, array &$redactor): ?array {
-    if ($backup === null || ($redactor['mode'] ?? 'sanitized') === 'full') {
-        return $backup;
-    }
-    $safeReasons = ['scheduled', 'manual', 'manual-diagnostics'];
-    foreach (['name', 'reason', 'traceId', 'transactionId'] as $key) {
-        if (!isset($backup[$key]) || ($key === 'reason' && in_array($backup[$key], $safeReasons, true))) {
-            continue;
-        }
-        $backup[$key] = diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.' . $key, $backup[$key]);
-    }
-    return $backup;
-}
-
 function diagnosticsProjectHistoryEvents(array $events, string $fieldPath, array &$redactor): array {
     $projected = [];
     foreach ($events as $event) {
         if (!is_array($event)) continue;
-        $projected[] = [
+        $projected[] = diagnosticsProjectCorrelationIds([
             'id' => (string)($event['id'] ?? ''),
             'timestamp' => (string)($event['timestamp'] ?? ''),
             'action' => diagnosticsSupportBundleEventLabel((string)($event['action'] ?? ''), 'action', $fieldPath . '.action', $redactor),
@@ -30,7 +16,7 @@ function diagnosticsProjectHistoryEvents(array $events, string $fieldPath, array
             'details' => diagnosticsSupportBundleRedactEventDetails(
                 is_array($event['details'] ?? null) ? $event['details'] : [], $fieldPath . '.details', $redactor
             )
-        ];
+        ], $fieldPath, $redactor);
     }
     return $projected;
 }
@@ -53,6 +39,11 @@ function diagnosticsProjectTimeline(array $rows, string $fieldPath, array &$reda
 
 function diagnosticsRedactIntegrityIdentifiers(array $integrity, string $type, string $fieldPath, array &$redactor): array {
     if (($redactor['mode'] ?? 'sanitized') === 'full') return $integrity;
+    if (is_array($integrity['configurationMetadata']['metadata'] ?? null)) {
+        $integrity['configurationMetadata']['metadata'] = diagnosticsProjectCorrelationIds(
+            $integrity['configurationMetadata']['metadata'], $fieldPath . '.configurationMetadata.metadata', $redactor
+        );
+    }
     foreach ([
         'invalidFolderRegex' => 'folderIds', 'invalidFolderIconPaths' => 'folderIds',
         'missingManualOrderIds' => 'ids', 'missingPinnedFolderIds' => 'ids', 'missingHiddenFolderIds' => 'ids'
@@ -119,6 +110,11 @@ function diagnosticsSanitizeReport(array $report): array {
             $redactor, $type, $fieldPath . '.expandedFolderState', $typeData['expandedFolderState']
         );
         $typeData['lastBackup'] = diagnosticsProjectBackupRecord($typeData['lastBackup'], $fieldPath . '.lastBackup', $redactor);
+        if (is_array($typeData['configurationMetadata'] ?? null)) {
+            $typeData['configurationMetadata'] = diagnosticsProjectCorrelationIds(
+                $typeData['configurationMetadata'], $fieldPath . '.configurationMetadata', $redactor
+            );
+        }
         $typeData = diagnosticsRedactReportFolderReferences($typeData, $type, $fieldPath, $redactor);
     }
     unset($typeData);
@@ -134,5 +130,6 @@ function diagnosticsSanitizeReport(array $report): array {
         $report['importExportHistory']['events'], 'importExportHistory.events.*', $redactor
     );
     $report['recentTimeline'] = diagnosticsProjectTimeline($report['recentTimeline'], 'recentTimeline', $redactor);
+    $report['durableStorage'] = diagnosticsProjectCorrelationIds($report['durableStorage'] ?? [], 'durableStorage', $redactor);
     return $report;
 }

@@ -82,12 +82,12 @@ jobs:
           git clone --depth 1 --branch metrics "https://github.com/${GITHUB_REPOSITORY}.git" "${metrics_dir}"
           cp "${badge_path}" "${metrics_dir}/clone-traffic.json"
           cd "${metrics_dir}"
-          if git diff --quiet -- clone-traffic.json; then
+          git add -- clone-traffic.json
+          if git diff --cached --quiet -- clone-traffic.json; then
             echo "Rolling clone count is unchanged."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- clone-traffic.json
           git commit --no-verify -m "Refresh rolling clone badge"
           git push --no-verify origin metrics

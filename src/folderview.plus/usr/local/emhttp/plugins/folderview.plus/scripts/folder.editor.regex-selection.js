@@ -21,6 +21,7 @@
         const syncMemberArraysFromTable = typeof deps.syncMemberArraysFromTable === 'function' ? deps.syncMemberArraysFromTable : (() => {});
         const updateList = typeof deps.updateList === 'function' ? deps.updateList : (() => {});
         const updateRegexSimulator = typeof deps.updateRegexSimulator === 'function' ? deps.updateRegexSimulator : (() => {});
+        const validatePattern = typeof deps.validatePattern === 'function' ? deps.validatePattern : null;
         const isFormInitialized = typeof deps.isFormInitialized === 'function' ? deps.isFormInitialized : (() => false);
         const workerMinItems = Math.max(1, Number(deps.workerMinItems) || 180);
         const debounceMs = Math.max(0, Number(deps.debounceMs) || 120);
@@ -167,10 +168,6 @@
                 return false;
             }
             const requestId = ++latestRegexEvaluationRequestId;
-            syncMemberArraysFromTable();
-            const collections = getMemberCollections() || {};
-            const candidates = mergeMembersByName(collections.choose, collections.selectedRegex);
-
             const applyMatchResult = (matchNames, currentCandidates) => {
                 const folderName = String(getFolderName() || '').trim();
                 const matched = new Set(Array.isArray(matchNames) ? matchNames : []);
@@ -178,9 +175,9 @@
                 const regexMatches = [];
                 const nextChoose = [];
                 for (const member of currentCandidates) {
-                    if (folderName && member.Label === folderName) {
+                    if (!member.Unavailable && folderName && member.Label === folderName) {
                         labelMatches.push(member);
-                    } else if (matched.has(String(member.Name || ''))) {
+                    } else if (!member.Unavailable && matched.has(String(member.Name || ''))) {
                         regexMatches.push(member);
                     } else {
                         nextChoose.push(member);
@@ -190,37 +187,45 @@
                 updateList();
             };
 
-            const regexSource = String(regexField.value || '').trim();
-            if (!regexSource) {
-                applyMatchResult([], candidates);
+            const regexSource = String(regexField.value || '');
+            const reconcile = (valid) => {
+                if (requestId !== latestRegexEvaluationRequestId) return false;
+                syncMemberArraysFromTable();
+                const collections = getMemberCollections() || {};
+                const candidates = mergeMembersByName(collections.choose, collections.selectedRegex);
+                if (!regexSource || !valid || candidates.length < workerMinItems) {
+                    const matches = regexSource && valid ? runSynchronousMatch(regexSource, candidates.map((member) => member.Name)) : [];
+                    applyMatchResult(matches, candidates);
+                    updateRegexSimulator();
+                    return valid;
+                }
+                // A manual selection may become a regex candidate while this match is in flight.
+                const names = mergeMembersByName(candidates, collections.selected).map((member) => member.Name);
                 updateRegexSimulator();
-                return true;
-            }
+                return runRegexMatch(regexSource, names)
+                    .catch(() => requestId === latestRegexEvaluationRequestId ? runSynchronousMatch(regexSource, names) : [])
+                    .then((matchNames) => {
+                        if (requestId !== latestRegexEvaluationRequestId) return false;
+                        syncMemberArraysFromTable();
+                        const latest = getMemberCollections() || {};
+                        applyMatchResult(matchNames, mergeMembersByName(latest.choose, latest.selectedRegex));
+                        updateRegexSimulator();
+                        return true;
+                    });
+            };
+            if (!regexSource) return reconcile(true);
             try {
                 new RegExp(regexSource);
             } catch (_error) {
-                applyMatchResult([], candidates);
-                return false;
+                return reconcile(false);
             }
-            if (candidates.length < workerMinItems) {
-                applyMatchResult(runSynchronousMatch(regexSource, candidates.map((member) => member.Name)), candidates);
+            if (!validatePattern) return reconcile(true);
+            const validation = validatePattern(regexSource);
+            if (validation.status === 'pending') {
                 updateRegexSimulator();
-                return true;
+                return validation.done.then(status => reconcile(status === 'valid'));
             }
-
-            // A manual selection may become a regex candidate while this match is in flight.
-            const names = mergeMembersByName(candidates, collections.selected).map((member) => member.Name);
-            updateRegexSimulator();
-            return runRegexMatch(regexSource, names)
-                .catch(() => requestId === latestRegexEvaluationRequestId ? runSynchronousMatch(regexSource, names) : [])
-                .then((matchNames) => {
-                    if (requestId !== latestRegexEvaluationRequestId) return false;
-                    syncMemberArraysFromTable();
-                    const latest = getMemberCollections() || {};
-                    applyMatchResult(matchNames, mergeMembersByName(latest.choose, latest.selectedRegex));
-                    updateRegexSimulator();
-                    return true;
-                });
+            return reconcile(validation.status === 'valid');
         };
 
         const updateRegex = (field, options = {}) => {
@@ -245,6 +250,7 @@
         });
 
         const dispose = () => {
+            deps.disposeValidation?.();
             latestRegexEvaluationRequestId += 1;
             if (regexInputSyncTimer) {
                 clearTimer(regexInputSyncTimer);

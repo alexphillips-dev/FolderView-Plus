@@ -2094,13 +2094,17 @@ const updateRuleLiveMatch = (type) => {
         labelKey: $(`#${type}-rule-label-key`).val(), labelValue: $(`#${type}-rule-label-value`).val()
     });
     const problems = getAutoRuleProblems(type, rule);
-    const invalid = problems.some(problem => problem !== 'Missing folder');
+    const hasInvalidPredicate = problems.some(problem => problem !== 'Missing folder');
+    const validation = getRulesWorkspaceApi().checkPredicate(type, hasInvalidPredicate ? null : rule);
+    const invalid = hasInvalidPredicate || validation === 'invalid';
     const names = Object.keys(infoByType[type] || {});
-    const count = invalid ? 0 : names.filter(name => utils.ruleMatchesItem(rule, name, infoByType[type] || {}, type)).length;
+    const count = invalid || validation !== 'valid' ? 0 : names.filter(name => utils.ruleMatchesItem(rule, name, infoByType[type] || {}, type)).length;
     const showInvalid = invalid && Boolean(rule.pattern || rule.labelKey || rule.labelValue);
-    output.toggleClass('is-invalid', showInvalid).text(showInvalid ? surfaceT('settings.rules.enter-match', 'Enter a valid match value.')
+    output.toggleClass('is-invalid', showInvalid || validation === 'unavailable').text(validation === 'pending' ? surfaceT('common.loading', 'Loading…')
+        : validation === 'unavailable' ? surfaceT('diagnostics.cards.runtime-unavailable', 'Connection failed')
+        : showInvalid ? surfaceT('settings.rules.enter-match', 'Enter a valid match value.')
         : (type === 'docker' ? surfaceT('settings.rules.matches-containers', 'Matches $1 containers', count) : surfaceT('settings.rules.matches-vms', 'Matches $1 VMs', count)));
-    $(`[data-fv-onclick="addAutoRule('${type}')"]`).prop('disabled', problems.length > 0);
+    $(`[data-fv-onclick="addAutoRule('${type}')"]`).prop('disabled', problems.length > 0 || validation !== 'valid');
 };
 
 const runQuickSetupWizard = (force = false, options = {}) => {
@@ -2859,12 +2863,13 @@ const renderFolderDefaultsPanel = (type) => {
     entries.forEach(([id, folder]) => {
         const safeId = String(id || '').trim();
         optionValues.add(safeId);
-        options.push(`<option value="${escapeHtml(safeId)}">${escapeHtml(folder?.name || safeId)}</option>`);
+        options.push(`<option value="${escapeHtml(safeId)}" data-fvplus-user-content>${escapeHtml(folder?.name || safeId)}</option>`);
     });
 
     if (defaults.sourceId && !optionValues.has(defaults.sourceId) && folderDefaultsProfileHasContent(defaults)) {
         optionValues.add(defaults.sourceId);
-        options.push(`<option value="${escapeHtml(defaults.sourceId)}">${escapeHtml(`${defaults.sourceName || defaults.sourceId} (saved profile)`)}</option>`);
+        const label = surfaceT('legacy.surface.6052c44a676883b2', '$1 (saved profile)', defaults.sourceName || defaults.sourceId);
+        options.push(`<option value="${escapeHtml(defaults.sourceId)}" data-fvplus-user-content>${escapeHtml(label)}</option>`);
     }
 
     select.html(options.join(''));
@@ -3395,6 +3400,7 @@ const getSettingsWorkspacesApi = (() => {
     return () => {
         window.FolderViewPlusFoundationModules?.folderView3MigrationApi?.configureHooks?.({
             reveal: () => { setSettingsMode('advanced'); setAdvancedTab('recovery'); applySettingsSectionVisibility(); scrollToSectionKey('recovery'); },
+            beforeApply: flushRecoveryPreferenceSaves,
             afterApply: () => getSettingsWorkspacesApi().refreshAfterMigration()
         });
         if (cachedApi) {
@@ -6917,6 +6923,7 @@ const getRulesWorkspaceApi = (() => {
     let api = null;
     return () => api ||= rulesWorkspaceModule.createApi({
         window, document, ui: window.FolderViewPlusUI, translate: surfaceT,
+        createPredicateValidator: () => window.FolderViewPlusFoundationModules.rulePredicateValidation.create(requestClient, 180),
         getRules: type => prefsByType[type]?.autoRules || [], onDraftChange: updateRuleLiveMatch,
         onMove: moveAutoRule, onReorder: reorderAutoRule,
         onAction: (type, id, action) => action === 'delete' ? deleteAutoRule(type, id) : toggleAutoRule(type, id)
@@ -7598,6 +7605,7 @@ const buildDockerStartOrderContainerSelectOptions = () => {
 let dockerStartOrderPreviewTimer = null;
 let dockerStartOrderPreviewGeneration = 0;
 let dockerStartOrderRenderedPlan = null;
+let dockerStartOrderRenderedBatchSignature = '';
 let dockerStartOrderPendingWrites = 0;
 let dockerStartOrderEditGeneration = 0;
 let dockerStartOrderSyncOutcome = '';
@@ -7629,7 +7637,7 @@ const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
 const reconcileDockerStartOrderWorkspace = () => {
     const previousPlan = dockerStartOrderRenderedPlan;
     if (!previousPlan || JSON.stringify(previousPlan) === JSON.stringify(normalizeDockerStartOrderPrefsForUi())) return false;
-    renderDockerStartOrderWorkspace({ preservePreview: true, previousPlan });
+    renderDockerStartOrderWorkspace({ preservePreview: true });
     return true;
 };
 
@@ -7708,19 +7716,28 @@ const addDockerStartOrderBatch = async () => {
     }
 };
 
-const saveDockerStartOrderBatchField = (batch, field, value) => saveDockerStartOrderPlan({
-    batchChanges: [{ action: 'set', id: batch.id, field, previous: batch[field], value }]
+const saveDockerStartOrderBatchField = (batch, field, value, previous = batch[field]) => saveDockerStartOrderPlan({
+    batchChanges: [{ action: 'set', id: batch.id, field, previous, value }]
 }, { preservePreview: true });
 
-const updateDockerStartOrderBatch = async (batchId, key, value) => {
+const updateDockerStartOrderBatch = async (batchId, key, value, input) => {
     const batch = normalizeDockerStartOrderPrefsForUi().batches.find(entry => entry.id === batchId);
     if (!batch || !['name', 'delay', 'parallel', 'useFolderOrder'].includes(key)) return;
-    if (key === 'name') value = String(value || '').trim().slice(0, 64) || batch.name || 'Start batch';
+    let previous = batch[key];
+    if (key === 'name') {
+        value = dockerStartOrderModel.normalizeBatchName(value) || batch.name || 'Start batch';
+        if (input) previous = input.defaultValue;
+    }
     if (key === 'delay') value = Number.isFinite(Number(value)) ? Math.max(0, Math.min(3600, Math.round(Number(value)))) : 0;
+    if (key === 'delay' && input) previous = Number(input.defaultValue);
+    if (input && (key === 'name' || key === 'delay')) {
+        input.value = input.defaultValue = String(value);
+        dockerStartOrderRenderedBatchSignature = '';
+    }
     if (key === 'parallel') value = value === true;
     if (key === 'useFolderOrder') value = value !== false;
     try {
-        await saveDockerStartOrderBatchField(batch, key, value);
+        await saveDockerStartOrderBatchField(batch, key, value, previous);
     } catch (error) {
         showError(surfaceT("common.repair.docker-start-batch-save-failed-9c32df", "Docker start batch save failed"), error);
     }
@@ -7802,33 +7819,46 @@ const renderDockerStartOrderWorkspace = (options = {}) => {
         return;
     }
     const plan = normalizeDockerStartOrderPrefsForUi();
+    const previous = dockerStartOrderRenderedPlan;
     dockerStartOrderRenderedPlan = plan;
-    const batches = Array.isArray(plan.batches) ? plan.batches : [];
+    const batches = plan.batches;
+    const containers = getDockerStartOrderContainerOptionsCached();
     const batchOptions = {
         folderOptionsCache: getDockerStartOrderFolderOptionsCached(),
-        containerOptionsHtml: getDockerStartOrderContainerOptionsCached().html
+        containerOptionsHtml: containers.html
     };
+    const signature = JSON.stringify([batches, batchOptions.folderOptionsCache.signature, containers.signature]);
     $('#docker-start-order-summary').html(dockerStartOrderView.buildHeaderSummaryHtml(infoByType.docker || {}));
-    const preservePreview = options.preservePreview === true && host.find('#docker-start-order-preview').length > 0;
-    if (!preservePreview) {
+    const top = host.find('[data-fv-start-order-region="top"]');
+    const batchRegion = host.find('[data-fv-start-order-region="batches"]');
+    const preview = host.find('#docker-start-order-preview');
+    if (!top.length || !batchRegion.length || !preview.length) {
         host.html([
             dockerStartOrderView.buildControlsHtml(plan),
             dockerStartOrderView.buildBatchesHtml(batches, batchOptions),
             dockerStartOrderView.buildPreviewPlaceholderHtml()
         ].join(''));
-        renderDockerStartOrderSyncOutcome();
-        return;
-    }
-    const previous = options.previousPlan;
-    if (!previous || previous.mode !== plan.mode || previous.remaining !== plan.remaining) {
-        const top = host.find('[data-fv-start-order-region="top"]');
-        const active = document.activeElement;
-        const activeId = top[0]?.contains(active) ? active.id : '';
-        top.replaceWith(dockerStartOrderView.buildControlsHtml(plan));
-        if (activeId) document.getElementById(activeId)?.focus({ preventScroll: true });
-    }
-    if (!previous || JSON.stringify(previous.batches) !== JSON.stringify(batches)) {
-        host.find('[data-fv-start-order-region="batches"]').replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
+        dockerStartOrderRenderedBatchSignature = signature;
+    } else {
+        if (!previous || previous.mode !== plan.mode || previous.remaining !== plan.remaining) {
+            const active = document.activeElement;
+            const activeId = top[0]?.contains(active) ? active.id : '';
+            top.replaceWith(dockerStartOrderView.buildControlsHtml(plan));
+            if (activeId) document.getElementById(activeId)?.focus({ preventScroll: true });
+        }
+        if (options.preservePreview !== true) preview.replaceWith(dockerStartOrderView.buildPreviewPlaceholderHtml());
+        if (dockerStartOrderRenderedBatchSignature !== signature) {
+            const active = document.activeElement;
+            if (batchRegion[0]?.contains(active) && active.matches('input[type="text"], input[type="number"]')) {
+                // Removing a focused input can commit its draft and re-enter this renderer.
+                $(active).off('focusout.fvplusStartOrder').one('focusout.fvplusStartOrder', () => {
+                    window.setTimeout(() => renderDockerStartOrderWorkspace({ preservePreview: true }), 0);
+                });
+            } else {
+                batchRegion.replaceWith(dockerStartOrderView.buildBatchesHtml(batches, batchOptions));
+                dockerStartOrderRenderedBatchSignature = signature;
+            }
+        }
     }
     renderDockerStartOrderSyncOutcome();
 };
@@ -9592,6 +9622,7 @@ const addAutoRule = async (type) => {
             swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
             return;
         }
+        if (getRulesWorkspaceApi().checkPredicate(type, normalizedRule) !== 'valid') return;
     }
 
     const editingId = String($(`#${type}-rule-editing`).val() || '');

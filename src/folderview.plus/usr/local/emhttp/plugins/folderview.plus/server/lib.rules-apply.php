@@ -77,3 +77,17 @@ function fvplusValidateRuleChanges(string $type, array $current, array $next): v
     $compiled = fvplusCompileRuleSet($changed, $type, readRawFolderMap($type));
     if ($compiled['issues']) throw new RuntimeException('Correct invalid rules before saving.');
 }
+
+function fvplusValidateRulePredicateRequest(array $request): bool {
+    $type = ensureType((string)($request['type'] ?? ''));
+    $kind = $request['kind'] ?? null;
+    $pattern = $request['pattern'] ?? null;
+    $mode = $request['regexMode'] ?? '';
+    if (!is_string($kind) || !is_string($pattern) || strlen($pattern) > 65536
+        || !in_array($mode, ['', 'legacy', 'legacy-folder'], true)
+        || ($mode !== '' && $kind !== 'name_regex')) {
+        return false;
+    }
+    if ($mode === 'legacy-folder') return fvplusLegacyFolderRegexIsValid($pattern);
+    return fvplusCompileRuleSet([['kind' => $kind, 'pattern' => $pattern, 'regexMode' => $mode]], $type)['issues'] === [];
+}

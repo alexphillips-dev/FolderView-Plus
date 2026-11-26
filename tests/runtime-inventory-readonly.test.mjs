@@ -334,6 +334,50 @@ test('Startup preview reports typed descriptions while preserving plain warning 
     ]);
 });
 
+test('Startup keeps disjoint fields and declines a conflicting structural sequence as a unit', () => {
+    const plan = { mode: 'unmanaged', batches: [{ id: 'a', name: 'Peer rename', delay: 5 }, { id: 'b', name: 'Beta', delay: 8 }] };
+    const result = explicitOrderFixture('start-save', { plan, planPatch: { mode: 'custom-batches', batchChanges: [
+        { action: 'add', id: 'c', value: { id: 'c', name: 'New' } },
+        { action: 'move', id: 'c', offset: -1, neighbor: 'a' },
+        { action: 'set', id: 'a', field: 'name', previous: 'Old', value: 'Mine' },
+        { action: 'set', id: 'a', field: 'delay', previous: 5, value: 10 },
+        { action: 'set', id: 'b', field: 'delay', previous: 8, value: 9 }
+    ] } });
+    assert.equal(result.responseStatus, 200);
+    assert.equal(result.response.startupBatchConflicts, 3);
+    assert.equal(result.response.prefs.dockerStartOrder.mode, 'unmanaged');
+    assert.deepEqual(result.response.prefs.dockerStartOrder.batches.map(({ id, name, delay }) => [id, name, delay]), [
+        ['a', 'Peer rename', 10], ['b', 'Beta', 9]
+    ]);
+    const unrelated = explicitOrderFixture('start-save', {
+        plan: { mode: 'unmanaged', batches: ['a', 'b', 'c', 'd'].map(id => ({ id, name: id })) },
+        planPatch: { batchChanges: [
+            { action: 'move', id: 'c', offset: -1, neighbor: 'a' },
+            { action: 'remove', id: 'd' }
+        ] }
+    });
+    assert.equal(unrelated.responseStatus, 200);
+    assert.equal(unrelated.response.startupBatchConflicts, 1);
+    assert.deepEqual(unrelated.response.prefs.dockerStartOrder.batches.map(batch => batch.id), ['a', 'b', 'c']);
+});
+
+test('Startup reconciles multibyte queued names and repairs duplicate persisted identities', () => {
+    const name = '界'.repeat(30);
+    const longId = '界'.repeat(21);
+    const plan = { mode: 'unmanaged', batches: [
+        { id: longId + 'aA', name: 'First' }, { id: longId + 'aB', name: 'Second' },
+        { id: 'batch-1', name: 'Keep existing id' }, { name: 'Previous anonymous batch' }
+    ] };
+    const result = explicitOrderFixture('start-save', { plan, planPatch: { batchChanges: [
+        { action: 'set', id: 'batch-2', field: 'name', previous: 'Second', value: name },
+        { action: 'set', id: 'batch-2', field: 'name', previous: name, value: 'Final' }
+    ] } });
+    assert.equal(result.responseStatus, 200);
+    assert.deepEqual(result.response.prefs.dockerStartOrder.batches.map(({ id, name: label }) => [id, label]), [
+        [longId + 'a', 'First'], ['batch-2', 'Final'], ['batch-1', 'Keep existing id'], ['batch-3', 'Previous anonymous batch']
+    ]);
+});
+
 test('Docker startup preview and sync preserve native waits above the plugin limit', () => {
     for (const wait of [3600, 3601, 7200]) {
         const nativeAutostart = `docker-present ${wait}\n`;

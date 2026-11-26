@@ -894,7 +894,7 @@
       "dependsOn": [],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
-      "functionInventory": { "count": 18, "sha256": "45bca3ea25804bd8e9b3205deb3a40fea9769c2cf272d9e4c3da9ab00d1c5120" }
+      "functionInventory": { "count": 20, "sha256": "10695a35e053161ce8e3ea28e3b480e2ccac0b2c3a6c9ceda36b8df0af4d2c9d" }
     },
     {
       "file": "server/lib.diagnostics-projections.php",
@@ -904,7 +904,7 @@
       "dependsOn": ["server/lib.diagnostics-redaction.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics.php",
-      "functionInventory": { "count": 3, "sha256": "a48232970092a00f7716b2a0aaf27811aa79e248508a9dd90800ebd4bba53d5e" }
+      "functionInventory": { "count": 4, "sha256": "8c4ec597ac60f56cf2ea3e5a5e38a065f52dca2254ae8c7a26ef9a66989fc305" }
     },
     {
       "file": "server/lib.diagnostics-integrity.php",
@@ -954,7 +954,7 @@
       "dependsOn": ["server/lib.diagnostics-redaction.php", "server/lib.diagnostics-projections.php"],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.diagnostics-support-bundle.php",
-      "functionInventory": { "count": 6, "sha256": "73885c624364f20c09702ef54467e622c400253fc25adecda6cc25c34cf041e5" }
+      "functionInventory": { "count": 5, "sha256": "60abd83161622e23981eaedffd8ec3219d28f9a0dc3f8e34bad1c602c84b5dff" }
     },
     {
       "file": "server/lib.custom-icon-endpoint-foundation.php",
@@ -1024,7 +1024,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 12, "sha256": "b583ba79825fa1274328171a4521f145db3a00ccbfd7257c3b9ae2d6ccd8a1d8" }
+      "functionInventory": { "count": 13, "sha256": "f3503e7faa54df3ed15814f3c41d9c8df43fbb520f424ec8ff0f08da75a29f54" }
     },
     {
       "file": "server/lib.rules-backreference-policy.php",
@@ -1070,7 +1070,7 @@
       ],
       "compatibilityGlobals": [],
       "loadedBy": "server/lib.php",
-      "functionInventory": { "count": 4, "sha256": "541f36254a646ec11eff922731d558357b5aca6aadb36297bef75cfecd033075" }
+      "functionInventory": { "count": 5, "sha256": "85ab81abc4788b31c9ae2399df565c3fa549cc98cde566b76810e54e40f0f4f4" }
     }
   ],
   "moduleContracts": [
@@ -1368,6 +1368,18 @@
       "exports": ["normalizeBuilderRule", "describeCondition", "reorderRules", "createApi"]
     },
     {
+      "file": "scripts/folderviewplus.rule-predicate-validation.js",
+      "owner": "rule-predicate-validation-requests",
+      "consumers": ["settings", "folder-editor"],
+      "stateModel": "factory-owned",
+      "dependsOn": ["scripts/folderviewplus.request.js"],
+      "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
+      "global": "FolderViewPlusFoundationModules",
+      "globalMember": "rulePredicateValidation",
+      "loader": "commonjs",
+      "exports": ["create", "formatLegacyStatus"]
+    },
+    {
       "file": "scripts/folderviewplus.folder-groups.js",
       "owner": "settings-folder-group-creation",
       "consumers": ["settings"],
@@ -1389,7 +1401,7 @@
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "utilityPrefs",
       "loader": "commonjs",
-      "exports": ["normalizePrefs", "normalizeFolderGroups"]
+      "exports": ["normalizePrefs", "normalizeFolderGroups", "normalizeDockerStartOrderText"]
     },
     {
       "file": "scripts/folderviewplus.utils-ordering.js",
@@ -2159,13 +2171,13 @@
       "owner": "settings-docker-start-order-model",
       "consumers": ["settings"],
       "stateModel": "pure",
-      "dependsOn": ["scripts/folderviewplus.utils-foundation.js"],
+      "dependsOn": ["scripts/folderviewplus.utils-foundation.js", "scripts/folderviewplus.utils-prefs.js"],
       "compatibilityGlobals": ["FolderViewPlusFoundationModules"],
       "global": "FolderViewPlusFoundationModules",
       "globalMember": "startOrderModel",
       "loader": "commonjs",
       "typeChecked": true,
-      "exports": ["MODES", "REMAINING_MODES", "DEFAULT_PLAN", "normalizePlan", "patchPlan", "createId"]
+      "exports": ["MODES", "REMAINING_MODES", "DEFAULT_PLAN", "normalizeBatchName", "normalizePlan", "patchPlan", "createId"]
     },
     {
       "file": "scripts/folderviewplus.folderview3-apply.js",

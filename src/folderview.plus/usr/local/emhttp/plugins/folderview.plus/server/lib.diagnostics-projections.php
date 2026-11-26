@@ -1,4 +1,18 @@
 <?php
+    function diagnosticsProjectBackupRecord(?array $backup, string $fieldPath, array &$redactor): ?array {
+        if ($backup === null || ($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $backup;
+        }
+        $safeReasons = ['scheduled', 'manual', 'manual-diagnostics'];
+        foreach (['name', 'reason', 'traceId', 'transactionId'] as $key) {
+            if (!isset($backup[$key]) || ($key === 'reason' && in_array($backup[$key], $safeReasons, true))) {
+                continue;
+            }
+            $backup[$key] = diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.' . $key, $backup[$key]);
+        }
+        return $backup;
+    }
+
     function diagnosticsSupportBundleEventLabel(string $value, string $kind, string $fieldPath, array &$redactor): string {
         if (($redactor['mode'] ?? 'sanitized') === 'full' || $value === '') return $value;
         $allowed = [

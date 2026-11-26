@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/lib.rules-regex.php';
 require_once __DIR__ . '/lib.rules-backreference-policy.php';
+const FVPLUS_LEGACY_FOLDER_REGEX_MAX_BYTES = 1024;
+
+function fvplusLegacyFolderRegexIsValid(string $pattern): bool {
+    return $pattern === '' || (strlen($pattern) <= FVPLUS_LEGACY_FOLDER_REGEX_MAX_BYTES
+        && fvplusRulePatternIsPortable($pattern, false) && @preg_match(serverRuleRegex($pattern, false), '') !== false);
+}
     function dockerInfoLabelsForName(array $infoByName, string $name): array {
         $item = $infoByName[$name] ?? null;
         if (!is_array($item)) {

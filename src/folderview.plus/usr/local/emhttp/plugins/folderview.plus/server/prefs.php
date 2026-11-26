@@ -1,7 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-$applyStartupBatchChanges = static function (array $plan, string $type): array {
+$applyStartupBatchChanges = static function (array $plan, string $type, string $currentMode, int &$conflictCount): array {
     if (!array_key_exists('batchChanges', $plan)) return $plan;
     $changes = $plan['batchChanges'];
     if ($type !== 'docker' || !is_array($changes) || !array_is_list($changes) || count($changes) > 500) {
@@ -9,7 +9,6 @@ $applyStartupBatchChanges = static function (array $plan, string $type): array {
     }
     unset($plan['batchChanges']);
     $batches = normalizeDockerStartOrderPrefs($plan)['batches'];
-    $conflict = 'Preferences changed in another page. Review and save your changes again.';
     $validBatchValue = static fn(string $field, $value): bool => match ($field) {
         'name' => is_string($value) && trim($value) !== '',
         'delay' => is_int($value) && $value >= 0 && $value <= 3600,
@@ -22,16 +21,15 @@ $applyStartupBatchChanges = static function (array $plan, string $type): array {
             }),
         default => false
     };
+    $structuralTargets = [];
+    $candidateOrder = array_column($batches, 'id');
     foreach ($changes as $edit) {
         $id = $edit['id'] ?? null;
         $action = $edit['action'] ?? null;
         if (!is_string($id) || trim($id) === '' || strlen($id) > 256) {
             throw new InvalidArgumentException('Invalid Docker start-order batch changes.');
         }
-        $indices = array_keys(array_column($batches, 'id'), $id, true);
-        $index = $indices[0] ?? null;
         if ($action === 'add') {
-            if ($indices !== [] || count($batches) >= 100) throw new InvalidArgumentException($conflict);
             $value = $edit['value'] ?? null;
             if (!is_array($value) || ($value['id'] ?? null) !== $id) {
                 throw new InvalidArgumentException('Invalid Docker start-order batch changes.');
@@ -41,32 +39,96 @@ $applyStartupBatchChanges = static function (array $plan, string $type): array {
             }
             $batch = normalizeDockerStartOrderPrefs(['batches' => [$value]])['batches'][0];
             if ($batch['id'] !== $id) throw new InvalidArgumentException('Invalid Docker start-order batch changes.');
-            $batches[] = $batch;
-            continue;
-        }
-        if ($action === 'remove' && $index === null) continue;
-        if (count($indices) !== 1 || $index === null) throw new InvalidArgumentException($conflict);
-        if ($action === 'remove') {
-            array_splice($batches, $index, 1);
+            $candidateOrder[] = $id;
         } elseif ($action === 'move') {
-            $offset = $edit['offset'] ?? null;
-            if (!in_array($offset, [-1, 1], true) || !isset($batches[$index + $offset])
-                || $batches[$index + $offset]['id'] !== ($edit['neighbor'] ?? null)
-                || count(array_keys(array_column($batches, 'id'), $edit['neighbor'], true)) !== 1) {
-                throw new InvalidArgumentException($conflict);
+            if (!in_array($edit['offset'] ?? null, [-1, 1], true) || !is_string($edit['neighbor'] ?? null)) {
+                throw new InvalidArgumentException('Invalid Docker start-order batch changes.');
             }
-            [$batches[$index], $batches[$index + $offset]] = [$batches[$index + $offset], $batches[$index]];
-        } elseif ($action === 'set' && is_string($edit['field'] ?? null) && $validBatchValue($edit['field'], $edit['value'] ?? null)) {
-            $field = $edit['field'];
-            if ($batches[$index][$field] !== ($edit['previous'] ?? null)) throw new InvalidArgumentException($conflict);
-            $batches[$index] = normalizeDockerStartOrderPrefs(['batches' => [
-                array_replace($batches[$index], [$field => $edit['value']])
-            ]])['batches'][0];
-        } else {
+        } elseif ($action !== 'remove' && ($action !== 'set'
+            || !is_string($edit['field'] ?? null) || !$validBatchValue($edit['field'], $edit['value'] ?? null))) {
             throw new InvalidArgumentException('Invalid Docker start-order batch changes.');
         }
+        if ($action === 'add' || $action === 'remove') $structuralTargets[$id] = true;
     }
-    return array_replace($plan, ['batches' => $batches]);
+
+    // Structural operations share an order dependency when they touch the
+    // same row or change which rows separate an explicitly named move pair.
+    $positions = array_flip(array_values(array_unique($candidateOrder)));
+    $components = [];
+    foreach ($changes as $edit) {
+        if ($edit['action'] === 'set') continue;
+        $id = $edit['id'];
+        $targets = [$id];
+        if ($edit['action'] === 'move') {
+            $neighbor = $edit['neighbor'];
+            $targets[] = $neighbor;
+            if (isset($positions[$id], $positions[$neighbor])) {
+                $first = min($positions[$id], $positions[$neighbor]);
+                $length = abs($positions[$id] - $positions[$neighbor]);
+                $targets = array_slice(array_keys($positions), $first, $length + 1);
+            }
+        }
+        $owners = array_intersect_key($components, array_fill_keys($targets, true));
+        $owner = $owners ? reset($owners) : $id;
+        foreach ($components as $target => $existing) {
+            if (in_array($existing, $owners, true)) $components[$target] = $owner;
+        }
+        foreach ($targets as $target) $components[$target] = $owner;
+    }
+    $groups = array_map(static function (array $edit) use ($components, $structuralTargets): string {
+        $id = $edit['id'];
+        return $edit['action'] !== 'set' || isset($structuralTargets[$id])
+            ? 'structure:' . $components[$id] : $edit['field'] . ':' . $id;
+    }, $changes);
+
+    $applyEdit = static function (array &$next, array $edit): bool {
+        $id = $edit['id'];
+        $index = array_search($id, array_column($next, 'id'), true);
+        if ($edit['action'] === 'add') {
+            if ($index !== false || count($next) >= 100) return false;
+            $next[] = normalizeDockerStartOrderPrefs(['batches' => [$edit['value']]])['batches'][0];
+        } elseif ($edit['action'] === 'remove') {
+            if ($index !== false) array_splice($next, $index, 1);
+        } elseif ($index === false) {
+            return false;
+        } elseif ($edit['action'] === 'move') {
+            $neighbor = $index + $edit['offset'];
+            if (($next[$neighbor]['id'] ?? null) !== $edit['neighbor']) return false;
+            [$next[$index], $next[$neighbor]] = [$next[$neighbor], $next[$index]];
+        } else {
+            $field = $edit['field'];
+            $previous = $edit['previous'] ?? null;
+            if ($field === 'name' && is_string($previous)) $previous = rtrim(truncateUtf8String(trim($previous), 64));
+            if ($next[$index][$field] !== $previous) return false;
+            $next[$index] = normalizeDockerStartOrderPrefs(['batches' => [
+                array_replace($next[$index], [$field => $edit['value']])
+            ]])['batches'][0];
+        }
+        return true;
+    };
+
+    // Replay surviving groups in the original request order so independently
+    // added batches keep their position. Discard a failed group's partial writes.
+    $rejected = [];
+    do {
+        $next = $batches;
+        $retry = false;
+        foreach ($changes as $key => $edit) {
+            $group = $groups[$key];
+            if (!isset($rejected[$group]) && !$applyEdit($next, $edit)) {
+                $rejected[$group] = true;
+                $retry = true;
+                break;
+            }
+        }
+    } while ($retry);
+    $conflictCount += array_sum(array_intersect_key(array_count_values($groups), $rejected));
+    $adds = array_keys(array_column($changes, 'action'), 'add', true);
+    if (($plan['mode'] ?? null) === 'custom-batches' && $adds !== []) {
+        $acceptedAdds = array_filter($adds, static fn(int $key): bool => !isset($rejected[$groups[$key]]));
+        if ($acceptedAdds === []) $plan['mode'] = $currentMode;
+    }
+    return array_replace($plan, ['batches' => $next]);
 };
 
 $writePrefs = static function (string $type) use ($applyStartupBatchChanges): array {
@@ -94,6 +156,7 @@ $writePrefs = static function (string $type) use ($applyStartupBatchChanges): ar
         }
     }
     $expectedRevision = (string)($_POST['expectedRevision'] ?? '');
+    $expectedRecoveryRevision = $_POST['expectedRecoveryRevision'] ?? null;
     $clientMutationId = trim((string)($_POST['clientMutationId'] ?? ''));
     if ($clientMutationId !== '' && !preg_match('/^[a-zA-Z0-9._:-]{1,96}$/', $clientMutationId)) {
         throw new RuntimeException('Invalid client mutation id.');
@@ -103,8 +166,16 @@ $writePrefs = static function (string $type) use ($applyStartupBatchChanges): ar
         ? hash_hmac('sha256', json_encode([$type, $clientMutationId, (int)$expectedRevision, $decoded], JSON_THROW_ON_ERROR), $token)
         : '';
     $replayDockerStartOrder = false;
+    $startupConflictCount = 0;
     try {
-        assertExpectedConfigRevision($type, 'prefs', $expectedRevision);
+        $metadata = readConfigMetadata($type, true);
+        $recoveryRevision = $metadata['prefsRecoveryRevision'];
+        if (($expectedRecoveryRevision !== null && (!is_scalar($expectedRecoveryRevision)
+                || !ctype_digit((string)$expectedRecoveryRevision) || (int)$expectedRecoveryRevision !== $recoveryRevision))
+            || (ctype_digit($expectedRevision) && (int)$expectedRevision < $recoveryRevision)) {
+            throw new FVPlusApiContractException('Preferences changed in another page. Review and save your changes again.', 422);
+        }
+        assertExpectedConfigRevision($type, 'prefs', $expectedRevision, $metadata);
     } catch (FVPlusConfigConflictException $error) {
         $committed = readConfigMetadata($type, false);
         if ($receipt === '' || (int)$expectedRevision + 1 !== $committed['prefsRevision']
@@ -113,12 +184,15 @@ $writePrefs = static function (string $type) use ($applyStartupBatchChanges): ar
         }
         // A lost response can be acknowledged while this operation is still the latest preference write.
         $replayDockerStartOrder = $type === 'docker' && array_key_exists('dockerStartOrder', $decoded);
+        $startupConflictCount = $committed['prefsStartupConflictCount'] ?? 0;
         $decoded = [];
     }
 
     $current = readTypePrefs($type);
     $merged = mergeTypePrefsPatch($current, $decoded);
-    if (isset($merged['dockerStartOrder'])) $merged['dockerStartOrder'] = $applyStartupBatchChanges($merged['dockerStartOrder'], $type);
+    if (isset($merged['dockerStartOrder'])) {
+        $merged['dockerStartOrder'] = $applyStartupBatchChanges($merged['dockerStartOrder'], $type, $current['dockerStartOrder']['mode'], $startupConflictCount);
+    }
     if (isset($decoded['hiddenFolderIdChanges'])) {
         $hiddenIds = array_fill_keys(normalizeStringIdList($merged['hiddenFolderIds'] ?? []), true);
         foreach ($decoded['hiddenFolderIdChanges'] as $id => $hidden) {
@@ -140,7 +214,13 @@ $writePrefs = static function (string $type) use ($applyStartupBatchChanges): ar
         $next = reconcileManualOrderPrefs($next, readRawFolderMap($type));
     }
     $configChanged = jsonObjectsDiffer($current, $next);
-    $saved = $configChanged ? writeTypePrefs($type, $next, $receipt) : $current;
+    if (!$configChanged && $startupConflictCount > 0 && !$replayDockerStartOrder) {
+        throw new InvalidArgumentException('Preferences changed in another page. Review and save your changes again.');
+    }
+    $saved = $current;
+    if ($configChanged) {
+        $saved = writeTypePrefs($type, $next, $receipt, prefsStartupConflictCount: $startupConflictCount);
+    }
     $metadata = readConfigMetadata($type, false);
     unset($metadata['prefsMutationReceipt']);
     $currentDockerStartOrder = normalizeDockerStartOrderPrefs($current['dockerStartOrder'] ?? []);
@@ -198,6 +278,7 @@ $writePrefs = static function (string $type) use ($applyStartupBatchChanges): ar
         'metadata' => $metadata,
         'clientMutationId' => $clientMutationId,
         'configChanged' => $configChanged,
+        ...($startupConflictCount > 0 ? ['startupBatchConflicts' => $startupConflictCount] : []),
         ...($dockerOrderSync !== null ? ['dockerOrderSync' => $dockerOrderSync] : []),
         'backupRequired' => false,
         'auditRecorded' => $auditRecorded,

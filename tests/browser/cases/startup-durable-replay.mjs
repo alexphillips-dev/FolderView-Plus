@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { closeFilterViewHost as closeHost, createFilterViewSettingsHost } from '../helpers/filter-view-settings-host.mjs';
+import { registerStartupDraftFocusCase } from './startup-draft-focus.mjs';
 
 export const registerStartupDurableReplayCases = ({ test, openSettings, waitFor }) => {
     test('Docker start order persists a batch edit before hard reload and replays it on the reopened page', async ({ page }) => {
@@ -15,10 +16,12 @@ export const registerStartupDurableReplayCases = ({ test, openSettings, waitFor 
             await openSettings(page, host);
             await page.locator('[data-mode="advanced"]').click();
             await page.locator('[data-fv-advanced-tab="startup"]').click();
+            await page.getByLabel('Batch name').waitFor();
             await page.waitForFunction(() => !window.FolderViewPlusPrefsStore.getDefaultCoordinator().getSnapshot('docker').pending);
             const [response, queued] = await Promise.all([
                 page.waitForNavigation({ waitUntil: 'load' }),
-                page.getByLabel('Batch name').evaluate(input => {
+                page.evaluate(() => {
+                    const input = document.querySelector('input[aria-label="Batch name"]');
                     input.value = 'Saved across reload';
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                     const record = Object.keys(localStorage).filter(key => key.startsWith('fvplus.prefs.outbox.v1.docker.'))
@@ -35,4 +38,6 @@ export const registerStartupDurableReplayCases = ({ test, openSettings, waitFor 
             assert.equal(await page.getByLabel('Batch name').inputValue(), 'Saved across reload');
         } finally { await closeHost(page, host); }
     }, { skipAccessibility: true });
+
+    registerStartupDraftFocusCase({ test, openSettings, waitFor });
 };

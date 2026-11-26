@@ -205,6 +205,34 @@ test('curated notes preserve Markdown paragraph breaks and literal backslashes t
     }
 });
 
+test('historical shell release notes stop at unpadded version headings and the end of CHANGES', { skip: process.platform === 'win32' }, t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-historical-notes-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(directory, 'scripts'));
+    for (const name of ['lib.sh', 'build_release_notes.sh']) {
+        fs.copyFileSync(path.join(process.cwd(), 'scripts', name), path.join(directory, 'scripts', name));
+    }
+    fs.writeFileSync(path.join(directory, 'folderview.plus.plg'), [
+        '<CHANGES><![CDATA[', '###2026.10.05.10', '### Section heading', '- Fix: Recent release.',
+        '###2026.10.05.9', '- Fix: Last historical release.', ']]></CHANGES>', '<FILE Run="/bin/bash">',
+        '###2026.10.05.08', 'Installer-only detail.', '</FILE>', ''
+    ].join('\n'));
+    const git = (...args) => execFileSync('git', args, { cwd: directory, stdio: 'pipe' });
+    git('init'); git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '--allow-empty', '--no-verify', '-m', 'Historical notes');
+    const render = version => {
+        execFileSync('bash', ['scripts/build_release_notes.sh', '--version', version, '--output', 'notes.md'], { cwd: directory, stdio: 'pipe' });
+        return fs.readFileSync(path.join(directory, 'notes.md'), 'utf8');
+    };
+    const recent = render('2026.10.05.10');
+    assert.match(recent, /### Section heading/);
+    assert.match(recent, /Recent release/);
+    assert.doesNotMatch(recent, /Last historical release|Installer-only detail|<\/CHANGES>/);
+    const historical = render('2026.10.05.9');
+    assert.match(historical, /Last historical release/);
+    assert.doesNotMatch(historical, /Recent release|Installer-only detail|<\/CHANGES>/);
+    assert.throws(() => render('2026.10.05.08'), /Missing CHANGES block/);
+});
+
 test('qualification dispatches independent checks on an exact tag and never promotes a failed candidate', { skip: process.platform === 'win32' }, t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-qualification-fixture-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

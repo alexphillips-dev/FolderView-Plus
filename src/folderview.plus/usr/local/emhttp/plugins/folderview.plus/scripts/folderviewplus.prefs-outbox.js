@@ -74,7 +74,36 @@
         return { ...prefs, dockerStartOrder: { ...next, batches } };
     };
 
-    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mergeValues, cloneValue, patchIsEmpty, mutationIdFor }) => {
+    const isPlainObject = (value) => (
+        value !== null
+        && typeof value === 'object'
+        && !Array.isArray(value)
+        && Object.prototype.toString.call(value) === '[object Object]'
+    );
+    const cloneValue = (value) => {
+        if (Array.isArray(value)) return value.map(cloneValue);
+        if (isPlainObject(value)) return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
+        return value;
+    };
+    const mergeValues = (base, patch) => {
+        const source = isPlainObject(base) ? base : {};
+        if (!isPlainObject(patch)) return cloneValue(patch);
+        const next = { ...source };
+        for (const [key, value] of Object.entries(patch)) {
+            if (key === '_metadata') continue;
+            next[key] = isPlainObject(value) && key !== 'folderDefaults'
+                ? (key === 'dockerStartOrder' ? mergeStartOrderPatch(source[key], value, mergeValues) : mergeValues(source[key], value))
+                : cloneValue(value);
+        }
+        return next;
+    };
+    const patchIsEmpty = (patch) => !isPlainObject(patch) || Object.keys(patch).length === 0;
+    const readRecoveryRevision = (prefs) => {
+        const value = prefs?._metadata?.prefsRecoveryRevision;
+        return Number.isSafeInteger(value) && value >= 0 ? value : null;
+    };
+
+    const createStorage = ({ storage, prefix, sourceId, now, readRevision, mutationIdFor }) => {
         const mergePatch = (previous, patch) => {
             if (!Object.hasOwn(patch, 'hiddenFolderIds') || !Object.hasOwn(previous, 'hiddenFolderIdChanges')) {
                 return mergeValues(previous, patch);
@@ -176,13 +205,32 @@
             const operation = entry.next || entry.record.operation;
             if (Number(entry.record.schemaVersion) !== 2
                 || !Number.isSafeInteger(operation?.expectedRevision) || operation.expectedRevision <= 0
+                || (operation.expectedRecoveryRevision != null
+                    && (!Number.isSafeInteger(operation.expectedRecoveryRevision) || operation.expectedRecoveryRevision < 0))
                 || typeof operation.mutationId !== 'string' || !/^[a-zA-Z0-9._:-]{1,96}$/.test(operation.mutationId)
                 || patchIsEmpty(operation.patch)) return null;
             return operation;
         };
 
+        const recoveryChangedSinceEdit = (operation, state) => {
+            const current = readRecoveryRevision(state.confirmedPrefs);
+            if (!operation || current === null) return false;
+            return operation.expectedRevision < current
+                || (operation.expectedRecoveryRevision != null && operation.expectedRecoveryRevision !== current);
+        };
+        const pendingRecoveryConflict = (state) => state.pendingRecoveryRevision != null
+            && state.pendingRecoveryRevision !== readRecoveryRevision(state.confirmedPrefs);
+        const viewRecoveryConflict = (baseline, state) => {
+            const viewRevision = readRecoveryRevision(baseline);
+            const current = readRecoveryRevision(state.confirmedPrefs);
+            return viewRevision !== null && current !== null && viewRevision !== current;
+        };
+
         const applicablePatches = (state, entries) => entries
-            .filter(entry => recoverOperation(entry)?.expectedRevision === readRevision(state.confirmedPrefs))
+            .filter(entry => {
+                const operation = recoverOperation(entry);
+                return operation?.expectedRevision === readRevision(state.confirmedPrefs) && !recoveryChangedSinceEdit(operation, state);
+            })
             .map(entry => entry.next?.patch || entry.record.patch);
 
         const externalPatch = (state) => applicablePatches(state, read(state.type)
@@ -190,9 +238,9 @@
 
         const queuedPatches = (state) => [
             ...applicablePatches(state, state.restoring),
-            state.inFlightBatch?.patch || {},
+            state.inFlightBatch && !recoveryChangedSinceEdit(state.inFlightBatch, state) ? state.inFlightBatch.patch : {},
             state.retryBatch?.expectedRevision === readRevision(state.confirmedPrefs) ? state.retryBatch.patch : {},
-            state.pendingPatch
+            pendingRecoveryConflict(state) ? {} : state.pendingPatch
         ];
 
         const restore = (state) => {
@@ -217,7 +265,8 @@
                 .map(key => [`${key}Base`, state.pendingCollectionBases[key]])),
             generation: state.generation,
             mutationId: mutationIdFor(state.generation),
-            expectedRevision: readRevision(state.confirmedPrefs)
+            expectedRevision: readRevision(state.confirmedPrefs),
+            expectedRecoveryRevision: state.pendingRecoveryRevision ?? readRecoveryRevision(state.confirmedPrefs)
         });
 
         const collectionChangedSinceEdit = (batch, state) => guardedCollections.some(key => {
@@ -231,6 +280,7 @@
             && collectionChangedSinceEdit(batch, state);
 
         const queuePatch = (state, patch, baseline) => {
+            if (patchIsEmpty(state.pendingPatch)) state.pendingRecoveryRevision = readRecoveryRevision(state.confirmedPrefs);
             for (const key of guardedCollections) {
                 if (baseline && Object.hasOwn(patch, key) && !Object.hasOwn(state.pendingPatch, key)) {
                     state.pendingCollectionBases[key] = cloneValue(baseline[key] || []);
@@ -240,6 +290,7 @@
         };
 
         const requeue = (state, batch) => {
+            if (patchIsEmpty(state.pendingPatch)) state.pendingRecoveryRevision = batch.expectedRecoveryRevision;
             state.pendingPatch = mergePatch(batch.patch, state.pendingPatch);
             for (const key of guardedCollections) {
                 if (!Object.hasOwn(batch.patch, key)) continue;
@@ -279,6 +330,7 @@
             if (!restored && !retry) {
                 state.pendingPatch = {};
                 state.pendingCollectionBases = {};
+                state.pendingRecoveryRevision = null;
             }
             state.inFlightBatch = restored ? null : batch;
             return { batch, retry };
@@ -287,8 +339,21 @@
         const advanceAfterCommit = (entry, savedRevision, expectedRevision) => {
             if (!entry || entry.next || patchIsEmpty(entry.record.pending?.patch)
                 || (savedRevision !== expectedRevision && savedRevision !== expectedRevision + 1)) return false;
-            entry.next = { ...entry.record.pending, expectedRevision: savedRevision };
+            const pendingRevision = entry.record.pending.expectedRevision;
+            const expected = Number.isSafeInteger(pendingRevision) ? Math.max(savedRevision, pendingRevision) : savedRevision;
+            entry.next = { ...entry.record.pending, expectedRevision: expected };
             advance(entry, entry.next);
+            return true;
+        };
+
+        const keepPostRecoveryEdit = (entry, state) => {
+            const pending = entry?.record.pending;
+            const recoveryRevision = readRecoveryRevision(state.confirmedPrefs);
+            if (!entry || entry.next || recoveryRevision === null || patchIsEmpty(pending?.patch)
+                || pending.expectedRevision !== readRevision(state.confirmedPrefs)
+                || pending.expectedRecoveryRevision !== recoveryRevision) return false;
+            entry.next = pending;
+            advance(entry, pending);
             return true;
         };
 
@@ -300,9 +365,12 @@
 
         return Object.freeze({
             key, isCurrent, recoverOperation, queuedPatches, externalPatch, restore, finish, persist, prepare, advanceAfterCommit, keepPendingStartupEdit,
-            queuePatch, requeue, collectionChangedSinceEdit, collectionConflictBeforeWrite, beginRebase, completeRebase
+            queuePatch, requeue, collectionChangedSinceEdit, collectionConflictBeforeWrite, beginRebase, completeRebase,
+            recoveryChangedSinceEdit, pendingRecoveryConflict, viewRecoveryConflict, keepPostRecoveryEdit
         });
     };
 
-    return Object.freeze({ createStorage, applyFolderVisibilityChanges, mergeStartOrderPatch, applyStartOrderBatchChanges, isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError });
+    return Object.freeze({ createStorage, applyFolderVisibilityChanges, mergeStartOrderPatch, applyStartOrderBatchChanges,
+        isPreferenceRevisionConflict, isRetryableSyncError, classifyWriteError,
+        isPlainObject, cloneValue, mergeValues, patchIsEmpty });
 }));

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { createRequire } from 'node:module';
 
 const server = process.env.FVPLUS_TRANSACTION_BOUNDARY_SERVER || path.resolve('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server');
 const fixture = process.env.FVPLUS_TRANSACTION_BOUNDARY_FIXTURE || path.resolve('tests/fixtures/transaction-boundaries.php');
@@ -78,6 +79,70 @@ test('public environment boundaries reject incomplete and unsupported envelopes 
         assert.equal(result.validRoundtrip, true);
         assert.equal(result.internalPartialAccepted, true);
     } finally { harness.cleanup(); }
+});
+
+test('guarded Recovery fences an in-flight preference save and preserves normal revision conflicts', async () => {
+    const harness = setup();
+    const require = createRequire(import.meta.url);
+    const { getDefaultCoordinator } = require(path.join(server, '../scripts/folderviewplus.prefs-store.js'));
+    const call = (endpoint, method, fields) => harness.run('recovery-request', JSON.stringify([endpoint, method, fields]));
+    const readPrefs = type => call('prefs.php', 'GET', { type })[1];
+    const unwrap = ([status, body]) => {
+        if (status !== 200) throw Object.assign(new Error(body.error), { status });
+        return body;
+    };
+    let markStarted, releaseWrite;
+    const started = new Promise(resolve => { markStarted = resolve; });
+    const held = new Promise(resolve => { releaseWrite = resolve; });
+    let requests = 0;
+    const coordinator = getDefaultCoordinator({ window: {}, normalizePrefs: prefs => prefs, debounceMs: 0, request: {
+        getJson: async () => readPrefs('vm'),
+        postJson: async (_url, fields) => {
+            requests++;
+            if (requests === 1) {
+                assert.equal(fields.expectedRecoveryRevision, 0);
+                markStarted();
+                await held;
+            }
+            return unwrap(call('prefs.php', 'POST', fields));
+        }
+    } });
+    try {
+        harness.run('seed-export');
+        const initial = readPrefs('vm');
+        assert.equal(initial.metadata.prefsRecoveryRevision, 0);
+        await coordinator.hydrateFromServer('vm');
+        const stale = assert.rejects(coordinator.save('vm', { backupSchedule: { retention: 12 } }),
+            error => error.status === 422);
+        await started;
+        const target = unwrap(call('environment_snapshot.php', 'GET', { action: 'export' })).snapshot;
+        target.types.vm.prefs.backupSchedule.retention = 30;
+        assert.equal(unwrap(call('environment_snapshot.php', 'POST', {
+            action: 'apply', payload: JSON.stringify(target)
+        })).import.verified, true);
+        const recovered = readPrefs('vm');
+        assert.equal(recovered.metadata.prefsRecoveryRevision, recovered.metadata.prefsRevision);
+        assert.equal(recovered.prefs.backupSchedule.retention, 30);
+        releaseWrite();
+        await stale;
+        assert.equal(requests, 1, 'the old operation never rebases across Recovery');
+        assert.equal(coordinator.getConfirmedPrefs('vm').backupSchedule.retention, 30);
+        assert.equal(coordinator.getSnapshot('vm').pending, false);
+
+        const post = (fields, retention) => call('prefs.php', 'POST', {
+            type: 'vm', prefs: JSON.stringify({ backupSchedule: { retention } }), ...fields
+        });
+        assert.equal(post({ expectedRevision: initial.metadata.prefsRevision }, 13)[0], 422, 'older clients get a terminal rejection');
+        assert.equal(post({
+            expectedRevision: recovered.metadata.prefsRevision, expectedRecoveryRevision: initial.metadata.prefsRecoveryRevision
+        }, 14)[0], 422, 'a refreshed revision cannot mask a stale recovery baseline');
+        await coordinator.save('vm', { backupSchedule: { retention: 22 } });
+        assert.equal(readPrefs('vm').prefs.backupSchedule.retention, 22);
+        assert.equal(post({ expectedRevision: recovered.metadata.prefsRevision }, 20)[0], 409, 'ordinary revision conflicts still permit a rebase');
+    } finally {
+        releaseWrite();
+        harness.cleanup();
+    }
 });
 
 test('failed environment transactions preserve backup and checkpoint history before verification', () => {
@@ -199,7 +264,7 @@ test('fresh per-type and global archives survive retention when existing timesta
     } finally { harness.cleanup(); }
 });
 
-for (const action of ['checkpoint', 'export', 'docker-order']) test(action + ' respects the configuration lock across competing requests', async () => {
+for (const action of ['checkpoint', 'export', 'docker-order', 'history']) test(action + ' respects the configuration lock across competing requests', async () => {
     const harness = setup(); const children = [];
     const launch = operation => {
         const child = spawn('php', harness.args(operation), { env: harness.env }); children.push(child);
@@ -221,7 +286,8 @@ for (const action of ['checkpoint', 'export', 'docker-order']) test(action + ' r
     try {
         harness.run('seed-export');
         const reader = launch([action === 'docker-order' ? 'checkpoint-reader' : action + '-reader']); await waitFor('reader-paused');
-        const writer = launch([action === 'docker-order' ? 'setup-order-sync-writer' : 'checkpoint-writer']); await waitFor('writer-started');
+        const writer = launch([action === 'docker-order' ? 'setup-order-sync-writer' : action === 'history' ? 'history-writer' : 'checkpoint-writer']);
+        await waitFor('writer-started');
         assert.equal(fs.readFileSync(path.join(harness.root, 'writer-started'), 'utf8'), 'blocked');
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), false);
@@ -229,6 +295,9 @@ for (const action of ['checkpoint', 'export', 'docker-order']) test(action + ' r
         const [snapshot, writerResult] = await Promise.all([reader, writer]);
         assert.equal(fs.existsSync(path.join(harness.root, 'writer-finished')), true);
         if (action === 'docker-order') assert.equal(writerResult.syncOutcome, 'unmanaged');
+        if (action === 'history') {
+            assert.deepEqual(harness.run('history-current').map(event => event.id).sort(), [snapshot.id, writerResult.id].sort());
+        }
         if (action === 'export') {
             const current = harness.run('export-current');
             for (const type of ['docker', 'vm']) {

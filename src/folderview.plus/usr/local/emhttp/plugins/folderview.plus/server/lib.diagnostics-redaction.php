@@ -69,6 +69,23 @@ function diagnosticsHashShort(string $value): string {
         return substr(hash('sha256', $salt . "\n" . $fieldPath . "\n" . $value), 0, 16);
     }
 
+    function diagnosticsSupportBundleRedactCorrelationId(array &$redactor, string $kind, string $fieldPath, string $value): string {
+        if ($value === '' || ($redactor['mode'] ?? 'sanitized') === 'full') return $value;
+        diagnosticsSupportBundleMarkRedaction($redactor, 'hashedFields', $fieldPath);
+        return substr(hash('sha256', ($redactor['salt'] ?? '') . "\ncorrelation:" . $kind . "\n" . $value), 0, 16);
+    }
+
+    function diagnosticsProjectCorrelationIds(array $record, string $fieldPath, array &$redactor): array {
+        if (($redactor['mode'] ?? 'sanitized') === 'full') return $record;
+        foreach (['traceId' => 'trace', 'transactionId' => 'transaction', 'lastTraceId' => 'trace', 'lastTransactionId' => 'transaction'] as $key => $kind) {
+            if (isset($record[$key])) $record[$key] = diagnosticsSupportBundleRedactCorrelationId(
+                $redactor, $kind, $fieldPath . '.' . $key, (string)$record[$key]
+            );
+        }
+        unset($record['prefsMutationReceipt']);
+        return $record;
+    }
+
     function diagnosticsSupportBundleRedactFolderIdValue(array &$redactor, string $type, string $fieldPath, string $folderId): string {
         $normalizedFolderId = trim($folderId);
         if ($normalizedFolderId === '' || ($redactor['mode'] ?? 'sanitized') === 'full') {
@@ -242,6 +259,15 @@ function diagnosticsHashShort(string $value): string {
         }
 
         $redacted = (string)preg_replace_callback(
+            '/\[(trace|transaction):([A-Za-z0-9._:-]{6,96})\]/',
+            static function (array $match) use (&$redactor, $fieldPath): string {
+                return '[' . $match[1] . ':' . diagnosticsSupportBundleRedactCorrelationId(
+                    $redactor, $match[1], $fieldPath . '.' . $match[1] . 'Id', $match[2]
+                ) . ']';
+            },
+            $text
+        );
+        $redacted = (string)preg_replace_callback(
             '/\bhttps?:\/\/[^\s<>"\']+/i',
             static function (array $matches) use (&$redactor, $fieldPath): string {
                 $url = trim((string)($matches[0] ?? ''));
@@ -249,7 +275,7 @@ function diagnosticsHashShort(string $value): string {
                 diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', $fieldPath . '.url');
                 return $urlHash ? '[url-hash:' . $urlHash . ']' : '[url-redacted]';
             },
-            $text
+            $redacted
         );
 
         $redacted = (string)preg_replace_callback(

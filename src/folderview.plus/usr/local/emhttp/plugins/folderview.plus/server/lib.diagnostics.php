@@ -47,7 +47,8 @@
         $path = diagnosticsHistoryPath();
         $decoded = readJsonObjectFile($path);
         if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
+            $decoded = withConfigMutationLock(static fn(): ?array =>
+                readJsonObjectFile($path) ?? recoverJsonObjectFromLastGood($path));
         }
         $runtimeEvents = function_exists('backupScheduleHistoryEvents') ? backupScheduleHistoryEvents() : [];
         $events = array_values(array_filter(array_merge(is_array($decoded) ? $decoded : [], $runtimeEvents), function($row) {
@@ -94,36 +95,28 @@
             throw new RuntimeException('Diagnostics event action is required.');
         }
 
-        global $configDir;
-        if (!is_dir($configDir)) {
-            @mkdir($configDir, 0770, true);
-        }
+        return withConfigMutationLock(static function () use ($action, $type, $details, $status, $source): array {
+            $path = diagnosticsHistoryPath();
+            $events = readJsonObjectFile($path) ?? recoverJsonObjectFromLastGood($path) ?? [];
+            $event = [
+                'id' => generateId(16),
+                'timestamp' => gmdate('c'),
+                'action' => $action,
+                'type' => $type ? ensureType($type) : null,
+                'status' => trim($status) === '' ? 'ok' : substr(trim($status), 0, 32),
+                'source' => trim($source) === '' ? 'server' : substr(trim($source), 0, 64),
+                'traceId' => diagnosticsCurrentTraceId(),
+                'transactionId' => diagnosticsCurrentTransactionId(),
+                'details' => diagnosticsNormalizeEventDetails($details)
+            ];
 
-        $path = diagnosticsHistoryPath();
-        $decoded = readJsonObjectFile($path);
-        if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
-        }
-        $events = is_array($decoded) ? $decoded : [];
-
-        $event = [
-            'id' => generateId(16),
-            'timestamp' => gmdate('c'),
-            'action' => $action,
-            'type' => $type ? ensureType($type) : null,
-            'status' => trim($status) === '' ? 'ok' : substr(trim($status), 0, 32),
-            'source' => trim($source) === '' ? 'server' : substr(trim($source), 0, 64),
-            'traceId' => diagnosticsCurrentTraceId(),
-            'transactionId' => diagnosticsCurrentTransactionId(),
-            'details' => diagnosticsNormalizeEventDetails($details)
-        ];
-
-        $events[] = $event;
-        if (count($events) > FVPLUS_DIAGNOSTICS_HISTORY_MAX) {
-            $events = array_slice($events, -FVPLUS_DIAGNOSTICS_HISTORY_MAX);
-        }
-        writeJsonObjectWithLastGood($path, array_values($events));
-        return $event;
+            $events[] = $event;
+            if (count($events) > FVPLUS_DIAGNOSTICS_HISTORY_MAX) {
+                $events = array_slice($events, -FVPLUS_DIAGNOSTICS_HISTORY_MAX);
+            }
+            writeJsonObjectWithLastGood($path, array_values($events));
+            return $event;
+        });
     }
 
     require_once(__DIR__ . '/lib.diagnostics-redaction.php');

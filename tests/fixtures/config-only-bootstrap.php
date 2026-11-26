@@ -10,6 +10,7 @@ $_SERVER = [
 $_POST = $request['post'] ?? [];
 $_GET = $request['get'] ?? [];
 $_REQUEST = $_GET + $_POST;
+if (($request['requestMarker'] ?? true) === false) unset($_SERVER['HTTP_X_FV_REQUEST']);
 
 if (($request['operation'] ?? '') === 'bootstrap') {
     if (array_key_exists('configOnly', $request)) define('FVPLUS_CONFIG_ONLY_BOOTSTRAP', $request['configOnly']);
@@ -35,7 +36,7 @@ if (($request['operation'] ?? '') === 'bootstrap') {
         'submitModule' => str_contains($html, '/scripts/folder.editor.submit.js')];
 } else {
     $endpoint = $request['endpoint'];
-    if (!in_array($endpoint, ['security.php', 'create.php', 'update.php', 'read_info.php', 'read.php'], true)) {
+    if (!in_array($endpoint, ['security.php', 'create.php', 'update.php', 'delete.php', 'read_info.php', 'read.php', 'rule_preview.php'], true)) {
         throw new RuntimeException('Unsupported fixture endpoint.');
     }
     if (in_array($endpoint, ['read_info.php', 'read.php'], true)) $_SERVER['REQUEST_METHOD'] = 'GET';

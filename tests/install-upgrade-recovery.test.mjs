@@ -37,7 +37,8 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         'update-stale-records-success', 'update-stale-records-core', 'update-missing-runtime-core', 'install-remove-reinstall-stale-success',
         'update-legacy-registration-interrupted-success', 'update-early-activation-interrupted-success',
         'update-journal-interrupted-success', 'update-late-check-interrupted-boot-success', 'install-fresh-journal-interrupted-success',
-        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
+        'update-rollback-retry-success', 'update-rollback-before-boot-success', 'update-committed-damaged-icons-before-boot-success',
+        'update-committed-damaged-core-before-boot-success', 'install-local-journal-interrupted-success', 'install-remove-scheduler-retry-success',
         'install-remove-stale-cleanup-retry-success', 'install-renamed-local-success',
         'install-fresh-extract-success', 'install-fresh-extract-retry-success', 'install-fresh-unverified-runtime',
         'install-remove-archive-obstructed-success', 'install-remove-native-handoff-success',
@@ -46,7 +47,8 @@ test('pinned Unraid installs, updates, and reinstalls boot assets offline', { sk
         ...(nativeVersion === '7.4.0' ? [
             'install-remove-nextboot-staged-success', 'install-native-remove-nextboot-staged-failure',
             'install-remove-nextboot-staged-interrupted-prepared-success', 'install-native-remove-nextboot-staged-partial-failure',
-            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success'
+            'update-nextboot-after-interrupted-registration-success', 'update-nextboot-damaged-icons-after-interrupted-registration-success',
+            'update-newer-nextboot-after-rollback-success', 'update-damaged-nextboot-after-rollback-success'
         ] : [])
     ]);
 });

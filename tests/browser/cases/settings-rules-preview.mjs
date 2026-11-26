@@ -10,6 +10,7 @@ test('Rules simulator reviews authoritative rows and applies only the reviewed d
         await page.route('**/server/rule_preview.php*', async route => {
             if (route.request().method() === 'POST') {
                 const payload = new URLSearchParams(route.request().postData() || '');
+                if (payload.get('action') === 'validate_predicate') return route.fallback();
                 assert.equal(payload.get('type'), 'docker');
                 assert.equal(payload.get('expectedDigest'), digest);
                 assert.equal(payload.has('assignments'), false);

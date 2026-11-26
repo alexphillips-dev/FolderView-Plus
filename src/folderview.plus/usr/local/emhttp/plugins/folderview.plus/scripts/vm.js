@@ -390,6 +390,7 @@ if (vmBootstrapMissingModules.length > 0) {
     throw error;
 }
 const vmHostAdapter = runtimeHostAdapters?.getOrCreate?.('vm', { window, document }) || null;
+const vmQuickFinderAdapter = window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter;
 const vmUnassignedGroupModule = window.FolderViewPlusFoundationModules.unassignedGroup;
 const vmUnassignedGroup = vmUnassignedGroupModule?.createApi({ window, type: 'vm' });
 let vmUnassignedNames = new Set();
@@ -1355,9 +1356,12 @@ const renderVmUnassignedGroup = () => {
     const tbody = vmHostAdapter.getPrimaryBody();
     if (!vmUnassignedGroup || folderTypePrefs.groupUnassignedItems !== true || tbody?.id !== 'kvm_list'
         || tbody.classList.contains('ui-sortable')) return;
+    const unassignedUuids = new Set(Array.from(vmUnassignedNames, name => vmRuntimeInfoByName[name]?.uuid).filter(Boolean));
     const rows = Array.from(tbody.querySelectorAll(':scope > tr.sortable:not(.folder)')).filter(row => {
-        const name = String(row.querySelector('td.vm-name span.outer span.inner a')?.textContent || '').trim();
-        return vmUnassignedNames.has(name);
+        const uuid = vmQuickFinderAdapter.getVmRowUuid(row);
+        if (unassignedUuids.has(uuid)) return true;
+        const name = vmQuickFinderAdapter.getVmRowName(row);
+        return vmUnassignedNames.has(name) && (!uuid || !vmRuntimeInfoByName[name]?.uuid);
     });
     vmUnassignedGroup.render(tbody, rows, {
         columnCount: rows[0]?.cells.length,
@@ -2021,14 +2025,12 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
             newFolder[container].id = ct.uuid;
             newFolder[container].state = ct.state;
 
-            // grab the container by name and put it onto the storage
-            let $vmTR = $('#kvm_list > tr.sortable').filter(function() {
-                return $(this).find('td.vm-name span.outer span.inner a').first().text().trim() === container;
-            }).first();
-            const vmRowNode = $vmTR.get(0);
+            const vmRowNode = $('#kvm_list > tr.sortable').get().find(row => vmQuickFinderAdapter.matchesVmRow(row, container, ct.uuid));
             const detailRows = collectExistingVmDetailRowsForVmRow(vmRowNode);
             const storage = $(`tr[class~="folder-id-${id}"] div.folder-storage`).get(0);
             if (vmRowNode && storage instanceof Element) {
+                // The member preview clones this anchor outside the native name cell.
+                vmRowNode.querySelector('td.vm-name span.outer span.inner a')?.setAttribute('data-fvplus-user-content', '');
                 applyVmFolderElementOwnership(vmRowNode, id);
                 vmRowNode.classList.remove('sortable');
                 storage.appendChild(vmRowNode);
@@ -2073,15 +2075,18 @@ const renderVmFolder = (folder, id, position, order, vmInfo, foldersDone, matchC
             }
 
             // set the status of the folder
-            if (ct.state === "running") {
+            const meta = getVmRuntimeStateMeta(ct);
+            if (meta.className === 'started') {
                 started += 1;
-            } else if (ct.state === "paused" || ct.state === "pmsuspended" || ct.state === "unknown") {
+            } else if (meta.paused) {
                 paused += 1;
             } else {
                 stopped += 1;
             }
-            autostart += ct.autostart ? 1 : 0;
-            autostartStarted += (ct.autostart && ct.state!=="shutoff") ? 1 : 0;
+            if (ct.autostart === true) {
+                autostart += 1;
+                if (meta.active) autostartStarted += 1;
+            }
 
             folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-preview', {detail: {
                 folder: folder,
@@ -3249,14 +3254,14 @@ const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
     if ($surface.is('tr')) runtimeHostAdapters?.syncNativeSwitch?.($surface.find('input.autostart[type="checkbox"]').first(), entry?.autostart);
 };
 
-const findVmRuntimeRowsByName = (name) => $(window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.findVmRows(document, name));
+const findVmRuntimeRowsByName = (name) => $(vmQuickFinderAdapter.findVmRows(document, name, vmRuntimeInfoByName[name]?.uuid));
 
 const getVmRuntimeEntryByUuid = (uuid, fallbackName = '') => {
     const safeUuid = String(uuid || '').trim();
     const safeName = String(fallbackName || '').trim();
-    if (safeName && vmRuntimeInfoByName[safeName]) {
-        return vmRuntimeInfoByName[safeName];
-    }
+    const namedEntry = safeName && Object.hasOwn(vmRuntimeInfoByName, safeName) ? vmRuntimeInfoByName[safeName] : null;
+    if (!safeUuid) return namedEntry;
+    if (namedEntry?.uuid === safeUuid) return namedEntry;
     return Object.values(vmRuntimeInfoByName || {}).find((entry) => (
         String(entry?.uuid || entry?.id || '').trim() === safeUuid
     )) || null;
@@ -3289,7 +3294,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
         else stopped += 1;
         if (entry.autostart === true) {
             autostart += 1;
-            if (meta.className !== 'stopped') autostartStarted += 1;
+            if (meta.active) autostartStarted += 1;
         }
         const current = folder.containers[entry.name] && typeof folder.containers[entry.name] === 'object'
             ? folder.containers[entry.name]
@@ -3835,7 +3840,7 @@ const bindVmSettingsPinSyncListener = () => {
 bindVmSettingsPinSyncListener();
 
 function ensureVmQuickFinder() {
-    vmQuickFinderApi ||= window.FolderViewPlusFoundationModules.runtimeQuickFinderAdapter.createApi({
+    vmQuickFinderApi ||= vmQuickFinderAdapter.createApi({
         window, document, type: 'vm', hostAdapter: vmHostAdapter,
         getFolders: () => globalFolders, getRuntime: () => vmRuntimeInfoByName,
         getVmState: (entry) => getVmRuntimeStateMeta(entry).key,
@@ -3862,22 +3867,18 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
         const data = new URLSearchParams(options.data);
         const serializedNames = data.get('names');
         if (serializedNames === null) return;
-        const names = serializedNames.split(';');
-        const count = names.at(-1) === '' ? names.length - 1 : names.length;
         // The host concatenates every anchor's text in each name cell, including both anchors of a Plus folder.
         const nameCells = $('#kvm_list').children().find('td.vm-name').get();
-        if (nameCells.length !== count) return;
-        const indexes = [];
-        for (let index = 0; index < count; index++) {
-            const cell = nameCells[index];
+        const sourceNames = nameCells.map((cell) => $(cell).find('a').text());
+        const sourceOrder = sourceNames.join(';');
+        if (serializedNames !== sourceOrder && serializedNames !== `${sourceOrder};`) return;
+        // Folder labels may contain semicolons. Replace them before sending Unraid's delimited payload.
+        const names = nameCells.map((cell, index) => {
             const folderToken = cell.parentElement?.classList.contains('folder') && cell.querySelector('.folder-appname-id');
-            if (folderToken && $(cell).find('a').text() === names[index]) {
-                names[index] = folderToken.textContent;
-            }
-            indexes.push(index);
-        }
-        data.set('names', names.join(';'));
-        data.set('index', indexes.length ? indexes.join(';') + ';' : '');
+            return folderToken ? folderToken.textContent : sourceNames[index];
+        });
+        data.set('names', names.join(';') + (nameCells.length && serializedNames.endsWith(';') ? ';' : ''));
+        data.set('index', names.map((_, index) => `${index};`).join(''));
         options.data = data.toString();
         $('.unhide').show();
     // this is needed to trigger the funtion to create the folders

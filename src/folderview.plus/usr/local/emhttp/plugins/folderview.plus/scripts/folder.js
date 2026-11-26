@@ -1172,8 +1172,10 @@ const getFolderEditorRulesApi = () => {
         escapeHtml,
         extractAjaxErrorMessage,
         getActiveFolderId: () => activeFolderEditorFolderId,
+        validateManagedRule: (rule) => window.FolderViewPlusFoundationModules.rulePredicateValidation.create(requestClient).check(rule).done,
         getLegacyRuleContext: () => ({
             pattern: String(getForm()?.regex?.value || ''),
+            validation: readLegacyRegexValidation(String(getForm()?.regex?.value || '')).status,
             items: getAllMembers().map((item) => ({ ...item, Type: type })),
             folders: allFoldersById
         }),
@@ -1846,20 +1848,22 @@ const validateNameField = () => {
 
 const validateRegexField = () => {
     const form = getForm();
-    const value = (form.regex.value || '').trim();
-    if (!value) {
+    const value = String(form.regex.value || '');
+    const saved = allFoldersById[activeFolderEditorFolderId];
+    if (!value || (saved && value === String(saved.regex || ''))) {
         setFieldError('regex', '');
         return true;
     }
     try {
         // eslint-disable-next-line no-new
         new RegExp(value);
-        setFieldError('regex', '');
-        return true;
     } catch (error) {
         setFieldError('regex', `Invalid regex: ${error.message}`);
         return false;
     }
+    const status = readLegacyRegexValidation(value).status;
+    setFieldError('regex', status === 'valid' ? '' : formatLegacyRegexValidation(status));
+    return status === 'valid';
 };
 
 const validateFolderWebUiUrl = () => {
@@ -2353,6 +2357,8 @@ const getFolderEditorMembersApi = () => {
         isFormInitialized: () => isFormInitialized === true,
         translate: surfaceT,
         showAssignmentDetails: () => !editingFolderDefaults,
+        getMembershipForm: getForm, validateMembershipPattern: readLegacyRegexValidation,
+        reconcileAutomaticMembership: () => updateRegex(getForm().regex),
         readAssignmentOrder: () => requestClient.getJson('/plugins/folderview.plus/server/read_order.php', {
             data: { type }, cache: false, retries: 0
         }),
@@ -2418,6 +2424,7 @@ const getFolderEditorMemberListApi = () => {
         moveMemberRow,
         bindMemberDragReorder,
         applyMemberFilters,
+        reconcileMembershipChange: (...args) => getFolderEditorMembersApi()?.reconcileMembershipChange(...args),
         updateMemberStats,
         updateRegexSimulator,
         validateForm,
@@ -2427,6 +2434,19 @@ const getFolderEditorMemberListApi = () => {
         renderChunkSize: MEMBER_LIST_RENDER_CHUNK_SIZE
     });
     return folderEditorMemberListApi;
+};
+
+const legacyRegexValidator = window.FolderViewPlusFoundationModules.rulePredicateValidation.create(requestClient);
+const formatLegacyRegexValidation = status => window.FolderViewPlusFoundationModules.rulePredicateValidation.formatLegacyStatus(status, surfaceT);
+const readLegacyRegexValidation = (pattern) => {
+    if (!pattern) {
+        legacyRegexValidator.clear();
+        return { status: 'valid' };
+    }
+    return legacyRegexValidator.check({ type, pattern, regexMode: 'legacy-folder' }, () => {
+        validateForm();
+        getFolderEditorRulesApi()?.renderLegacyCompatibility?.();
+    });
 };
 
 const getFolderEditorRegexSelectionApi = () => {
@@ -2446,6 +2466,8 @@ const getFolderEditorRegexSelectionApi = () => {
         syncMemberArraysFromTable,
         updateList,
         updateRegexSimulator,
+        validatePattern: readLegacyRegexValidation,
+        disposeValidation: legacyRegexValidator.clear,
         isFormInitialized: () => isFormInitialized,
         workerMinItems: REGEX_WORKER_MIN_ITEMS,
         debounceMs: REGEX_INPUT_SYNC_DEBOUNCE_MS
@@ -2752,12 +2774,13 @@ const updateRegexSimulator = () => {
         return;
     }
 
-    const regexSource = (form.regex.value || '').trim();
+    const regexSource = String(form.regex.value || '');
     const probe = ($('#fvRegexSimulatorInput').val() || '').trim();
     const result = $('#fvRegexSimulatorResult');
     const meta = $('#fvRegexSimulatorMeta');
 
     if (!regexSource) {
+        legacyRegexValidator.clear();
         result.removeClass('match no-match error').text('No regex configured.');
         meta.text('');
         return;
@@ -2768,6 +2791,13 @@ const updateRegexSimulator = () => {
         regex = new RegExp(regexSource);
     } catch (error) {
         result.removeClass('match no-match').addClass('error').text(`Regex error: ${error.message}`);
+        meta.text('');
+        return;
+    }
+
+    const status = readLegacyRegexValidation(regexSource).status;
+    if (status !== 'valid') {
+        result.removeClass('match no-match error').toggleClass('error', status !== 'pending').text(formatLegacyRegexValidation(status));
         meta.text('');
         return;
     }
@@ -3445,7 +3475,7 @@ const startFolderEditorRuntime = async () => {
             if (index > -1) {
                 selected.push(choose.splice(index, 1)[0]);
             } else {
-                selected.push({ Name: ct, Icon: ICON_FALLBACK_PATH, Identity: currentEditFolder.memberIdentities?.[ct] });
+                selected.push({ Name: ct, Icon: ICON_FALLBACK_PATH, Identity: currentEditFolder.memberIdentities?.[ct], Unavailable: true });
             }
         }
 

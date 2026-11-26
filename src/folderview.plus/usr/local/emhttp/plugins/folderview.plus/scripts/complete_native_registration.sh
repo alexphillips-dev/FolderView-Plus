@@ -81,14 +81,17 @@ validate_icon_archive() {
         printf '%s  %s\n' "${sha}" "${archive}" | sha256sum --check --status
 }
 
+validate_boot_manifest() {
+    validate_manifest "$1" "${2:-${owner_version}}" &&
+        validate_icon_archive "$(manifest_entity iconPackVersion "$1")" "$(manifest_entity iconPackSha256 "$1")"
+}
+
 has_verified_newer_registration() {
     local version
     version="$(manifest_entity version "${registered_manifest}")"
     # Follow the native manager's string ordering for release revisions.
     [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ && "${version}" > "${owner_version}" ]] &&
-        validate_manifest "${registered_manifest}" "${version}" &&
-        validate_icon_archive "$(manifest_entity iconPackVersion "${registered_manifest}")" \
-            "$(manifest_entity iconPackSha256 "${registered_manifest}")"
+        validate_boot_manifest "${registered_manifest}" "${version}"
 }
 
 write_registered_manifest() {
@@ -157,7 +160,7 @@ restore_prior_registration() {
     previous_version="$(cat "${state_dir}/previous-version")" || return 1
     if [ -f "${previous_manifest}" ]; then
         if [ -n "${previous_version}" ]; then
-            validate_manifest "${previous_manifest}" "${previous_version}" || return 1
+            validate_boot_manifest "${previous_manifest}" "${previous_version}" || return 1
         fi
         write_registered_manifest "${previous_manifest}"
     elif [ -f "${state_dir}/manifest-absent" ] &&
@@ -240,18 +243,23 @@ case "${mode}" in
         owner_on_this_boot && exit 0
         read_owner || fail_registration
         bootstrap=0
-        if [ -f "${state_dir}/rollback" ]; then
-            restore_prior_registration || fail_registration
-        elif [ -f "${state_dir}/committed" ] && ! has_verified_newer_registration; then
-            [ -f "${registered_manifest}" ] || bootstrap=1
-            validate_manifest "${state_dir}/manifest" || fail_registration
-            write_registered_manifest "${state_dir}/manifest"
-            sync -f "${config_dir}" || fail_registration
+        [ -f "${registered_manifest}" ] || bootstrap=1
+        if ! has_verified_newer_registration; then
+            if [ -f "${state_dir}/rollback" ]; then
+                restore_prior_registration || fail_registration
+            elif [ -f "${state_dir}/committed" ]; then
+                if validate_boot_manifest "${state_dir}/manifest"; then
+                    write_registered_manifest "${state_dir}/manifest"
+                    sync -f "${config_dir}" || fail_registration
+                else
+                    restore_prior_registration || fail_registration
+                fi
+            fi
         fi
         clear_state boot
         # A first installation interrupted before the primary file was created
         # has no primary manifest in the boot loader's already-expanded list.
-        if [ "${bootstrap}" -eq 1 ]; then
+        if [ "${bootstrap}" -eq 1 ] && [ -f "${registered_manifest}" ]; then
             exec plugin install "${registered_manifest}" 9>&-
         fi
         exit 0

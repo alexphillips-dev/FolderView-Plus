@@ -155,3 +155,75 @@ test('nonce, create, and appearance update persist with revision and replay guar
         }
     });
 });
+
+test('single-folder writes reject a deleted parent and changed invalid regex without rewriting historical patterns', () => {
+    withHostFixture(({ root, run }) => {
+        let transaction = 0;
+        const mutate = (endpoint, post) => {
+            const issued = run({ endpoint: 'security.php', post: { token, action: 'issue_nonce', endpoint } });
+            assert.equal(issued.status, 200);
+            return run({ endpoint, post: { ...post, token, _fv_nonce: issued.response.nonce,
+                _fv_transaction: `tx-config-regex-${++transaction}` } });
+        };
+        for (const type of ['docker', 'vm']) {
+            const read = () => run({ endpoint: 'read.php', get: { type, includeMetadata: '1' } }).response;
+            const create = folder => mutate('create.php', { type, content: JSON.stringify(folder) });
+            assert.equal(create({ name: 'Parent' }).status, 200);
+            const [parentId] = Object.keys(read().folders);
+            assert.equal(create({ name: 'Child', parentId, regex: ' ^fixture$' }).status, 200);
+            let snapshot = read();
+            const [childId, child] = Object.entries(snapshot.folders).find(([, folder]) => folder.name === 'Child');
+            assert.equal(child.parentId, parentId);
+            assert.equal(child.regex, ' ^fixture$');
+            assert.equal(mutate('delete.php', { type, id: parentId }).status, 200);
+            assert.equal(create({ name: 'Stale child', parentId }).status, 409);
+            assert.equal(create({ name: 'Oversized', regex: '(?:' + 'x'.repeat(1021) + ')' }).status, 400);
+            assert.equal(create({ name: 'Oversized UTF-8', regex: 'é'.repeat(513) }).status, 400);
+            assert.equal(create({ name: 'Invalid', regex: '(?<=fixture-.*)app' }).status, 400);
+            snapshot = read();
+            assert.deepEqual(Object.keys(snapshot.folders), [childId]);
+
+            // Represent a historically accepted expression that the current compiler cannot use.
+            const configured = path.join(root, 'config', `${type}.json`);
+            snapshot.folders[childId].regex = '(?<=fixture-.*)app';
+            fs.writeFileSync(configured, JSON.stringify(snapshot.folders));
+            snapshot = read();
+            const update = folder => mutate('update.php', { type, id: childId, content: JSON.stringify(folder),
+                expectedRevision: snapshot.metadata.folderRevision });
+            assert.equal(update({ ...snapshot.folders[childId], name: 'Retained' }).status, 200);
+            snapshot = read();
+            assert.equal(snapshot.folders[childId].regex, '(?<=fixture-.*)app');
+            assert.equal(update({ ...snapshot.folders[childId], regex: '(?<!fixture-.*)app' }).status, 400);
+            assert.equal(read().folders[childId].regex, '(?<=fixture-.*)app');
+        }
+    });
+});
+
+test('the private read-only predicate check uses the guarded-save compiler for both rule modes', () => {
+    withHostFixture(({ root, run }) => {
+        const cases = [['^fixture$', true], [' ^fixture$', true], ['(?<=fixture-.*)app', false]];
+        const blocked = run({ endpoint: 'rule_preview.php', requestMarker: false, post: { token,
+            action: 'validate_predicate', type: 'docker', kind: 'name_regex', pattern: '^fixture$' } });
+        assert.equal(blocked.status, 403);
+        for (const type of ['docker', 'vm']) {
+            for (const regexMode of ['', 'legacy-folder']) {
+                for (const [pattern, valid] of cases) {
+                    const response = run({ endpoint: 'rule_preview.php', post: { token, action: 'validate_predicate',
+                        type, kind: 'name_regex', pattern, regexMode } });
+                    assert.equal(response.status, 200);
+                    assert.equal(response.response.ok, true);
+                    assert.equal(response.response.valid, valid);
+                    assert.deepEqual(response.sdkAttempts, []);
+                }
+            }
+        }
+        assert.equal(fs.existsSync(path.join(root, 'security/state.json')), false);
+        assert.deepEqual(fs.readdirSync(path.join(root, 'config')).filter(file => file.endsWith('.json')), []);
+        const issued = run({ endpoint: 'security.php', post: { token, action: 'issue_nonce', endpoint: 'rule_preview.php' } });
+        assert.equal(issued.status, 200);
+        const apply = run({ endpoint: 'rule_preview.php', post: { token, type: 'vm', expectedDigest: 'invalid',
+            _fv_nonce: issued.response.nonce, _fv_transaction: 'tx-rule-preview-apply' } });
+        assert.equal(apply.status, 400);
+        assert.equal(apply.response.error, 'Invalid preview digest.');
+    });
+});

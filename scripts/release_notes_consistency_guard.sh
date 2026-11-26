@@ -54,7 +54,7 @@ const fail = (message) => {
   process.exit(1);
 };
 
-const versionHeading = '^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}\\s*$';
+const versionHeading = '^###[\\t ]*[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}(?:\\.[0-9]+)?[\\t \\r]*$';
 const escapedVersion = version.replaceAll('.', '\\.');
 const blockMatch = plg.match(new RegExp(`^###${escapedVersion}\\s*$([\\s\\S]*?)(?=${versionHeading}|\\]\\]>|</CHANGES>|(?![\\s\\S]))`, 'm'));
 if (!blockMatch) {

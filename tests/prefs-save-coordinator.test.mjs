@@ -65,6 +65,38 @@ const outboxRecord = (sourceId, expectedRevision, patch) => JSON.stringify({
     operation: { patch, expectedRevision, mutationId: `${sourceId}-1` }
 });
 
+test('reopening the durable outbox discards only edits from before the current Recovery revision', async () => {
+    const api = loadModule();
+    const older = { patch: { backupSchedule: { retention: 12 } }, expectedRevision: 1, expectedRecoveryRevision: 0, mutationId: 'closed-1' };
+    const newer = { patch: { backupSchedule: { retention: 31 } }, expectedRevision: 2, expectedRecoveryRevision: 2, mutationId: 'closed-2' };
+    const storage = createStorage({ 'fvplus.prefs.outbox.v1.vm.closed.1': JSON.stringify({
+        schemaVersion: 2, type: 'vm', sourceId: 'closed', patch: newer.patch, operation: older, pending: newer
+    }) });
+    let disk = normalizePrefs({ backupSchedule: { retention: 30 }, _metadata: { prefsRevision: 2, prefsRecoveryRevision: 2 } });
+    const writes = [];
+    const coordinator = api.createPreferenceSaveCoordinator({
+        normalizePrefs, storage, debounceMs: 0,
+        fetchPrefs: async () => disk,
+        writePrefs: async (_type, patch, context) => {
+            writes.push({ patch, context });
+            disk = normalizePrefs({ ...disk, ...patch, _metadata: { ...disk._metadata, prefsRevision: 3 } });
+            return disk;
+        }
+    });
+    await coordinator.hydrateFromServer('vm', { replay: false });
+    const stale = assert.rejects(coordinator.flush('vm'), error => error.status === 422);
+    await stale;
+    await coordinator.flush('vm');
+    assert.deepEqual(structuredClone(writes), [{ patch: newer.patch,
+        context: { expectedRevision: 2, expectedRecoveryRevision: 2, clientMutationId: newer.mutationId } }]);
+    assert.equal(disk.backupSchedule.retention, 31);
+    assert.deepEqual(storage.snapshot(), {});
+    await assert.rejects(coordinator.save('vm', older.patch, {
+        currentPrefs: { _metadata: { prefsRevision: 1, prefsRecoveryRevision: 0 } }
+    }), error => error.status === 422);
+    assert.equal(writes.length, 1);
+});
+
 test('runtime expansion retry acknowledges its session draft before a newer peer edit and reload', async () => {
     const stateObservers = createRequire(modulePath)('./folder.runtime.state-observers.js');
     for (const durableOutbox of [true, false]) {

@@ -87,33 +87,24 @@ function readInstalledVersion(): string {
         if ($version === '') {
             return [];
         }
-        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms';
-        if (!preg_match($pattern, $content, $match)) {
-            return [];
+        foreach (extractChangesEntries($content) as $entry) {
+            if ($entry['version'] === $version) return $entry['lines'];
         }
-        $block = trim((string)($match[1] ?? ''));
-        if ($block === '') {
-            return [];
-        }
-        return normalizeChangesBlockLines($block);
+        return [];
     }
 
     function extractLatestChangesBlock(string $content): array {
-        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $match)) {
-            return [];
-        }
-        $version = trim((string)($match[1] ?? ''));
-        $block = trim((string)($match[2] ?? ''));
-        if ($version === '' || $block === '') {
-            return [];
-        }
+        $entry = extractChangesEntries($content)[0] ?? null;
+        if ($entry === null || $entry['lines'] === []) return [];
         return [
-            'sourceVersion' => $version,
-            'lines' => normalizeChangesBlockLines($block)
+            'sourceVersion' => $entry['version'],
+            'lines' => $entry['lines']
         ];
     }
 
     function extractChangesEntries(string $content): array {
+        $parts = preg_split('/^[\t ]*<CHANGES\b[^\r\n>]*>/mi', $content, 2);
+        $content = preg_split('/^[\t ]*(?:\]\]>|<\/CHANGES[\t ]*>)/mi', $parts[1] ?? $parts[0], 2)[0];
         if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
             return [];
         }

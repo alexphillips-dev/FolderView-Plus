@@ -27,6 +27,7 @@ env:
   FVPLUS_DEAD_CODE_STRICT: '1'
   FVPLUS_REQUIRE_PERF_BASELINE: '1'
   FVPLUS_MAIN_HISTORY_BASE_REF: ${{ inputs.base_sha || github.event.before }}
+  FVPLUS_ICON_PACK_BASE_REF: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before }}
   FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
   FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED: '1'
 jobs:
@@ -264,7 +265,11 @@ jobs:
           retention-days: 7
   release-preview:
     needs: [detect-changes, lint-and-syntax, node-tests, guard-suite]
-    if: github.event_name == 'push' && github.ref_name == 'dev' && needs.detect-changes.outputs.preview_changed == 'true'
+    if: >-
+      ${{ !cancelled() && !failure() && github.event_name == 'push' && github.ref_name == 'dev' &&
+          needs.detect-changes.result == 'success' && needs.detect-changes.outputs.preview_changed == 'true' &&
+          (needs.detect-changes.outputs.reused == 'true' || (needs.lint-and-syntax.result == 'success' &&
+           needs.node-tests.result == 'success' && needs.guard-suite.result == 'success')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:

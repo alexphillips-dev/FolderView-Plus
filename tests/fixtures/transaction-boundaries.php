@@ -2,7 +2,7 @@
 $server = $argv[1]; $root = $argv[2]; $operation = $argv[3] ?? 'rollback';
 $_SERVER['DOCUMENT_ROOT'] = $root . '/host';
 if ($operation === 'writer') file_put_contents($root . '/writer-started', 'yes');
-if (in_array($operation, ['checkpoint-writer', 'setup-order-sync-writer'], true)) {
+if (in_array($operation, ['checkpoint-writer', 'setup-order-sync-writer', 'history-writer'], true)) {
     $probe = fopen($root . '/config/.config-mutation.lock', 'c+');
     $locked = flock($probe, LOCK_EX | LOCK_NB);
     if ($locked) flock($probe, LOCK_UN);
@@ -44,6 +44,59 @@ function seedState(string $label): void {
     $workspace = defaultThemeWorkspace();
     $workspace['profiles'][0]['layers']['global']['customCss'] = '.' . $label . ' { opacity: .8; }';
     writeThemeWorkspace($workspace);
+}
+
+if ($operation === 'recovery-request') {
+    putenv("FVPLUS_TEST_SECURITY_STATE_PATH=$root/config/recovery-request-state.json");
+    [$endpoint, $method, $fields] = json_decode($argv[4], true, 512, JSON_THROW_ON_ERROR);
+    $_REQUEST = $fields;
+    $_POST = $method === 'POST' ? $fields : [];
+    $_GET = $method === 'GET' ? $fields : [];
+    $_SERVER['REQUEST_METHOD'] = $method;
+    $_SERVER['SCRIPT_NAME'] = $_SERVER['REQUEST_URI'] = "/plugins/folderview.plus/server/$endpoint";
+    $_SERVER['SCRIPT_FILENAME'] = "$server/$endpoint";
+    if ($method === 'POST' && !in_array($fields['action'] ?? '', ['preview', 'preview_folderview3'], true)) {
+        $_SERVER['HTTP_X_FV_REQUEST'] = '1';
+        $_SERVER['HTTP_X_FV_TOKEN'] = getConfiguredRequestToken();
+        $_SERVER['HTTP_X_FV_NONCE'] = fvplus_issue_mutation_nonce($endpoint, $fields['action'] ?? '')['nonce'];
+    }
+    $body = str_replace('/usr/local/emhttp/plugins/folderview.plus/server/', str_replace('\\', '/', $server) . '/',
+        substr(file_get_contents("{$server}/{$endpoint}"), 5));
+    http_response_code(200);
+    ob_start(); eval($body);
+    echo json_encode([http_response_code(), json_decode(ob_get_clean(), true, 512, JSON_THROW_ON_ERROR)], JSON_THROW_ON_ERROR);
+    exit;
+}
+
+if ($operation === 'history-reader') {
+    $GLOBALS['historyBoundaryRoot'] = $root;
+    eval('namespace HistoryBoundary;
+        function readJsonObjectFile(string $path): ?array {
+            $existing = \readJsonObjectFile($path);
+            if ($path !== \diagnosticsHistoryPath()) return $existing;
+            $root = $GLOBALS["historyBoundaryRoot"];
+            file_put_contents($root . "/reader-paused", "yes");
+            $deadline = microtime(true) + 15;
+            while (!is_file($root . "/release-reader")) {
+                if (microtime(true) > $deadline) throw new \RuntimeException("History barrier timeout.");
+                usleep(10000);
+            }
+            return $existing;
+        }');
+    $body = str_replace('__DIR__', var_export($server, true), file_get_contents($server . '/lib.diagnostics.php'));
+    eval('namespace HistoryBoundary; use \RuntimeException; use \Throwable;' . substr($body, 5));
+    echo json_encode(HistoryBoundary\appendDiagnosticsHistoryEvent('environment_export'), JSON_THROW_ON_ERROR);
+    exit;
+}
+if ($operation === 'history-writer') {
+    $event = appendDiagnosticsHistoryEvent('export', 'vm', [], 'ok', 'ui');
+    file_put_contents($root . '/writer-finished', 'yes');
+    echo json_encode($event, JSON_THROW_ON_ERROR);
+    exit;
+}
+if ($operation === 'history-current') {
+    echo json_encode(readDiagnosticsHistoryEvents(), JSON_THROW_ON_ERROR);
+    exit;
 }
 
 if ($operation === 'setup-rollback-fence') {

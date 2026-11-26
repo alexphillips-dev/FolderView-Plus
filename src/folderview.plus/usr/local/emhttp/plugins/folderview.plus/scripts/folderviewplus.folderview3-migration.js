@@ -80,6 +80,7 @@
         let migrationResult = null;
         let generation = 0;
         let reveal = deps.reveal || (() => {});
+        let beforeApply = deps.beforeApply;
         let afterApply = deps.afterApply || (async () => {});
 
         const normalizeDetection = model.normalizeDetection;
@@ -248,7 +249,10 @@
             mode = 'applying';
             render();
             try {
-                const response = await applyModule.runApply({ report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef), postJson: apiPostJson, translate });
+                const response = await applyModule.runApply({
+                    report, selectedSource, includeNativeAutostart, confirm: windowRef?.confirm?.bind(windowRef),
+                    beforeApply, postJson: apiPostJson, translate
+                });
                 if (currentGeneration !== generation) return response?.migration?.transaction?.verified === true ? response.migration : null;
                 if (!response) { mode = 'preview'; render(); return null; }
                 if (response.migration?.transaction?.verified !== true) throw new Error('Migration verification did not complete. No successful migration was reported.');
@@ -317,7 +321,11 @@
             previewInstalled,
             previewExport,
             previewSelection: (selected) => previewSource({ kind: 'export', name: selected.name, text: selected.text }),
-            configureHooks: (hooks = {}) => { reveal = hooks.reveal || reveal; afterApply = hooks.afterApply || afterApply; },
+            configureHooks: (hooks = {}) => {
+                reveal = hooks.reveal || reveal;
+                beforeApply = hooks.beforeApply || beforeApply;
+                afterApply = hooks.afterApply || afterApply;
+            },
             downloadReport,
             applyMigration,
             getReport: () => report,

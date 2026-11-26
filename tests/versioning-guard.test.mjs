@@ -768,11 +768,12 @@ test('release notes keep concise provenance without embedded commit history', ()
 
 test('release note parsers distinguish category headings from version headings', () => {
     const versionHeadingPattern = '/^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}[[:space:]]*$/';
-    for (const script of [buildReleaseNotes, ensureChanges, releaseGuard]) {
+    for (const script of [ensureChanges, releaseGuard]) {
         assert.ok(script.includes(versionHeadingPattern));
         assert.doesNotMatch(script, /\n\s*\/\^###\/ \{/);
     }
-    assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###\[0-9\]\{4\}/);
+    assert.match(buildReleaseNotes, /\(\\\.\[0-9\]\+\)\?/);
+    assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###.*\[0-9\]\{4\}/);
 });
 
 test('release publishing serializes concurrent runs and enforces isolated validation', () => {

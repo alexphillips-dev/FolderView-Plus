@@ -271,12 +271,13 @@
                 renderFolderMembersSection();
                 jq('input.container-switch').off('change').on('change', function() {
                     const row = jq(this).closest('tr');
+                    const name = String(row.attr('data-name') || '').trim();
+                    deps.reconcileMembershipChange?.(this, row, name);
                     const previewInput = row.find('input.member-preview-switch').get(0);
                     if (previewInput) {
                         previewInput.disabled = this.checked !== true;
                         if (this.checked !== true) {
                             previewInput.checked = true;
-                            const name = String(row.attr('data-name') || '').trim();
                             if (name) {
                                 hiddenPreviewMembers.delete(name);
                             }

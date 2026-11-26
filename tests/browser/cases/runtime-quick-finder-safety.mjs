@@ -9,6 +9,24 @@ const search = async (page, query) => {
 const settle = page => page.waitForFunction(() => document.querySelector('.fv-quickfinder')?.getAttribute('aria-busy') !== 'true');
 
 export const registerQuickFinderSafetyCases = ({ test, baseUrl }) => {
+    test('Quick finder keeps keyboard focus when a result group disappears during refresh', async ({ page }) => {
+        for (const type of ['docker', 'vm']) {
+            await page.goto(`${baseUrl}/fixtures/runtime-quick-finder.html?type=${type}`);
+            await search(page, 'Home Automation');
+            const itemGroup = page.locator('[data-finder-group="item"]');
+            await itemGroup.focus();
+            await page.evaluate(() => window.fixtureFinder.removeItem('Assistant'));
+            assert.equal(await itemGroup.evaluate(node => node === document.activeElement), true);
+            await page.evaluate(() => window.fixtureFinder.removeItem('Mosquitto'));
+            assert.equal(await itemGroup.count(), 0);
+            assert.equal(await page.locator('.fv-quickfinder input').evaluate(node => node === document.activeElement), true);
+            await page.keyboard.press('ArrowDown');
+            assert.equal(await page.evaluate(() => document.activeElement.matches('[data-finder-select]')), true);
+            await page.keyboard.press('Escape');
+            assert.equal(await page.locator('.fv-quickfinder-popover').isVisible(), false);
+        }
+    });
+
     test('Quick finder Enter resolves the current query before a pending debounce', async ({ page }) => {
         for (const type of ['docker', 'vm']) {
             await page.goto(`${baseUrl}/fixtures/runtime-quick-finder.html?type=${type}`);

@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "it",
         "native-name": "Italiano",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "220106db94946cd6389dcf18630172adb770d4b51ba1969016d23bbd82abad02",
-        "locale-content-revision": "e69dfc7db86ba5a6cd5237091bc1a2f3a2aff487795c18ffdfb6f92f4fd3c01f"
+        "locale-content-revision": "b47f30dc7ecbf3a7714b633215f2fe2552c672575ca4c14cda342080ed01ab16"
     },
     "add-folder": "Aggiungi cartella",
     "up-to-date": "aggiornato",

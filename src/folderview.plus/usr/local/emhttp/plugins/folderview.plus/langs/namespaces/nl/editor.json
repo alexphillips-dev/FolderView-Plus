@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "editor",
-        "content-revision": "549e979e56e0a9e7a2ff053ce724de1dd83fe8a37b77309a9208f72d79d1f556"
+        "content-revision": "d9c9d69cd1064b02e5cfc668a3ac964b34ad442a0259c9506f26fcc40a9c8cf0"
     },
     "editor.settings.information-about": "Informatie over $1",
     "editor.actions.add-custom": "Een aangepaste actie toevoegen",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Elk WebUI-profiel moet ten minste één maplid selecteren.",
     "editor.webui-profiles.error-member-limit": "Een WebUI-profiel kan maximaal $1 leden selecteren.",
     "editor.webui-profiles.limit": "Deze map heeft de veiligheidslimiet voor het WebUI-profiel bereikt.",
-    "editor.members.assignment-why": "Waarom deze map?",
+    "editor.members.assignment-reason": "Reden voor toewijzing",
     "editor.members.assignment-elsewhere": "Toegewezen aan andere mappen",
     "editor.members.assignment-manual": "Handmatig toegewezen",
     "editor.members.assignment-label": "Matched per label",

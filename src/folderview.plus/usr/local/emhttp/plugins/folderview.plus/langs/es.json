@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "es",
         "native-name": "Español",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "9270911c6029a13aa6fb1d2100dae7f96d2880ed137f92fd7f89dbd4785cc33d",
-        "locale-content-revision": "de835e1bbb73ec03935b6e32cca7135182fd9c9696b0c9ea8f16b9e2ed3b6c63"
+        "locale-content-revision": "c7555a6ce5633fbbb9fea740290fe04772abfa0209a0a04d9825c5d620794b57"
     },
     "add-folder": "Agregar carpeta",
     "up-to-date": "actualizado",

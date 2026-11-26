@@ -1174,16 +1174,19 @@ try {
                     <table class="sortable">
                         <thead>
                             <tr>
-                                <th>
+                                <th scope="col" class="order-col">
                                     Order
                                 </th>
-                                <th data-i18n="table-name">
+                                <th scope="col" class="name-col" data-i18n="table-name">
                                     Name
                                 </th>
-                                <th data-i18n="table-included">
+                                <th scope="col" class="assignment-col" data-i18n="editor.members.assignment-reason">
+                                    Assignment reason
+                                </th>
+                                <th scope="col" class="include-col" data-i18n="table-included">
                                     Included
                                 </th>
-                                <th data-i18n="table-show-in-preview">
+                                <th scope="col" class="preview-col" data-i18n="table-show-in-preview">
                                     Show in preview
                                 </th>
                             </tr>

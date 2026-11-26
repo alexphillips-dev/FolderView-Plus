@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "nl",
         "native-name": "Nederlands",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "7dcb7bbd7af38d08f78f30cdeb17de44b25557927100e3590ab26d6fbb374b8b",
-        "locale-content-revision": "f247ef618973ad3508f14f43d20dc17d1862f53d1fce09cdd7f06257dcd58077"
+        "locale-content-revision": "6fb2e584ab15156b54b66b531a58df78f5c75f00852fdd58d083a71b185f2f06"
     },
     "add-folder": "Map Toevoegen",
     "up-to-date": "bijgewerkt",

@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "lv",
         "native-name": "Latviešu",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "97b6319fd042467e6b37ebd46d298391cf29fdda33cd082502a2b584a1cc9d4d",
-        "locale-content-revision": "9f45f762a780a83dfc66da164ff817b4131974d3e042368d7d0d551aa17efc8b"
+        "locale-content-revision": "c45180e6811298a439f05172a51f0f03f2df77ca0d0d5e595ac42f19e3b0bee7"
     },
     "add-folder": "Pievienot mapi",
     "up-to-date": "aktuāls",

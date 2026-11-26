@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "zh-Hans",
         "native-name": "简体中文",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "25cbc7490beaa1e66725c32a7c1223240b602ae37caa1efb86a3585eec4c058c",
-        "locale-content-revision": "2f89a531eb6c58f83519dcfef92e598749692e1fbafd184a142c27f1a271428e"
+        "locale-content-revision": "9fba5085436c246bf4a5cf028f95418910a8288dd1472839d56b8351f55826f5"
     },
     "add-folder": "添加文件夹",
     "up-to-date": "最新",

@@ -4654,26 +4654,26 @@ table.sortable tbody tr:hover {
     background: var(--fv-editor-control-surface-hover);
 }
 
-table.sortable th:nth-child(1),
-table.sortable td:nth-child(1) {
+table.sortable th.order-col,
+table.sortable td.order-col {
     width: 118px;
     text-align: center;
 }
 
-table.sortable th:nth-child(2),
-table.sortable td:nth-child(2) {
+table.sortable th.name-col,
+table.sortable td.name-col {
     width: auto;
     text-align: left;
 }
 
-table.sortable th:nth-child(3),
-table.sortable td:nth-child(3) {
+table.sortable th.include-col,
+table.sortable td.include-col {
     width: 132px;
     text-align: center;
 }
 
-table.sortable th:nth-child(4),
-table.sortable td:nth-child(4) {
+table.sortable th.preview-col,
+table.sortable td.preview-col {
     width: 150px;
     text-align: center;
 }
@@ -4763,14 +4763,17 @@ table.sortable td:nth-child(4) {
     max-block-size: 32px;
 }
 
-.fv-member-assignment {
-    margin-block-start: 0.25em;
-    font-size: 0.875em;
+table.sortable .assignment-col {
+    width: 32%;
+    text-align: start;
     white-space: normal;
     overflow-wrap: anywhere;
 }
 
-.fv-member-assignment > summary,
+table.sortable tbody .assignment-col {
+    color: var(--fv-editor-muted);
+}
+
 .fv-member-assignment-context > summary {
     cursor: pointer;
 }
@@ -4798,19 +4801,28 @@ table.sortable td:nth-child(4) {
         overflow-wrap: anywhere;
     }
 
-    table.sortable th:nth-child(1),
-    table.sortable td:nth-child(1) {
+    table.sortable th.order-col,
+    table.sortable td.order-col {
         width: 64px;
     }
 
-    table.sortable th:nth-child(3),
-    table.sortable td:nth-child(3) {
+    table.sortable th.include-col,
+    table.sortable td.include-col {
         width: 54px;
     }
 
-    table.sortable th:nth-child(4),
-    table.sortable td:nth-child(4) {
+    table.sortable th.preview-col,
+    table.sortable td.preview-col {
         width: 68px;
+    }
+
+    table.sortable .assignment-col {
+        width: 28%;
+    }
+
+    table.sortable td.name-col {
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     table.sortable .fv-member-preview-toggle {

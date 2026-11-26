@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "sv",
         "native-name": "Svenska",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "62144855c462b5e0a9c2b471145b5440445186bba847785db5155a2df088c8f0",
-        "locale-content-revision": "197906aae38a5127e64540c05147aaf8b5aab7eb8f9a3d8d2e14351796852ede"
+        "locale-content-revision": "f24dd16b12028435f9d205d3c588dc43a65ac71f7f02390cfc14198171a85974"
     },
     "add-folder": "Lägg till mapp",
     "up-to-date": "uppdaterad",

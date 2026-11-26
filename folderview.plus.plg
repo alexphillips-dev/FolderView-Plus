@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.11.26.02">
-<!ENTITY md5 "d99829722bc1627b48ecbd3ed9003ce3">
-<!ENTITY sha256 "4253488f166f9e6c5117f37a057145f7fed4c433aa16178d51b3496fcd1d533c">
+<!ENTITY version "2026.11.26.03">
+<!ENTITY md5 "b858da4728039c144a9c672cbbfdf1ed">
+<!ENTITY sha256 "6ed8055db228defead58dcf77e4047b13f7c358fd3c76ed618f9d1d371fb1608">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,10 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.11.26.03
+- Feature: Show the assignment reason beside each Docker container or VM name in the folder editor's Members tab.
+
 
 ###2026.11.26.02
 - Fix: Recover interrupted updates using verified core and icon archives, and keep a newer verified update selected for the next boot.

@@ -54,50 +54,49 @@ export const registerEditorAssignmentCases = ({ test, baseUrl }) => {
                         editingFolderDefaults: false, getActiveFolderIdForChildOrdering: () => 'active', getFolderEditorRulesApi: () => null,
                         getFolderEditorMemberListApi: () => list, folderEditorMembersModule: FolderViewPlusFolderEditorMembers,
                         getAllMembers: () => names.map(member), getExplicitMemberNames: settingsFixture.getExplicitMemberNames,
-                        readLegacyRegexValidation: () => ({ status: 'valid' }), isFormInitialized: false };
+                        readLegacyRegexValidation: () => ({ status: 'valid' }), isFormInitialized: false, activeEditorSection: 'general' };
                     const makeFixture = new Function(...Object.keys(dependencies), `let folderEditorMembersApi;
                         ${getMembersApi}
                         ${updateList}
-                        return { api: getFolderEditorMembersApi(), updateList };`);
+                        return { api: getFolderEditorMembersApi(), updateList, openMembers() {
+                            activeEditorSection = 'members'; getFolderEditorMembersApi().refreshAssignmentDetails();
+                        } };`);
                     window.assignmentFixture = makeFixture(...Object.values(dependencies));
                     assignmentFixture.api.setAssignmentInventory(facts, names.map(member));
                     assignmentFixture.updateList();
-                    settingsFixture.switchSection('members');
                 }, { type, getMembersApi, updateList });
-                const disclosure = name => page.locator(`tr[data-name="${name}"] .fv-member-assignment`);
-                const detailsMatch = (selector, phrase) => page.waitForFunction(({ selector, phrase }) =>
-                    document.querySelector(selector)?.lastElementChild.textContent.includes(phrase), { selector, phrase });
                 assert.equal(orderReads, 0);
+                await page.evaluate(() => { settingsFixture.switchSection('members'); assignmentFixture.openMembers(); });
+                const reason = name => page.locator(`tr[data-name="${name}"] .name-col + .assignment-col`);
+                const waitForReason = (name, phrase) => page.waitForFunction(({ name, phrase }) =>
+                    document.querySelector(`tr[data-name="${name}"] .assignment-col`)?.textContent.includes(phrase), { name, phrase });
+                const heading = page.getByRole('columnheader', { name: 'Assignment reason' });
+                assert.ok(await heading.isVisible());
+                await waitForReason('manual', 'Manually assigned');
+                await waitForReason('automatic', 'Matched by regex');
                 if (type === 'docker') {
-                    await disclosure('overlap').locator('summary').click();
-                    await detailsMatch('tr[data-name="overlap"] details', 'Matches Outside <synthetic> · Matched by regex');
-                    assert.doesNotMatch(await disclosure('overlap').textContent(), /Assigned to/);
-                    await disclosure('overlap').locator('summary').click();
+                    assert.match(await reason('overlap').textContent(), /Matches Outside <synthetic> · Matched by regex/);
+                    assert.doesNotMatch(await reason('overlap').textContent(), /Assigned to/);
+                    await page.evaluate(() => settingsFixture.form.regex.dispatchEvent(new Event('input', { bubbles: true })));
                 }
-                await disclosure('automatic').locator('summary').focus();
-                await page.keyboard.press('Enter');
-                await detailsMatch('tr[data-name="automatic"] details', 'Assigned to Fixture folder · Matched by regex');
-                const expectedOrderReads = type === 'docker' ? 2 : 1;
-                assert.equal(orderReads, expectedOrderReads, 'real client parsed the text/plain saved order lazily');
-                await disclosure('overlap').locator('summary').click();
-                await detailsMatch('tr[data-name="overlap"] details', 'Assigned to Outside <synthetic> · Matched by regex');
-                const overlap = await disclosure('overlap').textContent();
+                await waitForReason('overlap', 'Assigned to Outside <synthetic> · Matched by regex');
+                assert.equal(orderReads, type === 'docker' ? 2 : 1);
+                const overlap = await reason('overlap').textContent();
                 assert.equal(overlap.includes('Matches Fixture folder · Matched by label'), type === 'docker');
-                const size = await disclosure('overlap').boundingBox();
-                assert.ok(size.width > 45, `the member table leaves room for the explanation (${size.width}px)`);
+                assert.ok(await reason('overlap').isVisible());
+                assert.equal(await reason('overlap').locator('details').count(), 0);
+                assert.ok(await reason('overlap').evaluate(cell => cell.scrollWidth <= cell.clientWidth + 1));
                 await page.locator('.fv-member-assignment-context > summary').click();
-                await detailsMatch('.fv-member-assignment-context', 'foreign · Assigned to Outside <synthetic> · Manually assigned');
+                await page.getByText('foreign · Assigned to Outside <synthetic> · Manually assigned', { exact: true }).waitFor();
                 assert.equal(await page.locator('.fv-member-assignment-context input, .fv-member-assignment-context synthetic').count(), 0);
                 assert.deepEqual(await page.evaluate(() => assignmentFixture.api.collectBulkMoveScope().names.sort()), ['candidate', 'manual', 'overlap']);
-                await disclosure('candidate').locator('summary').click();
-                await detailsMatch('tr[data-name="candidate"] details', 'No folder assignment');
+                await waitForReason('candidate', 'No folder assignment');
                 await page.locator('tr[data-name="candidate"] .switch-button-background').click();
-                await detailsMatch('tr[data-name="candidate"] details', 'Preview · Assigned to Fixture folder · Manually assigned');
+                await waitForReason('candidate', 'Preview · Manually assigned');
                 // The real editor calls the same render wrapper after regex evaluation replaces the rows.
                 await page.evaluate(() => assignmentFixture.updateList());
-                assert.equal(await disclosure('candidate').getAttribute('open'), '');
-                await detailsMatch('tr[data-name="candidate"] details', 'No folder assignment');
-                assert.equal(orderReads, expectedOrderReads);
+                await waitForReason('candidate', 'No folder assignment');
+                assert.equal(orderReads, type === 'docker' ? 2 : 1);
                 assert.doesNotMatch(await page.locator('.fv-member-assignment-context').textContent(), /sensitive-fixture-value|fixture-migration/);
             } finally {
                 await page.unroute(orderRoute);

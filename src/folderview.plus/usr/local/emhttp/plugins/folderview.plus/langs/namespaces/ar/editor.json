@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "editor",
-        "content-revision": "69c1a79e7429542acbbf816d98bafd355b9f1a3b7f5ea98a1b9fe7605be801ba"
+        "content-revision": "705d8e969d73d045a1304adde23fb50bd5915c86e694b54a1e0d4bbe67e8a0d3"
     },
     "editor.settings.information-about": "معلومات حول $1",
     "editor.actions.add-custom": "إضافة إجراء مخصص",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "يجب أن يحدد كل ملف تعريف WebUI عضو مجلد واحد على الأقل.",
     "editor.webui-profiles.error-member-limit": "يمكن لملف تعريف WebUI تحديد ما يصل إلى $1 من الأعضاء.",
     "editor.webui-profiles.limit": "لقد وصل هذا المجلد إلى حد أمان ملف تعريف WebUI.",
-    "editor.members.assignment-why": "لماذا هذا المجلد؟",
+    "editor.members.assignment-reason": "سبب التعيين",
     "editor.members.assignment-elsewhere": "المخصصة لمجلدات أخرى",
     "editor.members.assignment-manual": "تم تعيينه يدويًا",
     "editor.members.assignment-label": "متطابقة حسب التسمية",

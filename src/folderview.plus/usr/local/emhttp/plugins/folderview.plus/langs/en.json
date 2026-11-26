@@ -4,7 +4,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "en",
         "native-name": "English",
         "reviewed": true,
@@ -13,7 +13,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "1c9c558fc512ece73f567c38d87e99e6224c9cd10aab7145894263f9a4ed9c9a",
-        "locale-content-revision": "fafc806882a9a0eb60d416c5e4100a6d1ae41d1850c94a875dbff8cf78335615"
+        "locale-content-revision": "3f40c8a9fc4476fcaaa669b1dee1aac82bcdad811192fccdd04ccbec63a60bca"
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",

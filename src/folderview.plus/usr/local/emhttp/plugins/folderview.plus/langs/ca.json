@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "ca",
         "native-name": "Català",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "fa9c6b6411ed55d147029ee3b7d4dabc3f4d97dab968808d2e08f66938bd2a1a",
-        "locale-content-revision": "2b2909ca59c0a99dc906bf2ebe4587dd38939234b1b142c13778f82142927210"
+        "locale-content-revision": "f94e7166f0f0bf8b1f63b88112f27228a8cc5d29cd4cdfcf8dd9b9976e28a7e6"
     },
     "add-folder": "Afegeix una carpeta",
     "up-to-date": "al dia",

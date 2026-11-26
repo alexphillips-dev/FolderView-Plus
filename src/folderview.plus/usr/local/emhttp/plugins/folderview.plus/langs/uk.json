@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "uk",
         "native-name": "Українська",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "d586184c058f54b024f7d4ee2830865f09c7b3cb5b6920ff4dcb12a0461f995f",
-        "locale-content-revision": "da2624f72a176761f0f1273f330c5c724658607555afff9f1dfc3310571172c5"
+        "locale-content-revision": "b220b15deaa11efd92a007d364c03cd08a216c055f79255fd5aac8bcf8d599b7"
     },
     "add-folder": "Додати папку",
     "up-to-date": "актуально",

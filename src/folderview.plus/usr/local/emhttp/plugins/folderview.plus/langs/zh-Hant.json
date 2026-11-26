@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "zh-Hant",
         "native-name": "繁體中文",
         "normalization-profile": "opencc-s2twp-1.4.1",
@@ -16,7 +16,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "6c7f499d3846e87c93866e76ab63e3573c3e5f5e6da6812db5240e1a4bdf9bf8",
-        "locale-content-revision": "129a20e29aa862ca9dc32a43becc40cedb2aa927fa1477320f9561c084fbaef0"
+        "locale-content-revision": "76d7b4d9c95e99237796af3a0917734cfd74208324e161506122cab1d99b4dcb"
     },
     "add-folder": "新增資料夾",
     "up-to-date": "最新的",

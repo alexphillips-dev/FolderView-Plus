@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "pl",
         "native-name": "Polski",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "af3339b4efb7989227dea66b2a516e56d887fb71726724432251e8c7b34f94b3",
-        "locale-content-revision": "b4d5148e7201dab696110a126029fcc0f4fc86171797e697288bb268dc0f5f08"
+        "locale-content-revision": "d4aab0753b92c4935869443d808ba8b06b850a867011b9c055ea4a0584ee1b94"
     },
     "add-folder": "Dodaj folder",
     "up-to-date": "aktualny",

@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "ja",
         "native-name": "日本語",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "02fa2845d1d911a1e63d2c35620c84cf9eb8b2bab334e7c7b3d52221efa01661",
-        "locale-content-revision": "b3c625155af13bbe33a4ceb25f9a7199954c98c41c049e9ceb9479e928831b6b"
+        "locale-content-revision": "97947d1387b9bf68c26fbe3f56fa52ed5f902faaa5180ecf61a2d2610ca0dfbc"
     },
     "add-folder": "フォルダーを追加",
     "up-to-date": "最新の状態",

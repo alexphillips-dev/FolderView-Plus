@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "de",
         "native-name": "Deutsch",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "a88cfd24fbda9eb98a7780f1b403c2751bd8a0edffaf990896af5abc5269f9a8",
-        "locale-content-revision": "2635b8070da2e738ba0f18cb082f3ee3e93f03661060cd6ce3c977af9efbd10e"
+        "locale-content-revision": "4c01962a55da3d4f670e66269ba909f127253c8e6d4b1e7a93244af3c6933a62"
     },
     "add-folder": "Ordner hinzufügen",
     "up-to-date": "aktuell",

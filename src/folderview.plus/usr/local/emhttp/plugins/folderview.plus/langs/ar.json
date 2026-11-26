@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "rtl",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "ar",
         "native-name": "العربية",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "7c764dd2894b72427eb83096263356771c02cc82ebc78f7da031afea06c1d6ec",
-        "locale-content-revision": "5e46bb967f090a8b9103a959acd0598f402eb6e9222e2ea261bfee3a3a872bae"
+        "locale-content-revision": "cfb5a045398ee5375196b5ff7f9faf197ecd3bb6a440b7450da1ee15e13ab40a"
     },
     "add-folder": "إضافة مجلد",
     "up-to-date": "محدثة",

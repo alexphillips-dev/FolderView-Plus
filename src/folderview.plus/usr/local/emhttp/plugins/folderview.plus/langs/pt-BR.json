@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "pt-BR",
         "native-name": "Português (Brasil)",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "395e53ad9a78e137a6a55f1cd14f9b39ca74dcf9f54724d978287ad6ef57b46b",
-        "locale-content-revision": "78f68df034d3d90bc60c882e8f4b1b685c81e9415c971e553948a58ef32a4df0"
+        "locale-content-revision": "da1eeec34e97b8a8d64c03864492efb04035a966b4619e1b744163379d2f8959"
     },
     "add-folder": "Adicionar pasta",
     "up-to-date": "atualizado",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "editor",
-        "content-revision": "30b3ccf4d49585c7d1f8f1045d9104731e47f9340a9fc67b7b68904aeb1a5639"
+        "content-revision": "5191e407138710f94d6e629766087eec642fb9319fb96d8e20d0f6f9a6709980"
     },
     "editor.settings.information-about": "Informacije o $1",
     "editor.actions.add-custom": "Dodajte prilagođenu radnju",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Svaki WebUI profil mora odabrati barem jednog člana mape.",
     "editor.webui-profiles.error-member-limit": "WebUI profil može odabrati do $1 članova.",
     "editor.webui-profiles.limit": "Ova je mapa dosegla sigurnosno ograničenje profila web sučelja.",
-    "editor.members.assignment-why": "Zašto ova mapa?",
+    "editor.members.assignment-reason": "Razlog dodjele",
     "editor.members.assignment-elsewhere": "Dodijeljeno drugim mapama",
     "editor.members.assignment-manual": "Ručno dodijeljeno",
     "editor.members.assignment-label": "Odgovara etiketi",

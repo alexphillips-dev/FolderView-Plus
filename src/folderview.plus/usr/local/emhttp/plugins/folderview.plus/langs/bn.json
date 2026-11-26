@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "bn",
         "native-name": "বাংলা",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "ad99e117c6f3bd7d1ac35f012fd31b6eceabc3b19db401ac5c4b1f947b4af6d7",
-        "locale-content-revision": "13ec74216fe2971138499e6dfe0baeaa9bb47caebade13d34ca5224d2f9198df"
+        "locale-content-revision": "968200f713fe104d2a2a946128f998e01dd267bce851c944964c8043a3a52f1a"
     },
     "add-folder": "ফোল্ডার যোগ করুন",
     "up-to-date": "আপ টু ডেট",

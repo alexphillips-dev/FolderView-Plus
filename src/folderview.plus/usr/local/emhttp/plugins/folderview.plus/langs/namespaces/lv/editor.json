@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "editor",
-        "content-revision": "5e86ee1160fe1bc3dcc806a08749d20957dfa3037343f7557b3b4fdbc67f3c73"
+        "content-revision": "41f2beabace2df9dfb3db0d6a75e93a19e741236085d38ed7d27bf4c1978c422"
     },
     "editor.settings.information-about": "Informācija par $1",
     "editor.actions.add-custom": "Pievienojiet pielāgotu darbību",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Katrā WebUI profilā ir jāatlasa vismaz viens mapes dalībnieks.",
     "editor.webui-profiles.error-member-limit": "WebUI profilā var atlasīt līdz $1 dalībniekiem.",
     "editor.webui-profiles.limit": "Šī mape ir sasniegusi WebUI profila drošības ierobežojumu.",
-    "editor.members.assignment-why": "Kāpēc šī mape?",
+    "editor.members.assignment-reason": "Piešķiršanas iemesls",
     "editor.members.assignment-elsewhere": "Piešķirts citām mapēm",
     "editor.members.assignment-manual": "Manuāli piešķirts",
     "editor.members.assignment-label": "Atbilst pēc etiķetes",

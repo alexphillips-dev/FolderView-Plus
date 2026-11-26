@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "editor",
-        "content-revision": "f6c6adc5e54b85fe84b0da3c1e1089d8d570fc489119917ec31706bae2a997b9"
+        "content-revision": "e5ae0a3c034313c4e700740c0b079d222934a8d23fa445cfd5e7a622b4fc3bb2"
     },
     "editor.settings.information-about": "$1 hakkında bilgi",
     "editor.actions.add-custom": "Özel bir eylem ekle",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Her WebUI profili en az bir klasör üyesi seçmelidir.",
     "editor.webui-profiles.error-member-limit": "Bir WebUI profili en fazla $1 üye seçebilir.",
     "editor.webui-profiles.limit": "Bu klasör WebUI profili güvenlik sınırına ulaştı.",
-    "editor.members.assignment-why": "Neden bu klasör?",
+    "editor.members.assignment-reason": "Atama nedeni",
     "editor.members.assignment-elsewhere": "Diğer klasörlere atandı",
     "editor.members.assignment-manual": "Manuel olarak atandı",
     "editor.members.assignment-label": "Etikete göre eşleştirildi",

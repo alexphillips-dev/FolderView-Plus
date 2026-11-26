@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "editor",
-        "content-revision": "012fc5946c9d9b5df1d0fd1a5fcdca58e0d83ff87316b8b9be34cb592c711781"
+        "content-revision": "f4b658fa5766d897761c3e4455795a22604eadce4c0d16b0e0bb83ba5c75bb53"
     },
     "editor.settings.information-about": "Інформація про $1",
     "editor.actions.add-custom": "Додати користувацьку дію",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Кожен профіль WebUI має вибрати принаймні одного члена папки.",
     "editor.webui-profiles.error-member-limit": "Профіль WebUI може вибрати до $1 учасників.",
     "editor.webui-profiles.limit": "Ця папка досягла обмеження безпеки профілю WebUI.",
-    "editor.members.assignment-why": "Чому ця папка?",
+    "editor.members.assignment-reason": "Причина призначення",
     "editor.members.assignment-elsewhere": "Призначено для інших папок",
     "editor.members.assignment-manual": "Призначено вручну",
     "editor.members.assignment-label": "Відповідає мітці",

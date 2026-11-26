@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "editor",
-        "content-revision": "e808505b9330a17ca80d892f19225dc1881bc4144f8e7527d8b85e1bb6d2f96a"
+        "content-revision": "c82936717af1d71a6e555f339cd84ad9e1260f83e1821ee31fe0a7a4569f1922"
     },
     "editor.settings.information-about": "Informasjon om $1",
     "editor.actions.add-custom": "Legg til en egendefinert handling",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Hver WebUI-profil må velge minst ett mappemedlem.",
     "editor.webui-profiles.error-member-limit": "En WebUI-profil kan velge opptil $1 medlemmer.",
     "editor.webui-profiles.limit": "Denne mappen har nådd sikkerhetsgrensen for WebUI-profilen.",
-    "editor.members.assignment-why": "Hvorfor denne mappen?",
+    "editor.members.assignment-reason": "Tilordningsgrunn",
     "editor.members.assignment-elsewhere": "Tilordnet til andre mapper",
     "editor.members.assignment-manual": "Manuelt tildelt",
     "editor.members.assignment-label": "Matches av etikett",

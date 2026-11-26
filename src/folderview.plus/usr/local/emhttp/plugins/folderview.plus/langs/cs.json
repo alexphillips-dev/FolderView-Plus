@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "cs",
         "native-name": "Čeština",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "81ab65711cacf7d0665afcafc45385a4af09c1515868d646f19fa8e535041c98",
-        "locale-content-revision": "5d6be0ef7a282ef4abfbb61b12f5a1d7dd505f6afee8279fcef012d8e6624175"
+        "locale-content-revision": "c301b3ba4911702ee763520c2f568fa5217ae3d360bd6e93775c7bb7e92fd3c7"
     },
     "add-folder": "Přidat složku",
     "up-to-date": "aktuální",

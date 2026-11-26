@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "editor",
-        "content-revision": "2365e7cede70dccc0e80525a319c22b06003e6b679fb464ba56c0fefff6666c0"
+        "content-revision": "9449acbe1ba2264eace3747ad0da28e93644900c10025ff1c9ac8d9630582ff7"
     },
     "editor.settings.information-about": "Információ a következőről: $1",
     "editor.actions.add-custom": "Egyéni művelet hozzáadása",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Minden WebUI-profilnak ki kell választania legalább egy mappatagot.",
     "editor.webui-profiles.error-member-limit": "Egy WebUI-profil legfeljebb $1 tagot választhat ki.",
     "editor.webui-profiles.limit": "Ez a mappa elérte a WebUI-profil biztonsági korlátját.",
-    "editor.members.assignment-why": "Miért ez a mappa?",
+    "editor.members.assignment-reason": "Hozzárendelés oka",
     "editor.members.assignment-elsewhere": "Más mappákhoz hozzárendelve",
     "editor.members.assignment-manual": "Manuálisan hozzárendelve",
     "editor.members.assignment-label": "Címke szerint egyeztetve",

@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "editor",
-        "content-revision": "a2798466001e4fb113f000cb163d4aeb63a0259886983a2bdbdf722a0e4a9706"
+        "content-revision": "3eb79427eb284c4c17f1ce05b911a8ceeed2ca21fb502c2b5ed3e3c395e764c4"
     },
     "editor.settings.information-about": "Informationen zu $1",
     "editor.actions.add-custom": "Fügen Sie eine benutzerdefinierte Aktion hinzu",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Jedes WebUI-Profil muss mindestens ein Ordnermitglied auswählen.",
     "editor.webui-profiles.error-member-limit": "Ein WebUI-Profil kann bis zu $1 Mitglieder auswählen.",
     "editor.webui-profiles.limit": "Dieser Ordner hat die Sicherheitsgrenze des WebUI-Profils erreicht.",
-    "editor.members.assignment-why": "Warum dieser Ordner?",
+    "editor.members.assignment-reason": "Zuweisungsgrund",
     "editor.members.assignment-elsewhere": "Anderen Ordnern zugewiesen",
     "editor.members.assignment-manual": "Manuell zugewiesen",
     "editor.members.assignment-label": "Passend zum Label",

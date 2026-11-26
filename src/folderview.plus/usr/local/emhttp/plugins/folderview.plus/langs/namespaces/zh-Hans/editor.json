@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "editor",
-        "content-revision": "5c6e8d91337a2f5e942a45016e801f940ae4c8aee50eba563f0f9dc3b6c63921"
+        "content-revision": "3ba685847dd91c330a106c1836f331e58c7b03bbe8c06ad4772021a45cfd8e3f"
     },
     "editor.settings.information-about": "有关 $1 的信息",
     "editor.actions.add-custom": "添加自定义操作",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "每套 WebUI 配置方案都必须选择至少一个文件夹成员。",
     "editor.webui-profiles.error-member-limit": "WebUI 配置文件最多可以选择 $1 成员。",
     "editor.webui-profiles.limit": "此文件夹的 WebUI 配置方案数量已达上限。",
-    "editor.members.assignment-why": "为什么是这个文件夹？",
+    "editor.members.assignment-reason": "分配原因",
     "editor.members.assignment-elsewhere": "分配给其他文件夹",
     "editor.members.assignment-manual": "手动分配",
     "editor.members.assignment-label": "按标签匹配",

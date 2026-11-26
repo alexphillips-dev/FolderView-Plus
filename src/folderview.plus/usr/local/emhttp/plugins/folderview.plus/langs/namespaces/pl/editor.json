@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "editor",
-        "content-revision": "f0713482e6ef27583320c54f4ff9834ec2e7e66b418b5d54c3a40d6f6e5a3f45"
+        "content-revision": "903c2072dc4bf00ad6c2527b1babbfd6a20cfceb088521f7f1d8eba4da02cdd2"
     },
     "editor.settings.information-about": "Informacje o $1",
     "editor.actions.add-custom": "Dodaj niestandardową akcję",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Każdy profil WebUI musi wybierać co najmniej jednego członka folderu.",
     "editor.webui-profiles.error-member-limit": "Profil WebUI może wybrać maksymalnie $1 członków.",
     "editor.webui-profiles.limit": "Ten folder osiągnął limit bezpieczeństwa profilu WebUI.",
-    "editor.members.assignment-why": "Dlaczego ten folder?",
+    "editor.members.assignment-reason": "Powód przypisania",
     "editor.members.assignment-elsewhere": "Przypisane do innych folderów",
     "editor.members.assignment-manual": "Przypisane ręcznie",
     "editor.members.assignment-label": "Dopasowane według etykiety",

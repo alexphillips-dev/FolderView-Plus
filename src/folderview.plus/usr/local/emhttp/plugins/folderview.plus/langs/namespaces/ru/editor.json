@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "editor",
-        "content-revision": "32fbc0f8302ad5aaa160cf01505be320711f52a9aee379ce59172d00f3db24ee"
+        "content-revision": "85a6c1068b09f80c5a92937b63525643b10a55da14b6860f5a258c6d06763863"
     },
     "editor.settings.information-about": "Информация о $1",
     "editor.actions.add-custom": "Добавить пользовательское действие",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "В каждом профиле WebUI необходимо выбрать хотя бы одного члена папки.",
     "editor.webui-profiles.error-member-limit": "Профиль WebUI может выбрать до $1 участников.",
     "editor.webui-profiles.limit": "В этой папке достигнут предел безопасности профиля WebUI.",
-    "editor.members.assignment-why": "Почему эта папка?",
+    "editor.members.assignment-reason": "Причина назначения",
     "editor.members.assignment-elsewhere": "Назначено другим папкам",
     "editor.members.assignment-manual": "Назначено вручную",
     "editor.members.assignment-label": "Соответствует ярлыку",

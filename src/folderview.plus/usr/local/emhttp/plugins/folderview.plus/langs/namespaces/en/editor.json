@@ -4,7 +4,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "editor",
-        "content-revision": "da09b0ad95a1e1f1037c348b532ad28d162a945bfd726ed2b1bc1ba3b7a79d1f"
+        "content-revision": "d8fa71c6e0dd9429de02331c1422e2f028ff03ed47ccbf2aec3bf31ea6fe8368"
     },
     "editor.actions.add-custom": "Add a custom action",
     "editor.actions.standard": "Standard",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Every WebUI profile must select at least one folder member.",
     "editor.webui-profiles.error-member-limit": "A WebUI profile can select up to $1 members.",
     "editor.webui-profiles.limit": "This folder has reached the WebUI profile safety limit.",
-    "editor.members.assignment-why": "Why this folder?",
+    "editor.members.assignment-reason": "Assignment reason",
     "editor.members.assignment-elsewhere": "Assigned to other folders",
     "editor.members.assignment-manual": "Manually assigned",
     "editor.members.assignment-label": "Matched by label",

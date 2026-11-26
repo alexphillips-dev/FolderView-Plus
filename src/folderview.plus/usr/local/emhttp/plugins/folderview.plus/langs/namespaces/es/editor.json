@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "editor",
-        "content-revision": "92c4954efbd9d58a7003f911b3a5b2fcf3ff6bbc51b4ac3bcec0e1b9e86155b2"
+        "content-revision": "1e39a9b59da449a1f07dee010ed4ff61c008e700abd586e2b88635b140b0866c"
     },
     "editor.settings.information-about": "Información sobre $1",
     "editor.actions.add-custom": "Agregar una acción personalizada",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Cada perfil de WebUI debe seleccionar al menos un miembro de la carpeta.",
     "editor.webui-profiles.error-member-limit": "Un perfil WebUI puede seleccionar hasta $1 miembros.",
     "editor.webui-profiles.limit": "Esta carpeta ha alcanzado el límite de seguridad del perfil WebUI.",
-    "editor.members.assignment-why": "¿Por qué esta carpeta?",
+    "editor.members.assignment-reason": "Motivo de asignación",
     "editor.members.assignment-elsewhere": "Asignado a otras carpetas",
     "editor.members.assignment-manual": "Asignado manualmente",
     "editor.members.assignment-label": "Emparejado por etiqueta",

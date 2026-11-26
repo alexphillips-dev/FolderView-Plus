@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "nb",
         "native-name": "Norsk bokmål",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "25c661c42ddc5deb7cd4b62058b6d3063f8d947b510554f28d2051ef94a47cb1",
-        "locale-content-revision": "d86b50f29ffd9698be2af8da64ac4b52da3a51082ce96ca50677c0ebe7d01410"
+        "locale-content-revision": "f9d1ad49e815471101173915280eebbd9965402c3f107c798dc4056e8d55df18"
     },
     "add-folder": "Legg til mappe",
     "up-to-date": "oppdatert",

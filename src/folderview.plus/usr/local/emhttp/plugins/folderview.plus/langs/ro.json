@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "ro",
         "native-name": "Română",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "bc7d34a8c3d6dc573e932f977a4a3006a79d0a98255069863bba9a684a6ce96f",
-        "locale-content-revision": "7e4e387d8f3330fa83aabe7d182e19512dd958fcbf02af3be8118b90744b695b"
+        "locale-content-revision": "b72cbb6e3edcc156dd2dc170fbbfdd05aae2d96bec9971931efc1f956982a2a1"
     },
     "add-folder": "Adaugă folder",
     "up-to-date": "actualizat",

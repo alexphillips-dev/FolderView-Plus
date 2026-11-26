@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "editor",
-        "content-revision": "2b6048d06754bca48a210812214e015371cdf566ca8e92e2e6718cd40654a494"
+        "content-revision": "7e11b8700d868143f21a54db1721e16ec9e7e51d87f334f6ad1811a89aa5ff3f"
     },
     "editor.settings.information-about": "Informații despre $1",
     "editor.actions.add-custom": "Adaugă o acțiune personalizată",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Fiecare profil WebUI trebuie să selecteze cel puțin un membru al folderului.",
     "editor.webui-profiles.error-member-limit": "Un profil WebUI poate selecta până la $1 membri.",
     "editor.webui-profiles.limit": "Acest folder a atins limita de siguranță a profilului WebUI.",
-    "editor.members.assignment-why": "De ce acest folder?",
+    "editor.members.assignment-reason": "Motivul atribuirii",
     "editor.members.assignment-elsewhere": "Atribuit altor dosare",
     "editor.members.assignment-manual": "Alocate manual",
     "editor.members.assignment-label": "Se potrivește după etichetă",

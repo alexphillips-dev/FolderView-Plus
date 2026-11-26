@@ -3,7 +3,7 @@
         "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "editor",
-        "content-revision": "2c1c97423bd410ca5c042ed68300dd31bdd9071c8ecd0537bb3ed9757a7e4fea"
+        "content-revision": "d775db78138aba0b43cffbed9de83d98d4b13178deb120669e3cf7a76008ffee"
     },
     "editor.settings.information-about": "Informations sur $1",
     "editor.actions.add-custom": "Ajouter une action personnalisée",
@@ -53,7 +53,7 @@
     "editor.webui-profiles.error-members": "Chaque profil WebUI doit sélectionner au moins un membre de dossier.",
     "editor.webui-profiles.error-member-limit": "Un profil WebUI peut sélectionner jusqu'à $1 membres.",
     "editor.webui-profiles.limit": "Ce dossier a atteint la limite de sécurité du profil WebUI.",
-    "editor.members.assignment-why": "Pourquoi ce dossier ?",
+    "editor.members.assignment-reason": "Motif d’affectation",
     "editor.members.assignment-elsewhere": "Attribué à d'autres dossiers",
     "editor.members.assignment-manual": "Attribué manuellement",
     "editor.members.assignment-label": "Assorti par étiquette",

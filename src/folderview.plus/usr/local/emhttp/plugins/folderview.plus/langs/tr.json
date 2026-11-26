@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "tr",
         "native-name": "Türkçe",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "ece29203945e2a06672e7baf7a9a4d4b3db959a4088f378d1f508cbede25dfc3",
-        "locale-content-revision": "f2d87ab7b315ae2106449dc930fbdf2def31468b396250f76df2167d9da4f605"
+        "locale-content-revision": "027b9eff75f137e5610b3824c04e4b9485def7398f7501f70de0e58582b574f3"
     },
     "add-folder": "Klasör Ekle",
     "up-to-date": "güncel",

@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "ru",
         "native-name": "Русский",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "4dd4851d8d0c559ca5a89278ca5b06ebcf2d2cd8ef2efe223678d3b08f481462",
-        "locale-content-revision": "cb07e9f26747bf78accb903fdbece7802c73e605778bba8d93ef1c436e91477d"
+        "locale-content-revision": "8ee7ee0e7bfe1fa57356f63b87257189406ab62cae746263c571fa2db418f0b6"
     },
     "add-folder": "Добавить папку",
     "up-to-date": "актуально",

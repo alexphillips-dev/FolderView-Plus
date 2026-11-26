@@ -2357,6 +2357,7 @@ const getFolderEditorMembersApi = () => {
         isFormInitialized: () => isFormInitialized === true,
         translate: surfaceT,
         showAssignmentDetails: () => !editingFolderDefaults,
+        isAssignmentTabActive: () => activeEditorSection === 'members',
         getMembershipForm: getForm, validateMembershipPattern: readLegacyRegexValidation,
         reconcileAutomaticMembership: () => updateRegex(getForm().regex),
         readAssignmentOrder: () => requestClient.getJson('/plugins/folderview.plus/server/read_order.php', {
@@ -2566,6 +2567,7 @@ const ensureInheritedFieldControls = () => {
 const setActiveEditorSection = (sectionKey) => {
     activeEditorSection = normalizeActiveEditorSection(sectionKey, editorMode);
     applyAdvancedMode();
+    if (activeEditorSection === 'members') folderEditorMembersApi?.refreshAssignmentDetails?.();
 };
 
 const toggleAdvancedSectionCollapse = (sectionKey) => {

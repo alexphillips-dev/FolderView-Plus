@@ -149,10 +149,12 @@
             rule: translate('editor.members.assignment-rule', 'Matched by rule')
         }[reason]);
 
-        const getAssignmentText = ({ owner, matches = [] } = {}, preview = false) => {
+        const getAssignmentText = ({ owner, matches = [] } = {}, preview = false, activeId = '') => {
             const lines = [];
             if (owner) {
-                lines.push(translate('editor.members.assignment-owner', 'Assigned to $1 · $2', owner.folderName, getReasonLabel(owner.reason)));
+                const reason = getReasonLabel(owner.reason);
+                lines.push(owner.id === activeId ? reason
+                    : translate('editor.members.assignment-owner', 'Assigned to $1 · $2', owner.folderName, reason));
             }
             for (const match of matches) {
                 if (match === owner) continue;
@@ -162,11 +164,9 @@
             return preview ? translate('editor.members.assignment-preview', 'Preview · $1', value) : value;
         };
 
-        const hasOpenAssignmentDetails = () =>
-            assignmentContext?.open || [...assignmentRows.values()].some((details) => details.open);
-
         const refreshAssignmentDetails = () => {
-            if (assignmentDisposed || !deps.getAssignmentContext || !hasOpenAssignmentDetails()) return;
+            if (assignmentDisposed || deps.isAssignmentTabActive?.() === false
+                || !deps.getAssignmentContext || (!assignmentRows.size && !assignmentContext?.open)) return;
             assignmentRenderId += 1;
             if (assignmentRenderQueued) return;
             assignmentRenderQueued = true;
@@ -176,13 +176,13 @@
                 const request = assignmentOrder ||= Promise.resolve().then(() => deps.readAssignmentOrder?.()).catch(() => null);
                 const order = await request;
                 if (assignmentOrder === request && !Array.isArray(order)) assignmentOrder = null;
-                if (assignmentDisposed || renderId !== assignmentRenderId) return;
+                if (assignmentDisposed || renderId !== assignmentRenderId || deps.isAssignmentTabActive?.() === false) return;
                 const context = deps.getAssignmentContext();
                 if (!context?.utils?.buildMembershipSnapshot) return;
                 const unnamedFolderName = translate('common.runtime.unnamed', '(unnamed)');
                 const { rows, preview, activeId } = buildAssignmentDetails({ ...context, infoByName: assignmentInventory, order, unnamedFolderName });
-                for (const [name, details] of assignmentRows) {
-                    if (details.open && details.isConnected) details.lastElementChild.textContent = getAssignmentText(rows.get(name), preview);
+                for (const [name, cell] of assignmentRows) {
+                    if (cell.isConnected) cell.textContent = getAssignmentText(rows.get(name), preview, activeId);
                 }
                 if (!assignmentContext?.open || !assignmentContext.isConnected) return;
                 const list = win.document.createElement('ul');
@@ -211,7 +211,6 @@
             details.append(summary, output);
             details.addEventListener('toggle', () => {
                 if (details.open && details.isConnected) refreshAssignmentDetails();
-                else if (!hasOpenAssignmentDetails()) assignmentOrder = null;
             });
             return details;
         };
@@ -228,15 +227,12 @@
                     'input[name="name"], input[name="regex"], input[name="containers[]"]', refreshAssignmentDetails);
             }
             const nextRows = new Map();
+            const loading = translate('editor.members.assignment-loading', 'Loading assignment…');
             for (const row of table.querySelectorAll('tbody > tr[data-name]')) {
-                const cell = row.querySelector('.name-col');
+                const cell = row.querySelector('.assignment-col');
                 if (!cell) continue;
-                const name = row.dataset.name;
-                const previous = assignmentRows.get(name);
-                const details = previous || createAssignmentDisclosure('fv-member-assignment',
-                    translate('editor.members.assignment-why', 'Why this folder?'));
-                if (details.parentElement !== cell) cell.append(details);
-                nextRows.set(name, details);
+                cell.textContent ||= loading;
+                nextRows.set(row.dataset.name, cell);
             }
             assignmentRows = nextRows;
             if (assignmentNames.some((name) => !assignmentRows.has(name))) {

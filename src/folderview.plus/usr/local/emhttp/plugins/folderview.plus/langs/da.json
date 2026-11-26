@@ -6,7 +6,7 @@
         "catalog-version": "2026.08.10.1",
         "direction": "ltr",
         "last-reviewed": "2026-11-23",
-        "last-updated": "2026-11-25",
+        "last-updated": "2026-11-26",
         "locale": "da",
         "native-name": "Dansk",
         "reviewed": true,
@@ -15,7 +15,7 @@
         "translated-messages": 4795,
         "total-source-messages": 4795,
         "content-revision": "90937191c44ad3d11dbc9c746c6c816aeedec43f3b41f626d6fd4f56016b3c82",
-        "locale-content-revision": "9e45a17a6f4ed2ffa3904ba47e832fab0677010fff42d6972dafa37d59e6ccfa"
+        "locale-content-revision": "2ddc18a21152e75b759c6f59ab497d3d0617bb3bfeb63df3ffb2a52145244a56"
     },
     "add-folder": "Tilføj mappe",
     "up-to-date": "opdateret",
